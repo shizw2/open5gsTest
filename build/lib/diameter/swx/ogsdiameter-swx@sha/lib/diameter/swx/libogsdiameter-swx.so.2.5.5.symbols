@@ -1,0 +1,11 @@
+ 0x000000000000000e (SONAME)             Library soname: [libogsdiameter-swx.so.2]
+__bss_start B
+_edata D
+_end B
+_fini T
+_init T
+ogs_diam_swx_application B
+ogs_diam_swx_init T
+ogs_diam_swx_non_3gpp_ip_access B
+ogs_diam_swx_non_3gpp_ip_access_apn B
+ogs_diam_swx_non_3gpp_user_data B

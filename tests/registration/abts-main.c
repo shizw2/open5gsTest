@@ -35,6 +35,7 @@ abts_suite *test_crash(abts_suite *suite);
 const struct testlist {
     abts_suite *(*func)(abts_suite *suite);
 } alltests[] = {
+	#if 0
     {test_simple},
     {test_guti},
     {test_auth},
@@ -45,6 +46,7 @@ const struct testlist {
     {test_gmm_status},
     {test_ue_context},
     {test_reset},
+	#endif
     {test_multi_ue},
 #if 0 /* Since there is error LOG, we disabled the following test */
     {test_crash},

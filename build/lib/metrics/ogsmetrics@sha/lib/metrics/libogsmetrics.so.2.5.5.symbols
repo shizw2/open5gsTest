@@ -1,0 +1,20 @@
+ 0x000000000000000e (SONAME)             Library soname: [libogsmetrics.so.2]
+__bss_start B
+_edata D
+_end B
+_fini T
+_init T
+ogs_metrics_context_close T
+ogs_metrics_context_final T
+ogs_metrics_context_init T
+ogs_metrics_context_open T
+ogs_metrics_context_parse_config T
+__ogs_metrics_domain B
+ogs_metrics_inst_add T
+ogs_metrics_inst_free T
+ogs_metrics_inst_new T
+ogs_metrics_inst_reset T
+ogs_metrics_inst_set T
+ogs_metrics_self T
+ogs_metrics_spec_free T
+ogs_metrics_spec_new T
