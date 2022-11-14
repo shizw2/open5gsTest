@@ -122,15 +122,11 @@ char *ogs_nas_5gs_suci_from_mobile_identity(
             scheme_output_len <= OGS_NAS_MAX_SCHEME_OUTPUT_LEN, NULL);
 
     if (mobile_identity_suci->protection_scheme_id != OGS_NAS_5GS_NULL_SCHEME) {
-		printf("ogs_hex_to_ascii:%d\r\n",scheme_output_len);
         ogs_hex_to_ascii(mobile_identity_suci->scheme_output, 
             scheme_output_len, tmp, sizeof(tmp));
     } else {
-		
         ogs_buffer_to_bcd(mobile_identity_suci->scheme_output,
             scheme_output_len, tmp);
-		//printf("ogs_buffer_to_bcd:%d,TMP:%s\r\n",scheme_output_len,tmp);
-		//printf("%x%x%x%x%x.\r\n",mobile_identity_suci->scheme_output[0],mobile_identity_suci->scheme_output[1],mobile_identity_suci->scheme_output[2],mobile_identity_suci->scheme_output[3],mobile_identity_suci->scheme_output[4]);
     }
 
     suci = ogs_mstrcatf(suci, "%s-%d-%d-%s",

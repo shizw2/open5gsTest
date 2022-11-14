@@ -51,9 +51,6 @@ static void run(int argc, const char *const argv[],
         argv_out[argc_out] = NULL;
     }
 
-        //argv_out[argc_out++] = "-e";
-       //argv_out[argc_out++] = "debug";
-        //argv_out[argc_out] = NULL;
     /* buildroot/src/open5gs-main */
     argv_out[0] = MESON_BUILD_ROOT OGS_DIR_SEPARATOR_S 
             "src" OGS_DIR_SEPARATOR_S "open5gs-main";

@@ -18,11 +18,17 @@
  */
 
 #include "test-common.h"
-#include <stdio.h>
-#include <time.h>
-#include <stdlib.h>
+#include <stdio.h>	//使用printf()需要包含
+#include <sys/time.h>
+#include <unistd.h>	//使用sleep()函数需要包含
 
-#define NUM_OF_TEST_UE 1000
+double __get_us(struct timeval t) {
+	return (t.tv_sec * 1000000 + t.tv_usec);
+}
+
+extern int g_testNum;
+
+#define NUM_OF_TEST_UE 100
 
 static void test1_func(abts_case *tc, void *data)
 {
@@ -36,14 +42,12 @@ static void test1_func(abts_case *tc, void *data)
     ogs_pkbuf_t *recvbuf;
     ogs_ngap_message_t message;
     int i;
-	
-    struct timeval start, end;
-    int timeuse;
 
-    gettimeofday(&start, NULL);
-	
+    struct timeval start_time, stop_time;
+    gettimeofday(&start_time, NULL);
+
     ogs_nas_5gs_mobile_identity_suci_t mobile_identity_suci;
-    test_ue_t *test_ue[NUM_OF_TEST_UE];
+    test_ue_t *test_ue[g_testNum];
     test_sess_t *sess = NULL;
     test_bearer_t *qos_flow = NULL;
 
@@ -67,7 +71,7 @@ static void test1_func(abts_case *tc, void *data)
     recvbuf = testgnb_ngap_read(ngap);
     ABTS_PTR_NOTNULL(tc, recvbuf);
 
-    for (i = 0; i < NUM_OF_TEST_UE; i++) {
+    for (i = 0; i < g_testNum; i++) {
         uint64_t imsi_index;
 
         /* Setup Test UE & Session Context */
@@ -86,19 +90,15 @@ static void test1_func(abts_case *tc, void *data)
         mobile_identity_suci.scheme_output[2] = 0x20;
         mobile_identity_suci.scheme_output[3] = 0x31;
         mobile_identity_suci.scheme_output[4] = 0x90;
-		
-        printf("before:%x%x%x%x%x\r\n",mobile_identity_suci.scheme_output[0],mobile_identity_suci.scheme_output[1],mobile_identity_suci.scheme_output[2],mobile_identity_suci.scheme_output[3],mobile_identity_suci.scheme_output[4]);
+
         imsi_index = i + 1;
         //ogs_uint64_to_buffer(imsi_index, 5, mobile_identity_suci.scheme_output);
-				mobile_identity_suci.scheme_output[4] = imsi_index%10;
-		mobile_identity_suci.scheme_output[3] = imsi_index/10%10;
-		mobile_identity_suci.scheme_output[2] = imsi_index/100%10;
-		mobile_identity_suci.scheme_output[1] = imsi_index/1000%10;
-		mobile_identity_suci.scheme_output[0] = imsi_index/10000%10;
-		//int j;
-		//printf("suci:\r\n");
-		//for (j=0; j < sizeof(mobile_identity_suci.scheme_output); j++)
-        printf("after scheme_output:%x%x%x%x%x\r\n",mobile_identity_suci.scheme_output[0],mobile_identity_suci.scheme_output[1],mobile_identity_suci.scheme_output[2],mobile_identity_suci.scheme_output[3],mobile_identity_suci.scheme_output[4]);
+        mobile_identity_suci.scheme_output[0] = imsi_index/10000%10;
+        mobile_identity_suci.scheme_output[1] = imsi_index/1000%10;
+        mobile_identity_suci.scheme_output[2] = imsi_index/100%10;
+        mobile_identity_suci.scheme_output[3] = imsi_index/10%10;
+        mobile_identity_suci.scheme_output[4] = imsi_index%10;
+
         test_ue[i] = test_ue_add_by_suci(&mobile_identity_suci, 13);
         ogs_assert(test_ue[i]);
 
@@ -113,12 +113,9 @@ static void test1_func(abts_case *tc, void *data)
         test_ue[i]->opc_string = "e8ed289deba952e4283b54e88e6183ca";
     }
 
-	for (i = 0; i < NUM_OF_TEST_UE; i++) {
-        if (i > 0)
-            test_ue[i]->ran_ue_ngap_id = test_ue[i-1]->ran_ue_ngap_id;
-        else
-            test_ue[i]->ran_ue_ngap_id = 0;
 
+	//插入数据库单独统计
+    for (i = 0; i < g_testNum; i++) {
 
         /********** Insert Subscriber in Database */
         doc = test_db_new_simple(test_ue[i]);
@@ -126,11 +123,12 @@ static void test1_func(abts_case *tc, void *data)
         ABTS_INT_EQUAL(tc, OGS_OK, test_db_insert_ue(test_ue[i], doc));
 	}
 
-	gettimeofday(&end, NULL);
-    timeuse = 1000000 * ( end.tv_sec - start.tv_sec ) + end.tv_usec - start.tv_usec;
-	printf("Insert Subscriber in Database =%.3fs\n", (double)timeuse/1000000);
-	gettimeofday(&start, NULL);
-    for (i = 0; i < NUM_OF_TEST_UE; i++) {
+
+	gettimeofday(&stop_time, NULL);
+	printf("Insert Subscriber in Database,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
+	gettimeofday(&start_time, NULL);
+
+    for (i = 0; i < g_testNum; i++) {
         if (i > 0)
             test_ue[i]->ran_ue_ngap_id = test_ue[i-1]->ran_ue_ngap_id;
         else
@@ -272,11 +270,9 @@ static void test1_func(abts_case *tc, void *data)
         ABTS_INT_EQUAL(tc, OGS_OK, rv);
 #endif
     }
-    gettimeofday(&end, NULL);
-    timeuse = 1000000 * ( end.tv_sec - start.tv_sec ) + end.tv_usec - start.tv_usec;
-	printf("register sucess =%.3fs\n", (double)timeuse/1000000);
+
 #if 1
-    gettimeofday(&start, NULL);
+    //gettimeofday(&start, NULL);
 
 	
 	for (i = 0; i < NUM_OF_TEST_UE; i++) {
@@ -318,12 +314,11 @@ static void test1_func(abts_case *tc, void *data)
         ABTS_INT_EQUAL(tc, OGS_OK, rv);
 	}
 #endif	
-    gettimeofday(&end, NULL);
-    timeuse = 1000000 * ( end.tv_sec - start.tv_sec ) + end.tv_usec - start.tv_usec;
-	printf("create session =%.3fs\n", (double)timeuse/1000000);
-	gettimeofday(&start, NULL);
-	
-    for (i = 0; i < NUM_OF_TEST_UE; i++) {
+	gettimeofday(&stop_time, NULL);
+	printf("register and Create PDUsession,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
+	gettimeofday(&start_time, NULL);
+
+    for (i = 0; i < g_testNum; i++) {
         /* Send PDU session establishment request */
         sess = test_sess_find_by_psi(test_ue[i], 5);
         ogs_assert(sess);
@@ -383,8 +378,12 @@ static void test1_func(abts_case *tc, void *data)
         ABTS_INT_EQUAL(tc, OGS_OK, rv);
     }
 
-	
-    for (i = 0; i < NUM_OF_TEST_UE; i++) {
+
+	gettimeofday(&stop_time, NULL);
+	printf("Release PDUsession,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
+	gettimeofday(&start_time, NULL);
+
+    for (i = 0; i < g_testNum; i++) {
         /* Send De-registration request */
         gmmbuf = testgmm_build_de_registration_request(test_ue[i], 1, true, true);
         ABTS_PTR_NOTNULL(tc, gmmbuf);
@@ -408,12 +407,22 @@ static void test1_func(abts_case *tc, void *data)
         ABTS_INT_EQUAL(tc, OGS_OK, rv);
     }
 
+	
+	gettimeofday(&stop_time, NULL);
+	printf("D-register,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
+	
+
     ogs_msleep(300);
 
-    for (i = 0; i < NUM_OF_TEST_UE; i++) {
+	gettimeofday(&start_time, NULL);
+    for (i = 0; i < g_testNum; i++) {
         /********** Remove Subscriber in Database */
         ABTS_INT_EQUAL(tc, OGS_OK, test_db_remove_ue(test_ue[i]));
     }
+
+	gettimeofday(&stop_time, NULL);
+	printf("Remove Subscriber in Database,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
+
 
     /* gNB disonncect from UPF */
     testgnb_gtpu_close(gtpu);
@@ -423,17 +432,19 @@ static void test1_func(abts_case *tc, void *data)
 
     /* Clear Test UE Context */
     test_ue_remove_all();
-	
-    gettimeofday(&end, NULL);
-    timeuse = 1000000 * ( end.tv_sec - start.tv_sec ) + end.tv_usec - start.tv_usec;
-	printf("release sucess =%.3fs\n", (double)timeuse/1000000);
 }
 
 abts_suite *test_multi_ue(abts_suite *suite)
 {
+	struct timeval start_time, stop_time;
+	gettimeofday(&start_time, NULL);
+
     suite = ADD_SUITE(suite)
 
     abts_run_test(suite, test1_func, NULL);
+
+	gettimeofday(&stop_time, NULL);
+	printf("ue num:%d,Time use %f ms\n",g_testNum, (__get_us(stop_time) - __get_us(start_time)) / 1000);
 
     return suite;
 }

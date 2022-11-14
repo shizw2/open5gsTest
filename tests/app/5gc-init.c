@@ -51,9 +51,6 @@ int app_initialize(const char *const argv[])
         argv_out[i] = NULL;
     }
 
-       // argv_out[i++] = "-e";
-      // argv_out[i++] = "debug";
-      // argv_out[i] = NULL;
     if (ogs_app()->parameter.no_nrf == 0)
         nrf_thread = test_child_create("nrf", argv_out);
     if (ogs_app()->parameter.no_scp == 0)

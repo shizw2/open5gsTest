@@ -40,6 +40,8 @@ static int exclude = 0;
 static int quiet = 0;
 static int list_tests = 0;
 
+int g_testNum = 1;
+
 const char **testlist = NULL;
 
 static int find_test_name(const char *testname) {
@@ -519,7 +521,7 @@ int abts_main(int argc, const char *const argv[], const char **argv_out)
     memset(&optarg, 0, sizeof(optarg));
 
     ogs_getopt_init(&options, (char**)argv);
-    while ((opt = ogs_getopt(&options, "hvxlqc:e:m:dt")) != -1) {
+    while ((opt = ogs_getopt(&options, "hvxlqc:e:m:n:dt")) != -1) {
         switch (opt) {
         case 'h':
             show_help(argv[0]);
@@ -550,6 +552,10 @@ int abts_main(int argc, const char *const argv[], const char **argv_out)
             break;
         case 't':
             optarg.enable_trace = true;
+            break;
+        case 'n':
+            g_testNum = atoi(options.optarg);
+            printf("testueNum:%d\r\n",g_testNum);
             break;
         case '?':
             fprintf(stderr, "%s: %s\n", argv[0], options.errmsg);

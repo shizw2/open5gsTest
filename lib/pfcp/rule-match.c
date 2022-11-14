@@ -18,7 +18,7 @@
  */
 
 #include "ogs-pfcp.h"
-
+ #define __FAVOR_BSD
 #if HAVE_NETINET_IP_H
 #include <netinet/ip.h>
 #endif

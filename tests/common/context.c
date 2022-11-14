@@ -832,13 +832,9 @@ void test_ue_set_mobile_identity_suci(test_ue_t *test_ue,
     if (test_ue->imsi)
         ogs_free(test_ue->imsi);
     test_ue->imsi = ogs_id_get_value(test_ue->supi);
-	printf("suci:%s\r\n",test_ue->suci);
-	printf("supi:%s\r\n",test_ue->supi);
-	printf("imsi:%s\r\n",test_ue->imsi);
     ogs_assert(test_ue->imsi);
 
     ogs_bcd_to_buffer(test_ue->imsi, test_ue->imsi_buf, &test_ue->imsi_len);
-	//printf("imsi_buf:%s\r\n",test_ue->imsi_buf);
 }
 
 static void test_ue_set_mobile_identity_imsi(test_ue_t *test_ue)

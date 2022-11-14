@@ -74,7 +74,7 @@ if cc.get_id() == 'gcc' or cc.get_id() == 'clang'
         '-Wendif-labels',
         '-Wstrict-aliasing=3',
         '-Wwrite-strings',
-        '-Werror=overflow',
+        ##'-Werror=overflow',
         '-Werror=shift-count-overflow',
         '-Werror=shift-overflow=2',
         '-Wdate-time',
