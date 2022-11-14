@@ -123,6 +123,7 @@ static void test1_func(abts_case *tc, void *data)
         ABTS_INT_EQUAL(tc, OGS_OK, test_db_insert_ue(test_ue[i], doc));
 	}
 
+    printf("\r\n");
 
 	gettimeofday(&stop_time, NULL);
 	printf("Insert Subscriber in Database,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
@@ -273,9 +274,12 @@ static void test1_func(abts_case *tc, void *data)
 
 #if 1
     //gettimeofday(&start, NULL);
+	gettimeofday(&stop_time, NULL);
+	printf("Registration,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
+	gettimeofday(&start_time, NULL);
 
 	
-	for (i = 0; i < NUM_OF_TEST_UE; i++) {
+	for (i = 0; i < g_testNum; i++) {
 		/* Send PDU session establishment request */
         sess = test_sess_find_by_psi(test_ue[i], 5);
         ogs_assert(sess);
@@ -315,7 +319,7 @@ static void test1_func(abts_case *tc, void *data)
 	}
 #endif	
 	gettimeofday(&stop_time, NULL);
-	printf("register and Create PDUsession,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
+	printf("session establishment,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
 	gettimeofday(&start_time, NULL);
 
     for (i = 0; i < g_testNum; i++) {
@@ -380,7 +384,7 @@ static void test1_func(abts_case *tc, void *data)
 
 
 	gettimeofday(&stop_time, NULL);
-	printf("Release PDUsession,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
+	printf("session release,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
 	gettimeofday(&start_time, NULL);
 
     for (i = 0; i < g_testNum; i++) {
@@ -444,7 +448,7 @@ abts_suite *test_multi_ue(abts_suite *suite)
     abts_run_test(suite, test1_func, NULL);
 
 	gettimeofday(&stop_time, NULL);
-	printf("ue num:%d,Time use %f ms\n",g_testNum, (__get_us(stop_time) - __get_us(start_time)) / 1000);
+	printf("ue num:%d,Time use %f ms\n",g_testNum, (__get_us(stop_time) - __get_us(start_time)) / 1000 - 300);
 
     return suite;
 }
