@@ -22,7 +22,7 @@
 #include <time.h>
 #include <stdlib.h>
 
-#define NUM_OF_TEST_UE 200
+#define NUM_OF_TEST_UE 1000
 
 static void test1_func(abts_case *tc, void *data)
 {
@@ -236,7 +236,7 @@ static void test1_func(abts_case *tc, void *data)
         recvbuf = testgnb_ngap_read(ngap);
         ABTS_PTR_NOTNULL(tc, recvbuf);
         testngap_recv(test_ue[i], recvbuf);
-
+#if 0
         sess->ul_nas_transport_param.request_type =
             OGS_NAS_5GS_REQUEST_TYPE_INITIAL;
         sess->ul_nas_transport_param.dnn = 1;
@@ -270,12 +270,59 @@ static void test1_func(abts_case *tc, void *data)
         ABTS_PTR_NOTNULL(tc, sendbuf);
         rv = testgnb_ngap_send(ngap, sendbuf);
         ABTS_INT_EQUAL(tc, OGS_OK, rv);
+#endif
     }
     gettimeofday(&end, NULL);
     timeuse = 1000000 * ( end.tv_sec - start.tv_sec ) + end.tv_usec - start.tv_usec;
 	printf("register sucess =%.3fs\n", (double)timeuse/1000000);
-
+#if 1
     gettimeofday(&start, NULL);
+
+	
+	for (i = 0; i < NUM_OF_TEST_UE; i++) {
+		/* Send PDU session establishment request */
+        sess = test_sess_find_by_psi(test_ue[i], 5);
+        ogs_assert(sess);
+		
+		sess->ul_nas_transport_param.request_type =
+        OGS_NAS_5GS_REQUEST_TYPE_INITIAL;
+        sess->ul_nas_transport_param.dnn = 1;
+        sess->ul_nas_transport_param.s_nssai = 0;
+
+        sess->pdu_session_establishment_param.ssc_mode = 1;
+        sess->pdu_session_establishment_param.epco = 1;
+
+        gsmbuf = testgsm_build_pdu_session_establishment_request(sess);
+        ABTS_PTR_NOTNULL(tc, gsmbuf);
+        gmmbuf = testgmm_build_ul_nas_transport(sess,
+                OGS_NAS_PAYLOAD_CONTAINER_N1_SM_INFORMATION, gsmbuf);
+        ABTS_PTR_NOTNULL(tc, gmmbuf);
+        sendbuf = testngap_build_uplink_nas_transport(test_ue[i], gmmbuf);
+        ABTS_PTR_NOTNULL(tc, sendbuf);
+        rv = testgnb_ngap_send(ngap, sendbuf);
+        ABTS_INT_EQUAL(tc, OGS_OK, rv);
+	        /* Receive PDUSessionResourceSetupRequest +
+         * DL NAS transport +
+         * PDU session establishment accept */
+        recvbuf = testgnb_ngap_read(ngap);
+        ABTS_PTR_NOTNULL(tc, recvbuf);
+        testngap_recv(test_ue[i], recvbuf);
+        ABTS_INT_EQUAL(tc,
+                NGAP_ProcedureCode_id_PDUSessionResourceSetup,
+                test_ue[i]->ngap_procedure_code);
+
+        /* Send PDUSessionResourceSetupResponse */
+        sendbuf = testngap_sess_build_pdu_session_resource_setup_response(sess);
+        ABTS_PTR_NOTNULL(tc, sendbuf);
+        rv = testgnb_ngap_send(ngap, sendbuf);
+        ABTS_INT_EQUAL(tc, OGS_OK, rv);
+	}
+#endif	
+    gettimeofday(&end, NULL);
+    timeuse = 1000000 * ( end.tv_sec - start.tv_sec ) + end.tv_usec - start.tv_usec;
+	printf("create session =%.3fs\n", (double)timeuse/1000000);
+	gettimeofday(&start, NULL);
+	
     for (i = 0; i < NUM_OF_TEST_UE; i++) {
         /* Send PDU session establishment request */
         sess = test_sess_find_by_psi(test_ue[i], 5);
