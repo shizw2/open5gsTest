@@ -97,7 +97,7 @@ static void udr_main(void *data)
 {
     ogs_fsm_t udr_sm;
     int rv;
-
+setAffinity(5);
     ogs_fsm_init(&udr_sm, udr_state_initial, udr_state_final, 0);
 
     for ( ;; ) {

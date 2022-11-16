@@ -92,7 +92,7 @@ static void udm_main(void *data)
 {
     ogs_fsm_t udm_sm;
     int rv;
-
+setAffinity(3);
     ogs_fsm_init(&udm_sm, udm_state_initial, udm_state_final, 0);
 
     for ( ;; ) {

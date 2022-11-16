@@ -97,7 +97,7 @@ static void pcf_main(void *data)
 {
     ogs_fsm_t pcf_sm;
     int rv;
-
+setAffinity(4);
     ogs_fsm_init(&pcf_sm, pcf_state_initial, pcf_state_final, 0);
 
     for ( ;; ) {

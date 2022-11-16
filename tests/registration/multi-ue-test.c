@@ -42,7 +42,7 @@ static void test1_func(abts_case *tc, void *data)
     ogs_pkbuf_t *recvbuf;
     ogs_ngap_message_t message;
     int i;
-
+    ogs_msleep(2000);//wait for app init
     struct timeval start_time, stop_time;
     gettimeofday(&start_time, NULL);
 
@@ -53,6 +53,8 @@ static void test1_func(abts_case *tc, void *data)
 
     bson_t *doc = NULL;
 
+  
+	
     /* gNB connects to AMF */
     ngap = testngap_client(AF_INET);
     ABTS_PTR_NOTNULL(tc, ngap);

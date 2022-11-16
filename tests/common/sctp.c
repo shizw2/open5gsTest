@@ -97,7 +97,8 @@ ogs_socknode_t *testngap_client(int family)
     ogs_sockaddr_t *addr = NULL;
     ogs_socknode_t *node = NULL;
     ogs_sock_t *sock = NULL;
-
+    static int a;
+    printf("connect success.%d \r\n",a++);
     if (family == AF_INET6)
         ogs_assert(OGS_OK ==
             ogs_copyaddrinfo(&addr, test_self()->ngap_addr6));
@@ -115,6 +116,7 @@ ogs_socknode_t *testngap_client(int family)
 
     node->sock = sock;
     node->cleanup = ogs_sctp_destroy;
+
 
     return node;
 }

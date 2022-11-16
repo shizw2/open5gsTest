@@ -28,7 +28,7 @@ static int initialized = 0;
 int amf_initialize()
 {
     int rv;
-
+    setAffinity(6);
     ogs_metrics_context_init();
     ogs_sbi_context_init();
 
@@ -110,10 +110,12 @@ void amf_terminate(void)
 }
 
 static void amf_main(void *data)
-{
+{ 
     ogs_fsm_t amf_sm;
     int rv;
-
+	
+    setAffinity(6);
+	
     ogs_fsm_init(&amf_sm, amf_state_initial, amf_state_final, 0);
 
     for ( ;; ) {

@@ -137,3 +137,17 @@ void ogs_thread_destroy(ogs_thread_t *thread)
     ogs_free(thread);
     ogs_debug("[%p] thread done", thread);
 }
+
+
+void setAffinity(int coreId)
+{
+	cpu_set_t cpuset;
+	CPU_ZERO(&cpuset);
+	CPU_SET(coreId, &cpuset);
+
+	if (sched_setaffinity(0, sizeof(cpuset), &cpuset) == -1){
+        printf("warning: could not set CPU affinity, %d, continuing...\n",coreId);  
+	}else{
+		printf("set CPU affinity sucess %d.\n",coreId);  
+	}
+}
