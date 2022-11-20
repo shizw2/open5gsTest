@@ -97,8 +97,7 @@ ogs_socknode_t *testngap_client(int family)
     ogs_sockaddr_t *addr = NULL;
     ogs_socknode_t *node = NULL;
     ogs_sock_t *sock = NULL;
-    static int a;
-    printf("connect success.%d \r\n",a++);
+
     if (family == AF_INET6)
         ogs_assert(OGS_OK ==
             ogs_copyaddrinfo(&addr, test_self()->ngap_addr6));
@@ -117,9 +116,53 @@ ogs_socknode_t *testngap_client(int family)
     node->sock = sock;
     node->cleanup = ogs_sctp_destroy;
 
+    return node;
+}
+
+ogs_socknode_t *testngap_client_n(int family,int n)
+{
+    int rv;
+    ogs_sockaddr_t *addr = NULL;
+    ogs_socknode_t *node = NULL;
+    ogs_sock_t *sock = NULL;
+    char buf[OGS_ADDRSTRLEN]={0};
+
+    ogs_socknode_t *snode = NULL;
+    int i;
+
+    i = 0; snode = ogs_list_first(&test_self()->ngap_list);
+
+    ogs_copyaddrinfo(&addr, snode->addr);
+    //printf("ngap addr:%s.\r\n",OGS_ADDR(addr, buf));
+    while (snode) {
+        i++;
+        if (i >= n)
+        {
+            break;
+        }
+        snode = ogs_list_next(snode);
+        ogs_copyaddrinfo(&addr, snode->addr);
+        //printf("ngap addr:%s.\r\n",OGS_ADDR(addr, buf));/
+    }
+ 
+    ogs_copyaddrinfo(&addr,snode->addr);
+
+    ogs_assert(addr);
+
+    node = ogs_socknode_new(addr);
+    ogs_assert(node);
+
+    printf("ngap sctp addr:%s.\r\n",OGS_ADDR(node->addr, buf));
+
+    sock = ogs_sctp_client(SOCK_STREAM, node->addr, NULL);
+    ogs_assert(sock);
+
+    node->sock = sock;
+    node->cleanup = ogs_sctp_destroy;
 
     return node;
 }
+
 
 ogs_sockaddr_t last_addr;
 
