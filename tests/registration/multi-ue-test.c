@@ -31,43 +31,116 @@ extern int g_testNum;
 #define NUM_OF_TEST_UE 100
 
 static ogs_thread_t *mthread;
-static void muti_ue_func(void *data);
+ void muti_ue_func(void *data);
 
 typedef struct threadinfo
 {
     abts_case   *tc;
-    int         clientIdx ;
+    int         clientIdx ;	
 }T_threadinfo;
 
 int iPthreadSize = 2;
-int MAX_THREAD = 100;
+#define MAX_THREAD 100
+#define MAX_UE   10000
+test_ue_t *test_ues[MAX_THREAD][MAX_UE];
+
 static void muti_ue_threads(abts_case *tc, void *data)
 {
 #if 1
     int iTmp;
     ogs_thread_t *id[MAX_THREAD];
+    T_threadinfo threadInfo[MAX_THREAD];
+	ogs_nas_5gs_mobile_identity_suci_t mobile_identity_suci;
+    //test_ue_t *test_ue[MAX_THREAD][g_testNum];
+	int i;
+	bson_t *doc = NULL;
+	
+	for (iTmp = 0; iTmp < iPthreadSize; iTmp++)
+	{
+		for (i = 0; i < g_testNum; i++) {
+			uint64_t imsi_index;
 
+			/* Setup Test UE & Session Context */
+			memset(&mobile_identity_suci, 0, sizeof(mobile_identity_suci));
+
+			mobile_identity_suci.h.supi_format = OGS_NAS_5GS_SUPI_FORMAT_IMSI;
+			mobile_identity_suci.h.type = OGS_NAS_5GS_MOBILE_IDENTITY_SUCI;
+			mobile_identity_suci.routing_indicator1 = 0;
+			mobile_identity_suci.routing_indicator2 = 0xf;
+			mobile_identity_suci.routing_indicator3 = 0xf;
+			mobile_identity_suci.routing_indicator4 = 0xf;
+			mobile_identity_suci.protection_scheme_id = OGS_NAS_5GS_NULL_SCHEME;
+			mobile_identity_suci.home_network_pki_value = 0;
+			mobile_identity_suci.scheme_output[0] = 0;
+			mobile_identity_suci.scheme_output[1] = 0;
+			mobile_identity_suci.scheme_output[2] = 0x20;
+			mobile_identity_suci.scheme_output[3] = 0x31;
+			mobile_identity_suci.scheme_output[4] = 0x90;
+
+			imsi_index = iTmp*10000+ i + 1;
+			printf("imsi:%lu.\r\n",imsi_index);
+			//ogs_uint64_to_buffer(imsi_index, 5, mobile_identity_suci.scheme_output);
+			mobile_identity_suci.scheme_output[0] = imsi_index/10000%10;
+			mobile_identity_suci.scheme_output[1] = imsi_index/1000%10;
+			mobile_identity_suci.scheme_output[2] = imsi_index/100%10;
+			mobile_identity_suci.scheme_output[3] = imsi_index/10%10;
+			mobile_identity_suci.scheme_output[4] = imsi_index%10;
+
+			test_ues[iTmp][i] = test_ue_add_by_suci(&mobile_identity_suci, 13);
+			ogs_assert(test_ues[iTmp][i]);
+
+			test_ues[iTmp][i]->nr_cgi.cell_id = 0x40001;
+
+			test_ues[iTmp][i]->nas.registration.tsc = 0;
+			test_ues[iTmp][i]->nas.registration.ksi = OGS_NAS_KSI_NO_KEY_IS_AVAILABLE;
+			test_ues[iTmp][i]->nas.registration.follow_on_request = 1;
+			test_ues[iTmp][i]->nas.registration.value = OGS_NAS_5GS_REGISTRATION_TYPE_INITIAL;
+
+			test_ues[iTmp][i]->k_string = "465b5ce8b199b49faa5f0a2ee238a6bc";
+			test_ues[iTmp][i]->opc_string = "e8ed289deba952e4283b54e88e6183ca";
+		}
+
+
+		//插入数据库单独统计
+		for (i = 0; i < g_testNum; i++) {
+
+			/********** Insert Subscriber in Database */
+			doc = test_db_new_simple(test_ues[iTmp][i]);
+			ABTS_PTR_NOTNULL(tc, doc);
+			ABTS_INT_EQUAL(tc, OGS_OK, test_db_insert_ue(test_ues[iTmp][i], doc));
+		}
+    }
 
     for (iTmp = 0; iTmp < iPthreadSize; iTmp++)
     {
-        T_threadinfo threadInfo;
-        threadInfo.tc = tc;
-        threadInfo.clientIdx = iTmp;
-        
-        id[iTmp] = ogs_thread_create(muti_ue_func, &threadInfo);
+        //T_threadinfo threadInfo;
+        threadInfo[iTmp].tc = tc;
+        threadInfo[iTmp].clientIdx = iTmp;
+		printf("threadInfo.clientIdx=%u.\r\n",threadInfo[iTmp].clientIdx);
+        id[iTmp] = ogs_thread_create(muti_ue_func, &threadInfo[iTmp]);
         if (!id[iTmp]) return OGS_ERROR;
 
         //ogs_msleep(5000);
+
+    }
+	
+    for (iTmp = 0; iTmp < iPthreadSize; iTmp++)
+    {
         ogs_thread_join_ex(id[iTmp]);
     }
-
-
+        
     for (iTmp = 0; iTmp < iPthreadSize; iTmp++)
     {
         ogs_thread_destroy(id[iTmp]); 
     }
 
-    
+    for (iTmp = 0; iTmp < iPthreadSize; iTmp++)
+    {
+		for (i = 0; i < g_testNum; i++) {
+			/********** Remove Subscriber in Database */
+			ABTS_INT_EQUAL(tc, OGS_OK, test_db_remove_ue(test_ues[iTmp][i]));
+		}
+	}
 #endif
 
 #if 0
@@ -75,7 +148,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
 #endif
 }
 
-static void muti_ue_func(void *data)
+ void muti_ue_func(void *data)
 {
     int rv;
     ogs_socknode_t *ngap;
@@ -93,7 +166,8 @@ static void muti_ue_func(void *data)
     gettimeofday(&start_time, NULL);
 
     ogs_nas_5gs_mobile_identity_suci_t mobile_identity_suci;
-    test_ue_t *test_ue[g_testNum];
+    //test_ue_t *test_ue[MAX_UE];
+	test_ue_t **test_ue;
     test_sess_t *sess = NULL;
     test_bearer_t *qos_flow = NULL;
 
@@ -105,16 +179,17 @@ static void muti_ue_func(void *data)
 
     printf("clientIdx:%d.\r\n",threadInfo->clientIdx);
 
-    
+    test_ue = &test_ues[threadInfo->clientIdx];
 
+    
     /* gNB connects to AMF */
     //ngap = testngap_client(AF_INET);
     ngap =  testngap_client_n(AF_INET,threadInfo->clientIdx);
     ABTS_PTR_NOTNULL(tc, ngap);
 
     /* gNB connects to UPF */
-    gtpu = test_gtpu_server(1, AF_INET);
-    ABTS_PTR_NOTNULL(tc, gtpu);
+    //gtpu = test_gtpu_server(1, AF_INET);
+    //ABTS_PTR_NOTNULL(tc, gtpu);
 
     /* Send NG-Setup Reqeust */
     sendbuf = testngap_build_ng_setup_request(0x4000, 22);
@@ -126,62 +201,9 @@ static void muti_ue_func(void *data)
     recvbuf = testgnb_ngap_read(ngap);
     ABTS_PTR_NOTNULL(tc, recvbuf);
 
-    for (i = 0; i < g_testNum; i++) {
-        uint64_t imsi_index;
-
-        /* Setup Test UE & Session Context */
-        memset(&mobile_identity_suci, 0, sizeof(mobile_identity_suci));
-
-        mobile_identity_suci.h.supi_format = OGS_NAS_5GS_SUPI_FORMAT_IMSI;
-        mobile_identity_suci.h.type = OGS_NAS_5GS_MOBILE_IDENTITY_SUCI;
-        mobile_identity_suci.routing_indicator1 = 0;
-        mobile_identity_suci.routing_indicator2 = 0xf;
-        mobile_identity_suci.routing_indicator3 = 0xf;
-        mobile_identity_suci.routing_indicator4 = 0xf;
-        mobile_identity_suci.protection_scheme_id = OGS_NAS_5GS_NULL_SCHEME;
-        mobile_identity_suci.home_network_pki_value = 0;
-        mobile_identity_suci.scheme_output[0] = 0;
-        mobile_identity_suci.scheme_output[1] = 0;
-        mobile_identity_suci.scheme_output[2] = 0x20;
-        mobile_identity_suci.scheme_output[3] = 0x31;
-        mobile_identity_suci.scheme_output[4] = 0x90;
-
-        imsi_index = i + 1;
-        //ogs_uint64_to_buffer(imsi_index, 5, mobile_identity_suci.scheme_output);
-        mobile_identity_suci.scheme_output[0] = imsi_index/10000%10;
-        mobile_identity_suci.scheme_output[1] = imsi_index/1000%10;
-        mobile_identity_suci.scheme_output[2] = imsi_index/100%10;
-        mobile_identity_suci.scheme_output[3] = imsi_index/10%10;
-        mobile_identity_suci.scheme_output[4] = imsi_index%10;
-
-        test_ue[i] = test_ue_add_by_suci(&mobile_identity_suci, 13);
-        ogs_assert(test_ue[i]);
-
-        test_ue[i]->nr_cgi.cell_id = 0x40001;
-
-        test_ue[i]->nas.registration.tsc = 0;
-        test_ue[i]->nas.registration.ksi = OGS_NAS_KSI_NO_KEY_IS_AVAILABLE;
-        test_ue[i]->nas.registration.follow_on_request = 1;
-        test_ue[i]->nas.registration.value = OGS_NAS_5GS_REGISTRATION_TYPE_INITIAL;
-
-        test_ue[i]->k_string = "465b5ce8b199b49faa5f0a2ee238a6bc";
-        test_ue[i]->opc_string = "e8ed289deba952e4283b54e88e6183ca";
-    }
-
-
-	//插入数据库单独统计
-    for (i = 0; i < g_testNum; i++) {
-
-        /********** Insert Subscriber in Database */
-        doc = test_db_new_simple(test_ue[i]);
-        ABTS_PTR_NOTNULL(tc, doc);
-        ABTS_INT_EQUAL(tc, OGS_OK, test_db_insert_ue(test_ue[i], doc));
-	}
-
-    printf("\r\n");
-
-	gettimeofday(&stop_time, NULL);
-	printf("Insert Subscriber in Database,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
+   
+	//gettimeofday(&stop_time, NULL);
+	//printf("Insert Subscriber in Database,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
 	gettimeofday(&start_time, NULL);
 
     for (i = 0; i < g_testNum; i++) {
@@ -198,6 +220,8 @@ static void muti_ue_func(void *data)
         //doc = test_db_new_simple(test_ue[i]);
         //ABTS_PTR_NOTNULL(tc, doc);
         //ABTS_INT_EQUAL(tc, OGS_OK, test_db_insert_ue(test_ue[i], doc));
+
+		//printf("supi:%s.\r\n",test_ue[i]->supi);
 
         /* Send Registration request */
         test_ue[i]->registration_request_param.guti = 1;
@@ -330,7 +354,7 @@ static void muti_ue_func(void *data)
 #if 1
     //gettimeofday(&start, NULL);
 	gettimeofday(&stop_time, NULL);
-	printf("Registration,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
+	printf("Thread:%d, Registration,Time use %f ms\n",threadInfo->clientIdx,(__get_us(stop_time) - __get_us(start_time)) / 1000);
 	gettimeofday(&start_time, NULL);
 
 	
@@ -374,7 +398,7 @@ static void muti_ue_func(void *data)
 	}
 #endif	
 	gettimeofday(&stop_time, NULL);
-	printf("session establishment,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
+	printf("Thread:%d,session establishment,Time use %f ms\n",threadInfo->clientIdx,(__get_us(stop_time) - __get_us(start_time)) / 1000);
 	gettimeofday(&start_time, NULL);
 
     for (i = 0; i < g_testNum; i++) {
@@ -439,7 +463,7 @@ static void muti_ue_func(void *data)
 
 
 	gettimeofday(&stop_time, NULL);
-	printf("session release,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
+	printf("Thread:%d,session release,Time use %f ms\n",threadInfo->clientIdx,(__get_us(stop_time) - __get_us(start_time)) / 1000);
 	gettimeofday(&start_time, NULL);
 
     for (i = 0; i < g_testNum; i++) {
@@ -468,23 +492,14 @@ static void muti_ue_func(void *data)
 
 	
 	gettimeofday(&stop_time, NULL);
-	printf("D-register,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
+	printf("Thread:%d,D-register,Time use %f ms\n",threadInfo->clientIdx,(__get_us(stop_time) - __get_us(start_time)) / 1000);
 	
 
     ogs_msleep(300);
 
-	gettimeofday(&start_time, NULL);
-    for (i = 0; i < g_testNum; i++) {
-        /********** Remove Subscriber in Database */
-        ABTS_INT_EQUAL(tc, OGS_OK, test_db_remove_ue(test_ue[i]));
-    }
-
-	gettimeofday(&stop_time, NULL);
-	printf("Remove Subscriber in Database,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
-
 
     /* gNB disonncect from UPF */
-    testgnb_gtpu_close(gtpu);
+    //testgnb_gtpu_close(gtpu);
 
     /* gNB disonncect from AMF */
     testgnb_ngap_close(ngap);

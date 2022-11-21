@@ -110,6 +110,7 @@ typedef struct ogs_thread_s ogs_thread_t;
 ogs_thread_t *ogs_thread_create(void (*func)(void *), void *data);
 void ogs_thread_destroy(ogs_thread_t *thread);
 void setAffinity(int coreId);
+void ogs_thread_join_ex(ogs_thread_t *thread);
 #ifdef __cplusplus
 }
 #endif

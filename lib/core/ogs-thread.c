@@ -138,6 +138,10 @@ void ogs_thread_destroy(ogs_thread_t *thread)
     ogs_debug("[%p] thread done", thread);
 }
 
+void ogs_thread_join_ex(ogs_thread_t *thread)
+{
+	ogs_thread_join(thread->id);
+}
 
 void setAffinity(int coreId)
 {
