@@ -27,6 +27,7 @@ double __get_us(struct timeval t) {
 }
 
 extern int g_testNum;
+extern int g_threadNum;
 
 #define NUM_OF_TEST_UE 100
 
@@ -39,7 +40,7 @@ typedef struct threadinfo
     int         clientIdx ;	
 }T_threadinfo;
 
-int iPthreadSize = 2;
+int iPthreadSize = 3;
 #define MAX_THREAD 100
 #define MAX_UE   10000
 test_ue_t *test_ues[MAX_THREAD][MAX_UE];
@@ -54,6 +55,12 @@ static void muti_ue_threads(abts_case *tc, void *data)
     //test_ue_t *test_ue[MAX_THREAD][g_testNum];
 	int i;
 	bson_t *doc = NULL;
+	
+	iPthreadSize = g_threadNum;
+	if  (g_threadNum > 20)
+	{
+		iPthreadSize = 20;
+	}
 	
 	for (iTmp = 0; iTmp < iPthreadSize; iTmp++)
 	{
@@ -924,12 +931,12 @@ abts_suite *test_multi_ue(abts_suite *suite)
 	struct timeval start_time, stop_time;
 	gettimeofday(&start_time, NULL);
 
-    suite = ADD_SUITE(suite)
+    suite = ADD_SUITE(suite);
 
     abts_run_test(suite, muti_ue_threads, NULL);
 
 	gettimeofday(&stop_time, NULL);
-	printf("ue num:%d,Time use %f ms\n",g_testNum, (__get_us(stop_time) - __get_us(start_time)) / 1000 - 300);
+	printf("ue num per thread:%d,Time use %f ms\n",g_testNum, (__get_us(stop_time) - __get_us(start_time)) / 1000 - 300);
 
     return suite;
 }
