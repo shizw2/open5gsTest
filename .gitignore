@@ -4,4 +4,5 @@ subprojects/libtins
 subprojects/prometheus-client-c
 subprojects/usrsctp
 build/
+test.log
 webui/.next
