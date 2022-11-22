@@ -143,6 +143,41 @@ void ogs_thread_join_ex(ogs_thread_t *thread)
 	ogs_thread_join(thread->id);
 }
 
+void ogs_thread_destroy_ex(ogs_thread_t *thread)
+{
+    const ogs_time_t deadline = ogs_get_monotonic_time() + 5 * 1000 * 1000;
+    ogs_assert(thread);
+
+    ogs_debug("[%p] thread running(%d)", thread, thread->running);
+    while(ogs_get_monotonic_time() <= deadline) {
+        /* wait 5 seconds */
+        ogs_thread_mutex_lock(&thread->mutex);
+        if (!thread->running) {
+            ogs_thread_mutex_unlock(&thread->mutex);
+            break;
+        }
+        ogs_thread_mutex_unlock(&thread->mutex);
+        ogs_usleep(1000);
+    }
+
+    ogs_debug("[%p] thread destroy", thread);
+    ogs_thread_mutex_lock(&thread->mutex);
+    if (thread->running) {
+        ogs_fatal("thread still running after 3 seconds");
+        ogs_assert_if_reached();
+    }
+    ogs_thread_mutex_unlock(&thread->mutex);
+
+    //ogs_thread_join(thread->id);
+    //ogs_debug("[%p] thread join", thread);
+
+    ogs_thread_cond_destroy(&thread->cond);
+    ogs_thread_mutex_destroy(&thread->mutex);
+
+    ogs_free(thread);
+    ogs_debug("[%p] thread done", thread);
+}
+
 void setAffinity(int coreId)
 {
 	cpu_set_t cpuset;

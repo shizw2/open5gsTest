@@ -55,6 +55,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
     //test_ue_t *test_ue[MAX_THREAD][g_testNum];
 	int i;
 	bson_t *doc = NULL;
+	test_sess_t *sess = NULL;
 	
 	iPthreadSize = g_threadNum;
 	if  (g_threadNum > 20)
@@ -85,7 +86,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
 			mobile_identity_suci.scheme_output[4] = 0x90;
 
 			imsi_index = iTmp*10000+ i + 1;
-			printf("imsi:%lu.\r\n",imsi_index);
+			//printf("imsi:%lu.\r\n",imsi_index);
 			//ogs_uint64_to_buffer(imsi_index, 5, mobile_identity_suci.scheme_output);
 			mobile_identity_suci.scheme_output[0] = imsi_index/10000%10;
 			mobile_identity_suci.scheme_output[1] = imsi_index/1000%10;
@@ -110,7 +111,11 @@ static void muti_ue_threads(abts_case *tc, void *data)
 
 		//插入数据库单独统计
 		for (i = 0; i < g_testNum; i++) {
-
+#if 1
+			/* Send PDU session establishment request */
+			sess = test_sess_add_by_dnn_and_psi(test_ues[iTmp][i], "internet", 5);
+			ogs_assert(sess);
+#endif		
 			/********** Insert Subscriber in Database */
 			doc = test_db_new_simple(test_ues[iTmp][i]);
 			ABTS_PTR_NOTNULL(tc, doc);
@@ -138,7 +143,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
         
     for (iTmp = 0; iTmp < iPthreadSize; iTmp++)
     {
-        ogs_thread_destroy(id[iTmp]); 
+        ogs_thread_destroy_ex(id[iTmp]); 
     }
 
     for (iTmp = 0; iTmp < iPthreadSize; iTmp++)
@@ -184,7 +189,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
     
     abts_case *tc = threadInfo->tc;
 
-    printf("clientIdx:%d.\r\n",threadInfo->clientIdx);
+    //printf("clientIdx:%d.\r\n",threadInfo->clientIdx);
 
     test_ue = &test_ues[threadInfo->clientIdx];
 
@@ -214,22 +219,26 @@ static void muti_ue_threads(abts_case *tc, void *data)
 	gettimeofday(&start_time, NULL);
 
     for (i = 0; i < g_testNum; i++) {
+
         if (i > 0)
             test_ue[i]->ran_ue_ngap_id = test_ue[i-1]->ran_ue_ngap_id;
         else
             test_ue[i]->ran_ue_ngap_id = 0;
-
+#if 0
         /* Send PDU session establishment request */
         sess = test_sess_add_by_dnn_and_psi(test_ue[i], "internet", 5);
         ogs_assert(sess);
+#endif
 
         /********** Insert Subscriber in Database */
         //doc = test_db_new_simple(test_ue[i]);
         //ABTS_PTR_NOTNULL(tc, doc);
         //ABTS_INT_EQUAL(tc, OGS_OK, test_db_insert_ue(test_ue[i], doc));
 
-		//printf("supi:%s.\r\n",test_ue[i]->supi);
-
+		printf("suci:%s.\r\n",test_ue[i]->suci);
+        sess = test_sess_find_by_psi(test_ue[i], 5);
+        ogs_assert(sess);
+		printf("suci:%s.\r\n",test_ue[i]->suci);
         /* Send Registration request */
         test_ue[i]->registration_request_param.guti = 1;
         gmmbuf = testgmm_build_registration_request(test_ue[i], NULL, false, false);
@@ -610,7 +619,7 @@ static void test1_func(abts_case *tc, void *data)
         ABTS_INT_EQUAL(tc, OGS_OK, test_db_insert_ue(test_ue[i], doc));
 	}
 
-    printf("\r\n");
+    //printf("\r\n");
 
 	gettimeofday(&stop_time, NULL);
 	printf("Insert Subscriber in Database,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
