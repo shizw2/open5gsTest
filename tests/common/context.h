@@ -43,6 +43,8 @@ extern "C" {
 #define TEST_PCRF_IDENTITY "pcrf.localdomain"
 #define TEST_SMF_IDENTITY "smf.localdomain"
 
+
+
 typedef struct test_context_s {
     uint16_t        ngap_port;      /* Default NGAP Port */
     ogs_list_t      ngap_list;      /* AMF NGAP IPv4 Server List */
@@ -481,6 +483,14 @@ typedef struct test_bearer_s {
 
     test_sess_t     *sess;
 } test_bearer_t;
+
+
+typedef struct test_bearer_pool_s { 
+	const char *name; 
+	int head, tail; 
+	int size, avail; 
+	test_bearer_t **free, *array, **index; 
+} test_bearer_pool_t;
 
 void test_context_init(void);
 void test_context_final(void);

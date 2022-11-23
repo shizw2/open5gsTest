@@ -20,6 +20,9 @@
 #include "test-config-private.h"
 #include "test-common.h"
 
+pthread_key_t bearer_key;
+static test_context_t  thread_context;
+
 static test_context_t self;
 
 static OGS_POOL(test_ue_pool, test_ue_t);
@@ -27,6 +30,43 @@ static OGS_POOL(test_sess_pool, test_sess_t);
 static OGS_POOL(test_bearer_pool, test_bearer_t);
 
 static int context_initialized = 0;
+
+test_bearer_pool_t* p_test_bearer_pool;
+
+void test_context_init_ex(void)
+{
+    int rv;
+
+    ogs_assert(context_initialized == 0);
+	
+	pthread_setspecific(bearer_key,(void *)&test_bearer_pool);
+	
+	p_test_bearer_pool = (test_bearer_pool_t*)pthread_getspecific(bearer_key);
+
+    /* Initialize AMF context */
+    memset(&self, 0, sizeof(test_context_t));
+
+    ogs_pool_init(&test_ue_pool, ogs_app()->max.ue);
+    ogs_pool_init(&test_sess_pool, ogs_app()->pool.sess);
+    ogs_pool_init(&test_bearer_pool, ogs_app()->pool.bearer);
+
+    rv = ogs_getaddrinfo(&test_self()->gnb1_addr, AF_UNSPEC,
+            "127.0.0.2", OGS_GTPV1_U_UDP_PORT, 0);
+    ogs_assert(rv == OGS_OK);
+    rv = ogs_getaddrinfo(&test_self()->gnb1_addr6, AF_UNSPEC,
+            "fd69:f21d:873c:fa::2", OGS_GTPV1_U_UDP_PORT, 0);
+    ogs_assert(rv == OGS_OK);
+
+    rv = ogs_getaddrinfo(&test_self()->gnb2_addr, AF_UNSPEC,
+            "127.0.0.3", OGS_GTPV1_U_UDP_PORT, 0);
+    ogs_assert(rv == OGS_OK);
+    rv = ogs_getaddrinfo(&test_self()->gnb2_addr6, AF_UNSPEC,
+            "fd69:f21d:873c:fa::3", OGS_GTPV1_U_UDP_PORT, 0);
+    ogs_assert(rv == OGS_OK);
+
+    context_initialized = 1;
+}
+
 
 void test_context_init(void)
 {

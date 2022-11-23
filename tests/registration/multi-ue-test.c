@@ -234,11 +234,10 @@ static void muti_ue_threads(abts_case *tc, void *data)
         //doc = test_db_new_simple(test_ue[i]);
         //ABTS_PTR_NOTNULL(tc, doc);
         //ABTS_INT_EQUAL(tc, OGS_OK, test_db_insert_ue(test_ue[i], doc));
-
-		printf("suci:%s.\r\n",test_ue[i]->suci);
+		
         sess = test_sess_find_by_psi(test_ue[i], 5);
         ogs_assert(sess);
-		printf("suci:%s.\r\n",test_ue[i]->suci);
+	
         /* Send Registration request */
         test_ue[i]->registration_request_param.guti = 1;
         gmmbuf = testgmm_build_registration_request(test_ue[i], NULL, false, false);
