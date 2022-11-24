@@ -41,8 +41,7 @@ typedef struct threadinfo
 }T_threadinfo;
 
 int iPthreadSize = 3;
-#define MAX_THREAD 100
-#define MAX_UE   10000
+
 test_ue_t *test_ues[MAX_THREAD][MAX_UE];
 
 static void muti_ue_threads(abts_case *tc, void *data)
@@ -153,6 +152,9 @@ static void muti_ue_threads(abts_case *tc, void *data)
 			ABTS_INT_EQUAL(tc, OGS_OK, test_db_remove_ue(test_ues[iTmp][i]));
 		}
 	}
+
+    /* Clear Test UE Context */
+    test_ue_remove_all();
 #endif
 
 #if 0
@@ -193,7 +195,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
 
     test_ue = &test_ues[threadInfo->clientIdx];
 
-    test_context_init_ex();//thread
+    test_thread_context_init(threadInfo->clientIdx);//thread
 	
     /* gNB connects to AMF */
     //ngap = testngap_client(AF_INET);
@@ -475,6 +477,8 @@ static void muti_ue_threads(abts_case *tc, void *data)
         ABTS_PTR_NOTNULL(tc, sendbuf);
         rv = testgnb_ngap_send(ngap, sendbuf);
         ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
+        test_bearer_remove_all(sess);//bear改为了线程级别 直接这里释放
     }
 
 
@@ -521,7 +525,9 @@ static void muti_ue_threads(abts_case *tc, void *data)
     testgnb_ngap_close(ngap);
 
     /* Clear Test UE Context */
-    test_ue_remove_all();
+    //test_ue_remove_all();
+
+
 
 
 }

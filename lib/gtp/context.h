@@ -28,6 +28,10 @@
 extern "C" {
 #endif
 
+#define MAX_THREAD 20
+#define MAX_UE   10000
+
+
 typedef struct ogs_gtp_context_s {
     uint32_t        gtpc_port;      /* GTPC local port */
     uint32_t        gtpu_port;      /* GTPU local port */
