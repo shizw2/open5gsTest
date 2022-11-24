@@ -35,43 +35,19 @@ test_bearer_pool_t* p_test_bearer_pool;
 
 void test_context_init_ex(void)
 {
-    int rv;
-
-    ogs_assert(context_initialized == 0);
-	
 	pthread_setspecific(bearer_key,(void *)&test_bearer_pool);
 	
 	p_test_bearer_pool = (test_bearer_pool_t*)pthread_getspecific(bearer_key);
 
-    /* Initialize AMF context */
-    memset(&self, 0, sizeof(test_context_t));
-
-    ogs_pool_init(&test_ue_pool, ogs_app()->max.ue);
-    ogs_pool_init(&test_sess_pool, ogs_app()->pool.sess);
-    ogs_pool_init(&test_bearer_pool, ogs_app()->pool.bearer);
-
-    rv = ogs_getaddrinfo(&test_self()->gnb1_addr, AF_UNSPEC,
-            "127.0.0.2", OGS_GTPV1_U_UDP_PORT, 0);
-    ogs_assert(rv == OGS_OK);
-    rv = ogs_getaddrinfo(&test_self()->gnb1_addr6, AF_UNSPEC,
-            "fd69:f21d:873c:fa::2", OGS_GTPV1_U_UDP_PORT, 0);
-    ogs_assert(rv == OGS_OK);
-
-    rv = ogs_getaddrinfo(&test_self()->gnb2_addr, AF_UNSPEC,
-            "127.0.0.3", OGS_GTPV1_U_UDP_PORT, 0);
-    ogs_assert(rv == OGS_OK);
-    rv = ogs_getaddrinfo(&test_self()->gnb2_addr6, AF_UNSPEC,
-            "fd69:f21d:873c:fa::3", OGS_GTPV1_U_UDP_PORT, 0);
-    ogs_assert(rv == OGS_OK);
-
-    context_initialized = 1;
+    ogs_pool_init(p_test_bearer_pool, ogs_app()->pool.bearer);
 }
 
 
 void test_context_init(void)
 {
     int rv;
-
+    pthread_key_create ( & bearer_key ,  NULL);
+	
     ogs_assert(context_initialized == 0);
 
     /* Initialize AMF context */
@@ -118,6 +94,12 @@ void test_context_final(void)
     ogs_pool_final(&test_sess_pool);
 
     context_initialized = 0;
+}
+
+void test_context_final_ex(void)
+{
+	p_test_bearer_pool = (test_bearer_pool_t*)pthread_getspecific(bearer_key);
+	ogs_pool_final(p_test_bearer_pool);
 }
 
 test_context_t *test_self(void)
@@ -1145,7 +1127,41 @@ test_bearer_t *test_bearer_add(test_sess_t *sess, uint8_t ebi)
 
     ogs_assert(sess);
     ogs_assert(ebi);
+	#if 1
+    p_test_bearer_pool = (test_bearer_pool_t*)pthread_getspecific(bearer_key);
+    ogs_pool_alloc(p_test_bearer_pool, &bearer);
+	#endif
+	#if 0
+    ogs_pool_alloc(&test_bearer_pool, &bearer);
+	#endif
+    ogs_assert(bearer);
+    memset(bearer, 0, sizeof *bearer);
 
+    //bearer->index = ogs_pool_index(&test_bearer_pool, bearer);
+    bearer->index = ogs_pool_index(p_test_bearer_pool, bearer);
+	
+    bearer->ebi = ebi;
+
+    bearer->enb_s1u_addr = test_self()->gnb1_addr;
+    bearer->enb_s1u_addr6 = test_self()->gnb1_addr6;
+    bearer->enb_s1u_teid = bearer->index;
+
+    bearer->sess = sess;
+
+    ogs_list_add(&sess->bearer_list, bearer);
+
+    return bearer;
+}
+
+
+#if 0
+test_bearer_t *test_bearer_add(test_sess_t *sess, uint8_t ebi)
+{
+    test_bearer_t *bearer = NULL;
+
+    ogs_assert(sess);
+    ogs_assert(ebi);
+	
     ogs_pool_alloc(&test_bearer_pool, &bearer);
     ogs_assert(bearer);
     memset(bearer, 0, sizeof *bearer);
@@ -1165,6 +1181,9 @@ test_bearer_t *test_bearer_add(test_sess_t *sess, uint8_t ebi)
     return bearer;
 }
 
+#endif
+
+#if 0
 test_bearer_t *test_qos_flow_add(test_sess_t *sess)
 {
     test_bearer_t *qos_flow = NULL;
@@ -1183,7 +1202,28 @@ test_bearer_t *test_qos_flow_add(test_sess_t *sess)
 
     return qos_flow;
 }
+#endif 
 
+test_bearer_t *test_qos_flow_add(test_sess_t *sess)
+{
+    test_bearer_t *qos_flow = NULL;
+
+    ogs_assert(sess);
+    p_test_bearer_pool = (test_bearer_pool_t*)pthread_getspecific(bearer_key);
+    ogs_pool_alloc(p_test_bearer_pool, &qos_flow);
+    ogs_assert(qos_flow);
+    memset(qos_flow, 0, sizeof *qos_flow);
+
+    qos_flow->index = ogs_pool_index(p_test_bearer_pool, qos_flow);
+
+    qos_flow->sess = sess;
+
+    ogs_list_add(&sess->bearer_list, qos_flow);
+
+    return qos_flow;
+}
+
+#if 0
 void test_bearer_remove(test_bearer_t *bearer)
 {
     ogs_assert(bearer);
@@ -1192,6 +1232,17 @@ void test_bearer_remove(test_bearer_t *bearer)
     ogs_list_remove(&bearer->sess->bearer_list, bearer);
 
     ogs_pool_free(&test_bearer_pool, bearer);
+}
+#endif
+
+void test_bearer_remove(test_bearer_t *bearer)
+{
+    ogs_assert(bearer);
+    ogs_assert(bearer->sess);
+
+    ogs_list_remove(&bearer->sess->bearer_list, bearer);
+    p_test_bearer_pool = (test_bearer_pool_t*)pthread_getspecific(bearer_key);
+    ogs_pool_free(p_test_bearer_pool, bearer);
 }
 
 void test_bearer_remove_all(test_sess_t *sess)

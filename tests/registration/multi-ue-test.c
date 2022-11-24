@@ -193,7 +193,8 @@ static void muti_ue_threads(abts_case *tc, void *data)
 
     test_ue = &test_ues[threadInfo->clientIdx];
 
-    
+    test_context_init_ex();//thread
+	
     /* gNB connects to AMF */
     //ngap = testngap_client(AF_INET);
     ngap =  testngap_client_n(AF_INET,threadInfo->clientIdx);

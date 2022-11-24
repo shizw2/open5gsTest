@@ -496,6 +496,7 @@ void test_context_init(void);
 void test_context_final(void);
 test_context_t *test_self(void);
 
+
 int test_context_parse_config(void);
 
 void test_ue_set_mobile_identity_suci(test_ue_t *test_ue,
@@ -540,6 +541,11 @@ bson_t *test_db_new_slice_with_same_dnn(test_ue_t *test_ue);
 bson_t *test_db_new_slice_with_different_dnn(test_ue_t *test_ue);
 bson_t *test_db_new_non3gpp(test_ue_t *test_ue);
 
+void test_context_init_ex(void);
+void test_context_final_ex(void);
+test_bearer_t *test_bearer_add_ex(test_sess_t *sess, uint8_t ebi);
+test_bearer_t *test_qos_flow_add_ex(test_sess_t *sess);
+void test_bearer_remove_ex(test_bearer_t *bearer);
 #ifdef __cplusplus
 }
 #endif
