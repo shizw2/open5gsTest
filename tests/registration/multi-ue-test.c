@@ -42,7 +42,7 @@ typedef struct threadinfo
 
 int iPthreadSize = 3;
 
-test_ue_t *test_ues[MAX_THREAD][MAX_UE];
+test_ue_t *test_ues[MAX_THREAD][10000];
 
 static void muti_ue_threads(abts_case *tc, void *data)
 {
@@ -62,9 +62,12 @@ static void muti_ue_threads(abts_case *tc, void *data)
 		iPthreadSize = 20;
 	}
 	
+	struct timeval start_time, stop_time;
+    gettimeofday(&start_time, NULL);
+	
 	for (iTmp = 0; iTmp < iPthreadSize; iTmp++)
 	{
-		for (i = 0; i < g_testNum; i++) {
+		for (i = 0; i < 10000; i++) {
 			uint64_t imsi_index;
 
 			/* Setup Test UE & Session Context */
@@ -109,7 +112,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
 
 
 		//插入数据库单独统计
-		for (i = 0; i < g_testNum; i++) {
+		for (i = 0; i < 10000; i++) {
 #if 1
 			/* Send PDU session establishment request */
 			sess = test_sess_add_by_dnn_and_psi(test_ues[iTmp][i], "internet", 5);
@@ -121,7 +124,9 @@ static void muti_ue_threads(abts_case *tc, void *data)
 			ABTS_INT_EQUAL(tc, OGS_OK, test_db_insert_ue(test_ues[iTmp][i], doc));
 		}
     }
-
+	gettimeofday(&stop_time, NULL);
+	printf("Insert Subscriber in Database,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
+	
     for (iTmp = 0; iTmp < iPthreadSize; iTmp++)
     {
         //T_threadinfo threadInfo;
@@ -175,7 +180,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
     ogs_ngap_message_t message;
     int i;
     printf("wait for app init.\r\n");
-    ogs_msleep(4000);//wait for app init
+    ogs_msleep(100000);//wait for app init
     struct timeval start_time, stop_time;
     gettimeofday(&start_time, NULL);
 
