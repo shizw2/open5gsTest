@@ -113,7 +113,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
 
 		//插入数据库单独统计
 		for (i = 0; i < 10000; i++) {
-#if 1
+#if 0
 			/* Send PDU session establishment request */
 			sess = test_sess_add_by_dnn_and_psi(test_ues[iTmp][i], "internet", 5);
 			ogs_assert(sess);
@@ -126,7 +126,22 @@ static void muti_ue_threads(abts_case *tc, void *data)
     }
 	gettimeofday(&stop_time, NULL);
 	printf("Insert Subscriber in Database,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
-	
+
+    gettimeofday(&start_time, NULL);
+	for (iTmp = 0; iTmp < iPthreadSize; iTmp++)
+	{        
+        for (i = 0; i < 10000; i++) {
+
+            /* Send PDU session establishment request */
+            sess = test_sess_add_by_dnn_and_psi(test_ues[iTmp][i], "internet", 5);
+            ogs_assert(sess);
+        }
+       
+    }
+    gettimeofday(&stop_time, NULL);
+    printf("alloc session,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
+
+    
     for (iTmp = 0; iTmp < iPthreadSize; iTmp++)
     {
         //T_threadinfo threadInfo;
@@ -180,7 +195,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
     ogs_ngap_message_t message;
     int i;
     printf("wait for app init.\r\n");
-    ogs_msleep(100000);//wait for app init
+    ogs_msleep(60000);//wait for app init
     struct timeval start_time, stop_time;
     gettimeofday(&start_time, NULL);
 

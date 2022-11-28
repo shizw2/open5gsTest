@@ -55,6 +55,7 @@ static void run(int argc, const char *const argv[],
     argv_out[0] = MESON_BUILD_ROOT OGS_DIR_SEPARATOR_S 
             "src" OGS_DIR_SEPARATOR_S "open5gs-main";
 
+    printf("%s\r\n",argv_out[0]);
     rv = abts_main(argc_out, argv_out, new_argv);
     ogs_assert(rv == OGS_OK);
 
