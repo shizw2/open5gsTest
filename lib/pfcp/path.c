@@ -302,6 +302,8 @@ void ogs_pfcp_send_g_pdu(
     ogs_assert(type);
     ogs_assert(sendbuf);
 
+    printf("ogs_pfcp_send_g_pdu.\r\n");
+
     far = pdr->far;
     if (!far) {
         ogs_error("No FAR");

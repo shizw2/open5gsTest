@@ -197,6 +197,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             goto cleanup;
         }
 
+        printf("tpye:%d.\r\n",pfcp_object->type);
         switch(pfcp_object->type) {
         case OGS_PFCP_OBJ_PDR_TYPE:
             pdr = (ogs_pfcp_pdr_t *)pfcp_object;

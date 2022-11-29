@@ -46,7 +46,7 @@ upf_sess_t *upf_sess_find_by_ue_ip_address(ogs_pkbuf_t *pkbuf)
     ip_h = (struct ip *)pkbuf->data;
     if (ip_h->ip_v == 4) {
         ip_h = (struct ip *)pkbuf->data;
-        printf("saddr:%s, daddr:%s\r\n",inet_ntoa(ip_h->ip_src),inet_ntoa(ip_h->ip_dst));
+        printf("upf_sess_find_by_ue_ip_address,saddr:%s, daddr:%s\r\n",inet_ntoa(ip_h->ip_src),inet_ntoa(ip_h->ip_dst));
         sess = upf_sess_find_by_ipv4(ip_h->ip_dst.s_addr);
     } else if (ip_h->ip_v == 6) {
         ip6_h = (struct ip6_hdr *)pkbuf->data;

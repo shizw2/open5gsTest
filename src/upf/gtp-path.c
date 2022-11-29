@@ -369,6 +369,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             goto cleanup;
         }
 
+        printf("pfcp_object->type:%d.\r\n",pfcp_object->type);
         switch(pfcp_object->type) {
         case OGS_PFCP_OBJ_PDR_TYPE:
             pdr = (ogs_pfcp_pdr_t *)pfcp_object;
@@ -421,6 +422,8 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
         far = pdr->far;
         ogs_assert(far);
+
+        printf("_gtpv1_u_recv_cb,saddr:%s, daddr:%s\r\n",inet_ntoa(ip_h->ip_src),inet_ntoa(ip_h->ip_dst));
 
         if (ip_h->ip_v == 4 && sess->ipv4) {
             src_addr = &ip_h->ip_src.s_addr;
@@ -570,6 +573,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             }
 
             /* TODO: if destined to another UE, hairpin back out. */
+            printf("ogs_tun_write.\r\n");
             if (ogs_tun_write(dev->fd, pkbuf) != OGS_OK)
                 ogs_warn("ogs_tun_write() failed");
 
