@@ -79,7 +79,8 @@ void test_context_init(void)
     int rv;
     pthread_key_create ( & bearer_key ,  NULL);
     //pthread_setspecific(bearer_key,(void *)&test_bearer_pool_thread[0]);
-	
+	test_thread_context_init(0);
+    
     ogs_assert(context_initialized == 0);
 
     /* Initialize AMF context */

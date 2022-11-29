@@ -81,6 +81,8 @@ static void _gtpv1_tun_recv_common_cb(
     ogs_pfcp_user_plane_report_t report;
     int i;
 
+    printf("_gtpv1_tun_recv_common_cb \r\n.");
+
     recvbuf = ogs_tun_read(fd, packet_pool);
     if (!recvbuf) {
         ogs_warn("ogs_tun_read() failed");
@@ -227,6 +229,8 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
     uint8_t qfi;
 
     ogs_assert(fd != INVALID_SOCKET);
+
+    printf("_gtpv1_u_recv_cb \r\n");
 
     pkbuf = ogs_pkbuf_alloc(packet_pool, OGS_MAX_PKT_LEN);
     ogs_assert(pkbuf);
@@ -672,6 +676,7 @@ int upf_gtp_open(void)
     ogs_socknode_t *node = NULL;
     ogs_sock_t *sock = NULL;
     int rc;
+    char buf[OGS_ADDRSTRLEN];
 
     ogs_list_for_each(&ogs_gtp_self()->gtpu_list, node) {
         sock = ogs_gtp_server(node);
@@ -681,6 +686,9 @@ int upf_gtp_open(void)
             ogs_gtp_self()->gtpu_sock = sock;
         else if (sock->family == AF_INET6)
             ogs_gtp_self()->gtpu_sock6 = sock;
+
+        ogs_error("gtp_server() [%s]:%d,set cb:_gtpv1_u_recv_cb",
+                OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
 
         node->poll = ogs_pollset_add(ogs_app()->pollset,
                 OGS_POLLIN, sock->fd, _gtpv1_u_recv_cb, sock);
@@ -709,12 +717,15 @@ int upf_gtp_open(void)
             return OGS_ERROR;
         }
 
+        ogs_info("tun_open(dev:%s) sucess.", dev->ifname);
+
         if (dev->is_tap) {
             _get_dev_mac_addr(dev->ifname, dev->mac_addr);
             dev->poll = ogs_pollset_add(ogs_app()->pollset,
                     OGS_POLLIN, dev->fd, _gtpv1_tun_recv_eth_cb, NULL);
             ogs_assert(dev->poll);
         } else {
+            ogs_error("tun_open(dev:%s) sucess,set cb:_gtpv1_tun_recv_cb.", dev->ifname);
             dev->poll = ogs_pollset_add(ogs_app()->pollset,
                     OGS_POLLIN, dev->fd, _gtpv1_tun_recv_cb, NULL);
             ogs_assert(dev->poll);

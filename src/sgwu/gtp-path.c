@@ -90,7 +90,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
     teid = be32toh(gtp_h->teid);
 
-    ogs_debug("[RECV] GPU-U Type [%d] from [%s] : TEID[0x%x]",
+    ogs_error("[RECV] GPU-U Type [%d] from [%s] : TEID[0x%x]",
             gtp_h->type, OGS_ADDR(&from, buf), teid);
 
     qfi = 0;
