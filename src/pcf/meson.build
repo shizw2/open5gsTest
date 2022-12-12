@@ -37,20 +37,27 @@ libpcf_sources = files('''
 
     sbi-path.c
     pcf-sm.c
-
+	
+	pcf-rx-path.c
+	pcf-fd-path.c
+	
     init.c
 '''.split())
 
 libpcf = static_library('pcf',
     sources : libpcf_sources,
     dependencies : [libdbi_dep,
-                    libsbi_dep],
+                    libsbi_dep,
+                    libdiameter_rx_dep,
+                    libdiameter_gx_dep],
     install : false)
 
 libpcf_dep = declare_dependency(
     link_with : libpcf,
     dependencies : [libdbi_dep,
-                    libsbi_dep])
+                    libsbi_dep,
+                    libdiameter_rx_dep,
+                    libdiameter_gx_dep])
 
 pcf_sources = files('''
     app.c

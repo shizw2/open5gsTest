@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "pcrf-context.h": "c",
+        "pcrf-fd-path.h": "c",
+        "pcf-fd-path.h": "c",
+        "context.h": "c"
+    }
+}

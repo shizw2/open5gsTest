@@ -18,6 +18,7 @@
  */
 
 #include "sbi-path.h"
+#include "pcf-fd-path.h"
 
 static ogs_thread_t *thread;
 static void pcf_main(void *data);
@@ -46,6 +47,10 @@ int pcf_initialize()
 
     rv = pcf_sbi_open();
     if (rv != OGS_OK) return rv;
+
+    //add at 20221210
+    rv = pcf_fd_init();
+    if (rv != OGS_OK) return OGS_ERROR;
 
     thread = ogs_thread_create(pcf_main, NULL);
     if (!thread) return OGS_ERROR;

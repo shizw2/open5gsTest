@@ -24,6 +24,8 @@
 #include "ogs-crypt.h"
 #include "ogs-sbi.h"
 #include "ogs-dbi.h"
+#include "ogs-diameter-gx.h"
+#include "ogs-diameter-rx.h"
 
 #include "pcf-sm.h"
 
@@ -42,6 +44,9 @@ typedef struct pcf_context_s {
 
     ogs_hash_t      *ipv4addr_hash;
     ogs_hash_t      *ipv6prefix_hash;
+    
+    const char*         diam_conf_path;   /* SMF Diameter conf path */
+    ogs_diam_config_t   *diam_config;     /* SMF Diameter config */
 } pcf_context_t;
 
 struct pcf_ue_s {
@@ -70,6 +75,7 @@ struct pcf_ue_s {
     OpenAPI_ambr_t *subscribed_ue_ambr;
 
     ogs_list_t sess_list;
+
 };
 
 struct pcf_sess_s {
