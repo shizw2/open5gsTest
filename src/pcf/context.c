@@ -565,3 +565,35 @@ pcf_app_t *pcf_app_find_by_app_session_id(char *app_session_id)
     ogs_assert(app_session_id);
     return pcf_app_find(atoll(app_session_id));
 }
+
+
+int pcf_db_qos_data(
+        char *imsi_bcd, char *apn, ogs_session_data_t *session_data)
+{
+    int rv, i;
+    char *supi = NULL;
+
+    ogs_assert(imsi_bcd);
+    ogs_assert(apn);
+    ogs_assert(session_data);
+
+    //TODO  
+    //ogs_thread_mutex_lock(&self.db_lock);
+    supi = ogs_msprintf("%s-%s", OGS_ID_SUPI_TYPE_IMSI, imsi_bcd);
+    ogs_assert(supi);
+
+    /* For EPC, we'll use [S_NSSAI = NULL] */
+    rv = ogs_dbi_session_data(supi, NULL, apn, session_data);
+
+    /* For EPC, we need to inialize Flow-Status in Pcc-Rule */
+    //TODO: maybe need delete
+    for (i = 0; i < session_data->num_of_pcc_rule; i++) {
+        ogs_pcc_rule_t *pcc_rule = &session_data->pcc_rule[i];
+        pcc_rule->flow_status = OGS_DIAM_RX_FLOW_STATUS_ENABLED;
+    }
+
+    ogs_free(supi);
+    //ogs_thread_mutex_unlock(&self.db_lock);
+
+    return rv;
+}

@@ -177,6 +177,8 @@ void pcf_app_remove_all(pcf_sess_t *sess);
 pcf_app_t *pcf_app_find(uint32_t index);
 pcf_app_t *pcf_app_find_by_app_session_id(char *app_session_id);
 
+int pcf_db_qos_data(
+        char *imsi_bcd, char *apn, ogs_session_data_t *session_data);
 #ifdef __cplusplus
 }
 #endif

@@ -1315,3 +1315,555 @@ bool pcf_npcf_policyauthorization_handle_delete(
 
     return true;
 }
+
+static struct session_handler *pcrf_gx_reg = NULL;
+static OGS_POOL(sess_state_pool, struct sess_state);
+static OGS_POOL(rx_sess_state_pool, struct rx_sess_state);
+static ogs_thread_mutex_t sess_state_mutex;
+
+struct rx_sess_state {
+    ogs_lnode_t         node;
+
+    os0_t               sid;                            /* Rx Session-Id */
+
+    ogs_pcc_rule_t      pcc_rule[OGS_MAX_NUM_OF_PCC_RULE];
+    int                 num_of_pcc_rule;
+
+    struct sess_state   *gx;
+};
+
+//跟pcf-rx-path.c中的sess_state不一样
+struct sess_state {
+    os0_t       sid;                /* Gx Session-Id */
+
+    os0_t       peer_host;          /* Peer Host */
+
+    char        *imsi_bcd;
+    char        *apn;
+
+ED3(uint8_t     ipv4:1;,
+    uint8_t     ipv6:1;,
+    uint8_t     reserved:6;)
+    uint32_t    addr;                   /* Framed-IPv4-Address */
+    uint8_t     addr6[OGS_IPV6_LEN];    /* Framed-IPv6-Prefix */
+
+    ogs_list_t  rx_list;
+
+    struct timespec ts;             /* Time of sending the message */
+};
+
+static struct rx_sess_state *find_rx_state(struct sess_state *gx, os0_t sid)
+{
+    struct rx_sess_state *rx_sess_data = NULL;
+
+    ogs_assert(gx);
+    ogs_assert(sid);
+    
+    ogs_list_for_each(&gx->rx_list, rx_sess_data) {
+        if (!strcmp((char *)rx_sess_data->sid, (char *)sid))
+            return rx_sess_data;
+    }
+
+    return NULL;
+}
+
+static struct rx_sess_state *add_rx_state(struct sess_state *gx, os0_t sid)
+{
+    struct rx_sess_state *new = NULL;
+
+    ogs_assert(gx);
+    ogs_assert(sid);
+
+    ogs_thread_mutex_lock(&sess_state_mutex);
+    ogs_pool_alloc(&rx_sess_state_pool, &new);
+    ogs_expect_or_return_val(new, NULL);
+    memset(new, 0, sizeof(*new));
+    ogs_thread_mutex_unlock(&sess_state_mutex);
+
+    new->sid = (os0_t)ogs_strdup((char *)sid);
+    ogs_expect_or_return_val(new->sid, NULL);
+
+    new->gx = gx;
+
+    ogs_list_add(&gx->rx_list, new);
+
+    return new;
+}
+
+static int remove_rx_state(struct rx_sess_state *rx_sess_data)
+{
+    struct sess_state *gx = NULL;
+    int i;
+
+    ogs_assert(rx_sess_data);
+    gx = rx_sess_data->gx;
+    ogs_assert(gx);
+
+    ogs_list_remove(&gx->rx_list, rx_sess_data);
+
+    for (i = 0; i < rx_sess_data->num_of_pcc_rule; i++) {
+        OGS_PCC_RULE_FREE(&rx_sess_data->pcc_rule[i]);
+    }
+
+    if (rx_sess_data->sid)
+        ogs_free(rx_sess_data->sid);
+
+    ogs_thread_mutex_lock(&sess_state_mutex);
+    ogs_pool_free(&rx_sess_state_pool, rx_sess_data);
+    ogs_thread_mutex_unlock(&sess_state_mutex);
+
+    return OGS_OK;
+}
+
+static int remove_rx_state_all(struct sess_state *gx)
+{
+    struct rx_sess_state *rx_sess_data = NULL, *next_rx_sess_data = NULL;
+
+    ogs_assert(gx);
+
+    ogs_list_for_each_safe(&gx->rx_list, next_rx_sess_data, rx_sess_data)
+        remove_rx_state(rx_sess_data);
+
+    return OGS_OK;
+}
+
+//模仿pcrf_gx_send_rar
+int pcf_gx_send_rar(pcf_sess_t *sess,
+        uint8_t *gx_sid, uint8_t *rx_sid, ogs_diam_rx_message_t *rx_message)
+{
+    OpenAPI_list_t *PccRuleList = NULL;
+    OpenAPI_map_t *PccRuleMap = NULL;
+    OpenAPI_pcc_rule_t *PccRule = NULL;
+
+    OpenAPI_list_t *QosDecisionList = NULL;
+    OpenAPI_map_t *QosDecisionMap = NULL;
+    OpenAPI_qos_data_t *QosData = NULL;
+    OpenAPI_lnode_t *node = NULL;//, *node2 = NULL, *node3 = NULL;
+    OpenAPI_sm_policy_decision_t SmPolicyDecision;
+
+    int rv;
+    int ret = 0, i, j;
+
+    struct msg *req = NULL;
+    struct avp *avp, *avpch1;
+    union avp_value val;
+    struct sess_state *sess_data = NULL, *svg;
+    struct rx_sess_state *rx_sess_data = NULL;
+    struct session *session = NULL;
+    int new;
+    size_t sidlen;
+
+    ogs_diam_gx_message_t gx_message;
+    int charging_rule = 0;
+
+    ogs_assert(gx_sid);
+    ogs_assert(rx_sid);
+    ogs_assert(rx_message);
+
+    ogs_debug("[PCRF] Re-Auth-Request");
+
+    /* Initialize Message */
+    memset(&gx_message, 0, sizeof(ogs_diam_gx_message_t));
+
+    /* Set default error result code */
+    rx_message->result_code = OGS_DIAM_UNKNOWN_SESSION_ID;
+
+    /* Create the request */
+    ret = fd_msg_new(ogs_diam_gx_cmd_rar, MSGFL_ALLOC_ETEID, &req);
+    ogs_assert(ret == 0);
+    {
+        struct msg_hdr * h;
+        ret = fd_msg_hdr( req, &h );
+        ogs_assert(ret == 0);
+        h->msg_appl = OGS_DIAM_GX_APPLICATION_ID;
+    }
+
+    /* Retrieve session by Session-Id */
+    sidlen = strlen((char *)gx_sid);
+    ret = fd_sess_fromsid_msg((os0_t)gx_sid, sidlen, &session, &new);
+    ogs_assert(ret == 0);
+    if (new) {
+        ogs_error("No session data");
+        ret = fd_msg_free(req);
+        ogs_assert(ret == 0);
+        rx_message->result_code = OGS_DIAM_UNKNOWN_PEER;
+        return OGS_ERROR;
+    }
+
+    /* Add Session-Id to the message */
+    ret = ogs_diam_message_session_id_set(req, (os0_t)gx_sid, sidlen);
+    ogs_assert(ret == 0);
+
+    /* Save the session associated with the message */
+    ret = fd_msg_sess_set(req, session);
+    ogs_assert(ret == 0);
+
+    /* Retrieve session state in this session */
+    ret = fd_sess_state_retrieve(pcrf_gx_reg, session, &sess_data);
+    ogs_assert(ret == 0);
+    if (sess_data == NULL) {
+        ogs_error("No session data");
+        ret = fd_msg_free(req);
+        ogs_assert(ret == 0);
+        rx_message->result_code = OGS_DIAM_UNKNOWN_SESSION_ID;
+        return OGS_ERROR;
+    }
+
+    /* Find RX session state */
+    rx_sess_data = find_rx_state(sess_data, rx_sid);
+    if (rx_message->cmd_code == OGS_DIAM_RX_CMD_CODE_AA) {
+        if (!rx_sess_data) {
+            rx_sess_data = add_rx_state(sess_data, rx_sid);
+            ogs_assert(rx_sess_data);
+        }
+
+        /* Retrieve QoS Data from Database */
+        rv = pcf_db_qos_data(
+                sess_data->imsi_bcd, sess_data->apn, &gx_message.session_data);
+        if (rv != OGS_OK) {
+            ogs_error("Cannot get data for IMSI(%s)+APN(%s)'",
+                    sess_data->imsi_bcd, sess_data->apn);
+            rx_message->result_code =
+                OGS_DIAM_RX_DIAMETER_IP_CAN_SESSION_NOT_AVAILABLE;
+            goto out;
+        }
+
+        /* Match Media-Component with PCC Rule */
+        for (i = 0; i < rx_message->ims_data.num_of_media_component; i++) {
+            int flow_presence = 0;
+            ogs_pcc_rule_t *pcc_rule = NULL;
+            ogs_pcc_rule_t *db_pcc_rule = NULL;
+            uint8_t qos_index = 0;
+            ogs_media_component_t *media_component =
+                &rx_message->ims_data.media_component[i];
+
+            switch(media_component->media_type) {
+            case OGS_DIAM_RX_MEDIA_TYPE_AUDIO:
+                qos_index = OGS_QOS_INDEX_1;
+                break;
+            case OGS_DIAM_RX_MEDIA_TYPE_VIDEO:
+                qos_index = OGS_QOS_INDEX_2;
+                break;
+            case OGS_DIAM_RX_MEDIA_TYPE_CONTROL:
+                qos_index = OGS_QOS_INDEX_5;
+                break;
+            default:
+                ogs_error("Not implemented : [Media-Type:%d]",
+                        media_component->media_type);
+                rx_message->result_code = OGS_DIAM_INVALID_AVP_VALUE;
+                goto out;
+            }
+            
+            for (j = 0; j < gx_message.session_data.num_of_pcc_rule; j++) {
+                if (gx_message.session_data.pcc_rule[j].qos.index ==
+                        qos_index) {
+                    db_pcc_rule = &gx_message.session_data.pcc_rule[j];
+                    break;
+                }
+            }
+
+            if (!db_pcc_rule && (media_component->media_type
+                    == OGS_DIAM_RX_MEDIA_TYPE_CONTROL)) {
+                /*
+                 * Check for default bearer for IMS signalling
+                 * QCI 5 and ARP 1
+                 */
+                if (gx_message.session_data.
+                        session.qos.index != OGS_QOS_INDEX_5 ||
+                    gx_message.session_data.
+                        session.qos.arp.priority_level != 1) {
+                    ogs_error("CHECK WEBUI : Even the Default "
+                        "Bearer(QCI:%d,ARP:%d) cannot support IMS signalling.",
+                        gx_message.session_data.session.qos.index,
+                        gx_message.session_data.session.qos.arp.priority_level);
+                    rx_message->result_code =
+                        OGS_DIAM_RX_DIAMETER_REQUESTED_SERVICE_NOT_AUTHORIZED;
+                    goto out;
+                } else {
+                    continue;
+                }
+            }
+
+            if (!db_pcc_rule) {
+                ogs_error("CHECK WEBUI : No PCC Rule in DB [QoS Index:%d]",
+                        qos_index);
+                ogs_error("Please add PCC Rule using WEBUI");
+                rx_message->result_code = 
+                    OGS_DIAM_RX_DIAMETER_REQUESTED_SERVICE_NOT_AUTHORIZED;
+                goto out;
+            }
+
+            for (j = 0; j < rx_sess_data->num_of_pcc_rule; j++) {
+                if (rx_sess_data->pcc_rule[j].qos.index == qos_index) {
+                    pcc_rule = &rx_sess_data->pcc_rule[j];
+                    break;
+                }
+            }
+
+            if (!pcc_rule) {
+                pcc_rule = 
+                    &rx_sess_data->pcc_rule[rx_sess_data->num_of_pcc_rule];
+
+                /* Device PCC Rule Info from DB Profile */
+                pcc_rule->name = ogs_msprintf("%s-r%d", db_pcc_rule->name,
+                    (int)ogs_pool_index(&rx_sess_state_pool, rx_sess_data));
+                ogs_assert(pcc_rule->name);
+
+                memcpy(&pcc_rule->qos, &db_pcc_rule->qos, sizeof(ogs_qos_t));
+
+                pcc_rule->flow_status = db_pcc_rule->flow_status;
+                pcc_rule->precedence = db_pcc_rule->precedence;
+
+                /* Install Flow */
+                flow_presence = 1;
+                rv = ogs_pcc_rule_install_flow_from_media(
+                        pcc_rule, media_component);
+                if (rv != OGS_OK) {
+                    rx_message->result_code =
+                        OGS_DIAM_RX_DIAMETER_FILTER_RESTRICTIONS;
+                    ogs_error("install_flow() failed");
+                    goto out;
+                }
+
+                rx_sess_data->num_of_pcc_rule++;
+            } else {
+                int count = 0;
+
+                /* Check Flow */
+                count = ogs_pcc_rule_num_of_flow_equal_to_media(
+                        pcc_rule, media_component);
+                if (count == -1) {
+                    rx_message->result_code =
+                        OGS_DIAM_RX_DIAMETER_FILTER_RESTRICTIONS;
+                    ogs_error("matched_flow() failed");
+                    goto out;
+                }
+
+                if (pcc_rule->num_of_flow != count) {
+                    /* Re-install Flow */
+                    flow_presence = 1;
+                    rv = ogs_pcc_rule_install_flow_from_media(
+                            pcc_rule, media_component);
+                    if (rv != OGS_OK) {
+                        rx_message->result_code = 
+                            OGS_DIAM_RX_DIAMETER_FILTER_RESTRICTIONS;
+                        ogs_error("install_flow() failed");
+                        goto out;
+                    }
+                }
+            }
+
+            /* Update QoS */
+            rv = ogs_pcc_rule_update_qos_from_media(pcc_rule, media_component);
+            if (rv != OGS_OK) {
+                rx_message->result_code =
+                    OGS_DIAM_RX_DIAMETER_REQUESTED_SERVICE_NOT_AUTHORIZED;
+                ogs_error("update_qos() failed");
+                goto out;
+            }
+
+            /* if we failed to get QoS from IMS, apply WEBUI QoS */
+            if (pcc_rule->qos.mbr.downlink == 0)
+                pcc_rule->qos.mbr.downlink = db_pcc_rule->qos.mbr.downlink;
+            if (pcc_rule->qos.mbr.uplink == 0)
+                pcc_rule->qos.mbr.uplink = db_pcc_rule->qos.mbr.uplink;
+            if (pcc_rule->qos.gbr.downlink == 0)
+                pcc_rule->qos.gbr.downlink = db_pcc_rule->qos.gbr.downlink;
+            if (pcc_rule->qos.gbr.uplink == 0)
+                pcc_rule->qos.gbr.uplink = db_pcc_rule->qos.gbr.uplink;
+#if 0
+            if (charging_rule == 0) {
+                ret = fd_msg_avp_new(
+                        ogs_diam_gx_charging_rule_install, 0, &avp);
+                ogs_assert(ret == 0);
+                charging_rule = 1;
+            }
+
+            rv = encode_pcc_rule_definition(avp, pcc_rule, flow_presence);
+            ogs_assert(rv == OGS_OK);
+#endif
+            /**************************************************************
+             * Build PCC Rule & QoS Decision
+             *************************************************************/
+            PccRule = ogs_sbi_build_pcc_rule(pcc_rule, flow_presence);
+            ogs_assert(PccRule->pcc_rule_id);
+
+            PccRuleMap = OpenAPI_map_create(PccRule->pcc_rule_id, PccRule);
+            ogs_assert(PccRuleMap);
+
+            OpenAPI_list_add(PccRuleList, PccRuleMap);
+
+            QosData = ogs_sbi_build_qos_data(pcc_rule);
+            ogs_assert(QosData);
+            ogs_assert(QosData->qos_id);
+
+            QosDecisionMap = OpenAPI_map_create(QosData->qos_id, QosData);
+            ogs_assert(QosDecisionMap);
+
+            OpenAPI_list_add(QosDecisionList, QosDecisionMap);
+        }
+#if 0
+        if (charging_rule == 1) {
+            ret = fd_msg_avp_add(req, MSG_BRW_LAST_CHILD, avp);
+            ogs_assert(ret == 0);
+        }
+#endif
+    } else if (rx_message->cmd_code ==
+            OGS_DIAM_RX_CMD_CODE_SESSION_TERMINATION) {
+        ogs_assert(rx_sess_data);
+
+        for (i = 0; i < rx_sess_data->num_of_pcc_rule; i++) {
+            ogs_assert(rx_sess_data->pcc_rule[i].name);
+
+            if (charging_rule == 0) {
+                ret = fd_msg_avp_new(ogs_diam_gx_charging_rule_remove, 0, &avp);
+                ogs_assert(ret == 0);
+                charging_rule = 1;
+            }
+
+            ret = fd_msg_avp_new(ogs_diam_gx_charging_rule_name, 0, &avpch1);
+            ogs_assert(ret == 0);
+            val.os.data = (uint8_t *)rx_sess_data->pcc_rule[i].name;
+            val.os.len = strlen(rx_sess_data->pcc_rule[i].name);
+            ret = fd_msg_avp_setvalue(avpch1, &val);
+            ogs_assert(ret == 0);
+            ret = fd_msg_avp_add(avp, MSG_BRW_LAST_CHILD, avpch1);
+            ogs_assert(ret == 0);
+        }
+
+        if (charging_rule == 1) {
+            ret = fd_msg_avp_add(req, MSG_BRW_LAST_CHILD, avp);
+            ogs_assert(ret == 0);
+        }
+
+        remove_rx_state(rx_sess_data);
+    } else
+        ogs_assert_if_reached();
+
+    if (charging_rule == 0) {
+        rx_message->result_code = ER_DIAMETER_SUCCESS;
+        goto out;
+    }
+
+    if (PccRuleList->count)
+        SmPolicyDecision.pcc_rules = PccRuleList;
+
+    if (QosDecisionList->count)
+        SmPolicyDecision.qos_decs = QosDecisionList;
+
+    if (PccRuleList->count || QosDecisionList->count) {
+        ogs_assert(true == pcf_sbi_send_smpolicycontrol_update_notify(
+                                sess, &SmPolicyDecision));
+    }
+
+    OpenAPI_list_for_each(PccRuleList, node) {
+        PccRuleMap = node->data;
+        if (PccRuleMap) {
+            PccRule = PccRuleMap->value;
+            if (PccRule)
+                ogs_sbi_free_pcc_rule(PccRule);
+            ogs_free(PccRuleMap);
+        }
+    }
+    OpenAPI_list_free(PccRuleList);
+
+    OpenAPI_list_for_each(QosDecisionList, node) {
+        QosDecisionMap = node->data;
+        if (QosDecisionMap) {
+            QosData = QosDecisionMap->value;
+            if (QosData)
+                ogs_sbi_free_qos_data(QosData);
+            ogs_free(QosDecisionMap);
+        }
+    }
+    OpenAPI_list_free(QosDecisionList);
+
+    return OGS_OK;
+
+#if 0
+    /* Set Origin-Host & Origin-Realm */
+    ret = fd_msg_add_origin(req, 0);
+    ogs_assert(ret == 0);
+
+    /* Set the Destination-Host AVP */
+    ret = fd_msg_avp_new(ogs_diam_destination_host, 0, &avp);
+    ogs_assert(ret == 0);
+    val.os.data = sess_data->peer_host;
+    val.os.len  = strlen((char *)sess_data->peer_host);
+    ret = fd_msg_avp_setvalue(avp, &val);
+    ogs_assert(ret == 0);
+    ret = fd_msg_avp_add(req, MSG_BRW_LAST_CHILD, avp);
+    ogs_assert(ret == 0);
+
+    /* Set the Destination-Realm AVP */
+    ret = fd_msg_avp_new(ogs_diam_destination_realm, 0, &avp);
+    ogs_assert(ret == 0);
+    val.os.data = (unsigned char *)(fd_g_config->cnf_diamrlm);
+    val.os.len  = strlen(fd_g_config->cnf_diamrlm);
+    ret = fd_msg_avp_setvalue(avp, &val);
+    ogs_assert(ret == 0);
+    ret = fd_msg_avp_add(req, MSG_BRW_LAST_CHILD, avp);
+    ogs_assert(ret == 0);
+
+    /* Set the Auth-Application-Id AVP */
+    ret = fd_msg_avp_new(ogs_diam_auth_application_id, 0, &avp);
+    ogs_assert(ret == 0);
+    val.i32 = OGS_DIAM_GX_APPLICATION_ID;
+    ret = fd_msg_avp_setvalue(avp, &val);
+    ogs_assert(ret == 0);
+    ret = fd_msg_avp_add(req, MSG_BRW_LAST_CHILD, avp);
+    ogs_assert(ret == 0);
+
+    /* Set the Re-Auth-Request-Type */
+    ret = fd_msg_avp_new(ogs_diam_re_auth_request_type, 0, &avp);
+    ogs_assert(ret == 0);
+    val.i32 = OGS_DIAM_RE_AUTH_REQUEST_TYPE_AUTHORIZE_ONLY;
+    ret = fd_msg_avp_setvalue(avp, &val);
+    ogs_assert(ret == 0);
+    ret = fd_msg_avp_add(req, MSG_BRW_LAST_CHILD, avp);
+    ogs_assert(ret == 0);
+
+    ret = clock_gettime(CLOCK_REALTIME, &sess_data->ts);
+    ogs_assert(ret == 0);
+    
+    /* Keep a pointer to the session data for debug purpose, 
+     * in real life we would not need it */
+    svg = sess_data;
+    
+    /* Store this value in the session */
+    ret = fd_sess_state_store(pcrf_gx_reg, session, &sess_data);
+    ogs_assert(ret == 0);
+    ogs_assert(sess_data == NULL);
+    
+    /* Send the request */
+    ret = fd_msg_send(&req, pcrf_gx_raa_cb, svg);
+    ogs_assert(ret == 0);
+#endif
+
+#if 0
+    if (PccRuleList->count || QosDecisionList->count) {
+        ogs_assert(true == pcf_sbi_send_smpolicycontrol_update_notify(
+                            sess, &SmPolicyDecision));
+    }
+#endif 
+    /* Increment the counter */
+    ogs_assert(pthread_mutex_lock(&ogs_diam_logger_self()->stats_lock) == 0);
+    ogs_diam_logger_self()->stats.nb_sent++;
+    ogs_assert(pthread_mutex_unlock(&ogs_diam_logger_self()->stats_lock) == 0);
+
+    /* Set no error */
+    rx_message->result_code = ER_DIAMETER_SUCCESS;
+
+    ogs_session_data_free(&gx_message.session_data);
+
+    return OGS_OK;
+
+out:
+    /* Store this value in the session */
+    ret = fd_sess_state_store(pcrf_gx_reg, session, &sess_data);
+    ogs_assert(sess_data == NULL);
+
+    ogs_session_data_free(&gx_message.session_data);
+
+    return OGS_ERROR;
+}

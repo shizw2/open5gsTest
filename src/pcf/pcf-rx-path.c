@@ -19,6 +19,7 @@
 
 #include "context.h"
 #include "pcf-fd-path.h"
+#include "npcf-handler.h"
 
 struct sess_state {
     os0_t   rx_sid;             /* Rx Session-Id */
@@ -87,7 +88,7 @@ static int pcf_rx_fb_cb(struct msg **msg, struct avp *avp,
     return ENOTSUP;
 }
 
-//同Npcf_PolicyAuthorization_Create
+//同 Npcf_PolicyAuthorization_Create
 static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp, 
         struct session *sess, void *opaque, enum disp_action *act)
 {
@@ -109,6 +110,8 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
     char buf[OGS_ADDRSTRLEN];
     os0_t gx_sid = NULL;
     uint32_t result_code = OGS_DIAM_RX_DIAMETER_IP_CAN_SESSION_NOT_AVAILABLE;
+
+    pcf_sess_t *pcf_sess;//just like gx_sid
 
     ogs_debug("[PCRF] AA-Request");
 
@@ -162,7 +165,7 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
         ogs_assert(ret == 0);
         //TODO:
         //gx_sid = (os0_t)pcrf_sess_find_by_ipv4(hdr->avp_value->os.data);
-        gx_sid = (os0_t)pcf_sess_find_by_ipv4addr(hdr->avp_value->os.data);
+        pcf_sess = pcf_sess_find_by_ipv4addr(hdr->avp_value->os.data);
         if (!gx_sid) {
             ogs_warn("Cannot find Gx Sesson for IPv4:%s",
                     OGS_INET_NTOP(hdr->avp_value->os.data, buf));
@@ -183,7 +186,7 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
             ogs_assert(paa->len == OGS_IPV6_LEN * 8 /* 128bit */);
             //TODO:
             //gx_sid = (os0_t)pcrf_sess_find_by_ipv6(paa->addr6);
-            gx_sid = (os0_t)pcf_sess_find_by_ipv6addr(paa->addr6);
+            pcf_sess = pcf_sess_find_by_ipv6addr(paa->addr6);
             if (!gx_sid) {
                 ogs_warn("Cannot find Gx Sesson for IPv6:%s",
                         OGS_INET6_NTOP(hdr->avp_value->os.data, buf));
@@ -333,8 +336,9 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
 
     /* Send Re-Auth Request */
     //TODO:
-    #if 0
-    rv = pcrf_gx_send_rar(gx_sid, sess_data->rx_sid, &rx_message);
+    #if 1
+    //rv = pcrf_gx_send_rar(gx_sid, sess_data->rx_sid, &rx_message);    
+    rv = pcf_gx_send_rar(pcf_sess,gx_sid, sess_data->rx_sid, &rx_message);
     if (rv != OGS_OK) {
         result_code = rx_message.result_code;
         if (result_code != ER_DIAMETER_SUCCESS) {
