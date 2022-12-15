@@ -20,6 +20,7 @@
 #include "sbi-path.h"
 
 #include "npcf-handler.h"
+#include "pcf-fd-path.h"
 
 bool pcf_npcf_am_policy_contrtol_handle_create(pcf_ue_t *pcf_ue,
         ogs_sbi_stream_t *stream, ogs_sbi_message_t *message)
@@ -316,6 +317,7 @@ cleanup:
 bool pcf_npcf_smpolicycontrol_handle_delete(pcf_sess_t *sess,
         ogs_sbi_stream_t *stream, ogs_sbi_message_t *message)
 {
+    int rv;
     int status = 0;
     char *strerror = NULL;
     pcf_ue_t *pcf_ue = NULL;
@@ -339,6 +341,14 @@ bool pcf_npcf_smpolicycontrol_handle_delete(pcf_sess_t *sess,
     ogs_list_for_each(&sess->app_list, app_session) {
         pcf_sbi_send_policyauthorization_terminate_notify(app_session);
     }
+
+    /*add begin*/
+    ogs_list_for_each(&sess->app_list, app_session) {
+        rv = pcf_rx_send_asr(
+                app_session->rx_sid, OGS_DIAM_RX_ABORT_CAUSE_BEARER_RELEASED);
+        ogs_assert(rv == OGS_OK);
+    }
+    /*add end*/
 
     if (pcf_sessions_number_by_snssai_and_dnn(
                 pcf_ue, &sess->s_nssai, sess->dnn) > 1) {
@@ -1317,7 +1327,7 @@ bool pcf_npcf_policyauthorization_handle_delete(
 }
 
 static struct session_handler *pcrf_gx_reg = NULL;
-static OGS_POOL(sess_state_pool, struct sess_state);
+//static OGS_POOL(sess_state_pool, struct sess_state);
 static OGS_POOL(rx_sess_state_pool, struct rx_sess_state);
 static ogs_thread_mutex_t sess_state_mutex;
 
@@ -1444,10 +1454,11 @@ int pcf_gx_send_rar(pcf_sess_t *sess,
     int rv;
     int ret = 0, i, j;
 
+    pcf_app_t *app_session = NULL;
     struct msg *req = NULL;
     struct avp *avp, *avpch1;
     union avp_value val;
-    struct sess_state *sess_data = NULL, *svg;
+    struct sess_state *sess_data = NULL;//, *svg;
     struct rx_sess_state *rx_sess_data = NULL;
     struct session *session = NULL;
     int new;
@@ -1509,6 +1520,8 @@ int pcf_gx_send_rar(pcf_sess_t *sess,
         return OGS_ERROR;
     }
 
+
+
     /* Find RX session state */
     rx_sess_data = find_rx_state(sess_data, rx_sid);
     if (rx_message->cmd_code == OGS_DIAM_RX_CMD_CODE_AA) {
@@ -1516,6 +1529,13 @@ int pcf_gx_send_rar(pcf_sess_t *sess,
             rx_sess_data = add_rx_state(sess_data, rx_sid);
             ogs_assert(rx_sess_data);
         }
+
+        /*add begin*/
+        //将rx_sid存入到pcf_sess的app_list中
+        app_session = pcf_app_add(sess);
+        ogs_assert(app_session);
+        app_session->rx_sid = (os0_t)ogs_strdup((char *)rx_sid);
+        /*add end*/
 
         /* Retrieve QoS Data from Database */
         rv = pcf_db_qos_data(

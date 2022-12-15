@@ -163,16 +163,15 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
     if (avp) {
         ret = fd_msg_avp_hdr(avp, &hdr);
         ogs_assert(ret == 0);
-        //TODO:
         //gx_sid = (os0_t)pcrf_sess_find_by_ipv4(hdr->avp_value->os.data);
         pcf_sess = pcf_sess_find_by_ipv4addr(hdr->avp_value->os.data);
-        if (!gx_sid) {
-            ogs_warn("Cannot find Gx Sesson for IPv4:%s",
+        if (!pcf_sess) {
+            ogs_warn("Cannot find pcf Sesson for IPv4:%s",
                     OGS_INET_NTOP(hdr->avp_value->os.data, buf));
         }
     }
 
-    if (!gx_sid) {
+    if (!pcf_sess) {
         /* Get Framed-IPv6-Prefix */
         ret = fd_msg_search_avp(qry, ogs_diam_rx_framed_ipv6_prefix, &avp);
         ogs_assert(ret == 0);
@@ -187,15 +186,15 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
             //TODO:
             //gx_sid = (os0_t)pcrf_sess_find_by_ipv6(paa->addr6);
             pcf_sess = pcf_sess_find_by_ipv6addr(paa->addr6);
-            if (!gx_sid) {
-                ogs_warn("Cannot find Gx Sesson for IPv6:%s",
+            if (!pcf_sess) {
+                ogs_warn("Cannot find pcf Sesson for IPv6:%s",
                         OGS_INET6_NTOP(hdr->avp_value->os.data, buf));
             }
         }
     }
 
-    if (!gx_sid) {
-        ogs_error("No Gx Session");
+    if (!pcf_sess) {
+        ogs_error("No pcf Session");
         goto out;
     }
 
@@ -334,8 +333,7 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
         fd_msg_browse(avpch1, MSG_BRW_NEXT, &avpch1, NULL);
     }
 
-    /* Send Re-Auth Request */
-    //TODO:
+    /* Send Re-Auth Request */    
     #if 1
     //rv = pcrf_gx_send_rar(gx_sid, sess_data->rx_sid, &rx_message);    
     rv = pcf_gx_send_rar(pcf_sess,gx_sid, sess_data->rx_sid, &rx_message);
@@ -686,9 +684,8 @@ static int pcf_rx_str_cb( struct msg **msg, struct avp *avp,
 
     if (sess_data->state != SESSION_ABORTED) {
         /* Send Re-Auth Request if Abort-Session-Request is not initaited */
-        //TODO:
-#if 0
-        rv = pcrf_gx_send_rar(
+#if 1
+        rv = pcf_gx_send_rar(
                 sess_data->gx_sid, sess_data->rx_sid, &rx_message);
 #endif
         if (rv != OGS_OK) {

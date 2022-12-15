@@ -127,7 +127,8 @@ typedef struct pcf_app_s {
     ogs_lnode_t lnode;
 
     char *app_session_id;
-
+    os0_t rx_sid;//add at 20221215 for rx 
+    
     char *notif_uri;
     struct {
         ogs_sbi_client_t *client;
