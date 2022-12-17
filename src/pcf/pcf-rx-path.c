@@ -24,7 +24,8 @@
 struct sess_state {
     os0_t   rx_sid;             /* Rx Session-Id */
     os0_t   gx_sid;             /* Gx Session-Id */
-
+    pcf_sess_t *pcf_sess;
+    
     os0_t   peer_host;          /* Peer Host */
 
 #define SESSION_ABORTED         1
@@ -350,6 +351,11 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
     if (!sess_data->gx_sid)
         sess_data->gx_sid = (os0_t)ogs_strdup((char *)gx_sid);
     ogs_assert(sess_data->gx_sid);
+
+    /* Store pcf session in this session */
+    if (!sess_data->pcf_sess)
+        sess_data->pcf_sess = pcf_sess;
+    ogs_assert(sess_data->pcf_sess);
 
     /* Set IP-Can-Type */
     ret = fd_msg_avp_new(ogs_diam_rx_ip_can_type, 0, &avp);
@@ -685,7 +691,7 @@ static int pcf_rx_str_cb( struct msg **msg, struct avp *avp,
     if (sess_data->state != SESSION_ABORTED) {
         /* Send Re-Auth Request if Abort-Session-Request is not initaited */
 #if 1
-        rv = pcf_gx_send_rar(
+        rv = pcf_gx_send_rar(sess_data->pcf_sess,
                 sess_data->gx_sid, sess_data->rx_sid, &rx_message);
 #endif
         if (rv != OGS_OK) {

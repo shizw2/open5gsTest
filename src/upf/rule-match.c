@@ -46,7 +46,7 @@ upf_sess_t *upf_sess_find_by_ue_ip_address(ogs_pkbuf_t *pkbuf)
     ip_h = (struct ip *)pkbuf->data;
     if (ip_h->ip_v == 4) {
         ip_h = (struct ip *)pkbuf->data;
-        printf("upf_sess_find_by_ue_ip_address,saddr:%s, daddr:%s\r\n",inet_ntoa(ip_h->ip_src),inet_ntoa(ip_h->ip_dst));
+        //printf("upf_sess_find_by_ue_ip_address,saddr:%s, daddr:%s\r\n",inet_ntoa(ip_h->ip_src),inet_ntoa(ip_h->ip_dst));
         sess = upf_sess_find_by_ipv4(ip_h->ip_dst.s_addr);
     } else if (ip_h->ip_v == 6) {
         ip6_h = (struct ip6_hdr *)pkbuf->data;
@@ -59,8 +59,7 @@ upf_sess_t *upf_sess_find_by_ue_ip_address(ogs_pkbuf_t *pkbuf)
 
     if (sess) {
         if (ip_h && sess->ipv4)
-            ogs_debug("PAA IPv4:%s", OGS_INET_NTOP(&sess->ipv4->addr, buf));
-            printf("PAA IPv4:%s.\r\n", OGS_INET_NTOP(&sess->ipv4->addr, buf));
+            ogs_debug("PAA IPv4:%s", OGS_INET_NTOP(&sess->ipv4->addr, buf));            
         if (ip6_h && sess->ipv6)
             ogs_debug("PAA IPv6:%s", OGS_INET6_NTOP(&sess->ipv6->addr, buf));
     }

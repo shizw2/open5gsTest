@@ -81,7 +81,7 @@ static void _gtpv1_tun_recv_common_cb(
     ogs_pfcp_user_plane_report_t report;
     int i;
 
-    printf("_gtpv1_tun_recv_common_cb \r\n.");
+    //printf("_gtpv1_tun_recv_common_cb \r\n.");
 
     recvbuf = ogs_tun_read(fd, packet_pool);
     if (!recvbuf) {
@@ -230,7 +230,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
     ogs_assert(fd != INVALID_SOCKET);
 
-    printf("_gtpv1_u_recv_cb \r\n");
+    //printf("_gtpv1_u_recv_cb \r\n");
 
     pkbuf = ogs_pkbuf_alloc(packet_pool, OGS_MAX_PKT_LEN);
     ogs_assert(pkbuf);
@@ -369,7 +369,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             goto cleanup;
         }
 
-        printf("pfcp_object->type:%d.\r\n",pfcp_object->type);
+        //printf("pfcp_object->type:%d.\r\n",pfcp_object->type);
         switch(pfcp_object->type) {
         case OGS_PFCP_OBJ_PDR_TYPE:
             pdr = (ogs_pfcp_pdr_t *)pfcp_object;
@@ -423,7 +423,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
         far = pdr->far;
         ogs_assert(far);
 
-        printf("_gtpv1_u_recv_cb,saddr:%s, daddr:%s\r\n",inet_ntoa(ip_h->ip_src),inet_ntoa(ip_h->ip_dst));
+        //printf("_gtpv1_u_recv_cb,saddr:%s, daddr:%s\r\n",inet_ntoa(ip_h->ip_src),inet_ntoa(ip_h->ip_dst));
 
         if (ip_h->ip_v == 4 && sess->ipv4) {
             src_addr = &ip_h->ip_src.s_addr;
@@ -573,7 +573,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             }
 
             /* TODO: if destined to another UE, hairpin back out. */
-            printf("ogs_tun_write.\r\n");
+            //printf("ogs_tun_write.\r\n");
             if (ogs_tun_write(dev->fd, pkbuf) != OGS_OK)
                 ogs_warn("ogs_tun_write() failed");
 
@@ -691,7 +691,7 @@ int upf_gtp_open(void)
         else if (sock->family == AF_INET6)
             ogs_gtp_self()->gtpu_sock6 = sock;
 
-        ogs_error("gtp_server() [%s]:%d,set cb:_gtpv1_u_recv_cb",
+        ogs_info("gtp_server() [%s]:%d,set cb:_gtpv1_u_recv_cb",
                 OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
 
         node->poll = ogs_pollset_add(ogs_app()->pollset,
@@ -729,7 +729,7 @@ int upf_gtp_open(void)
                     OGS_POLLIN, dev->fd, _gtpv1_tun_recv_eth_cb, NULL);
             ogs_assert(dev->poll);
         } else {
-            ogs_error("tun_open(dev:%s) sucess,set cb:_gtpv1_tun_recv_cb.", dev->ifname);
+            ogs_info("tun_open(dev:%s) sucess,set cb:_gtpv1_tun_recv_cb.", dev->ifname);
             dev->poll = ogs_pollset_add(ogs_app()->pollset,
                     OGS_POLLIN, dev->fd, _gtpv1_tun_recv_cb, NULL);
             ogs_assert(dev->poll);
