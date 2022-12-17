@@ -5,4 +5,5 @@ subprojects/prometheus-client-c
 subprojects/usrsctp
 build/
 test.log
+open5gs.log
 webui/.next
