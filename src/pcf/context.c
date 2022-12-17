@@ -511,6 +511,8 @@ bool pcf_sess_set_ipv4addr(pcf_sess_t *sess, char *ipv4addr_string)
 {
     int rv;
 
+    ogs_error("pcf_sess_set_ipv4addr %s.",ipv4addr_string);
+
     ogs_assert(sess);
     ogs_assert(ipv4addr_string);
 
@@ -578,6 +580,8 @@ pcf_sess_t *pcf_sess_find_by_ipv4addr(char *ipv4addr_string)
     uint32_t ipv4addr;
     int rv;
 
+    ogs_error("pcf_sess_find_by_ipv4addr:%s.",ipv4addr_string);
+
     ogs_assert(ipv4addr_string);
 
     rv = ogs_ipv4_from_string(&ipv4addr, ipv4addr_string);
@@ -620,6 +624,19 @@ pcf_sess_t *pcf_sess_find_by_ipv6addr(char *ipv6addr_string)
     memcpy(ipv6prefix.addr6, tmp.sin6.sin6_addr.s6_addr, OGS_IPV6_LEN);
     ipv6prefix.len = OGS_IPV6_128_PREFIX_LEN;
 
+    return ogs_hash_get(self.ipv6prefix_hash,
+            &ipv6prefix, (ipv6prefix.len >> 3) + 1);
+}
+
+//TODO:可能有bug
+pcf_sess_t *pcf_sess_find_by_ipv6(const void *ipv6addr)
+{    
+    struct {
+        uint8_t len;
+        uint8_t addr6[OGS_IPV6_LEN];
+    } ipv6prefix;
+    memcpy(ipv6prefix.addr6, ipv6addr, OGS_IPV6_LEN);
+    ipv6prefix.len = OGS_IPV6_128_PREFIX_LEN;
     return ogs_hash_get(self.ipv6prefix_hash,
             &ipv6prefix, (ipv6prefix.len >> 3) + 1);
 }

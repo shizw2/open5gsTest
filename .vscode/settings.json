@@ -5,6 +5,7 @@
         "pcf-fd-path.h": "c",
         "context.h": "c",
         "stdexcept": "c",
-        "*.tcc": "c"
+        "*.tcc": "c",
+        "init.h": "c"
     }
 }

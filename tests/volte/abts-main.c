@@ -31,12 +31,12 @@ abts_suite *test_cx(abts_suite *suite);
 const struct testlist {
     abts_suite *(*func)(abts_suite *suite);
 } alltests[] = {
-    {test_bearer},
-    {test_session},
+    //{test_bearer},
+    //{test_session},
     {test_simple},
-    {test_rx},
-    {test_video},
-    {test_cx},
+    //{test_rx},
+    //{test_video},
+    //{test_cx},
     {NULL},
 };
 

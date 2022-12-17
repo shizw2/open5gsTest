@@ -42,6 +42,7 @@ extern "C" {
 #define TEST_HSS_IDENTITY "hss.localdomain"
 #define TEST_PCRF_IDENTITY "pcrf.localdomain"
 #define TEST_SMF_IDENTITY "smf.localdomain"
+#define TEST_PCF_IDENTITY "pcf.localdomain"
 
 
 

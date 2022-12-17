@@ -165,7 +165,7 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
         ret = fd_msg_avp_hdr(avp, &hdr);
         ogs_assert(ret == 0);
         //gx_sid = (os0_t)pcrf_sess_find_by_ipv4(hdr->avp_value->os.data);
-        pcf_sess = pcf_sess_find_by_ipv4addr(hdr->avp_value->os.data);
+        pcf_sess = pcf_sess_find_by_ipv4addr(OGS_INET_NTOP(hdr->avp_value->os.data, buf));
         if (!pcf_sess) {
             ogs_warn("Cannot find pcf Sesson for IPv4:%s",
                     OGS_INET_NTOP(hdr->avp_value->os.data, buf));
@@ -186,7 +186,7 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
             ogs_assert(paa->len == OGS_IPV6_LEN * 8 /* 128bit */);
             //TODO:
             //gx_sid = (os0_t)pcrf_sess_find_by_ipv6(paa->addr6);
-            pcf_sess = pcf_sess_find_by_ipv6addr(paa->addr6);
+            pcf_sess = pcf_sess_find_by_ipv6(paa->addr6);
             if (!pcf_sess) {
                 ogs_warn("Cannot find pcf Sesson for IPv6:%s",
                         OGS_INET6_NTOP(hdr->avp_value->os.data, buf));

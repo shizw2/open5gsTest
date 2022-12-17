@@ -18,6 +18,7 @@
  */
 
 #include "test-app.h"
+#include "test-fd-path.h"
 #include "af/init.h"
 
 abts_suite *test_qos_flow(abts_suite *suite);
@@ -57,6 +58,9 @@ static void initialize(const char *const argv[])
     rv = ogs_app_initialize(NULL, NULL, argv);
     ogs_assert(rv == OGS_OK);
     test_5gc_init();
+
+    rv = test_fd_init();
+    ogs_assert(rv == OGS_OK);
 
     rv = app_initialize(argv);
     ogs_assert(rv == OGS_OK);
