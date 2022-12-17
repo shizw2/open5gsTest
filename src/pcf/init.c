@@ -27,7 +27,7 @@ static int initialized = 0;
 int pcf_initialize()
 {
     int rv;
-
+    printf("**************************8\r\n");
     ogs_sbi_context_init();
 
     pcf_context_init();
@@ -49,7 +49,9 @@ int pcf_initialize()
     if (rv != OGS_OK) return rv;
 
     //add at 20221210
+    ogs_warn("pcf_fd_init begin");
     rv = pcf_fd_init();
+    ogs_warn("pcf_fd_init end, rv=%d.",rv);
     if (rv != OGS_OK) return OGS_ERROR;
 
     thread = ogs_thread_create(pcf_main, NULL);

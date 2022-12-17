@@ -22,7 +22,7 @@
 int pcf_fd_init(void)
 {
     int rv;
-
+    ogs_warn("pcf_fd_init.diam_conf_path=%s,config=%p.\r\n",pcf_self()->diam_conf_path,pcf_self()->diam_config );
     if (pcf_self()->diam_conf_path == NULL &&
         (pcf_self()->diam_config->cnf_diamid == NULL ||
         pcf_self()->diam_config->cnf_diamrlm == NULL ||
@@ -31,18 +31,22 @@ int pcf_fd_init(void)
         return OGS_OK;
     }
 
+    ogs_warn("ogs_diam_init,%s.\r\n",pcf_self()->diam_conf_path);
     rv = ogs_diam_init(FD_MODE_CLIENT|FD_MODE_SERVER,
                 pcf_self()->diam_conf_path, pcf_self()->diam_config);
     ogs_assert(rv == 0);
 
+    ogs_warn("pcf_rx_init begin");
     // rv = pcrf_gx_init();
     // ogs_assert(rv == OGS_OK);
     rv = pcf_rx_init();
     ogs_assert(rv == OGS_OK);
 
+    ogs_warn("ogs_diam_start begin");
     rv = ogs_diam_start();
     ogs_assert(rv == 0);
 
+    ogs_warn("pcf_fd_init sucess.\r\n");
     return OGS_OK;
 }
 
