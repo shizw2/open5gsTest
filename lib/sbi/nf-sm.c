@@ -202,7 +202,6 @@ void ogs_sbi_nf_state_registered(ogs_fsm_t *s, ogs_event_t *e)
     ogs_assert(e);
 
     ogs_sbi_sm_debug(e);
-
     nf_instance = e->sbi.data;
     ogs_assert(nf_instance);
 
@@ -291,6 +290,7 @@ void ogs_sbi_nf_state_registered(ogs_fsm_t *s, ogs_event_t *e)
         break;
 
     case OGS_EVENT_SBI_TIMER:
+        
         switch(e->timer_id) {
         case OGS_TIMER_NF_INSTANCE_HEARTBEAT_INTERVAL:
             if (nf_instance->time.heartbeat_interval)

@@ -399,8 +399,9 @@ static connection_t *connection_add(
             curl_easy_setopt(conn->easy, CURLOPT_EXPECT_100_TIMEOUT_MS, 0L);
 #endif
             ogs_debug("SENDING...[%d]", (int)request->http.content_length);
-            if (request->http.content_length)
+            if (request->http.content_length){
                 ogs_debug("%s", request->http.content);
+            }
         }
     }
 

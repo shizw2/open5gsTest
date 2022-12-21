@@ -382,6 +382,7 @@ cleanup:
 bool pcf_npcf_policyauthorization_handle_create(pcf_sess_t *sess,
         ogs_sbi_stream_t *stream, ogs_sbi_message_t *recvmsg)
 {
+    ogs_debug("pcf_npcf_policyauthorization_handle_create");
     int i, j, rv, status = 0;
     char *strerror = NULL;
     pcf_ue_t *pcf_ue = NULL;
@@ -566,6 +567,8 @@ bool pcf_npcf_policyauthorization_handle_create(pcf_sess_t *sess,
     app_session->notif_uri = ogs_strdup(AscReqData->notif_uri);
     ogs_assert(app_session->notif_uri);
 
+    char buf[OGS_ADDRSTRLEN];
+    ogs_error("pcf_npcf_policyauthorization_handle_create,addr:%s,notif_uri:%s.", OGS_ADDR(addr, buf), AscReqData->notif_uri);
     client = ogs_sbi_client_find(addr);
     if (!client) {
         client = ogs_sbi_client_add(addr);
@@ -734,6 +737,8 @@ bool pcf_npcf_policyauthorization_handle_create(pcf_sess_t *sess,
         if (pcc_rule->qos.gbr.uplink == 0)
             pcc_rule->qos.gbr.uplink = db_pcc_rule->qos.gbr.uplink;
 
+        printf("pcc_rule->id %s,pcc_rule->name %s,pcc_rule->num_of_flow %d,pcc_rule->type%d,\r\n",pcc_rule->id,pcc_rule->name,pcc_rule->num_of_flow,pcc_rule->type);
+        fflush(stdout);
         /**************************************************************
          * Build PCC Rule & QoS Decision
          *************************************************************/
@@ -1377,6 +1382,21 @@ static struct rx_sess_state *find_rx_state(struct sess_state *gx, os0_t sid)
     return NULL;
 }
 
+static struct rx_sess_state *find_rx_state_ex(pcf_sess_t *sess, os0_t sid)
+{
+    struct rx_sess_state *rx_sess_data = NULL;
+ 
+    ogs_assert(sess);
+    ogs_assert(sid);
+    
+    ogs_list_for_each(&sess->app_list, rx_sess_data) {
+        if (!strcmp((char *)rx_sess_data->sid, (char *)sid))
+            return rx_sess_data;
+    }
+
+    return NULL;
+}
+
 static struct rx_sess_state *add_rx_state(struct sess_state *gx, os0_t sid)
 {
     struct rx_sess_state *new = NULL;
@@ -1439,7 +1459,7 @@ static int remove_rx_state_all(struct sess_state *gx)
 
 //模仿pcrf_gx_send_rar
 int pcf_gx_send_rar(pcf_sess_t *sess,
-        uint8_t *gx_sid, uint8_t *rx_sid, ogs_diam_rx_message_t *rx_message)
+        uint8_t *gx_sid, char *app_session_id, ogs_diam_rx_message_t *rx_message)
 {
     OpenAPI_list_t *PccRuleList = NULL;
     OpenAPI_map_t *PccRuleMap = NULL;
@@ -1453,31 +1473,43 @@ int pcf_gx_send_rar(pcf_sess_t *sess,
 
     int rv;
     int ret = 0, i, j;
-
+    pcf_ue_t *pcf_ue = NULL;
     pcf_app_t *app_session = NULL;
     struct msg *req = NULL;
     struct avp *avp, *avpch1;
     union avp_value val;
     struct sess_state *sess_data = NULL;//, *svg;
-    struct rx_sess_state *rx_sess_data = NULL;
+    //struct rx_sess_state *rx_sess_data = NULL;
     struct session *session = NULL;
     int new;
     size_t sidlen;
 
+    ogs_session_data_t session_data;
+
     ogs_diam_gx_message_t gx_message;
     int charging_rule = 0;
 
-    ogs_assert(gx_sid);
-    ogs_assert(rx_sid);
+    //ogs_assert(gx_sid);
+    //ogs_assert(rx_sid);
     ogs_assert(rx_message);
 
-    ogs_debug("[PCRF] Re-Auth-Request");
+    pcf_ue = sess->pcf_ue;
 
-    /* Initialize Message */
-    memset(&gx_message, 0, sizeof(ogs_diam_gx_message_t));
+    ogs_info("[PCF] Re-Auth-Request");
+
+    memset(&SmPolicyDecision, 0, sizeof(SmPolicyDecision));
+    PccRuleList = OpenAPI_list_create();
+    ogs_assert(PccRuleList);
+
+    QosDecisionList = OpenAPI_list_create();
+    ogs_assert(QosDecisionList);
 
     /* Set default error result code */
     rx_message->result_code = OGS_DIAM_UNKNOWN_SESSION_ID;
+
+#if 0
+    /* Initialize Message */
+    memset(&gx_message, 0, sizeof(ogs_diam_gx_message_t));
 
     /* Create the request */
     ret = fd_msg_new(ogs_diam_gx_cmd_rar, MSGFL_ALLOC_ETEID, &req);
@@ -1519,24 +1551,35 @@ int pcf_gx_send_rar(pcf_sess_t *sess,
         rx_message->result_code = OGS_DIAM_UNKNOWN_SESSION_ID;
         return OGS_ERROR;
     }
-
+#endif
 
 
     /* Find RX session state */
-    rx_sess_data = find_rx_state(sess_data, rx_sid);
+    //rx_sess_data = find_rx_state(sess_data, rx_sid);
+    app_session = pcf_app_find_by_app_session_id(app_session_id);
+    
     if (rx_message->cmd_code == OGS_DIAM_RX_CMD_CODE_AA) {
+    #if 0
         if (!rx_sess_data) {
             rx_sess_data = add_rx_state(sess_data, rx_sid);
             ogs_assert(rx_sess_data);
         }
+    #endif
+        ogs_info("OGS_DIAM_RX_CMD_CODE_AA");
 
-        /*add begin*/
-        //将rx_sid存入到pcf_sess的app_list中
-        app_session = pcf_app_add(sess);
-        ogs_assert(app_session);
-        app_session->rx_sid = (os0_t)ogs_strdup((char *)rx_sid);
+        if (!app_session){
+            /*add begin*/
+            //将rx_sid存入到pcf_sess的app_list中
+            app_session = pcf_app_add(sess);
+            ogs_assert(app_session);
+            
+
+            printf("app_session id:%s\r\n",app_session->app_session_id);
+            fflush(stdout);
+        }
         /*add end*/
 
+#if 0
         /* Retrieve QoS Data from Database */
         rv = pcf_db_qos_data(
                 sess_data->imsi_bcd, sess_data->apn, &gx_message.session_data);
@@ -1547,6 +1590,20 @@ int pcf_gx_send_rar(pcf_sess_t *sess,
                 OGS_DIAM_RX_DIAMETER_IP_CAN_SESSION_NOT_AVAILABLE;
             goto out;
         }
+#endif
+
+/*add begin*/
+        memset(&session_data, 0, sizeof(ogs_session_data_t));
+        rv = ogs_dbi_session_data(
+                pcf_ue->supi, &sess->s_nssai, sess->dnn, &session_data);
+        if (rv != OGS_OK) {
+            ogs_error("[%s:%d] Cannot find SUPI in DB",
+                    pcf_ue->supi, sess->psi);
+            rx_message->result_code =
+                OGS_DIAM_RX_DIAMETER_IP_CAN_SESSION_NOT_AVAILABLE;
+            goto out;
+        }
+/*add end*/
 
         /* Match Media-Component with PCC Rule */
         for (i = 0; i < rx_message->ims_data.num_of_media_component; i++) {
@@ -1574,10 +1631,10 @@ int pcf_gx_send_rar(pcf_sess_t *sess,
                 goto out;
             }
             
-            for (j = 0; j < gx_message.session_data.num_of_pcc_rule; j++) {
-                if (gx_message.session_data.pcc_rule[j].qos.index ==
+            for (j = 0; j < session_data.num_of_pcc_rule; j++) {
+                if (session_data.pcc_rule[j].qos.index ==
                         qos_index) {
-                    db_pcc_rule = &gx_message.session_data.pcc_rule[j];
+                    db_pcc_rule = &session_data.pcc_rule[j];
                     break;
                 }
             }
@@ -1588,14 +1645,14 @@ int pcf_gx_send_rar(pcf_sess_t *sess,
                  * Check for default bearer for IMS signalling
                  * QCI 5 and ARP 1
                  */
-                if (gx_message.session_data.
+                if (session_data.
                         session.qos.index != OGS_QOS_INDEX_5 ||
-                    gx_message.session_data.
+                    session_data.
                         session.qos.arp.priority_level != 1) {
                     ogs_error("CHECK WEBUI : Even the Default "
                         "Bearer(QCI:%d,ARP:%d) cannot support IMS signalling.",
-                        gx_message.session_data.session.qos.index,
-                        gx_message.session_data.session.qos.arp.priority_level);
+                        session_data.session.qos.index,
+                        session_data.session.qos.arp.priority_level);
                     rx_message->result_code =
                         OGS_DIAM_RX_DIAMETER_REQUESTED_SERVICE_NOT_AUTHORIZED;
                     goto out;
@@ -1613,21 +1670,27 @@ int pcf_gx_send_rar(pcf_sess_t *sess,
                 goto out;
             }
 
-            for (j = 0; j < rx_sess_data->num_of_pcc_rule; j++) {
-                if (rx_sess_data->pcc_rule[j].qos.index == qos_index) {
-                    pcc_rule = &rx_sess_data->pcc_rule[j];
+            for (j = 0; j < app_session->num_of_pcc_rule; j++) {
+                if (app_session->pcc_rule[j].qos.index == qos_index) {
+                    pcc_rule = &app_session->pcc_rule[j];
                     break;
                 }
             }
 
             if (!pcc_rule) {
-                pcc_rule = 
-                    &rx_sess_data->pcc_rule[rx_sess_data->num_of_pcc_rule];
+                pcc_rule = &app_session->pcc_rule[app_session->num_of_pcc_rule];
+                ogs_assert(pcc_rule);
 
+                #if 0
                 /* Device PCC Rule Info from DB Profile */
                 pcc_rule->name = ogs_msprintf("%s-r%d", db_pcc_rule->name,
                     (int)ogs_pool_index(&rx_sess_state_pool, rx_sess_data));
                 ogs_assert(pcc_rule->name);
+                #endif
+                pcc_rule->id = ogs_msprintf("%s-a%s",
+                db_pcc_rule->id, app_session->app_session_id);
+                ogs_assert(pcc_rule->id);
+
 
                 memcpy(&pcc_rule->qos, &db_pcc_rule->qos, sizeof(ogs_qos_t));
 
@@ -1645,7 +1708,7 @@ int pcf_gx_send_rar(pcf_sess_t *sess,
                     goto out;
                 }
 
-                rx_sess_data->num_of_pcc_rule++;
+                app_session->num_of_pcc_rule++;
             } else {
                 int count = 0;
 
@@ -1702,6 +1765,8 @@ int pcf_gx_send_rar(pcf_sess_t *sess,
             rv = encode_pcc_rule_definition(avp, pcc_rule, flow_presence);
             ogs_assert(rv == OGS_OK);
 #endif
+            printf("pcc_rule->id %s,pcc_rule->name %s,pcc_rule->num_of_flow %d,pcc_rule->type%d,\r\n",pcc_rule->id,pcc_rule->name,pcc_rule->num_of_flow,pcc_rule->type);
+            fflush(stdout);
             /**************************************************************
              * Build PCC Rule & QoS Decision
              *************************************************************/
@@ -1730,10 +1795,11 @@ int pcf_gx_send_rar(pcf_sess_t *sess,
 #endif
     } else if (rx_message->cmd_code ==
             OGS_DIAM_RX_CMD_CODE_SESSION_TERMINATION) {
-        ogs_assert(rx_sess_data);
+        //ogs_assert(rx_sess_data);
 
-        for (i = 0; i < rx_sess_data->num_of_pcc_rule; i++) {
-            ogs_assert(rx_sess_data->pcc_rule[i].name);
+        for (i = 0; i < app_session->num_of_pcc_rule; i++) {
+        #if 0
+            ogs_assert(app_session->pcc_rule[i].name); 
 
             if (charging_rule == 0) {
                 ret = fd_msg_avp_new(ogs_diam_gx_charging_rule_remove, 0, &avp);
@@ -1743,27 +1809,45 @@ int pcf_gx_send_rar(pcf_sess_t *sess,
 
             ret = fd_msg_avp_new(ogs_diam_gx_charging_rule_name, 0, &avpch1);
             ogs_assert(ret == 0);
-            val.os.data = (uint8_t *)rx_sess_data->pcc_rule[i].name;
-            val.os.len = strlen(rx_sess_data->pcc_rule[i].name);
+            val.os.data = (uint8_t *)app_session->pcc_rule[i].id;
+            val.os.len = strlen(app_session->pcc_rule[i].id);
             ret = fd_msg_avp_setvalue(avpch1, &val);
             ogs_assert(ret == 0);
             ret = fd_msg_avp_add(avp, MSG_BRW_LAST_CHILD, avpch1);
             ogs_assert(ret == 0);
-        }
+        #endif    
+            ogs_pcc_rule_t *pcc_rule = &app_session->pcc_rule[i];
 
+            ogs_assert(pcc_rule);
+
+            PccRuleMap = OpenAPI_map_create(pcc_rule->id, NULL);
+            ogs_assert(PccRuleMap);
+
+            OpenAPI_list_add(PccRuleList, PccRuleMap);
+
+            QosDecisionMap = OpenAPI_map_create(pcc_rule->id, NULL);
+            ogs_assert(QosDecisionMap);
+
+            OpenAPI_list_add(QosDecisionList, QosDecisionMap);
+        }
+#if 0
         if (charging_rule == 1) {
             ret = fd_msg_avp_add(req, MSG_BRW_LAST_CHILD, avp);
             ogs_assert(ret == 0);
         }
 
         remove_rx_state(rx_sess_data);
+#endif        
     } else
         ogs_assert_if_reached();
 
+#if 0
+    ogs_debug("charging_rule:%d",charging_rule);
     if (charging_rule == 0) {
         rx_message->result_code = ER_DIAMETER_SUCCESS;
         goto out;
     }
+#endif
 
     if (PccRuleList->count)
         SmPolicyDecision.pcc_rules = PccRuleList;
@@ -1771,10 +1855,19 @@ int pcf_gx_send_rar(pcf_sess_t *sess,
     if (QosDecisionList->count)
         SmPolicyDecision.qos_decs = QosDecisionList;
 
+    ogs_info("pcf_sbi_send_smpolicycontrol_update_notify begin,%lu,%lu.",PccRuleList->count,QosDecisionList->count);
     if (PccRuleList->count || QosDecisionList->count) {
-        ogs_assert(true == pcf_sbi_send_smpolicycontrol_update_notify(
-                                sess, &SmPolicyDecision));
+        if (rx_message->cmd_code == OGS_DIAM_RX_CMD_CODE_AA) {
+            ogs_assert(true == pcf_sbi_send_smpolicycontrol_update_notify(
+                                    sess, &SmPolicyDecision));
+        }else if(rx_message->cmd_code ==
+            OGS_DIAM_RX_CMD_CODE_SESSION_TERMINATION) {
+            ogs_assert(true == pcf_sbi_send_smpolicycontrol_delete_notify(
+                    sess, app_session, &SmPolicyDecision));
+        }
     }
+
+    ogs_info("pcf_sbi_send_smpolicycontrol_update_notify end.");
 
     OpenAPI_list_for_each(PccRuleList, node) {
         PccRuleMap = node->data;
@@ -1874,16 +1967,16 @@ int pcf_gx_send_rar(pcf_sess_t *sess,
     /* Set no error */
     rx_message->result_code = ER_DIAMETER_SUCCESS;
 
-    ogs_session_data_free(&gx_message.session_data);
+    //ogs_session_data_free(&gx_message.session_data);
 
     return OGS_OK;
 
 out:
     /* Store this value in the session */
-    ret = fd_sess_state_store(pcrf_gx_reg, session, &sess_data);
-    ogs_assert(sess_data == NULL);
+    //ret = fd_sess_state_store(pcrf_gx_reg, session, &sess_data);
+    //ogs_assert(sess_data == NULL);
 
-    ogs_session_data_free(&gx_message.session_data);
+    //ogs_session_data_free(&gx_message.session_data);
 
     return OGS_ERROR;
 }

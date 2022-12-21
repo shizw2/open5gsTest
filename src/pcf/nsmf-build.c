@@ -40,6 +40,9 @@ ogs_sbi_request_t *pcf_nsmf_callback_build_smpolicycontrol_update(
         goto end;
     }
 
+    printf("pcf_nsmf_callback_build_smpolicycontrol_update.\r\n");
+    fflush(stdout);
+
     memset(&header, 0, sizeof(header));
     header.service.name = (char *)OGS_SBI_SERVICE_NAME_NPCF_SMPOLICYCONTROL;
     header.api.version = (char *)OGS_SBI_API_V1;

@@ -186,6 +186,8 @@ cJSON *OpenAPI_sm_policy_decision_convertToJSON(OpenAPI_sm_policy_decision_t *sm
         ogs_error("OpenAPI_sm_policy_decision_convertToJSON() failed [SmPolicyDecision]");
         return NULL;
     }
+    printf("OpenAPI_sm_policy_decision_convertToJSON, sessrule:%p.\r\n",sm_policy_decision->sess_rules);
+    fflush(stdout);
 
     item = cJSON_CreateObject();
     if (sm_policy_decision->sess_rules) {
@@ -194,9 +196,12 @@ cJSON *OpenAPI_sm_policy_decision_convertToJSON(OpenAPI_sm_policy_decision_t *sm
         ogs_error("OpenAPI_sm_policy_decision_convertToJSON() failed [sess_rules]");
         goto end;
     }
+
     cJSON *localMapObject = sess_rules;
     OpenAPI_lnode_t *sess_rules_node;
     if (sm_policy_decision->sess_rules) {
+        printf("sm_policy_decision->sess_rules:%p,count=%ld.\r\n", sm_policy_decision->sess_rules,sm_policy_decision->sess_rules->count);
+        fflush(stdout);
         OpenAPI_list_for_each(sm_policy_decision->sess_rules, sess_rules_node) {
             OpenAPI_map_t *localKeyValue = (OpenAPI_map_t*)sess_rules_node->data;
         cJSON *itemLocal = localKeyValue->value ?
@@ -208,6 +213,11 @@ cJSON *OpenAPI_sm_policy_decision_convertToJSON(OpenAPI_sm_policy_decision_t *sm
         }
         cJSON_AddItemToObject(sess_rules, localKeyValue->key, itemLocal);
             }
+        }
+
+        if (sess_rules != NULL){
+            printf("sess_rules:%s\r\n", cJSON_Print(sess_rules));
+            fflush(stdout);
         }
     }
 

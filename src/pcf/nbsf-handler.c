@@ -160,6 +160,7 @@ bool pcf_nbsf_management_handle_register(
     /**************************************************************
      * Session Rule
      *************************************************************/
+    ogs_error("pcf_nbsf_management_handle_register, sess rule.");
     SessRuleList = OpenAPI_list_create();
     ogs_assert(SessRuleList);
 

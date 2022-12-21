@@ -25,6 +25,7 @@ struct sess_state {
     os0_t   rx_sid;             /* Rx Session-Id */
     os0_t   gx_sid;             /* Gx Session-Id */
     pcf_sess_t *pcf_sess;
+    char *app_session_id;
     
     os0_t   peer_host;          /* Peer Host */
 
@@ -89,7 +90,7 @@ static int pcf_rx_fb_cb(struct msg **msg, struct avp *avp,
     return ENOTSUP;
 }
 
-//同 Npcf_PolicyAuthorization_Create
+//参考pcf_npcf_policyauthorization_handle_create
 static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp, 
         struct session *sess, void *opaque, enum disp_action *act)
 {
@@ -113,8 +114,9 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
     uint32_t result_code = OGS_DIAM_RX_DIAMETER_IP_CAN_SESSION_NOT_AVAILABLE;
 
     pcf_sess_t *pcf_sess;//just like gx_sid
+    pcf_app_t *app_session = NULL;
 
-    ogs_debug("[PCRF] AA-Request");
+    ogs_debug("[PCF] AA-Request");
 
     ogs_assert(msg);
     ogs_assert(sess);
@@ -198,6 +200,11 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
         ogs_error("No pcf Session");
         goto out;
     }
+
+    //TODO:先查询
+    app_session = pcf_app_add(pcf_sess);
+    app_session->rx_sid = (os0_t)ogs_strdup(sess_data->rx_sid);
+    sess_data->app_session_id = ogs_strdup(app_session->app_session_id);
 
     ret = fd_msg_browse(qry, MSG_BRW_FIRST_CHILD, &avpch1, NULL);
     ogs_assert(ret == 0);
@@ -337,7 +344,7 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
     /* Send Re-Auth Request */    
     #if 1
     //rv = pcrf_gx_send_rar(gx_sid, sess_data->rx_sid, &rx_message);    
-    rv = pcf_gx_send_rar(pcf_sess,gx_sid, sess_data->rx_sid, &rx_message);
+    rv = pcf_gx_send_rar(pcf_sess,gx_sid, app_session->app_session_id, &rx_message);
     if (rv != OGS_OK) {
         result_code = rx_message.result_code;
         if (result_code != ER_DIAMETER_SUCCESS) {
@@ -347,10 +354,12 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
     }
     #endif
 
+#if 0
     /* Store Gx Session-Id in this session */
     if (!sess_data->gx_sid)
         sess_data->gx_sid = (os0_t)ogs_strdup((char *)gx_sid);
     ogs_assert(sess_data->gx_sid);
+#endif
 
     /* Store pcf session in this session */
     if (!sess_data->pcf_sess)
@@ -388,7 +397,7 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
     ret = fd_msg_send(msg, NULL, NULL);
     ogs_assert(ret == 0);
 
-    ogs_debug("[PCRF] AA-Answer");
+    ogs_debug("[PCF] AA-Answer");
 
     /* Add this value to the stats */
     ogs_assert(pthread_mutex_lock(&ogs_diam_logger_self()->stats_lock) == 0);
@@ -629,8 +638,9 @@ static int pcf_rx_str_cb( struct msg **msg, struct avp *avp,
     ogs_diam_rx_message_t rx_message;
 
     uint32_t result_code = OGS_DIAM_RX_DIAMETER_IP_CAN_SESSION_NOT_AVAILABLE;
-
-    ogs_debug("[PCRF] Session-Termination-Request");
+    pcf_app_t *app_session = NULL;
+    
+    ogs_debug("[PCF] Session-Termination-Request");
 
     ogs_assert(msg);
     ogs_assert(sess);
@@ -639,7 +649,7 @@ static int pcf_rx_str_cb( struct msg **msg, struct avp *avp,
     ogs_assert(ret == 0);
     ogs_assert(sess_data);
     ogs_assert(sess_data->rx_sid);
-    ogs_assert(sess_data->gx_sid);
+    //ogs_assert(sess_data->gx_sid);
 
     /* Initialize Message */
     memset(&rx_message, 0, sizeof(ogs_diam_rx_message_t));
@@ -688,11 +698,14 @@ static int pcf_rx_str_cb( struct msg **msg, struct avp *avp,
         ogs_error("no_Termination-Cause");
     }
 
+    app_session = pcf_app_find_by_app_session_id(sess_data->app_session_id); 
+    ogs_assert(app_session);
+
     if (sess_data->state != SESSION_ABORTED) {
         /* Send Re-Auth Request if Abort-Session-Request is not initaited */
 #if 1
         rv = pcf_gx_send_rar(sess_data->pcf_sess,
-                sess_data->gx_sid, sess_data->rx_sid, &rx_message);
+                sess_data->gx_sid, app_session->app_session_id, &rx_message);
 #endif
         if (rv != OGS_OK) {
             result_code = rx_message.result_code;
