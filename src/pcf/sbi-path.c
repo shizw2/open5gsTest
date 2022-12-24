@@ -236,6 +236,8 @@ static int client_notify_cb(
         ogs_error("SmContextStatusNotification failed [%d]",
                 message.res_status);
 
+    ogs_debug("client_notify_cb response ok,location:%s,nrf_uri:%s.",message.http.location,message.http.custom.nrf_uri);
+
     ogs_sbi_message_free(&message);
     ogs_sbi_response_free(response);
     return OGS_OK;

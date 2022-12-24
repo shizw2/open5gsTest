@@ -21,6 +21,7 @@
 #define PCF_EVENT_H
 
 #include "ogs-proto.h"
+#include "ogs-diameter-rx.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,12 +31,23 @@ typedef struct pcf_ue_s pcf_ue_t;
 typedef struct pcf_sess_s pcf_sess_t;
 typedef struct pcf_app_s pcf_app_t;
 
+typedef enum {
+    PCF_EVENT_BASE = OGS_MAX_NUM_OF_PROTO_EVENT,
+
+    PCF_EVENT_RX_CMD_CODE_AA,
+    PCF_EVENT_SESSION_TERMINATION,
+   
+    MAX_NUM_OF_PCF_EVENT,
+
+} pcf_event_e;
+
 typedef struct pcf_event_s {
     ogs_event_t h;
 
     pcf_ue_t *pcf_ue;
     pcf_sess_t *sess;
     pcf_app_t *app;
+    ogs_diam_rx_message_t *rx_message;
 } pcf_event_t;
 
 OGS_STATIC_ASSERT(OGS_EVENT_SIZE >= sizeof(pcf_event_t));

@@ -962,7 +962,7 @@ abts_suite *test_simple(abts_suite *suite)
 {       
     suite = ADD_SUITE(suite)
 
-    abts_run_test(suite, test1_func, NULL);
+    //abts_run_test(suite, test1_func, NULL);
     printf("test2\r\n");
     fflush(stdout);
     abts_run_test(suite, test2_func, NULL);

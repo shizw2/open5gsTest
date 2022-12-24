@@ -713,6 +713,9 @@ int pcf_app_remove(pcf_app_t *app)
     ogs_assert(app->app_session_id);
     ogs_free(app->app_session_id);
 
+    if (app->rx_sid)
+        ogs_free(app->rx_sid);
+
     ogs_pool_free(&pcf_app_pool, app);
 
     return OGS_OK;

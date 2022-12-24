@@ -19,6 +19,7 @@
 
 #include "core-config-private.h"
 #include "unistd.h"
+#include <sys/syscall.h>
 #if HAVE_CTYPE_H
 #include <ctype.h>
 #endif
@@ -548,10 +549,10 @@ static char *log_timestamp(char *buf, char *last,
     ogs_localtime(tv.tv_sec, &tm);
     strftime(nowstr, sizeof nowstr, "%m/%d %H:%M:%S", &tm);
 
-    buf = ogs_slprintf(buf, last, "%s%s.%03d%s: %d",
+    buf = ogs_slprintf(buf, last, "%s%s.%03d%s: %d:%ld",
             use_color ? TA_FGC_GREEN : "",
             nowstr, (int)(tv.tv_usec/1000),
-            use_color ? TA_NOR : "",getpid());
+            use_color ? TA_NOR : "",getpid(),syscall(SYS_gettid));
 
     return buf;
 }

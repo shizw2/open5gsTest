@@ -76,6 +76,9 @@ static void state_cleanup(struct sess_state *sess_data, os0_t sid, void *opaque)
     if (sess_data->peer_host)
         ogs_free(sess_data->peer_host);
 
+    if (sess_data->app_session_id)  
+        ogs_free(sess_data->app_session_id);
+
     ogs_thread_mutex_lock(&sess_state_mutex);
     ogs_pool_free(&sess_state_pool, sess_data);
     ogs_thread_mutex_unlock(&sess_state_mutex);
@@ -90,7 +93,7 @@ static int pcf_rx_fb_cb(struct msg **msg, struct avp *avp,
     return ENOTSUP;
 }
 
-//参考pcf_npcf_policyauthorization_handle_create
+//参考 pcf_npcf_policyauthorization_handle_create
 static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp, 
         struct session *sess, void *opaque, enum disp_action *act)
 {
@@ -341,18 +344,16 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
         fd_msg_browse(avpch1, MSG_BRW_NEXT, &avpch1, NULL);
     }
 
-    /* Send Re-Auth Request */    
-    #if 1
-    //rv = pcrf_gx_send_rar(gx_sid, sess_data->rx_sid, &rx_message);    
-    rv = pcf_gx_send_rar(pcf_sess,gx_sid, app_session->app_session_id, &rx_message);
-    if (rv != OGS_OK) {
+    /* Send Re-Auth Request */
+    rv = pcf_n7_send_rar_to_main_thread(pcf_sess,app_session, &rx_message);
+    if (rv != OGS_OK) {        
         result_code = rx_message.result_code;
         if (result_code != ER_DIAMETER_SUCCESS) {
             ogs_error("pcrf_gx_send_rar() failed");
             goto out;
         }
     }
-    #endif
+
 
 #if 0
     /* Store Gx Session-Id in this session */
@@ -404,7 +405,7 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
     ogs_diam_logger_self()->stats.nb_echoed++;
     ogs_assert(pthread_mutex_unlock(&ogs_diam_logger_self()->stats_lock) == 0);
 
-    ogs_ims_data_free(&rx_message.ims_data);
+    //ogs_ims_data_free(&rx_message.ims_data);
     
     return 0;
 
@@ -430,7 +431,7 @@ out:
     ogs_assert(ret == 0);
 
     state_cleanup(sess_data, NULL, NULL);
-    ogs_ims_data_free(&rx_message.ims_data);
+    //ogs_ims_data_free(&rx_message.ims_data);
 
     return 0;
 }
@@ -703,10 +704,7 @@ static int pcf_rx_str_cb( struct msg **msg, struct avp *avp,
 
     if (sess_data->state != SESSION_ABORTED) {
         /* Send Re-Auth Request if Abort-Session-Request is not initaited */
-#if 1
-        rv = pcf_gx_send_rar(sess_data->pcf_sess,
-                sess_data->gx_sid, app_session->app_session_id, &rx_message);
-#endif
+        rv = pcf_n7_send_rar_to_main_thread(sess_data->pcf_sess,app_session, &rx_message); 
         if (rv != OGS_OK) {
             result_code = rx_message.result_code;
             if (result_code != ER_DIAMETER_SUCCESS) {
@@ -724,7 +722,7 @@ static int pcf_rx_str_cb( struct msg **msg, struct avp *avp,
     ret = fd_msg_send(msg, NULL, NULL);
     ogs_assert(ret == 0);
 
-    ogs_debug("[PCRF] Session-Termination-Answer");
+    ogs_debug("[PCF] Session-Termination-Answer.");
 
     /* Add this value to the stats */
     ogs_assert(pthread_mutex_lock(&ogs_diam_logger_self()->stats_lock) == 0);
@@ -757,7 +755,7 @@ out:
     
     ret = fd_msg_send(msg, NULL, NULL);
     ogs_assert(ret == 0);
-    ogs_debug("[PCRF] Session-Termination-Answer");
+    ogs_debug("[PCF] Session-Termination-Answer");
 
     state_cleanup(sess_data, NULL, NULL);
     ogs_ims_data_free(&rx_message.ims_data);

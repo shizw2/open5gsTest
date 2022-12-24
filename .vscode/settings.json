@@ -34,6 +34,9 @@
         "type_traits": "c",
         "utility": "c",
         "typeinfo": "c",
-        "unistd.h": "c"
+        "unistd.h": "c",
+        "string": "c",
+        "vector": "c",
+        "nnrf-handler.h": "c"
     }
 }

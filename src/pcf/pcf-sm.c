@@ -19,7 +19,7 @@
 
 #include "sbi-path.h"
 #include "nnrf-handler.h"
-
+#include "npcf-handler.h"
 void pcf_state_initial(ogs_fsm_t *s, pcf_event_t *e)
 {
     pcf_sm_debug(e);
@@ -641,6 +641,17 @@ void pcf_state_operational(ogs_fsm_t *s, pcf_event_t *e)
         }
         break;
 
+    case PCF_EVENT_RX_CMD_CODE_AA:
+        ogs_error("**************PCF_EVENT_RX_CMD_CODE_AA****************");
+        pcf_n7_send_rar(e->sess, e->app,e->rx_message);   
+        ogs_ims_data_free(&e->rx_message->ims_data);
+        break;
+
+    case PCF_EVENT_SESSION_TERMINATION:
+        ogs_error("**************PCF_EVENT_SESSION_TERMINATION****************"); 
+        pcf_n7_send_rar(e->sess, e->app,e->rx_message); 
+        ogs_ims_data_free(&e->rx_message->ims_data);  
+        break;
     default:
         ogs_error("No handler for event %s", pcf_event_get_name(e));
         break;
