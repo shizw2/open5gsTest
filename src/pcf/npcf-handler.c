@@ -1329,11 +1329,6 @@ bool pcf_npcf_policyauthorization_handle_delete(
     return true;
 }
 
-static struct session_handler *pcrf_gx_reg = NULL;
-//static OGS_POOL(sess_state_pool, struct sess_state);
-static OGS_POOL(rx_sess_state_pool, struct rx_sess_state);
-static ogs_thread_mutex_t sess_state_mutex;
-
 struct rx_sess_state {
     ogs_lnode_t         node;
 
@@ -1364,96 +1359,6 @@ ED3(uint8_t     ipv4:1;,
 
     struct timespec ts;             /* Time of sending the message */
 };
-
-static struct rx_sess_state *find_rx_state(struct sess_state *gx, os0_t sid)
-{
-    struct rx_sess_state *rx_sess_data = NULL;
-
-    ogs_assert(gx);
-    ogs_assert(sid);
-    
-    ogs_list_for_each(&gx->rx_list, rx_sess_data) {
-        if (!strcmp((char *)rx_sess_data->sid, (char *)sid))
-            return rx_sess_data;
-    }
-
-    return NULL;
-}
-
-static struct rx_sess_state *find_rx_state_ex(pcf_sess_t *sess, os0_t sid)
-{
-    struct rx_sess_state *rx_sess_data = NULL;
- 
-    ogs_assert(sess);
-    ogs_assert(sid);
-    
-    ogs_list_for_each(&sess->app_list, rx_sess_data) {
-        if (!strcmp((char *)rx_sess_data->sid, (char *)sid))
-            return rx_sess_data;
-    }
-
-    return NULL;
-}
-
-static struct rx_sess_state *add_rx_state(struct sess_state *gx, os0_t sid)
-{
-    struct rx_sess_state *new = NULL;
-
-    ogs_assert(gx);
-    ogs_assert(sid);
-
-    ogs_thread_mutex_lock(&sess_state_mutex);
-    ogs_pool_alloc(&rx_sess_state_pool, &new);
-    ogs_expect_or_return_val(new, NULL);
-    memset(new, 0, sizeof(*new));
-    ogs_thread_mutex_unlock(&sess_state_mutex);
-
-    new->sid = (os0_t)ogs_strdup((char *)sid);
-    ogs_expect_or_return_val(new->sid, NULL);
-
-    new->gx = gx;
-
-    ogs_list_add(&gx->rx_list, new);
-
-    return new;
-}
-
-static int remove_rx_state(struct rx_sess_state *rx_sess_data)
-{
-    struct sess_state *gx = NULL;
-    int i;
-
-    ogs_assert(rx_sess_data);
-    gx = rx_sess_data->gx;
-    ogs_assert(gx);
-
-    ogs_list_remove(&gx->rx_list, rx_sess_data);
-
-    for (i = 0; i < rx_sess_data->num_of_pcc_rule; i++) {
-        OGS_PCC_RULE_FREE(&rx_sess_data->pcc_rule[i]);
-    }
-
-    if (rx_sess_data->sid)
-        ogs_free(rx_sess_data->sid);
-
-    ogs_thread_mutex_lock(&sess_state_mutex);
-    ogs_pool_free(&rx_sess_state_pool, rx_sess_data);
-    ogs_thread_mutex_unlock(&sess_state_mutex);
-
-    return OGS_OK;
-}
-
-static int remove_rx_state_all(struct sess_state *gx)
-{
-    struct rx_sess_state *rx_sess_data = NULL, *next_rx_sess_data = NULL;
-
-    ogs_assert(gx);
-
-    ogs_list_for_each_safe(&gx->rx_list, next_rx_sess_data, rx_sess_data)
-        remove_rx_state(rx_sess_data);
-
-    return OGS_OK;
-}
 
 #if 1
 int pcf_n7_send_rar_to_main_thread(pcf_sess_t *sess,
@@ -1500,25 +1405,11 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
     OpenAPI_sm_policy_decision_t SmPolicyDecision;
 
     int rv;
-    int ret = 0, i, j;
+    int i, j;
     pcf_ue_t *pcf_ue = NULL;
-
-    struct msg *req = NULL;
-    struct avp *avp, *avpch1;
-    union avp_value val;
-    struct sess_state *sess_data = NULL;//, *svg;
-    //struct rx_sess_state *rx_sess_data = NULL;
-    struct session *session = NULL;
-    int new;
-    size_t sidlen;
 
     ogs_session_data_t session_data;
 
-    ogs_diam_gx_message_t gx_message;
-    int charging_rule = 0;
-
-    //ogs_assert(gx_sid);
-    //ogs_assert(rx_sid);
     ogs_assert(rx_message);
 
     pcf_ue = sess->pcf_ue;
