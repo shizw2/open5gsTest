@@ -33,9 +33,6 @@ cJSON *OpenAPI_sm_policy_notification_convertToJSON(OpenAPI_sm_policy_notificati
 {
     cJSON *item = NULL;
 
-    printf("OpenAPI_sm_policy_notification_convertToJSON\r\n");
-    fflush(stdout);
-
     if (sm_policy_notification == NULL) {
         ogs_error("OpenAPI_sm_policy_notification_convertToJSON() failed [SmPolicyNotification]");
         return NULL;
@@ -43,8 +40,6 @@ cJSON *OpenAPI_sm_policy_notification_convertToJSON(OpenAPI_sm_policy_notificati
 
     item = cJSON_CreateObject();
     if (sm_policy_notification->resource_uri) {
-    printf("sm_policy_notification->resource_uri\r\n");
-    fflush(stdout);
     if (cJSON_AddStringToObject(item, "resourceUri", sm_policy_notification->resource_uri) == NULL) {
         ogs_error("OpenAPI_sm_policy_notification_convertToJSON() failed [resource_uri]");
         goto end;
@@ -52,8 +47,6 @@ cJSON *OpenAPI_sm_policy_notification_convertToJSON(OpenAPI_sm_policy_notificati
     }
 
     if (sm_policy_notification->sm_policy_decision) {
-    printf("sm_policy_notification->sm_policy_decision\r\n");
-    fflush(stdout);
     cJSON *sm_policy_decision_local_JSON = OpenAPI_sm_policy_decision_convertToJSON(sm_policy_notification->sm_policy_decision);
     if (sm_policy_decision_local_JSON == NULL) {
         ogs_error("OpenAPI_sm_policy_notification_convertToJSON() failed [sm_policy_decision]");

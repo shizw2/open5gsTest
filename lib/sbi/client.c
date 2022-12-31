@@ -350,7 +350,6 @@ static connection_t *connection_add(
 
     /* If http response is not received within deadline,
      * Open5GS will discard this request. */
-    ogs_debug("test:ogs_app()->time.message.sbi.connection_deadline:%lu.",ogs_app()->time.message.sbi.connection_deadline);
     ogs_timer_start(conn->timer,
             ogs_app()->time.message.sbi.connection_deadline);
 
@@ -400,11 +399,10 @@ static connection_t *connection_add(
             curl_easy_setopt(conn->easy, CURLOPT_EXPECT_100_TIMEOUT_MS, 0L);
 #endif
             ogs_debug("SENDING...[%d]", (int)request->http.content_length);
-            if (request->http.content_length){
+            if (request->http.content_length)
                 ogs_debug("%s", request->http.content);
             }
         }
-    }
 
     curl_easy_setopt(conn->easy, CURLOPT_HTTPHEADER, conn->header_list);
 
@@ -616,7 +614,7 @@ bool ogs_sbi_client_send_request(
         ogs_sbi_request_t *request, void *data)
 {
     connection_t *conn = NULL;
-    ogs_debug("test:ogs_sbi_client_send_request");
+
     ogs_assert(client);
     ogs_assert(request);
     if (request->h.uri == NULL) {
@@ -680,7 +678,7 @@ static size_t write_cb(void *contents, size_t size, size_t nmemb, void *data)
     size_t realsize = 0;
     connection_t *conn = NULL;
     char *ptr = NULL;
-    ogs_debug("test:write_cb");
+
     conn = data;
     ogs_assert(conn);
 
@@ -760,9 +758,7 @@ static void event_cb(short when, ogs_socket_t fd, void *data)
     multi = client->multi;
     ogs_assert(multi);
 
-    ogs_debug("test:curl_multi_socket_action begin,when:%d,action:%d",when,action);
     rc = curl_multi_socket_action(multi, fd, action, &client->still_running);
-    ogs_debug("test:curl_multi_socket_action end,when:%d,action:%d",when,action);
     mcode_or_die("event_cb: curl_multi_socket_action", rc);
 
     check_multi_info(client);
@@ -781,7 +777,7 @@ static void sock_set(sockinfo_t *sockinfo, curl_socket_t s,
 {
     int kind = ((act & CURL_POLL_IN) ? OGS_POLLIN : 0) |
                 ((act & CURL_POLL_OUT) ? OGS_POLLOUT : 0);
-    ogs_debug("test:sock_set");
+
     if (sockinfo->sockfd)
         ogs_pollset_remove(sockinfo->poll);
 
@@ -800,7 +796,7 @@ static void sock_new(curl_socket_t s,
 {
     sockinfo_t *sockinfo = NULL;
     CURLM *multi = NULL;
-    ogs_debug("test:sock_new");
+
     ogs_assert(client);
     multi = client->multi;
     ogs_assert(multi);
@@ -830,7 +826,6 @@ static int sock_cb(CURL *e, curl_socket_t s, int what, void *cbp, void *sockp)
     ogs_sbi_client_t *client = (ogs_sbi_client_t *)cbp;
     sockinfo_t *sockinfo = (sockinfo_t *) sockp;
 
-    ogs_debug("test:sock_cb");
     if (what == CURL_POLL_REMOVE) {
         sock_free(sockinfo, client);
     } else {
@@ -854,8 +849,6 @@ static void multi_timer_expired(void *data)
     multi = client->multi;
     ogs_assert(multi);
 
-    ogs_debug("test:curl_multi_socket_action,multi_timer_expired.");
-
     rc = curl_multi_socket_action(
             multi, CURL_SOCKET_TIMEOUT, 0, &client->still_running);
     mcode_or_die("multi_timer_expired: curl_multi_socket_action", rc);
@@ -871,8 +864,6 @@ static int multi_timer_cb(CURLM *multi, long timeout_ms, void *cbp)
     ogs_assert(client);
     timer = client->t_curl;
     ogs_assert(timer);
-
-    ogs_debug("test:multi_timer_cb:%ld.",timeout_ms);
 
     if (timeout_ms > 0) {
         ogs_timer_start(timer, ogs_time_from_msec(timeout_ms));

@@ -737,8 +737,6 @@ bool pcf_npcf_policyauthorization_handle_create(pcf_sess_t *sess,
         if (pcc_rule->qos.gbr.uplink == 0)
             pcc_rule->qos.gbr.uplink = db_pcc_rule->qos.gbr.uplink;
 
-        //printf("pcc_rule->id %s,pcc_rule->name %s,pcc_rule->num_of_flow %d,pcc_rule->type%d,\r\n",pcc_rule->id,pcc_rule->name,pcc_rule->num_of_flow,pcc_rule->type);
-        //fflush(stdout);
         /**************************************************************
          * Build PCC Rule & QoS Decision
          *************************************************************/

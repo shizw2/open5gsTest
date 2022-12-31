@@ -806,12 +806,11 @@ static int ogs_pfcp_xact_delete(ogs_pfcp_xact_t *xact)
     ogs_assert(xact);
     ogs_assert(xact->node);
 
-    ogs_debug("[%d] %s Delete  peer [%s]:%d, step %d type %d",
+    ogs_debug("[%d] %s Delete  peer [%s]:%d",
             xact->xid,
             xact->org == OGS_PFCP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
             OGS_ADDR(&xact->node->addr, buf),
-            OGS_PORT(&xact->node->addr),
-            xact->step, xact->seq[xact->step-1].type);
+            OGS_PORT(&xact->node->addr));
 
     if (xact->seq[0].pkbuf)
         ogs_pkbuf_free(xact->seq[0].pkbuf);

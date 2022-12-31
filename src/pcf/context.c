@@ -122,8 +122,6 @@ int pcf_context_parse_config(void)
             ogs_yaml_iter_recurse(&root_iter, &pcf_iter);
             while (ogs_yaml_iter_next(&pcf_iter)) {
                 const char *pcf_key = ogs_yaml_iter_key(&pcf_iter);
-                printf("pcfkey:%s\r\n",pcf_key);
-                fflush(stdout) ;
                 ogs_assert(pcf_key);
                 if (!strcmp(pcf_key, "sbi")) {
                     /* handle config in sbi library */
@@ -280,8 +278,6 @@ int pcf_context_parse_config(void)
         }
     }
 
-    printf("pcf_context_parse_config ok.\r\n");
-    fflush(stdout);
     rv = pcf_context_validation();
     if (rv != OGS_OK) return rv;
 
@@ -511,8 +507,6 @@ bool pcf_sess_set_ipv4addr(pcf_sess_t *sess, char *ipv4addr_string)
 {
     int rv;
 
-    ogs_error("pcf_sess_set_ipv4addr %s.",ipv4addr_string);
-
     ogs_assert(sess);
     ogs_assert(ipv4addr_string);
 
@@ -579,8 +573,6 @@ pcf_sess_t *pcf_sess_find_by_ipv4addr(char *ipv4addr_string)
 {
     uint32_t ipv4addr;
     int rv;
-
-    ogs_error("pcf_sess_find_by_ipv4addr:%s.",ipv4addr_string);
 
     ogs_assert(ipv4addr_string);
 

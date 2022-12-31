@@ -194,7 +194,6 @@ cJSON *OpenAPI_sm_policy_decision_convertToJSON(OpenAPI_sm_policy_decision_t *sm
         ogs_error("OpenAPI_sm_policy_decision_convertToJSON() failed [sess_rules]");
         goto end;
     }
-
     cJSON *localMapObject = sess_rules;
     OpenAPI_lnode_t *sess_rules_node;
     if (sm_policy_decision->sess_rules) {

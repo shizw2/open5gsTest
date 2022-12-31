@@ -54,8 +54,6 @@ bool ogs_nnrf_nfm_send_nf_update(ogs_sbi_nf_instance_t *nf_instance)
         return false;
     }
 
-    ogs_debug("ogs_nnrf_nfm_send_nf_update,%s", request->http.content);
-
     rc = ogs_sbi_send_notification_request(
             OGS_SBI_SERVICE_TYPE_NNRF_NFM, NULL, request, nf_instance);
     ogs_expect(rc == true);
