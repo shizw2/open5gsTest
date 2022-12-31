@@ -1368,12 +1368,7 @@ int pcf_n7_send_rar_to_main_thread(pcf_sess_t *sess,
 
     pcf_event_t *e = NULL;
 
-    if (rx_message->cmd_code == OGS_DIAM_RX_CMD_CODE_AA){
-        e = pcf_event_new(PCF_EVENT_RX_CMD_CODE_AA);
-    }else if (rx_message->cmd_code == OGS_DIAM_RX_CMD_CODE_SESSION_TERMINATION){
-        e = pcf_event_new(PCF_EVENT_SESSION_TERMINATION);
-    }
-
+    e = pcf_event_new(PCF_EVENT_RX_CMD);
     ogs_assert(e);
     e->sess = sess;         
     e->app = app_session;
@@ -1586,7 +1581,7 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
                 goto out;
             }
 
-            ogs_error("db_pcc_rule->id:%s, %p.",db_pcc_rule->id,db_pcc_rule->id);
+            ogs_debug("db_pcc_rule->id:%s, %p.",db_pcc_rule->id,db_pcc_rule->id);
 
             for (j = 0; j < app_session->num_of_pcc_rule; j++) {
                 if (app_session->pcc_rule[j].qos.index == qos_index) {

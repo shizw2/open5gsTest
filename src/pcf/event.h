@@ -34,6 +34,7 @@ typedef struct pcf_app_s pcf_app_t;
 typedef enum {
     PCF_EVENT_BASE = OGS_MAX_NUM_OF_PROTO_EVENT,
 
+    PCF_EVENT_RX_CMD,
     PCF_EVENT_RX_CMD_CODE_AA,
     PCF_EVENT_SESSION_TERMINATION,
    

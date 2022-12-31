@@ -113,7 +113,6 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
     ogs_flow_t *flow = NULL;
 
     char buf[OGS_ADDRSTRLEN];
-    os0_t gx_sid = NULL;
     uint32_t result_code = OGS_DIAM_RX_DIAMETER_IP_CAN_SESSION_NOT_AVAILABLE;
 
     pcf_sess_t *pcf_sess;//just like gx_sid
@@ -206,7 +205,7 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
 
     //TODO:先查询
     app_session = pcf_app_add(pcf_sess);
-    app_session->rx_sid = (os0_t)ogs_strdup(sess_data->rx_sid);
+    app_session->rx_sid = (os0_t)ogs_strdup((char *)sess_data->rx_sid);
     sess_data->app_session_id = ogs_strdup(app_session->app_session_id);
 
     ret = fd_msg_browse(qry, MSG_BRW_FIRST_CHILD, &avpch1, NULL);

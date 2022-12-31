@@ -97,7 +97,7 @@ void test_rx_send_aar_audio(uint8_t **rx_sid,
     sip_uri = ogs_msprintf("sip:%s:40491", ipstr);
     ogs_assert(sip_uri);
 
-    ogs_error("sip_uri:%s.\r\n",sip_uri);
+    ogs_info("sip_uri:%s.\r\n",sip_uri);
 
     rv = ogs_ipsubnet(&ipsub, ipstr, NULL);
     ogs_assert(rv == OGS_OK);

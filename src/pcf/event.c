@@ -19,6 +19,8 @@
 
 #include "event.h"
 
+const char *OGS_EVENT_NAME_RX_CMD = "OGS_EVENT_NAME_RX_CMD";
+
 pcf_event_t *pcf_event_new(int id)
 {
     pcf_event_t *e = NULL;
@@ -49,7 +51,8 @@ const char *pcf_event_get_name(pcf_event_t *e)
         return OGS_EVENT_NAME_SBI_CLIENT;
     case OGS_EVENT_SBI_TIMER:
         return OGS_EVENT_NAME_SBI_TIMER;
-
+    case PCF_EVENT_RX_CMD:
+        return OGS_EVENT_NAME_RX_CMD;
     default:
         break;
     }
