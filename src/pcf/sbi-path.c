@@ -357,6 +357,8 @@ bool pcf_sbi_send_policyauthorization_terminate_notify(pcf_app_t *app)
     client = app->naf.client;
     ogs_assert(client);
 
+    ogs_error("test:pcf_sbi_send_policyauthorization_terminate_notify.");
+
     request = pcf_naf_callback_build_policyauthorization_terminate(app, NULL);
     ogs_expect_or_return_val(request, false);
 

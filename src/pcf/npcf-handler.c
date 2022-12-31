@@ -338,17 +338,16 @@ bool pcf_npcf_smpolicycontrol_handle_delete(pcf_sess_t *sess,
         goto cleanup;
     }
 
-    ogs_list_for_each(&sess->app_list, app_session) {
-        pcf_sbi_send_policyauthorization_terminate_notify(app_session);
+    
+    ogs_list_for_each(&sess->app_list, app_session) {   
+        if (app_session->rx_sid != NULL){
+            rv = pcf_rx_send_asr(
+                    app_session->rx_sid, OGS_DIAM_RX_ABORT_CAUSE_BEARER_RELEASED);
+            ogs_assert(rv == OGS_OK);
+        }else{
+            pcf_sbi_send_policyauthorization_terminate_notify(app_session);
+        }
     }
-
-    /*add begin*/
-    ogs_list_for_each(&sess->app_list, app_session) {
-        rv = pcf_rx_send_asr(
-                app_session->rx_sid, OGS_DIAM_RX_ABORT_CAUSE_BEARER_RELEASED);
-        ogs_assert(rv == OGS_OK);
-    }
-    /*add end*/
 
     if (pcf_sessions_number_by_snssai_and_dnn(
                 pcf_ue, &sess->s_nssai, sess->dnn) > 1) {
@@ -568,7 +567,7 @@ bool pcf_npcf_policyauthorization_handle_create(pcf_sess_t *sess,
     ogs_assert(app_session->notif_uri);
 
     char buf[OGS_ADDRSTRLEN];
-    ogs_error("pcf_npcf_policyauthorization_handle_create,addr:%s,notif_uri:%s.", OGS_ADDR(addr, buf), AscReqData->notif_uri);
+    //ogs_error("pcf_npcf_policyauthorization_handle_create,addr:%s,notif_uri:%s.", OGS_ADDR(addr, buf), AscReqData->notif_uri);
     client = ogs_sbi_client_find(addr);
     if (!client) {
         client = ogs_sbi_client_add(addr);
