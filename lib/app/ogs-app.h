@@ -94,6 +94,9 @@ void smf_terminate(void);
 int amf_initialize(void);
 void amf_terminate(void);
 
+int amf_sps_initialize();
+void amf_sps_terminate(void);
+
 int scp_initialize(void);
 void scp_terminate(void);
 

@@ -108,6 +108,7 @@ typedef struct amf_context_s {
 
     ogs_list_t      ngap_list;      /* AMF NGAP IPv4 Server List */
     ogs_list_t      ngap_list6;     /* AMF NGAP IPv6 Server List */
+    ogs_list_t      sps_list;      /* SPS List */
 
 } amf_context_t;
 

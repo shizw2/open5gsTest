@@ -23,12 +23,15 @@
 
 static ogs_thread_t *thread;
 static void amf_main(void *data);
+static void amf_sps_main(void *data);
 static int initialized = 0;
+
+static int sps_udp_ini_open(void);//挪到新文件
 
 int amf_initialize()
 {
     int rv;
-    setAffinity(6);
+    //setAffinity(6);
     ogs_metrics_context_init();
     ogs_sbi_context_init();
 
@@ -66,6 +69,72 @@ int amf_initialize()
     if (!thread) return OGS_ERROR;
 
     initialized = 1;
+
+    return OGS_OK;
+}
+
+int amf_sps_initialize()
+{
+    int rv;
+    //setAffinity(6);
+    ogs_metrics_context_init();
+    ogs_sbi_context_init();
+
+    amf_context_init();
+
+    rv = ogs_sbi_context_parse_config("amf", "nrf", "scp");
+    if (rv != OGS_OK) return rv;
+
+    rv = ogs_metrics_context_parse_config("amf");
+    if (rv != OGS_OK) return rv;
+
+    rv = amf_context_parse_config();
+    if (rv != OGS_OK) return rv;
+
+    rv = amf_context_nf_info();
+    if (rv != OGS_OK) return rv;
+
+    rv = amf_m_tmsi_pool_generate();
+    if (rv != OGS_OK) return rv;
+
+    rv = amf_metrics_open();
+    if (rv != 0) return OGS_ERROR;
+
+    rv = ogs_log_config_domain(
+            ogs_app()->logger.domain, ogs_app()->logger.level);
+    if (rv != OGS_OK) return rv;
+
+    rv = sps_udp_ini_open();
+    if (rv != OGS_OK) return rv;
+
+    thread = ogs_thread_create(amf_sps_main, NULL);
+    if (!thread) return OGS_ERROR;
+
+    initialized = 1;
+
+    return OGS_OK;
+}
+
+static int sps_udp_ini_open(void)
+{
+    ogs_socknode_t *node = NULL;
+    ogs_sock_t *sock = NULL;
+    ogs_sock_t *udp;
+    char buf[OGS_ADDRSTRLEN];
+
+    ogs_list_for_each(&amf_self()->sps_list, node) {
+        udp = ogs_udp_server(node->addr, node->option);
+        if (udp) {
+            ogs_info("udp_server() [%s]:%d",
+                    OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
+
+            node->sock = udp;
+        }
+
+        node->poll = ogs_pollset_add(ogs_app()->pollset,
+                OGS_POLLIN, sock->fd, NULL, sock);
+        ogs_assert(node->poll);
+    }
 
     return OGS_OK;
 }
@@ -155,4 +224,41 @@ static void amf_main(void *data)
 done:
 
     ogs_fsm_fini(&amf_sm, 0);
+}
+
+
+static void amf_sps_main(void *data)
+{
+    ogs_fsm_t amf_sps_sm;
+    int rv;
+
+    ogs_fsm_init(&amf_sps_sm, amf_state_initial, amf_state_final, 0);
+
+    for ( ;; ) {
+        ogs_pollset_poll(ogs_app()->pollset,
+                ogs_timer_mgr_next(ogs_app()->timer_mgr));
+
+       
+        ogs_timer_mgr_expire(ogs_app()->timer_mgr);
+
+        for ( ;; ) {
+            amf_event_t *e = NULL;
+
+            rv = ogs_queue_trypop(ogs_app()->queue, (void**)&e);
+            ogs_assert(rv != OGS_ERROR);
+
+            if (rv == OGS_DONE)
+                goto done;
+
+            if (rv == OGS_RETRY)
+                break;
+
+            ogs_assert(e);
+            ogs_fsm_dispatch(&amf_sps_sm, e);
+            ogs_event_free(e);
+        }
+    }
+done:
+
+    ogs_fsm_fini(&amf_sps_sm, 0);
 }

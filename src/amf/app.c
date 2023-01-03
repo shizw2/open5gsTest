@@ -25,7 +25,20 @@ int app_initialize(const char *const argv[])
     int rv;
 
     ogs_sctp_init(ogs_app()->usrsctp.udp_port);
-    rv = amf_initialize();
+
+    char *FileDP = argv[0];
+    char *FileName = strrchr(FileDP, '/') +1 ;
+    printf("arg:%s.\r\n",FileName);    
+    if (ogs_strcasecmp(FileName, "open5gs-amfd") == 0){
+        printf("amf init.\r\n");
+        rv = amf_initialize();
+    }else{
+        printf("amf sps init.\r\n");
+        rv = amf_sps_initialize();
+    }
+    fflush(stdout);
+
+    
     if (rv != OGS_OK) {
         ogs_error("Failed to intialize AMF");
         return rv;
