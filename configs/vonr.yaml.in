@@ -235,8 +235,6 @@ pcf:
         - module: /home/git/open5gsTest/build/subprojects/freeDiameter/extensions/dict_dcca.fdx
         - module: /home/git/open5gsTest/build/subprojects/freeDiameter/extensions/dict_dcca_3gpp/dict_dcca_3gpp.fdx
       connect:
-        #- identity: smf.localdomain
-        #  addr: 127.0.0.4
         - identity: ims.localdomain
           addr: 127.0.0.1
 nssf:
