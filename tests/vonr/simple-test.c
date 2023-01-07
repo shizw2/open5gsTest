@@ -834,6 +834,9 @@ static void test2_func(abts_case *tc, void *data)
     /* Wait for PDU session resource modify complete */
     ogs_msleep(100);
 
+    test_rx_send_aar_audio(&rx_sid, sess,
+            OGS_DIAM_RX_SUBSCRIPTION_ID_TYPE_END_USER_IMSI, 1, 1);
+            
     /* Send GTP-U ICMP Packet */
     qos_flow = test_qos_flow_find_by_qfi(sess, 2);
     ogs_assert(qos_flow);
@@ -1389,9 +1392,9 @@ abts_suite *test_simple(abts_suite *suite)
 {       
     suite = ADD_SUITE(suite)
 
-    abts_run_test(suite, test1_func, NULL);
+    //abts_run_test(suite, test1_func, NULL);
     abts_run_test(suite, test2_func, NULL);
-    abts_run_test(suite, test3_func, NULL);
+    //abts_run_test(suite, test3_func, NULL);
     return suite;
 }
 

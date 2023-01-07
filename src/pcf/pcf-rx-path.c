@@ -203,10 +203,16 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
         goto out;
     }
 
-    //TODO:先查询
-    app_session = pcf_app_add(pcf_sess);
-    app_session->rx_sid = (os0_t)ogs_strdup((char *)sess_data->rx_sid);
-    sess_data->app_session_id = ogs_strdup(app_session->app_session_id);
+    //先查询
+    if (NULL != sess_data->app_session_id){
+        app_session = pcf_app_find_by_app_session_id(sess_data->app_session_id); 
+    }
+
+    if (NULL == app_session){
+        app_session = pcf_app_add(pcf_sess);
+        app_session->rx_sid = (os0_t)ogs_strdup((char *)sess_data->rx_sid);
+        sess_data->app_session_id = ogs_strdup(app_session->app_session_id);
+    }
 
     ret = fd_msg_browse(qry, MSG_BRW_FIRST_CHILD, &avpch1, NULL);
     ogs_assert(ret == 0);

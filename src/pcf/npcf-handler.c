@@ -1580,7 +1580,7 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
                 goto out;
             }
 
-            ogs_debug("db_pcc_rule->id:%s, %p.",db_pcc_rule->id,db_pcc_rule->id);
+            ogs_debug("db_pcc_rule->id:%s, db_pcc_rule->name:%s,app_session->num_of_pcc_rule:%d.",db_pcc_rule->id,db_pcc_rule->name,app_session->num_of_pcc_rule);
 
             for (j = 0; j < app_session->num_of_pcc_rule; j++) {
                 if (app_session->pcc_rule[j].qos.index == qos_index) {
@@ -1656,6 +1656,9 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
                 goto out;
             }
 
+            ogs_info("pcc_rule->qos.mbr.downlink:%ld,db_pcc_rule->qos.mbr.downlink:%ld.",pcc_rule->qos.mbr.downlink,db_pcc_rule->qos.mbr.downlink);
+            ogs_info("pcc_rule->qos.mbr.uplink:%ld,db_pcc_rule->qos.mbr.uplink:%ld.",pcc_rule->qos.mbr.uplink,db_pcc_rule->qos.mbr.uplink);
+            ogs_info("pcc_rule->qos.gbr.downlink:%ld,db_pcc_rule->qos.gbr.downlink:%ld.",pcc_rule->qos.gbr.downlink,db_pcc_rule->qos.gbr.downlink);
             /* if we failed to get QoS from IMS, apply WEBUI QoS */
             if (pcc_rule->qos.mbr.downlink == 0)
                 pcc_rule->qos.mbr.downlink = db_pcc_rule->qos.mbr.downlink;

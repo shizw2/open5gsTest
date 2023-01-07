@@ -960,6 +960,8 @@ int ogs_pcc_rule_update_qos_from_media(
     for (i = 0; i < media_component->num_of_sub; i++) {
         ogs_media_sub_component_t *sub = &media_component->sub[i];
 
+        ogs_info("media_component->num_of_sub:%d,sub->num_of_flow:%d,media_component->max_requested_bandwidth_dl:%ld,media_component->rr_bandwidth+rs_bandwidth:%ld.",media_component->num_of_sub,sub->num_of_flow,media_component->max_requested_bandwidth_dl,
+        media_component->rr_bandwidth + media_component->rs_bandwidth);
         for (j = 0; j < sub->num_of_flow &&
                     j < OGS_MAX_NUM_OF_FLOW_IN_MEDIA_SUB_COMPONENT; j++) {
             ogs_flow_t gx_flow;
