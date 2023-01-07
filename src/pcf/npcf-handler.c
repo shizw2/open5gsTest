@@ -340,13 +340,14 @@ bool pcf_npcf_smpolicycontrol_handle_delete(pcf_sess_t *sess,
 
     
     ogs_list_for_each(&sess->app_list, app_session) {   
+    #if 0
         if (app_session->rx_sid != NULL){
             rv = pcf_rx_send_asr(
                     app_session->rx_sid, OGS_DIAM_RX_ABORT_CAUSE_BEARER_RELEASED);
             ogs_assert(rv == OGS_OK);
-        }else{
-            pcf_sbi_send_policyauthorization_terminate_notify(app_session);
         }
+    #endif
+        pcf_sbi_send_policyauthorization_terminate_notify(app_session);        
     }
 
     if (pcf_sessions_number_by_snssai_and_dnn(
@@ -1580,7 +1581,7 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
                 goto out;
             }
 
-            ogs_debug("db_pcc_rule->id:%s, db_pcc_rule->name:%s,app_session->num_of_pcc_rule:%d.",db_pcc_rule->id,db_pcc_rule->name,app_session->num_of_pcc_rule);
+            ogs_debug("db_pcc_rule->id:%s, %p.",db_pcc_rule->id,db_pcc_rule->id);
 
             for (j = 0; j < app_session->num_of_pcc_rule; j++) {
                 if (app_session->pcc_rule[j].qos.index == qos_index) {
@@ -1656,9 +1657,6 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
                 goto out;
             }
 
-            ogs_info("pcc_rule->qos.mbr.downlink:%ld,db_pcc_rule->qos.mbr.downlink:%ld.",pcc_rule->qos.mbr.downlink,db_pcc_rule->qos.mbr.downlink);
-            ogs_info("pcc_rule->qos.mbr.uplink:%ld,db_pcc_rule->qos.mbr.uplink:%ld.",pcc_rule->qos.mbr.uplink,db_pcc_rule->qos.mbr.uplink);
-            ogs_info("pcc_rule->qos.gbr.downlink:%ld,db_pcc_rule->qos.gbr.downlink:%ld.",pcc_rule->qos.gbr.downlink,db_pcc_rule->qos.gbr.downlink);
             /* if we failed to get QoS from IMS, apply WEBUI QoS */
             if (pcc_rule->qos.mbr.downlink == 0)
                 pcc_rule->qos.mbr.downlink = db_pcc_rule->qos.mbr.downlink;

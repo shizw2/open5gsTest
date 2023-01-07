@@ -125,14 +125,17 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
 
     ret = fd_sess_state_retrieve(pcf_rx_reg, sess, &sess_data);
     ogs_assert(ret == 0);
-    if (!sess_data) {
+    if (!sess_data) {        
         os0_t sid = NULL;
         ret = fd_sess_getsid(sess, &sid, &sidlen);
         ogs_assert(ret == 0);
 
         sess_data = new_state(sid);
         ogs_assert(sess_data);
+        ogs_info("no sess data, get a new sess,rx_sid:%s.",(char*)(sess_data->rx_sid));
     }
+
+    ogs_info("rx_sid:%s.",(char*)(sess_data->rx_sid));
 
     /* Initialize Message */
     memset(&rx_message, 0, sizeof(ogs_diam_rx_message_t));
