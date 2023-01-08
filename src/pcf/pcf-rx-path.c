@@ -205,16 +205,22 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
         ogs_error("No pcf Session");
         goto out;
     }
-
+    
     //先查询
     if (NULL != sess_data->app_session_id){
+        ogs_error("exist app_sessionid:%s.",sess_data->app_session_id);
         app_session = pcf_app_find_by_app_session_id(sess_data->app_session_id); 
+        if (strcmp(app_session->rx_sid,(char *)sess_data->rx_sid) != 0){
+            app_session->rx_sid = (os0_t)ogs_strdup((char *)sess_data->rx_sid);
+            ogs_error("exist app_sessionid:%s,update rx_sid:%s.",app_session->app_session_id,app_session->rx_sid);            
+        }
     }
 
     if (NULL == app_session){
         app_session = pcf_app_add(pcf_sess);
         app_session->rx_sid = (os0_t)ogs_strdup((char *)sess_data->rx_sid);
         sess_data->app_session_id = ogs_strdup(app_session->app_session_id);
+        ogs_error("new app_sessionid:%s,rx_sid:%s.",sess_data->app_session_id,app_session->rx_sid);
     }
 
     ret = fd_msg_browse(qry, MSG_BRW_FIRST_CHILD, &avpch1, NULL);
