@@ -347,7 +347,7 @@ bool pcf_npcf_smpolicycontrol_handle_delete(pcf_sess_t *sess,
                     app_session->rx_sid, OGS_DIAM_RX_ABORT_CAUSE_BEARER_RELEASED);
             ogs_assert(rv == OGS_OK);
         #endif
-        }else{
+        }else{//还是要加else,否则，不存在N5接口的AF时,发送SBI消息，会导致异常
             pcf_sbi_send_policyauthorization_terminate_notify(app_session);   
         }     
     }
