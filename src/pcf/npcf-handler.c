@@ -339,15 +339,17 @@ bool pcf_npcf_smpolicycontrol_handle_delete(pcf_sess_t *sess,
     }
 
     
-    ogs_list_for_each(&sess->app_list, app_session) {   
-    #if 0
+    ogs_list_for_each(&sess->app_list, app_session) { 
         if (app_session->rx_sid != NULL){
+        //TODO: 暂时注释掉
+        #if 0
             rv = pcf_rx_send_asr(
                     app_session->rx_sid, OGS_DIAM_RX_ABORT_CAUSE_BEARER_RELEASED);
             ogs_assert(rv == OGS_OK);
-        }
-    #endif
-        pcf_sbi_send_policyauthorization_terminate_notify(app_session);        
+        #endif
+        }else{
+            pcf_sbi_send_policyauthorization_terminate_notify(app_session);   
+        }     
     }
 
     if (pcf_sessions_number_by_snssai_and_dnn(

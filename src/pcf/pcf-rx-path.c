@@ -571,7 +571,7 @@ static void pcf_rx_asa_cb(void *data, struct msg **msg)
     int new;
     int result_code = 0;
 
-    ogs_debug("[PCRF] Abort-Session-Answer");
+    ogs_debug("[PCF] Abort-Session-Answer");
 
     /* Search the session, retrieve its data */
     ret = fd_msg_sess_get(fd_g_config->cnf_dict, *msg, &session, &new);
@@ -655,7 +655,7 @@ static int pcf_rx_str_cb( struct msg **msg, struct avp *avp,
     uint32_t result_code = OGS_DIAM_RX_DIAMETER_IP_CAN_SESSION_NOT_AVAILABLE;
     pcf_app_t *app_session = NULL;
     
-    ogs_debug("[PCF] Session-Termination-Request");
+    ogs_debug("");
 
     ogs_assert(msg);
     ogs_assert(sess);
