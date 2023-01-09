@@ -1650,6 +1650,8 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
             }
 
             /* Update QoS */
+            ogs_info("media_component->num_of_sub:%d.",media_component->num_of_sub);
+            ogs_info("before update,pcc_rule->qos.mbr.downlink:%ld,db_pcc_rule->qos.mbr.downlink:%ld.",pcc_rule->qos.mbr.downlink,db_pcc_rule->qos.mbr.downlink);
             rv = ogs_pcc_rule_update_qos_from_media(pcc_rule, media_component);
             if (rv != OGS_OK) {
                 rx_message->result_code =
@@ -1658,7 +1660,7 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
                 goto out;
             }
 
-            ogs_info("pcc_rule->qos.mbr.downlink:%ld,db_pcc_rule->qos.mbr.downlink:%ld.",pcc_rule->qos.mbr.downlink,db_pcc_rule->qos.mbr.downlink);
+            ogs_info("after update,pcc_rule->qos.mbr.downlink:%ld,db_pcc_rule->qos.mbr.downlink:%ld.",pcc_rule->qos.mbr.downlink,db_pcc_rule->qos.mbr.downlink);
             ogs_info("pcc_rule->qos.mbr.uplink:%ld,db_pcc_rule->qos.mbr.uplink:%ld.",pcc_rule->qos.mbr.uplink,db_pcc_rule->qos.mbr.uplink);
             ogs_info("pcc_rule->qos.gbr.downlink:%ld,db_pcc_rule->qos.gbr.downlink:%ld.",pcc_rule->qos.gbr.downlink,db_pcc_rule->qos.gbr.downlink);
             /* if we failed to get QoS from IMS, apply WEBUI QoS */

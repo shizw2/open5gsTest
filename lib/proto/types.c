@@ -956,11 +956,11 @@ int ogs_pcc_rule_update_qos_from_media(
     pcc_rule->qos.mbr.uplink = 0;
     pcc_rule->qos.gbr.downlink = 0;
     pcc_rule->qos.gbr.uplink = 0;
-
+    ogs_info("test:media_component->num_of_sub:%d.",media_component->num_of_sub);
     for (i = 0; i < media_component->num_of_sub; i++) {
         ogs_media_sub_component_t *sub = &media_component->sub[i];
 
-        ogs_info("media_component->num_of_sub:%d,sub->num_of_flow:%d,media_component->max_requested_bandwidth_dl:%ld,media_component->rr_bandwidth+rs_bandwidth:%ld.",media_component->num_of_sub,sub->num_of_flow,media_component->max_requested_bandwidth_dl,
+        ogs_info("test:sub->num_of_flow:%d,media_component->max_requested_bandwidth_dl:%ld,media_component->rr_bandwidth+rs_bandwidth:%ld.",sub->num_of_flow,media_component->max_requested_bandwidth_dl,
         media_component->rr_bandwidth + media_component->rs_bandwidth);
         for (j = 0; j < sub->num_of_flow &&
                     j < OGS_MAX_NUM_OF_FLOW_IN_MEDIA_SUB_COMPONENT; j++) {
@@ -972,6 +972,8 @@ int ogs_pcc_rule_update_qos_from_media(
                 ogs_error("flow reformatting error");
                 return OGS_ERROR;
             }
+
+            ogs_info("test:gx_flow.direction:%d,sub->flow_usage:%d,gx_flow.description:%s.",gx_flow.direction,sub->flow_usage,gx_flow.description);
 
             if (gx_flow.direction == OGS_FLOW_DOWNLINK_ONLY) {
                 if (sub->flow_usage == OGS_FLOW_USAGE_RTCP) {
