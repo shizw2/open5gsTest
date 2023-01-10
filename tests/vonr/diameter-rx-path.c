@@ -1898,6 +1898,7 @@ void test_rx_send_str(uint8_t *rx_sid)
     ogs_assert(ret == 0);
     ogs_assert(new == 0);
 
+    //rx_sid[10] = 9; //模拟sid异常
     /* Add Session-Id to the message */
     ret = ogs_diam_message_session_id_set(req, rx_sid, sidlen);
     ogs_assert(ret == 0);

@@ -764,6 +764,17 @@ static void test2_func(abts_case *tc, void *data)
     uint8_t *rx_sid = NULL;
     test_rx_send_aar_audio(&rx_sid, sess,
             OGS_DIAM_RX_SUBSCRIPTION_ID_TYPE_END_USER_IMSI, 1, 1);
+
+#if 0
+    //模拟一个control类型的aar
+    uint8_t *rx_sid2 = NULL;
+    test_rx_send_aar_ctrl(&rx_sid2, sess,
+            OGS_DIAM_RX_SUBSCRIPTION_ID_TYPE_END_USER_SIP_URI);
+
+    uint8_t *rx_sid3 = NULL;
+    test_rx_send_aar_ctrl(&rx_sid3, sess,
+            OGS_DIAM_RX_SUBSCRIPTION_ID_TYPE_END_USER_SIP_URI);
+#endif
 #if 0
     /* Add AF-Session */
     af_sess = af_sess_add_by_ue_address(&sess->ue_ip);
@@ -854,7 +865,8 @@ static void test2_func(abts_case *tc, void *data)
     /* Send AF-Session : DELETE */
     //af_local_send_to_pcf(af_sess, NULL,
     //        af_npcf_policyauthorization_build_delete);
-    /* Send Session-Termination-Request */    
+    /* Send Session-Termination-Request */  
+ 
     test_rx_send_str(rx_sid);
 
     /* Receive PDUSessionResourceModifyRequest +
@@ -2544,9 +2556,9 @@ abts_suite *test_simple(abts_suite *suite)
 {       
     suite = ADD_SUITE(suite)
 
-    //abts_run_test(suite, test1_func, NULL);
-    //abts_run_test(suite, test2_func, NULL);
-    abts_run_test(suite, test3_func, NULL); //asr
+    //abts_run_test(suite, test1_func, NULL); //正常例子
+    abts_run_test(suite, test2_func, NULL);
+    //abts_run_test(suite, test3_func, NULL); //asr
     //abts_run_test(suite, test4_func, NULL);
     //abts_run_test(suite, test5_func, NULL);
     return suite;
