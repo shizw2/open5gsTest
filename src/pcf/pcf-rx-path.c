@@ -135,7 +135,7 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
         ogs_info("no sess data, get a new sess,rx_sid:%s.",(char*)(sess_data->rx_sid));
     }
 
-    ogs_info("rx_sid:%s.",(char*)(sess_data->rx_sid));
+    ogs_info("[PCF] AA-Requestt,rx_sid:%s.",sess_data->rx_sid);
 
     /* Initialize Message */
     memset(&rx_message, 0, sizeof(ogs_diam_rx_message_t));
@@ -208,7 +208,7 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
     
     //先查询
     if (NULL != sess_data->app_session_id){
-        ogs_error("exist app_sessionid:%s.",sess_data->app_session_id);
+        ogs_info("exist app_sessionid:%s.",sess_data->app_session_id);
         app_session = pcf_app_find_by_app_session_id(sess_data->app_session_id); 
         if (strcmp(app_session->rx_sid,(char *)sess_data->rx_sid) != 0){
             app_session->rx_sid = (os0_t)ogs_strdup((char *)sess_data->rx_sid);
@@ -220,7 +220,7 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
         app_session = pcf_app_add(pcf_sess);
         app_session->rx_sid = (os0_t)ogs_strdup((char *)sess_data->rx_sid);
         sess_data->app_session_id = ogs_strdup(app_session->app_session_id);
-        ogs_error("new app_sessionid:%s,rx_sid:%s.",sess_data->app_session_id,app_session->rx_sid);
+        ogs_info("new app_sessionid:%s,rx_sid:%s.",sess_data->app_session_id,app_session->rx_sid);
     }
 
     ret = fd_msg_browse(qry, MSG_BRW_FIRST_CHILD, &avpch1, NULL);
@@ -662,6 +662,18 @@ static int pcf_rx_str_cb( struct msg **msg, struct avp *avp,
 
     ret = fd_sess_state_retrieve(pcf_rx_reg, sess, &sess_data);
     ogs_assert(ret == 0);
+    if (sess_data == NULL){
+        ogs_error("sess_data is null,return.");
+        return 0;
+    }
+
+    if (sess_data->rx_sid == NULL){
+        ogs_error("sess_data->rx_sid is null,return.");
+        return 0;
+    }
+
+    ogs_info("[PCF] Session-Termination-Request,rx_sid:%s.",sess_data->rx_sid);
+
     ogs_assert(sess_data);
     ogs_assert(sess_data->rx_sid);
     //ogs_assert(sess_data->gx_sid);
@@ -714,6 +726,12 @@ static int pcf_rx_str_cb( struct msg **msg, struct avp *avp,
     }
 
     if (sess_data->state != SESSION_ABORTED) {
+        if (sess_data->app_session_id == NULL) {
+            ogs_error("sess_data->app_session_id is null,rx_sid:%s.",sess_data->rx_sid);
+            state_cleanup(sess_data, NULL, NULL);
+            ogs_ims_data_free(&rx_message.ims_data);
+            return 0;
+        }
         app_session = pcf_app_find_by_app_session_id(sess_data->app_session_id); 
         ogs_assert(app_session);
         /* Send Re-Auth Request if Abort-Session-Request is not initaited */

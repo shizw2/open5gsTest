@@ -37,6 +37,7 @@
         "unistd.h": "c",
         "string": "c",
         "vector": "c",
-        "nnrf-handler.h": "c"
+        "nnrf-handler.h": "c",
+        "ogs-diameter-rx.h": "c"
     }
 }
