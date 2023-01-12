@@ -674,7 +674,7 @@ static int pcf_rx_str_cb( struct msg **msg, struct avp *avp,
         return 0;
     }
 
-    ogs_info("[PCF] Session-Termination-Request,rx_sid:%s.",sess_data->rx_sid);
+    ogs_info("[PCF] Session-Termination-Request,rx_sid:%s,sess state:%d.",sess_data->rx_sid,sess_data->state);
 
     ogs_assert(sess_data);
     ogs_assert(sess_data->rx_sid);
