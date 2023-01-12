@@ -177,6 +177,8 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
             ogs_warn("Cannot find pcf Sesson for IPv4:%s",
                     OGS_INET_NTOP(hdr->avp_value->os.data, buf));
         }
+
+        ogs_info("pcf_sess ip:%s",pcf_sess->ipv4addr_string);
     }
 
     if (!pcf_sess) {
@@ -208,11 +210,11 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
     
     //先查询
     if (NULL != sess_data->app_session_id){
-        ogs_info("exist app_sessionid:%s.",sess_data->app_session_id);
+        ogs_info("exist app_session_id:%s,pcf_sess->ipv4addr_string:%s",sess_data->app_session_id,pcf_sess->ipv4addr_string);
         app_session = pcf_app_find_by_app_session_id(sess_data->app_session_id); 
         if (strcmp(app_session->rx_sid,(char *)sess_data->rx_sid) != 0){
             app_session->rx_sid = (os0_t)ogs_strdup((char *)sess_data->rx_sid);
-            ogs_error("exist app_sessionid:%s,update rx_sid:%s.",app_session->app_session_id,app_session->rx_sid);            
+            ogs_error("exist app_session_id:%s,update rx_sid:%s.",app_session->app_session_id,app_session->rx_sid);            
         }
     }
 
@@ -220,7 +222,7 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
         app_session = pcf_app_add(pcf_sess);
         app_session->rx_sid = (os0_t)ogs_strdup((char *)sess_data->rx_sid);
         sess_data->app_session_id = ogs_strdup(app_session->app_session_id);
-        ogs_info("new app_sessionid:%s,rx_sid:%s.",sess_data->app_session_id,app_session->rx_sid);
+        ogs_info("new app_session_id:%s,rx_sid:%s,pcf_sess->ipv4addr_string:%s.",sess_data->app_session_id,app_session->rx_sid,pcf_sess->ipv4addr_string);
     }
 
     ret = fd_msg_browse(qry, MSG_BRW_FIRST_CHILD, &avpch1, NULL);
