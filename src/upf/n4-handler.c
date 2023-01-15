@@ -126,7 +126,9 @@ void upf_n4_handle_session_establishment_request(
                 ogs_error("No PDN Type");
             }
         }
-
+      
+        ogs_info("test:pdr->f_teid_len:%d,pdr->f_teid.ch:%d,pdr->f_teid.chid:%d,pdr->f_teid.choose_id:%d,pdr->id:%d,upf_sess->id:%d.",
+        pdr->f_teid_len,pdr->f_teid.ch,pdr->f_teid.chid,pdr->f_teid.choose_id,pdr->id,sess->index);
         /* Setup UPF-N3-TEID & QFI Hash */
         if (pdr->f_teid_len) {
             ogs_pfcp_object_type_e type = OGS_PFCP_OBJ_SESS_TYPE;
@@ -148,6 +150,7 @@ void upf_n4_handle_session_establishment_request(
                 }
 
                 if (choosed_pdr) {
+                    ogs_info("test:use choosed_pdr,pdr->f_teid_len:%d,pdr->id:%d,choosed_pdr->id:%d.",pdr->f_teid_len,pdr->id,choosed_pdr->id);
                     pdr->f_teid_len = choosed_pdr->f_teid_len;
                     memcpy(&pdr->f_teid, &choosed_pdr->f_teid, pdr->f_teid_len);
 
@@ -157,6 +160,7 @@ void upf_n4_handle_session_establishment_request(
                             &ogs_gtp_self()->gtpu_resource_list,
                             pdr->dnn, OGS_PFCP_INTERFACE_ACCESS);
                     if (resource) {
+                        ogs_info("test:has resource.");
                         ogs_assert(
                             (resource->info.v4 && pdr->f_teid.ipv4) ||
                             (resource->info.v6 && pdr->f_teid.ipv6));
@@ -170,6 +174,7 @@ void upf_n4_handle_session_establishment_request(
                         else
                             pdr->f_teid.teid = pdr->index;
                     } else {
+                        ogs_info("test:has no resource.");
                         ogs_assert(
                             (ogs_gtp_self()->gtpu_addr && pdr->f_teid.ipv4) ||
                             (ogs_gtp_self()->gtpu_addr6 && pdr->f_teid.ipv6));
@@ -182,6 +187,8 @@ void upf_n4_handle_session_establishment_request(
                                 &pdr->f_teid, &pdr->f_teid_len));
                         pdr->f_teid.teid = pdr->index;
                     }
+
+                    ogs_info("test:pdr->f_teid.teid:%d,pdr->id:%d,upf_sess->id:%d.",pdr->f_teid.teid,pdr->id,sess->index);
                 }
             }
 
@@ -371,6 +378,8 @@ void upf_n4_handle_session_modification_request(
         pdr = created_pdr[i];
         ogs_assert(pdr);
 
+        ogs_info("test:modify,pdr->f_teid_len:%d,pdr->f_teid.ch:%d,pdr->f_teid.chid:%d,pdr->f_teid.choose_id:%d,pdr->id:%d,upd_sess->id:%d.",
+        pdr->f_teid_len,pdr->f_teid.ch,pdr->f_teid.chid,pdr->f_teid.choose_id,pdr->id,sess->index);
         if (pdr->f_teid_len) {
             ogs_pfcp_object_type_e type = OGS_PFCP_OBJ_SESS_TYPE;
 
@@ -391,6 +400,7 @@ void upf_n4_handle_session_modification_request(
                 }
 
                 if (choosed_pdr) {
+                    ogs_info("test:modify,use choosed_pdr,pdr->f_teid_len:%d,pdr->id:%d,choosed_pdr->id:%d.",pdr->f_teid_len,pdr->id,choosed_pdr->id);
                     pdr->f_teid_len = choosed_pdr->f_teid_len;
                     memcpy(&pdr->f_teid, &choosed_pdr->f_teid, pdr->f_teid_len);
 
@@ -425,6 +435,8 @@ void upf_n4_handle_session_modification_request(
                                 &pdr->f_teid, &pdr->f_teid_len));
                         pdr->f_teid.teid = pdr->index;
                     }
+
+                    ogs_info("test:modify,pdr->f_teid.teid:%d,pdr->id:%d,upd_sess->id:%d.",pdr->f_teid.teid,pdr->id,sess->index);
                 }
             }
 

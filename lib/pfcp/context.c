@@ -900,9 +900,11 @@ void ogs_pfcp_object_teid_hash_set(
     ogs_assert(type);
     ogs_assert(pdr);
 
-    if (pdr->hash.teid.len)
+    if (pdr->hash.teid.len){
+        ogs_info("test:ogs_pfcp_object_teid_hash_set :pdr->hash.teid.key:%d, to null.",pdr->hash.teid.key);
         ogs_hash_set(self.object_teid_hash,
                 &pdr->hash.teid.key, pdr->hash.teid.len, NULL);
+    }
 
     pdr->hash.teid.key = pdr->f_teid.teid;
     pdr->hash.teid.len = sizeof(pdr->hash.teid.key);
@@ -911,9 +913,11 @@ void ogs_pfcp_object_teid_hash_set(
     case OGS_PFCP_OBJ_PDR_TYPE:
         ogs_hash_set(self.object_teid_hash,
                 &pdr->hash.teid.key, pdr->hash.teid.len, pdr);
+        ogs_info("test:ogs_pfcp_object_teid_hash_set :pdr->hash.teid.key:%d to a pdr,pdr->id:%d.",pdr->hash.teid.key,pdr->id);
         break;
     case OGS_PFCP_OBJ_SESS_TYPE:
         ogs_assert(pdr->sess);
+        ogs_info("test:ogs_pfcp_object_teid_hash_set :pdr->hash.teid.key:%d to a sess,pdr->id:%d.",pdr->hash.teid.key,pdr->id);
         ogs_hash_set(self.object_teid_hash,
                 &pdr->hash.teid.key, pdr->hash.teid.len, pdr->sess);
         break;
@@ -993,13 +997,17 @@ void ogs_pfcp_pdr_remove(ogs_pfcp_pdr_t *pdr)
     ogs_assert(pdr);
     ogs_assert(pdr->sess);
 
+    ogs_info("ogs_pfcp_pdr_remove,pdr->id:%d",pdr->id);
+
     ogs_list_remove(&pdr->sess->pdr_list, pdr);
 
     ogs_pfcp_rule_remove_all(pdr);
 
-    if (pdr->hash.teid.len)
-        ogs_hash_set(self.object_teid_hash,
-                &pdr->hash.teid.key, pdr->hash.teid.len, NULL);
+    if (pdr->hash.teid.len){
+        ogs_info("test:ogs_pfcp_pdr_remove :pdr->hash.teid.key:%d,pdr->id:%d.",pdr->hash.teid.key,pdr->id);
+    //    ogs_hash_set(self.object_teid_hash,
+    //            &pdr->hash.teid.key, pdr->hash.teid.len, NULL);
+    }
 
     if (pdr->dnn)
         ogs_free(pdr->dnn);

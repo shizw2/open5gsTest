@@ -38,6 +38,8 @@
         "string": "c",
         "vector": "c",
         "nnrf-handler.h": "c",
-        "ogs-diameter-rx.h": "c"
+        "ogs-diameter-rx.h": "c",
+        "list": "c",
+        "mutex": "c"
     }
 }

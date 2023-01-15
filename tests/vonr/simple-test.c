@@ -760,6 +760,17 @@ static void test2_func(abts_case *tc, void *data)
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
 
+    /* Send GTP-U ICMP Packet */
+    qos_flow = test_qos_flow_find_by_qfi(sess, 1);
+    ogs_assert(qos_flow);
+    rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
+    ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
+    /* Receive GTP-U ICMP Packet */
+    recvbuf = testgnb_gtpu_read(gtpu);
+    ABTS_PTR_NOTNULL(tc, recvbuf);
+    ogs_pkbuf_free(recvbuf);
+
     /* Send AA-Request */
     uint8_t *rx_sid = NULL;
     test_rx_send_aar_audio(&rx_sid, sess,
@@ -912,6 +923,22 @@ static void test2_func(abts_case *tc, void *data)
 
     /* Test Bearer Remove */
     test_bearer_remove(qos_flow);
+
+    //测试在5QI=5上继续发送报文
+    #if 1
+    /* Send GTP-U ICMP Packet */
+    qos_flow = test_qos_flow_find_by_qfi(sess, 1);
+    ogs_assert(qos_flow);
+    rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
+    ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
+    /* Receive GTP-U ICMP Packet */
+    recvbuf = testgnb_gtpu_read(gtpu);
+    ABTS_PTR_NOTNULL(tc, recvbuf);
+    ogs_pkbuf_free(recvbuf);
+    #endif
+
+    ogs_msleep(100);  
 
     /* Send UEContextReleaseRequest */
     sendbuf = testngap_build_ue_context_release_request(test_ue,
@@ -2557,8 +2584,8 @@ abts_suite *test_simple(abts_suite *suite)
     suite = ADD_SUITE(suite)
 
     //abts_run_test(suite, test1_func, NULL); //正常例子
-    //abts_run_test(suite, test2_func, NULL);
-    abts_run_test(suite, test3_func, NULL); //asr
+    abts_run_test(suite, test2_func, NULL);
+    //abts_run_test(suite, test3_func, NULL); //asr
     //abts_run_test(suite, test4_func, NULL);
     //abts_run_test(suite, test5_func, NULL);
     return suite;
