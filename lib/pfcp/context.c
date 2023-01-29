@@ -766,11 +766,17 @@ int ogs_pfcp_setup_far_gtpu_node(ogs_pfcp_far_t *far)
     if (!gnode) {
         gnode = ogs_gtp_node_add_by_ip(
             &ogs_gtp_self()->gtpu_peer_list, &ip, ogs_gtp_self()->gtpu_port);
-        ogs_expect_or_return_val(gnode, OGS_ERROR);
+        if (!gnode) {
+            ogs_error("ogs_gtp_node_add_by_ip() failed");
+            return OGS_ERROR;
+        }
 
         rv = ogs_gtp_connect(
                 ogs_gtp_self()->gtpu_sock, ogs_gtp_self()->gtpu_sock6, gnode);
-        ogs_expect_or_return_val(rv == OGS_OK, rv);
+        if (rv != OGS_OK) {
+            ogs_error("ogs_gtp_connect() failed");
+            return rv;
+        }
     }
 
     OGS_SETUP_GTP_NODE(far, gnode);
@@ -790,17 +796,26 @@ int ogs_pfcp_setup_pdr_gtpu_node(ogs_pfcp_pdr_t *pdr)
     if (pdr->f_teid_len == 0) return OGS_DONE;
 
     rv = ogs_pfcp_f_teid_to_ip(&pdr->f_teid, &ip);
-    ogs_expect_or_return_val(rv == OGS_OK, rv);
+    if (rv != OGS_OK) {
+        ogs_error("ogs_pfcp_f_teid_to_ip() failed");
+        return rv;
+    }
 
     gnode = ogs_gtp_node_find_by_ip(&ogs_gtp_self()->gtpu_peer_list, &ip);
     if (!gnode) {
         gnode = ogs_gtp_node_add_by_ip(
             &ogs_gtp_self()->gtpu_peer_list, &ip, ogs_gtp_self()->gtpu_port);
-        ogs_expect_or_return_val(gnode, OGS_ERROR);
+        if (!gnode) {
+            ogs_error("ogs_gtp_node_add_by_ip() failed");
+            return OGS_ERROR;
+        }
 
         rv = ogs_gtp_connect(
                 ogs_gtp_self()->gtpu_sock, ogs_gtp_self()->gtpu_sock6, gnode);
-        ogs_expect_or_return_val(rv == OGS_OK, rv);
+        if (rv != OGS_OK) {
+            ogs_error("ogs_gtp_connect() failed");
+            return rv;
+        }
     }
 
     OGS_SETUP_GTP_NODE(pdr, gnode);
@@ -900,11 +915,9 @@ void ogs_pfcp_object_teid_hash_set(
     ogs_assert(type);
     ogs_assert(pdr);
 
-    if (pdr->hash.teid.len){
-        ogs_info("test:ogs_pfcp_object_teid_hash_set :pdr->hash.teid.key:%d, to null.",pdr->hash.teid.key);
+    if (pdr->hash.teid.len)
         ogs_hash_set(self.object_teid_hash,
                 &pdr->hash.teid.key, pdr->hash.teid.len, NULL);
-    }
 
     pdr->hash.teid.key = pdr->f_teid.teid;
     pdr->hash.teid.len = sizeof(pdr->hash.teid.key);
@@ -913,11 +926,9 @@ void ogs_pfcp_object_teid_hash_set(
     case OGS_PFCP_OBJ_PDR_TYPE:
         ogs_hash_set(self.object_teid_hash,
                 &pdr->hash.teid.key, pdr->hash.teid.len, pdr);
-        ogs_info("test:ogs_pfcp_object_teid_hash_set :pdr->hash.teid.key:%d to a pdr,pdr->id:%d.",pdr->hash.teid.key,pdr->id);
         break;
     case OGS_PFCP_OBJ_SESS_TYPE:
         ogs_assert(pdr->sess);
-        ogs_info("test:ogs_pfcp_object_teid_hash_set :pdr->hash.teid.key:%d to a sess,pdr->id:%d.",pdr->hash.teid.key,pdr->id);
         ogs_hash_set(self.object_teid_hash,
                 &pdr->hash.teid.key, pdr->hash.teid.len, pdr->sess);
         break;
@@ -931,6 +942,20 @@ ogs_pfcp_object_t *ogs_pfcp_object_find_by_teid(uint32_t teid)
 {
     return (ogs_pfcp_object_t *)ogs_hash_get(
             self.object_teid_hash, &teid, sizeof(teid));
+}
+
+int ogs_pfcp_object_count_by_teid(ogs_pfcp_sess_t *sess, uint32_t teid)
+{
+    ogs_pfcp_pdr_t *pdr = NULL;
+    int count = 0;
+
+    ogs_assert(sess);
+
+    ogs_list_for_each(&sess->pdr_list, pdr) {
+        if (pdr->f_teid.teid == teid) count++;
+    }
+
+    return count;
 }
 
 ogs_pfcp_pdr_t *ogs_pfcp_pdr_find_by_choose_id(
@@ -994,19 +1019,29 @@ void ogs_pfcp_pdr_associate_qer(ogs_pfcp_pdr_t *pdr, ogs_pfcp_qer_t *qer)
 
 void ogs_pfcp_pdr_remove(ogs_pfcp_pdr_t *pdr)
 {
+    int i;
+
     ogs_assert(pdr);
     ogs_assert(pdr->sess);
-
-    ogs_info("ogs_pfcp_pdr_remove,pdr->id:%d",pdr->id);
 
     ogs_list_remove(&pdr->sess->pdr_list, pdr);
 
     ogs_pfcp_rule_remove_all(pdr);
 
-    if (pdr->hash.teid.len){
-        ogs_info("test:ogs_pfcp_pdr_remove :pdr->hash.teid.key:%d,pdr->id:%d.",pdr->hash.teid.key,pdr->id);
-    //    ogs_hash_set(self.object_teid_hash,
-    //            &pdr->hash.teid.key, pdr->hash.teid.len, NULL);
+    if (pdr->hash.teid.len) {
+        /*
+         * Issues #2003
+         *
+         * In 5G Core, two PDRs can use different QFIDs for the same TEID.
+         * So, before deleting a TEID, we should check if there is a PDR
+         * using the same TEID.
+         *
+         * Since this PDR has already been deleted with ogs_list_remove() above,
+         * if the current list has a TEID count of 0, there are no other PDRs.
+         */
+        if (ogs_pfcp_object_count_by_teid(pdr->sess, pdr->f_teid.teid) == 0)
+            ogs_hash_set(self.object_teid_hash,
+                    &pdr->hash.teid.key, pdr->hash.teid.len, NULL);
     }
 
     if (pdr->dnn)
