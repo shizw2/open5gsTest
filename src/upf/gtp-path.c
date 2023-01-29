@@ -381,23 +381,19 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             ogs_assert(pfcp_sess);
 
             ogs_list_for_each(&pfcp_sess->pdr_list, pdr) {
-                ogs_info("test:OGS_GTPU_MSGTYPE_GPDU,pdr id:%d",pdr->id);
                 /* Check if Source Interface */
                 if (pdr->src_if != OGS_PFCP_INTERFACE_ACCESS &&
                     pdr->src_if != OGS_PFCP_INTERFACE_CP_FUNCTION){
-                    ogs_info("test:pdr->src_if:%d",pdr->src_if);
                     continue;
                 }
 
                 /* Check if TEID */
                 if (teid != pdr->f_teid.teid){
-                    ogs_info("test:teid:%d pdr->f_teid.teid:%d",teid, pdr->f_teid.teid);
                     continue;
                 }
 
                 /* Check if QFI */
                 if (qfi && pdr->qfi != qfi){
-                    ogs_info("test:qfi:%d pdr->qfi:%d.",qfi , pdr->qfi);
                     continue;
                 }
 
@@ -411,7 +407,6 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
             if (!pdr) {
                 /* TODO : Send Error Indication */
-                ogs_error("test:can not find pdr.");
                 goto cleanup;
             }
 
