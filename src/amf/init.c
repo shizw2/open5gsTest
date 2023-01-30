@@ -27,6 +27,7 @@ static void amf_sps_main(void *data);
 static int initialized = 0;
 
 static int sps_udp_ini_open(void);//挪到新文件
+static int icps_udp_ini_open(void);
 
 int amf_initialize()
 {
@@ -63,6 +64,10 @@ int amf_initialize()
     if (rv != OGS_OK) return rv;
 
     rv = ngap_open();
+    if (rv != OGS_OK) return rv;
+
+    /*增加UDP_IN_open，初始化ICPS和SPS直接的通信接口*/
+    rv = icps_udp_ini_open();
     if (rv != OGS_OK) return rv;
 
     thread = ogs_thread_create(amf_main, NULL);
@@ -133,6 +138,33 @@ static int sps_udp_ini_open(void)
 
         node->poll = ogs_pollset_add(ogs_app()->pollset,
                 OGS_POLLIN, sock->fd, NULL, sock);
+        ogs_assert(node->poll);
+    }
+
+    return OGS_OK;
+}
+
+static int icps_udp_ini_open(void)
+{
+    ogs_socknode_t *node = NULL;    
+    ogs_sock_t *udp;
+    char buf[OGS_ADDRSTRLEN];
+
+    ogs_list_for_each(&amf_self()->icps_list, node) {
+        udp = ogs_udp_server(node->addr, node->option);
+        if (udp) {
+            ogs_info("udp_server() [%s]:%d",
+                    OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
+
+            node->sock = udp;
+        }else{ 
+            ogs_error("udp_server() error [%s]:%d",
+                    OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
+            return NULL;
+        }
+
+        node->poll = ogs_pollset_add(ogs_app()->pollset,
+                OGS_POLLIN, udp->fd, NULL, udp);
         ogs_assert(node->poll);
     }
 

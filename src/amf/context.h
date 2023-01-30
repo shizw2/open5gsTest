@@ -105,11 +105,13 @@ typedef struct amf_context_s {
     OGS_POOL(m_tmsi, amf_m_tmsi_t); /* M-TMSI Pool */
 
     uint16_t        ngap_port;      /* Default NGAP Port */
+    uint16_t        icps_port;      /* Default icps Port */
 
     ogs_list_t      ngap_list;      /* AMF NGAP IPv4 Server List */
     ogs_list_t      ngap_list6;     /* AMF NGAP IPv6 Server List */
-    ogs_list_t      sps_list;      /* SPS List */
-
+    ogs_list_t      sps_list;       /* SPS List */
+    ogs_list_t      icps_list;      /* icps List */
+    ogs_list_t      icps_list6;     /* icps List */
 } amf_context_t;
 
 typedef struct amf_gnb_s {
