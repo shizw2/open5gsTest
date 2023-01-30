@@ -149,7 +149,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
         threadInfo[iTmp].clientIdx = iTmp;
 		printf("threadInfo.clientIdx=%u.\r\n",threadInfo[iTmp].clientIdx);
         id[iTmp] = ogs_thread_create(muti_ue_func, &threadInfo[iTmp]);
-        if (!id[iTmp]) return OGS_ERROR;
+        if (!id[iTmp]) return ; 
 
         //ogs_msleep(5000);
 
