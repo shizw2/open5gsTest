@@ -147,7 +147,7 @@ void upf_n4_handle_session_establishment_request(
                     type = OGS_PFCP_OBJ_PDR_TYPE;
                 }
 
-                if (choosed_pdr) {
+                if (choosed_pdr) {                    
                     pdr->f_teid_len = choosed_pdr->f_teid_len;
                     memcpy(&pdr->f_teid, &choosed_pdr->f_teid, pdr->f_teid_len);
 
@@ -156,7 +156,7 @@ void upf_n4_handle_session_establishment_request(
                     resource = ogs_pfcp_find_gtpu_resource(
                             &ogs_gtp_self()->gtpu_resource_list,
                             pdr->dnn, OGS_PFCP_INTERFACE_ACCESS);
-                    if (resource) {
+                    if (resource) {                        
                         ogs_assert(
                             (resource->info.v4 && pdr->f_teid.ipv4) ||
                             (resource->info.v6 && pdr->f_teid.ipv6));
@@ -169,7 +169,7 @@ void upf_n4_handle_session_establishment_request(
                                     resource->info.teid_range);
                         else
                             pdr->f_teid.teid = pdr->index;
-                    } else {
+                    } else {                        
                         ogs_assert(
                             (ogs_gtp_self()->gtpu_addr && pdr->f_teid.ipv4) ||
                             (ogs_gtp_self()->gtpu_addr6 && pdr->f_teid.ipv6));
@@ -371,6 +371,7 @@ void upf_n4_handle_session_modification_request(
         pdr = created_pdr[i];
         ogs_assert(pdr);
 
+       
         if (pdr->f_teid_len) {
             ogs_pfcp_object_type_e type = OGS_PFCP_OBJ_SESS_TYPE;
 
@@ -390,7 +391,7 @@ void upf_n4_handle_session_modification_request(
                     type = OGS_PFCP_OBJ_PDR_TYPE;
                 }
 
-                if (choosed_pdr) {
+                if (choosed_pdr) {                    
                     pdr->f_teid_len = choosed_pdr->f_teid_len;
                     memcpy(&pdr->f_teid, &choosed_pdr->f_teid, pdr->f_teid_len);
 

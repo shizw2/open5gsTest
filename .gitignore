@@ -7,4 +7,5 @@ build/
 test.log
 core.*
 open5gs.log
+install/
 webui/.next

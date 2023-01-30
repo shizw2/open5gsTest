@@ -125,14 +125,17 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
 
     ret = fd_sess_state_retrieve(pcf_rx_reg, sess, &sess_data);
     ogs_assert(ret == 0);
-    if (!sess_data) {
+    if (!sess_data) {        
         os0_t sid = NULL;
         ret = fd_sess_getsid(sess, &sid, &sidlen);
         ogs_assert(ret == 0);
 
         sess_data = new_state(sid);
         ogs_assert(sess_data);
+        ogs_info("no sess data, get a new sess,rx_sid:%s.",(char*)(sess_data->rx_sid));
     }
+
+    ogs_info("[PCF] AA-Requestt,rx_sid:%s.",sess_data->rx_sid);
 
     /* Initialize Message */
     memset(&rx_message, 0, sizeof(ogs_diam_rx_message_t));
@@ -174,6 +177,8 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
             ogs_warn("Cannot find pcf Sesson for IPv4:%s",
                     OGS_INET_NTOP(hdr->avp_value->os.data, buf));
         }
+
+        ogs_info("pcf_sess ip:%s",pcf_sess->ipv4addr_string);
     }
 
     if (!pcf_sess) {
@@ -202,11 +207,23 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
         ogs_error("No pcf Session");
         goto out;
     }
+    
+    //先查询
+    if (NULL != sess_data->app_session_id){
+        ogs_info("exist app_session_id:%s,pcf_sess->ipv4addr_string:%s",sess_data->app_session_id,pcf_sess->ipv4addr_string);
+        app_session = pcf_app_find_by_app_session_id(sess_data->app_session_id); 
+        if (strcmp(app_session->rx_sid,(char *)sess_data->rx_sid) != 0){
+            app_session->rx_sid = (os0_t)ogs_strdup((char *)sess_data->rx_sid);
+            ogs_error("exist app_session_id:%s,update rx_sid:%s.",app_session->app_session_id,app_session->rx_sid);            
+        }
+    }
 
-    //TODO:先查询
-    app_session = pcf_app_add(pcf_sess);
-    app_session->rx_sid = (os0_t)ogs_strdup((char *)sess_data->rx_sid);
-    sess_data->app_session_id = ogs_strdup(app_session->app_session_id);
+    if (NULL == app_session){
+        app_session = pcf_app_add(pcf_sess);
+        app_session->rx_sid = (os0_t)ogs_strdup((char *)sess_data->rx_sid);
+        sess_data->app_session_id = ogs_strdup(app_session->app_session_id);
+        ogs_info("new app_session_id:%s,rx_sid:%s,pcf_sess->ipv4addr_string:%s.",sess_data->app_session_id,app_session->rx_sid,pcf_sess->ipv4addr_string);
+    }
 
     ret = fd_msg_browse(qry, MSG_BRW_FIRST_CHILD, &avpch1, NULL);
     ogs_assert(ret == 0);
@@ -647,6 +664,18 @@ static int pcf_rx_str_cb( struct msg **msg, struct avp *avp,
 
     ret = fd_sess_state_retrieve(pcf_rx_reg, sess, &sess_data);
     ogs_assert(ret == 0);
+    if (sess_data == NULL){
+        ogs_error("sess_data is null,return.");
+        return 0;
+    }
+
+    if (sess_data->rx_sid == NULL){
+        ogs_error("sess_data->rx_sid is null,return.");
+        return 0;
+    }
+
+    ogs_info("[PCF] Session-Termination-Request,rx_sid:%s,sess state:%d.",sess_data->rx_sid,sess_data->state);
+
     ogs_assert(sess_data);
     ogs_assert(sess_data->rx_sid);
     //ogs_assert(sess_data->gx_sid);
@@ -699,6 +728,12 @@ static int pcf_rx_str_cb( struct msg **msg, struct avp *avp,
     }
 
     if (sess_data->state != SESSION_ABORTED) {
+        if (sess_data->app_session_id == NULL) {
+            ogs_error("sess_data->app_session_id is null,rx_sid:%s.",sess_data->rx_sid);
+            state_cleanup(sess_data, NULL, NULL);
+            ogs_ims_data_free(&rx_message.ims_data);
+            return 0;
+        }
         app_session = pcf_app_find_by_app_session_id(sess_data->app_session_id); 
         ogs_assert(app_session);
         /* Send Re-Auth Request if Abort-Session-Request is not initaited */
