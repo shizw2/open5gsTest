@@ -28,6 +28,8 @@ static int initialized = 0;
 
 static int sps_udp_ini_open(void);//挪到新文件
 static int icps_udp_ini_open(void);
+static void icps_recv_cb(short when, ogs_socket_t fd, void *data);
+static void icps_client_recv_cb(short when, ogs_socket_t fd, void *data);
 
 int amf_initialize()
 {
@@ -128,16 +130,20 @@ static int sps_udp_ini_open(void)
     char buf[OGS_ADDRSTRLEN];
 
     ogs_list_for_each(&amf_self()->sps_list, node) {
-        udp = ogs_udp_server(node->addr, node->option);
+        udp = ogs_udp_client(node->addr, node->option);
         if (udp) {
-            ogs_info("udp_server() [%s]:%d",
+            ogs_info("ogs_udp_client() [%s]:%d",
                     OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
 
             node->sock = udp;
+        }else{ 
+            ogs_error("ogs_udp_client() error [%s]:%d",
+                    OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
+            return OGS_ERROR;
         }
 
         node->poll = ogs_pollset_add(ogs_app()->pollset,
-                OGS_POLLIN, sock->fd, NULL, sock);
+                OGS_POLLIN, sock->fd, icps_client_recv_cb, sock);
         ogs_assert(node->poll);
     }
 
@@ -160,15 +166,93 @@ static int icps_udp_ini_open(void)
         }else{ 
             ogs_error("udp_server() error [%s]:%d",
                     OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
-            return NULL;
+            return OGS_ERROR;
         }
 
         node->poll = ogs_pollset_add(ogs_app()->pollset,
-                OGS_POLLIN, udp->fd, NULL, udp);
+                OGS_POLLIN, udp->fd, icps_recv_cb, udp);
         ogs_assert(node->poll);
     }
 
     return OGS_OK;
+}
+
+static void icps_recv_cb(short when, ogs_socket_t fd, void *data)
+{
+    int rv;
+
+    ssize_t size;
+    amf_event_t *e = NULL;
+    ogs_pkbuf_t *pkbuf = NULL;
+    ogs_sockaddr_t from;
+  
+
+    ogs_assert(fd != INVALID_SOCKET);
+
+    pkbuf = ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
+    ogs_assert(pkbuf);
+    ogs_pkbuf_put(pkbuf, OGS_MAX_SDU_LEN);
+
+    size = ogs_recvfrom(fd, pkbuf->data, pkbuf->len, 0, &from);
+    if (size <= 0) {
+        ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
+                "ogs_recvfrom() failed");
+        ogs_pkbuf_free(pkbuf);
+        return;
+    }
+
+    ogs_pkbuf_trim(pkbuf, size);
+
+    e = amf_event_new(AMF_EVENT_ICPS_MESSAGE);
+    ogs_assert(e);
+
+    e->pkbuf = pkbuf;
+
+    rv = ogs_queue_push(ogs_app()->queue, e);
+    if (rv != OGS_OK) {
+        ogs_error("ogs_queue_push() failed:%d", (int)rv);
+        ogs_pkbuf_free(e->pkbuf);
+        ogs_event_free(e);
+    }
+}
+
+static void icps_client_recv_cb(short when, ogs_socket_t fd, void *data)
+{
+    int rv;
+
+    ssize_t size;
+    amf_event_t *e = NULL;
+    ogs_pkbuf_t *pkbuf = NULL;
+    ogs_sockaddr_t from;
+  
+
+    ogs_assert(fd != INVALID_SOCKET);
+
+    pkbuf = ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
+    ogs_assert(pkbuf);
+    ogs_pkbuf_put(pkbuf, OGS_MAX_SDU_LEN);
+
+    size = ogs_recvfrom(fd, pkbuf->data, pkbuf->len, 0, &from);
+    if (size <= 0) {
+        ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
+                "ogs_recvfrom() failed");
+        ogs_pkbuf_free(pkbuf);
+        return;
+    }
+
+    ogs_pkbuf_trim(pkbuf, size);
+
+    e = amf_event_new(AMF_EVENT_ICPS_MESSAGE);
+    ogs_assert(e);
+
+    e->pkbuf = pkbuf;
+
+    rv = ogs_queue_push(ogs_app()->queue, e);
+    if (rv != OGS_OK) {
+        ogs_error("ogs_queue_push() failed:%d", (int)rv);
+        ogs_pkbuf_free(e->pkbuf);
+        ogs_event_free(e);
+    }
 }
 
 static ogs_timer_t *t_termination_holding = NULL;
