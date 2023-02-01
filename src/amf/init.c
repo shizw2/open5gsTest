@@ -129,7 +129,7 @@ static int sps_udp_ini_open(void)
     ogs_sock_t *udp;
     char buf[OGS_ADDRSTRLEN];
 
-    ogs_list_for_each(&amf_self()->sps_list, node) {
+    ogs_list_for_each(&amf_self()->icps_list, node) {
         udp = ogs_udp_client(node->addr, node->option);
         if (udp) {
             ogs_info("ogs_udp_client() [%s]:%d",
@@ -143,12 +143,14 @@ static int sps_udp_ini_open(void)
         }
 
         node->poll = ogs_pollset_add(ogs_app()->pollset,
-                OGS_POLLIN, sock->fd, icps_client_recv_cb, sock);
+                OGS_POLLIN, udp->fd, icps_client_recv_cb, udp);
         ogs_assert(node->poll);
     }
 
     //set timer
-	ogs_timer_add(ogs_app()->timer_mgr,amf_timer_internel_heart_beat_timer_expire,udp);
+	ogs_timer_t *timer = ogs_timer_add(ogs_app()->timer_mgr,amf_timer_internel_heart_beat_timer_expire,udp);
+	
+	ogs_timer_start(timer,1);
 
     return OGS_OK;
 }

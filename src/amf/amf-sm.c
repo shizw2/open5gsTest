@@ -896,6 +896,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             //TODO发送心跳
 			ogs_send(sock->fd,"heartbeat",10,0);
             ogs_info("send heartbeat.");
+			ogs_timer_t *timer = ogs_timer_add(ogs_app()->timer_mgr,amf_timer_internel_heart_beat_timer_expire,sock);	
+	        ogs_timer_start(timer,1000);
             break;
        
         default:

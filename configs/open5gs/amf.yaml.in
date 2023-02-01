@@ -294,6 +294,9 @@ amf:
         port: 7777
     ngap:
       - addr: 127.0.0.5
+    icps:
+      - addr: 127.0.128.5
+        port: 9777
     metrics:
         addr: 127.0.0.5
         port: 9090
