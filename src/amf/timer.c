@@ -183,3 +183,25 @@ void amf_timer_ng_holding_timer_expire(void *data)
         ogs_event_free(e);
     }
 }
+
+void amf_timer_internel_heart_beat_timer_expire(void *data)
+{
+    int rv;
+    amf_event_t *e = NULL;
+    ran_ue_t *ran_ue = NULL;
+
+    ogs_assert(data);
+    ran_ue = data;
+
+    e = amf_event_new(AMF_EVENT_INTERNEL_TIMER);
+    ogs_assert(e);
+
+    e->h.timer_id = AMF_TIMER_INTERNEL_HEARTBEAT;
+    e->ran_ue = ran_ue;
+
+    rv = ogs_queue_push(ogs_app()->queue, e);
+    if (rv != OGS_OK) {
+        ogs_error("ogs_queue_push() failed:%d", (int)rv);
+        ogs_event_free(e);
+    }
+}

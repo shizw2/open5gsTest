@@ -29,10 +29,7 @@ static int initialized = 0;
 static int sps_udp_ini_open(void);//挪到新文件
 static int icps_udp_ini_open(void);
 static void icps_recv_cb(short when, ogs_socket_t fd, void *data);
-<<<<<<< HEAD
 static void icps_client_recv_cb(short when, ogs_socket_t fd, void *data);
-=======
->>>>>>> d0b25408be39839decff9c70d83cf2f1fce912af
 
 int amf_initialize()
 {
@@ -206,7 +203,7 @@ static void icps_recv_cb(short when, ogs_socket_t fd, void *data)
 
     ogs_pkbuf_trim(pkbuf, size);
 
-    e = amf_event_new(AMF_EVENT_ICPS_MESSAGE);
+    e = amf_event_new(AMF_EVENT_INTERNEL_MESSAGE);
     ogs_assert(e);
 
     e->pkbuf = pkbuf;
@@ -219,7 +216,6 @@ static void icps_recv_cb(short when, ogs_socket_t fd, void *data)
     }
 }
 
-<<<<<<< HEAD
 static void icps_client_recv_cb(short when, ogs_socket_t fd, void *data)
 {
     int rv;
@@ -246,7 +242,7 @@ static void icps_client_recv_cb(short when, ogs_socket_t fd, void *data)
 
     ogs_pkbuf_trim(pkbuf, size);
 
-    e = amf_event_new(AMF_EVENT_ICPS_MESSAGE);
+    e = amf_event_new(AMF_EVENT_INTERNEL_MESSAGE);
     ogs_assert(e);
 
     e->pkbuf = pkbuf;
@@ -259,8 +255,6 @@ static void icps_client_recv_cb(short when, ogs_socket_t fd, void *data)
     }
 }
 
-=======
->>>>>>> d0b25408be39839decff9c70d83cf2f1fce912af
 static ogs_timer_t *t_termination_holding = NULL;
 
 static void event_termination(void)

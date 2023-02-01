@@ -887,6 +887,24 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
         ogs_fsm_dispatch(&amf_ue->sm, e);
         break;
 
+    case AMF_EVENT_INTERNEL_TIMER:
+		sock = e->ngap.sock;
+        ogs_assert(sock);
+
+        switch (e->h.timer_id) {
+        case AMF_TIMER_INTERNEL_HEARTBEAT:
+            //TODO发送心跳
+			ogs_send(sock->fd,"heartbeat",10,0);
+            ogs_timer_delete(e->timer);
+            break;
+       
+        default:
+            ogs_error("Unknown timer[%s:%d]",
+                    amf_timer_get_name(e->h.timer_id), e->h.timer_id);
+            break;
+        }
+        break;
+
     default:
         ogs_error("No handler for event %s", amf_event_get_name(e));
         break;
