@@ -147,6 +147,9 @@ static int sps_udp_ini_open(void)
         ogs_assert(node->poll);
     }
 
+    //set timer
+	ogs_timer_add(ogs_app()->timer_mgr,amf_timer_internel_heart_beat_timer_expire,udp);
+
     return OGS_OK;
 }
 

@@ -888,14 +888,14 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
         break;
 
     case AMF_EVENT_INTERNEL_TIMER:
-		sock = e->ngap.sock;
+		sock = e->internal_sock;
         ogs_assert(sock);
 
         switch (e->h.timer_id) {
         case AMF_TIMER_INTERNEL_HEARTBEAT:
             //TODO发送心跳
 			ogs_send(sock->fd,"heartbeat",10,0);
-            ogs_timer_delete(e->timer);
+            ogs_info("send heartbeat.");
             break;
        
         default:

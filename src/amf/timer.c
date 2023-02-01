@@ -188,16 +188,14 @@ void amf_timer_internel_heart_beat_timer_expire(void *data)
 {
     int rv;
     amf_event_t *e = NULL;
-    ran_ue_t *ran_ue = NULL;
 
     ogs_assert(data);
-    ran_ue = data;
-
+  
     e = amf_event_new(AMF_EVENT_INTERNEL_TIMER);
     ogs_assert(e);
 
     e->h.timer_id = AMF_TIMER_INTERNEL_HEARTBEAT;
-    e->ran_ue = ran_ue;
+    e->internal_sock = (ogs_sock_t *)data;
 
     rv = ogs_queue_push(ogs_app()->queue, e);
     if (rv != OGS_OK) {

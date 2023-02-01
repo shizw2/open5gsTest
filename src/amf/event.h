@@ -83,6 +83,7 @@ typedef struct amf_event_s {
     amf_bearer_t *bearer;
 
     ogs_timer_t *timer;
+	ogs_sock_t *internal_sock;
 } amf_event_t;
 
 OGS_STATIC_ASSERT(OGS_EVENT_SIZE >= sizeof(amf_event_t));
