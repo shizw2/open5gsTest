@@ -24,6 +24,8 @@
 #include "ogs-app.h"
 #include "version.h"
 
+int g_sps_id = 0;
+
 static void show_version(void)
 {
     printf("Open5GS %s\n\n", OPEN5GS_VERSION);
@@ -116,7 +118,7 @@ int main(int argc, const char *const argv[])
     memset(&optarg, 0, sizeof(optarg));
 
     ogs_getopt_init(&options, (char**)argv);
-    while ((opt = ogs_getopt(&options, "vhDc:l:e:m:dt")) != -1) {
+    while ((opt = ogs_getopt(&options, "vhDc:l:e:m:i:dt")) != -1) {
         switch (opt) {
         case 'v':
             show_version();
@@ -163,6 +165,10 @@ int main(int argc, const char *const argv[])
             break;
         case 't':
             optarg.enable_trace = true;
+            break;
+        case 'i':
+            g_sps_id = atoi(options.optarg);
+            printf("g_sps_id:%d\r\n",g_sps_id);
             break;
         case '?':
             fprintf(stderr, "%s: %s\n", argv[0], options.errmsg);

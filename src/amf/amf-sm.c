@@ -27,6 +27,8 @@
 #include "nnssf-handler.h"
 #include "nas-security.h"
 
+extern int g_sps_id;
+
 void amf_state_initial(ogs_fsm_t *s, amf_event_t *e)
 {
     amf_sm_debug(e);
@@ -74,7 +76,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
     ogs_sbi_subscription_data_t *subscription_data = NULL;
     ogs_sbi_response_t *sbi_response = NULL;
     ogs_sbi_message_t sbi_message;
-
+    amf_internel_msg_t internel_msg;
+            
     amf_sm_debug(e);
 
     ogs_assert(s);
@@ -893,11 +896,13 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
         switch (e->h.timer_id) {
         case AMF_TIMER_INTERNEL_HEARTBEAT:
-            //TODO发送心跳
-			ogs_send(sock->fd,"heartbeat",10,0);
-            ogs_info("send heartbeat.");
+            internel_msg.msg_type   = 0;
+            internel_msg.sps_id     = g_sps_id;
+            internel_msg.sps_state  = 1;
+			ogs_send(sock->fd,&internel_msg,sizeof(internel_msg),0);
+            ogs_info("sps send internel msg to icps,msg_type:%d,sps_id:%d,state:%d.",internel_msg.msg_type,internel_msg.sps_id,internel_msg.sps_state);
 			ogs_timer_t *timer = ogs_timer_add(ogs_app()->timer_mgr,amf_timer_internel_heart_beat_timer_expire,sock);	
-	        ogs_timer_start(timer,1000);
+	        ogs_timer_start(timer, ogs_time_from_sec(1));
             break;
        
         default:
@@ -907,6 +912,13 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
         }
         break;
 
+    case AMF_EVENT_INTERNEL_MESSAGE:
+        pkbuf = e->pkbuf;
+        amf_internel_msg_t *pmsg = (amf_internel_msg_t *)pkbuf->data;
+        ogs_info("icps receive internel msg from sps,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
+
+        ogs_pkbuf_free(pkbuf);
+        break;
     default:
         ogs_error("No handler for event %s", amf_event_get_name(e));
         break;

@@ -125,8 +125,7 @@ int amf_sps_initialize()
 static int sps_udp_ini_open(void)
 {
     ogs_socknode_t *node = NULL;
-    ogs_sock_t *sock = NULL;
-    ogs_sock_t *udp;
+    ogs_sock_t *udp = NULL;
     char buf[OGS_ADDRSTRLEN];
 
     ogs_list_for_each(&amf_self()->icps_list, node) {
@@ -150,7 +149,7 @@ static int sps_udp_ini_open(void)
     //set timer
 	ogs_timer_t *timer = ogs_timer_add(ogs_app()->timer_mgr,amf_timer_internel_heart_beat_timer_expire,udp);
 	
-	ogs_timer_start(timer,1);
+	ogs_timer_start(timer,ogs_time_from_sec(1));
 
     return OGS_OK;
 }

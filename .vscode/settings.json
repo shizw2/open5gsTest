@@ -40,6 +40,8 @@
         "nnrf-handler.h": "c",
         "ogs-diameter-rx.h": "c",
         "list": "c",
-        "mutex": "c"
+        "mutex": "c",
+        "condition_variable": "c",
+        "nas-path.h": "c"
     }
 }

@@ -612,6 +612,12 @@ typedef struct amf_sess_s {
 
 } amf_sess_t;
 
+typedef struct amf_internel_msg_s {
+    uint8_t msg_type;
+    uint8_t sps_id;
+    uint8_t sps_state;
+}amf_internel_msg_t;
+
 void amf_context_init(void);
 void amf_context_final(void);
 amf_context_t *amf_self(void);
