@@ -112,6 +112,10 @@ typedef struct amf_context_s {
     ogs_list_t      sps_list;       /* SPS List */
     ogs_list_t      icps_list;      /* icps List */
     ogs_list_t      icps_list6;     /* icps List */
+    ogs_ip_t        internel_ipv4;  /* 内部udp ip, 128.128.128.n*/
+    ogs_sockaddr_t  *internel_addr;
+    ogs_socknode_t  *internel_node;
+    ogs_socknode_t  *icps_node;
 } amf_context_t;
 
 typedef struct amf_gnb_s {
@@ -786,7 +790,7 @@ uint8_t amf_selected_enc_algorithm(amf_ue_t *amf_ue);
 void amf_clear_subscribed_info(amf_ue_t *amf_ue);
 
 bool amf_update_allowed_nssai(amf_ue_t *amf_ue);
-
+int amf_sps_context_prepare(void);
 #ifdef __cplusplus
 }
 #endif

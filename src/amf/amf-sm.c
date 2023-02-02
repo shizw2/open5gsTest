@@ -76,8 +76,10 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
     ogs_sbi_subscription_data_t *subscription_data = NULL;
     ogs_sbi_response_t *sbi_response = NULL;
     ogs_sbi_message_t sbi_message;
+
     amf_internel_msg_t internel_msg;
-            
+    ssize_t sent;
+
     amf_sm_debug(e);
 
     ogs_assert(s);
@@ -899,7 +901,9 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             internel_msg.msg_type   = 0;
             internel_msg.sps_id     = g_sps_id;
             internel_msg.sps_state  = 1;
-			ogs_send(sock->fd,&internel_msg,sizeof(internel_msg),0);
+			//ogs_send(sock->fd,&internel_msg,sizeof(internel_msg),0);
+            //给icps发送握手消息
+            ogs_sendto(sock->fd,&internel_msg,sizeof(internel_msg),0, &amf_self()->icps_node->addr);
             ogs_info("sps send internel msg to icps,msg_type:%d,sps_id:%d,state:%d.",internel_msg.msg_type,internel_msg.sps_id,internel_msg.sps_state);
 			ogs_timer_t *timer = ogs_timer_add(ogs_app()->timer_mgr,amf_timer_internel_heart_beat_timer_expire,sock);	
 	        ogs_timer_start(timer, ogs_time_from_sec(1));
@@ -917,6 +921,12 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
         amf_internel_msg_t *pmsg = (amf_internel_msg_t *)pkbuf->data;
         ogs_info("icps receive internel msg from sps,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
 
+        pmsg->msg_type = 1;
+        sent = ogs_sendto(e->internal_sock->fd, pmsg, sizeof(amf_internel_msg_t), 0, &e->client);
+        if (sent < 0 || sent != sizeof(amf_internel_msg_t)) {
+            //ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
+             //       "ogs_sendto() failed");
+        }
         ogs_pkbuf_free(pkbuf);
         break;
     default:

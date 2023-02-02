@@ -118,6 +118,30 @@ static int amf_context_prepare(void)
 
     self.ngap_port = OGS_NGAP_SCTP_PORT;
 
+    self.icps_port = 9777;
+    ogs_ipv4_from_string(&self.internel_ipv4.addr,"128.128.128.127");   
+    self.internel_ipv4.len = OGS_IPV4_LEN;
+    self.internel_ipv4.ipv4 =1;
+
+    ogs_ip_to_sockaddr(&self.internel_ipv4,self.icps_port,&self.internel_addr);
+    self.internel_node = ogs_socknode_new(self.internel_addr);
+    
+    return OGS_OK;
+}
+
+extern int g_sps_id;
+int amf_sps_context_prepare(void)
+{
+    char ipstring[20] = {0};
+    ogs_snprintf(ipstring, sizeof(ipstring), "128.128.128.%u", g_sps_id);
+    ogs_ipv4_from_string(&self.internel_ipv4,ipstring);
+    ogs_ip_to_sockaddr(&self.internel_ipv4,self.icps_port,&self.internel_addr);
+    self.internel_node = ogs_socknode_new(self.internel_addr);
+
+    ogs_ipv4_from_string(&self.internel_ipv4,"128.128.128.127");
+    ogs_ip_to_sockaddr(&self.internel_ipv4,self.icps_port,&self.internel_addr);
+    self.icps_node = ogs_socknode_new(self.internel_addr);
+
     return OGS_OK;
 }
 

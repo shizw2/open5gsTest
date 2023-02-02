@@ -28,7 +28,7 @@ static int initialized = 0;
 
 static int sps_udp_ini_open(void);//挪到新文件
 static int icps_udp_ini_open(void);
-static void icps_recv_cb(short when, ogs_socket_t fd, void *data);
+static void icps_server_recv_cb(short when, ogs_socket_t fd, void *data);
 static void icps_client_recv_cb(short when, ogs_socket_t fd, void *data);
 
 int amf_initialize()
@@ -89,6 +89,8 @@ int amf_sps_initialize()
 
     amf_context_init();
 
+    amf_sps_context_prepare();
+
     rv = ogs_sbi_context_parse_config("amf", "nrf", "scp");
     if (rv != OGS_OK) return rv;
 
@@ -111,7 +113,8 @@ int amf_sps_initialize()
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
 
-    rv = sps_udp_ini_open();
+    //rv = sps_udp_ini_open();
+    rv = icps_udp_ini_open();
     if (rv != OGS_OK) return rv;
 
     thread = ogs_thread_create(amf_sps_main, NULL);
@@ -160,6 +163,7 @@ static int icps_udp_ini_open(void)
     ogs_sock_t *udp;
     char buf[OGS_ADDRSTRLEN];
 
+#if 0
     ogs_list_for_each(&amf_self()->icps_list, node) {
         udp = ogs_udp_server(node->addr, node->option);
         if (udp) {
@@ -174,14 +178,31 @@ static int icps_udp_ini_open(void)
         }
 
         node->poll = ogs_pollset_add(ogs_app()->pollset,
-                OGS_POLLIN, udp->fd, icps_recv_cb, udp);
+                OGS_POLLIN, udp->fd, icps_server_recv_cb, udp);
         ogs_assert(node->poll);
     }
+#endif
+    
+    node = amf_self()->internel_node;
+    udp = ogs_udp_server(node->addr, node->option);
+    if (udp) {
+        ogs_info("udp_server() [%s]:%d",
+                OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
 
+        node->sock = udp;
+    }else{ 
+        ogs_error("udp_server() error [%s]:%d",
+                OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
+        return OGS_ERROR;
+    }
+
+    node->poll = ogs_pollset_add(ogs_app()->pollset,
+            OGS_POLLIN, udp->fd, icps_server_recv_cb, udp);
+    ogs_assert(node->poll);
     return OGS_OK;
 }
 
-static void icps_recv_cb(short when, ogs_socket_t fd, void *data)
+static void icps_server_recv_cb(short when, ogs_socket_t fd, void *data)
 {
     int rv;
 
@@ -211,6 +232,7 @@ static void icps_recv_cb(short when, ogs_socket_t fd, void *data)
     ogs_assert(e);
 
     e->pkbuf = pkbuf;
+    //e->client = from;
 
     rv = ogs_queue_push(ogs_app()->queue, e);
     if (rv != OGS_OK) {
