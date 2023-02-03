@@ -151,7 +151,7 @@ static int sps_udp_ini_open(void)
         ogs_assert(node->poll);
     }
 #endif
-    node = amf_self()->internel_node;
+    node = amf_self()->sps_node;
     udp = ogs_udp_server(node->addr, node->option);
     if (udp) {
         ogs_info("udp_server() [%s]:%d",

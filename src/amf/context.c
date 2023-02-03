@@ -129,7 +129,7 @@ static int amf_context_prepare(void)
 	internel_ipv4.len = OGS_IPV4_LEN;
     internel_ipv4.ipv4 =1;	
     ogs_ip_to_sockaddr(&internel_ipv4,self.icps_port,&internel_addr);
-    self.internel_node = ogs_socknode_new(internel_addr);
+    self.sps_node = ogs_socknode_new(internel_addr);
 
 	ogs_sockaddr_t  *icps_addr;
     ogs_ipv4_from_string(&internel_ipv4.addr,"128.128.128.127");
@@ -153,7 +153,7 @@ int amf_sps_context_prepare(void)
 	internel_ipv4.len = OGS_IPV4_LEN;
     internel_ipv4.ipv4 =1;	
     ogs_ip_to_sockaddr(&internel_ipv4,self.icps_port,&internel_addr);
-    self.internel_node = ogs_socknode_new(internel_addr);
+    self.sps_node = ogs_socknode_new(internel_addr);
 
 	ogs_sockaddr_t  *icps_addr;
     ogs_ipv4_from_string(&internel_ipv4.addr,"128.128.128.127");

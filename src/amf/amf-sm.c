@@ -924,7 +924,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 			ogs_info("icps receive internel msg from sps,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
 
 			pmsg->msg_type = 1;
-			sent = ogs_sendto(amf_self()->icps_node->sock->fd, pmsg, sizeof(amf_internel_msg_t), 0, amf_self()->internel_node->addr);
+			sent = ogs_sendto(amf_self()->icps_node->sock->fd, pmsg, sizeof(amf_internel_msg_t), 0, amf_self()->sps_node->addr);
 			if (sent < 0 || sent != sizeof(amf_internel_msg_t)) {
 				ogs_error("ogs_sendto() failed");
 			}
@@ -946,7 +946,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
     }
 }
 
-bool is_amf_icps()
+bool is_amf_icps(void)
 {
 	if (g_sps_id == 0)
 	{
@@ -958,7 +958,7 @@ bool is_amf_icps()
 	}
 }
 
-bool is_amf_sps()
+bool is_amf_sps(void)
 {
 	if (g_sps_id != 0)
 	{
