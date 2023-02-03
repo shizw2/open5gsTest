@@ -112,11 +112,10 @@ typedef struct amf_context_s {
     ogs_list_t      sps_list;       /* SPS List */
     ogs_list_t      icps_list;      /* icps List */
     ogs_list_t      icps_list6;     /* icps List */
-    //ogs_ip_t        internel_ipv4;  /* 内部udp ip, 128.128.128.n*/
-    //ogs_sockaddr_t  *internel_addr;
+
     ogs_socknode_t  *sps_node;
     ogs_socknode_t  *icps_node;
-	ogs_socknode_t  *sps_nodes[16]; //todo:icps需要管理多个sps节点
+	ogs_socknode_t  *sps_nodes[16]; //todo:icps需要管理多个sps节点,根据消息中的sps_id定位到sps_node
 } amf_context_t;
 
 typedef struct amf_gnb_s {
@@ -617,6 +616,10 @@ typedef struct amf_sess_s {
 
 } amf_sess_t;
 
+#define INTERNEL_MSG_HAND_SHAKE_REQ                      0
+#define INTERNEL_MSG_HAND_SHAKE_RSP                      1
+#define INTERNEL_MSG_NGAP                      			 2
+#define INTERNEL_MSG_SBI                                 3
 typedef struct amf_internel_msg_s {
     uint8_t msg_type;
     uint8_t sps_id;
