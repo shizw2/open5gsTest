@@ -903,7 +903,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             internel_msg.sps_state  = 1;
 			//ogs_send(sock->fd,&internel_msg,sizeof(internel_msg),0);
             //给icps发送握手消息
-            ogs_sendto(sock->fd,&internel_msg,sizeof(internel_msg),0, &amf_self()->icps_node->addr);
+            ogs_sendto(sock->fd,&internel_msg,sizeof(internel_msg),0, amf_self()->icps_node->addr);
             ogs_info("sps send internel msg to icps,msg_type:%d,sps_id:%d,state:%d.",internel_msg.msg_type,internel_msg.sps_id,internel_msg.sps_state);
 			ogs_timer_t *timer = ogs_timer_add(ogs_app()->timer_mgr,amf_timer_internel_heart_beat_timer_expire,sock);	
 	        ogs_timer_start(timer, ogs_time_from_sec(1));
@@ -917,20 +917,55 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
         break;
 
     case AMF_EVENT_INTERNEL_MESSAGE:
-        pkbuf = e->pkbuf;
-        amf_internel_msg_t *pmsg = (amf_internel_msg_t *)pkbuf->data;
-        ogs_info("icps receive internel msg from sps,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
+		pkbuf = e->pkbuf;
+		amf_internel_msg_t *pmsg = (amf_internel_msg_t *)pkbuf->data;
+		if (is_amf_icps())
+		{
+			ogs_info("icps receive internel msg from sps,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
 
-        pmsg->msg_type = 1;
-        sent = ogs_sendto(e->internal_sock->fd, pmsg, sizeof(amf_internel_msg_t), 0, &e->client);
-        if (sent < 0 || sent != sizeof(amf_internel_msg_t)) {
-            //ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
-             //       "ogs_sendto() failed");
-        }
+			pmsg->msg_type = 1;
+			sent = ogs_sendto(amf_self()->icps_node->sock->fd, pmsg, sizeof(amf_internel_msg_t), 0, amf_self()->internel_node->addr);
+			if (sent < 0 || sent != sizeof(amf_internel_msg_t)) {
+				ogs_error("ogs_sendto() failed");
+			}
+			else
+			{
+				ogs_info("icps send internel msg repley,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
+			}
+
+		}
+		else
+		{
+			ogs_info("sps receive internel msg from icps,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);		
+		}
         ogs_pkbuf_free(pkbuf);
         break;
     default:
         ogs_error("No handler for event %s", amf_event_get_name(e));
         break;
     }
+}
+
+bool is_amf_icps()
+{
+	if (g_sps_id == 0)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool is_amf_sps()
+{
+	if (g_sps_id != 0)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }

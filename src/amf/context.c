@@ -112,35 +112,55 @@ amf_context_t *amf_self(void)
     return &self;
 }
 
+extern int g_sps_id;
 static int amf_context_prepare(void)
 {
     self.relative_capacity = 0xff;
 
     self.ngap_port = OGS_NGAP_SCTP_PORT;
 
-    self.icps_port = 9777;
-    ogs_ipv4_from_string(&self.internel_ipv4.addr,"128.128.128.127");   
-    self.internel_ipv4.len = OGS_IPV4_LEN;
-    self.internel_ipv4.ipv4 =1;
+	ogs_ip_t        internel_ipv4;   
+    ogs_sockaddr_t  *internel_addr;
+	
+	self.icps_port = 9777;
+    char ipstring[20] = {0};
+    ogs_snprintf(ipstring, sizeof(ipstring), "128.128.128.%u", 1);
+    ogs_ipv4_from_string(&internel_ipv4.addr,ipstring);
+	internel_ipv4.len = OGS_IPV4_LEN;
+    internel_ipv4.ipv4 =1;	
+    ogs_ip_to_sockaddr(&internel_ipv4,self.icps_port,&internel_addr);
+    self.internel_node = ogs_socknode_new(internel_addr);
 
-    ogs_ip_to_sockaddr(&self.internel_ipv4,self.icps_port,&self.internel_addr);
-    self.internel_node = ogs_socknode_new(self.internel_addr);
+	ogs_sockaddr_t  *icps_addr;
+    ogs_ipv4_from_string(&internel_ipv4.addr,"128.128.128.127");
+	internel_ipv4.len = OGS_IPV4_LEN;
+    internel_ipv4.ipv4 =1;
+    ogs_ip_to_sockaddr(&internel_ipv4,self.icps_port,&icps_addr);
+    self.icps_node = ogs_socknode_new(icps_addr);
     
     return OGS_OK;
 }
 
-extern int g_sps_id;
 int amf_sps_context_prepare(void)
 {
+	ogs_ip_t        internel_ipv4;   
+    ogs_sockaddr_t  *internel_addr;
+	
+	self.icps_port = 9777;
     char ipstring[20] = {0};
     ogs_snprintf(ipstring, sizeof(ipstring), "128.128.128.%u", g_sps_id);
-    ogs_ipv4_from_string(&self.internel_ipv4,ipstring);
-    ogs_ip_to_sockaddr(&self.internel_ipv4,self.icps_port,&self.internel_addr);
-    self.internel_node = ogs_socknode_new(self.internel_addr);
+    ogs_ipv4_from_string(&internel_ipv4.addr,ipstring);
+	internel_ipv4.len = OGS_IPV4_LEN;
+    internel_ipv4.ipv4 =1;	
+    ogs_ip_to_sockaddr(&internel_ipv4,self.icps_port,&internel_addr);
+    self.internel_node = ogs_socknode_new(internel_addr);
 
-    ogs_ipv4_from_string(&self.internel_ipv4,"128.128.128.127");
-    ogs_ip_to_sockaddr(&self.internel_ipv4,self.icps_port,&self.internel_addr);
-    self.icps_node = ogs_socknode_new(self.internel_addr);
+	ogs_sockaddr_t  *icps_addr;
+    ogs_ipv4_from_string(&internel_ipv4.addr,"128.128.128.127");
+	internel_ipv4.len = OGS_IPV4_LEN;
+    internel_ipv4.ipv4 =1;
+    ogs_ip_to_sockaddr(&internel_ipv4,self.icps_port,&icps_addr);
+    self.icps_node = ogs_socknode_new(icps_addr);
 
     return OGS_OK;
 }

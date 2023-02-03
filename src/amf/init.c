@@ -113,8 +113,8 @@ int amf_sps_initialize()
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
 
-    //rv = sps_udp_ini_open();
-    rv = icps_udp_ini_open();
+    rv = sps_udp_ini_open();
+    //rv = icps_udp_ini_open();
     if (rv != OGS_OK) return rv;
 
     thread = ogs_thread_create(amf_sps_main, NULL);
@@ -125,12 +125,14 @@ int amf_sps_initialize()
     return OGS_OK;
 }
 
+
+
 static int sps_udp_ini_open(void)
 {
     ogs_socknode_t *node = NULL;
     ogs_sock_t *udp = NULL;
     char buf[OGS_ADDRSTRLEN];
-
+#if 0
     ogs_list_for_each(&amf_self()->icps_list, node) {
         udp = ogs_udp_client(node->addr, node->option);
         if (udp) {
@@ -148,7 +150,24 @@ static int sps_udp_ini_open(void)
                 OGS_POLLIN, udp->fd, icps_client_recv_cb, udp);
         ogs_assert(node->poll);
     }
+#endif
+    node = amf_self()->internel_node;
+    udp = ogs_udp_server(node->addr, node->option);
+    if (udp) {
+        ogs_info("udp_server() [%s]:%d",
+                OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
 
+        node->sock = udp;
+    }else{ 
+        ogs_error("udp_server() error [%s]:%d",
+                OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
+        return OGS_ERROR;
+    }
+
+    node->poll = ogs_pollset_add(ogs_app()->pollset,
+            OGS_POLLIN, udp->fd, icps_server_recv_cb, udp);
+    ogs_assert(node->poll);
+	
     //set timer
 	ogs_timer_t *timer = ogs_timer_add(ogs_app()->timer_mgr,amf_timer_internel_heart_beat_timer_expire,udp);
 	
@@ -183,7 +202,7 @@ static int icps_udp_ini_open(void)
     }
 #endif
     
-    node = amf_self()->internel_node;
+    node = amf_self()->icps_node;
     udp = ogs_udp_server(node->addr, node->option);
     if (udp) {
         ogs_info("udp_server() [%s]:%d",
