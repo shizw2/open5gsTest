@@ -87,9 +87,7 @@ int amf_sps_initialize()
     ogs_metrics_context_init();
     ogs_sbi_context_init();
 
-    amf_context_init();
-
-    amf_sps_context_prepare();
+    amf_context_init();    
 
     rv = ogs_sbi_context_parse_config("amf", "nrf", "scp");
     if (rv != OGS_OK) return rv;
@@ -99,6 +97,8 @@ int amf_sps_initialize()
 
     rv = amf_context_parse_config();
     if (rv != OGS_OK) return rv;
+
+	amf_sps_context_prepare();
 
     rv = amf_context_nf_info();
     if (rv != OGS_OK) return rv;
