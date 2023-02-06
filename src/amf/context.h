@@ -40,6 +40,8 @@ extern int __gmm_log_domain;
 #undef OGS_LOG_DOMAIN
 #define OGS_LOG_DOMAIN __amf_log_domain
 
+#define MAX_SPS_NUM         16
+
 typedef struct ran_ue_s ran_ue_t;
 typedef struct amf_ue_s amf_ue_t;
 
@@ -106,16 +108,16 @@ typedef struct amf_context_s {
 
     uint16_t        ngap_port;      /* Default NGAP Port */
     uint16_t        icps_port;      /* Default icps Port */
-
+    
     ogs_list_t      ngap_list;      /* AMF NGAP IPv4 Server List */
     ogs_list_t      ngap_list6;     /* AMF NGAP IPv6 Server List */
-    ogs_list_t      sps_list;       /* SPS List */
     ogs_list_t      icps_list;      /* icps List */
     ogs_list_t      icps_list6;     /* icps List */
 
-    ogs_socknode_t  *sps_node;
+    uint8_t         spsnum;
+    ogs_socknode_t  *sps_node;      /*sps 进程有效*/
     ogs_socknode_t  *icps_node;
-	ogs_socknode_t  *sps_nodes[16]; //todo:icps需要管理多个sps节点,根据消息中的sps_id定位到sps_node
+	ogs_socknode_t  *sps_nodes[MAX_SPS_NUM+1]; //todo:icps需要管理多个sps节点,根据消息中的sps_id定位到sps_node
 } amf_context_t;
 
 typedef struct amf_gnb_s {

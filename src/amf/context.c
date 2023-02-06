@@ -119,48 +119,31 @@ static int amf_context_prepare(void)
 
     self.ngap_port = OGS_NGAP_SCTP_PORT;
 
-	ogs_ip_t        internel_ipv4;   
-    ogs_sockaddr_t  *internel_addr;
-	
 	self.icps_port = 9777;
-    char ipstring[20] = {0};
-    ogs_snprintf(ipstring, sizeof(ipstring), "128.128.128.%u", 1);
-    ogs_ipv4_from_string(&internel_ipv4.addr,ipstring);
-	internel_ipv4.len = OGS_IPV4_LEN;
-    internel_ipv4.ipv4 =1;	
-    ogs_ip_to_sockaddr(&internel_ipv4,self.icps_port,&internel_addr);
-    self.sps_node = ogs_socknode_new(internel_addr);
-
-	ogs_sockaddr_t  *icps_addr;
-    ogs_ipv4_from_string(&internel_ipv4.addr,"128.128.128.127");
-	internel_ipv4.len = OGS_IPV4_LEN;
-    internel_ipv4.ipv4 =1;
-    ogs_ip_to_sockaddr(&internel_ipv4,self.icps_port,&icps_addr);
-    self.icps_node = ogs_socknode_new(icps_addr);
-    
     return OGS_OK;
 }
 
 int amf_sps_context_prepare(void)
 {
-	ogs_ip_t        internel_ipv4;   
+    int rv;
     ogs_sockaddr_t  *internel_addr;
-	
+	ogs_sockaddr_t  *icps_addr;
+
 	self.icps_port = 9777;
     char ipstring[20] = {0};
     ogs_snprintf(ipstring, sizeof(ipstring), "128.128.128.%u", g_sps_id);
-    ogs_ipv4_from_string(&internel_ipv4.addr,ipstring);
-	internel_ipv4.len = OGS_IPV4_LEN;
-    internel_ipv4.ipv4 =1;	
-    ogs_ip_to_sockaddr(&internel_ipv4,self.icps_port,&internel_addr);
-    self.sps_node = ogs_socknode_new(internel_addr);
 
-	ogs_sockaddr_t  *icps_addr;
-    ogs_ipv4_from_string(&internel_ipv4.addr,"128.128.128.127");
-	internel_ipv4.len = OGS_IPV4_LEN;
-    internel_ipv4.ipv4 =1;
-    ogs_ip_to_sockaddr(&internel_ipv4,self.icps_port,&icps_addr);
+    rv = ogs_getaddrinfo(&internel_addr, AF_INET, ipstring, self.icps_port, 0);
+    ogs_assert(rv == OGS_OK);
+
+    self.sps_node = ogs_socknode_new(internel_addr);
+    ogs_assert(self.sps_node);
+
+    rv = ogs_getaddrinfo(&icps_addr, AF_INET, "128.128.128.127", self.icps_port, 0);
+    ogs_assert(rv == OGS_OK);
+
     self.icps_node = ogs_socknode_new(icps_addr);
+    ogs_assert(self.icps_node); 
 
     return OGS_OK;
 }
@@ -441,6 +424,9 @@ int amf_context_parse_config(void)
                                         &icps_iter, &option);
                                 if (rv != OGS_OK) return rv;
                                 is_option = true;
+                            } else if (!strcmp(icps_key, "spsnum")) {
+                                const char *v = ogs_yaml_iter_value(&icps_iter);
+                                if (v)  self.spsnum = atoi(v);
                             } else
                                 ogs_warn("unknown key `%s`", icps_key);
                         }
