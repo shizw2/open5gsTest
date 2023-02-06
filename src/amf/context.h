@@ -796,7 +796,6 @@ uint8_t amf_selected_enc_algorithm(amf_ue_t *amf_ue);
 void amf_clear_subscribed_info(amf_ue_t *amf_ue);
 
 bool amf_update_allowed_nssai(amf_ue_t *amf_ue);
-int amf_sps_context_prepare(void);
 #ifdef __cplusplus
 }
 #endif

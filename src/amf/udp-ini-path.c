@@ -1,11 +1,31 @@
 #include "udp-ini-path.h"
 
-
+extern int g_sps_id;
 int sps_udp_ini_open(void)
 {
     ogs_socknode_t *node = NULL;
     ogs_sock_t *udp = NULL;
     char buf[OGS_ADDRSTRLEN];
+
+    int rv;
+    ogs_sockaddr_t  *internel_addr;
+	ogs_sockaddr_t  *icps_addr;
+
+    char ipstring[20] = {0};
+    ogs_snprintf(ipstring, sizeof(ipstring), "128.128.128.%u", g_sps_id);
+
+    rv = ogs_getaddrinfo(&internel_addr, AF_INET, ipstring, amf_self()->icps_port, 0);
+    ogs_assert(rv == OGS_OK);
+
+    amf_self()->sps_node = ogs_socknode_new(internel_addr);
+    ogs_assert(amf_self()->sps_node);
+
+    rv = ogs_getaddrinfo(&icps_addr, AF_INET, "128.128.128.127", amf_self()->icps_port, 0);
+    ogs_assert(rv == OGS_OK);
+
+    amf_self()->icps_node = ogs_socknode_new(icps_addr);
+    ogs_assert(amf_self()->icps_node); 
+
 #if 0
     ogs_list_for_each(&amf_self()->icps_list, node) {
         udp = ogs_udp_client(node->addr, node->option);

@@ -123,31 +123,6 @@ static int amf_context_prepare(void)
     return OGS_OK;
 }
 
-int amf_sps_context_prepare(void)
-{
-    int rv;
-    ogs_sockaddr_t  *internel_addr;
-	ogs_sockaddr_t  *icps_addr;
-
-	self.icps_port = 9777;
-    char ipstring[20] = {0};
-    ogs_snprintf(ipstring, sizeof(ipstring), "128.128.128.%u", g_sps_id);
-
-    rv = ogs_getaddrinfo(&internel_addr, AF_INET, ipstring, self.icps_port, 0);
-    ogs_assert(rv == OGS_OK);
-
-    self.sps_node = ogs_socknode_new(internel_addr);
-    ogs_assert(self.sps_node);
-
-    rv = ogs_getaddrinfo(&icps_addr, AF_INET, "128.128.128.127", self.icps_port, 0);
-    ogs_assert(rv == OGS_OK);
-
-    self.icps_node = ogs_socknode_new(icps_addr);
-    ogs_assert(self.icps_node); 
-
-    return OGS_OK;
-}
-
 static int amf_context_validation(void)
 {
     if (ogs_list_first(&self.ngap_list) == NULL &&

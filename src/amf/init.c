@@ -96,8 +96,6 @@ int amf_sps_initialize()
     rv = amf_context_parse_config();
     if (rv != OGS_OK) return rv;
 
-	amf_sps_context_prepare();
-
     rv = amf_context_nf_info();
     if (rv != OGS_OK) return rv;
 
