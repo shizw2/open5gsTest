@@ -1,6 +1,7 @@
 #include "udp-ini-path.h"
 
 extern int g_sps_id;
+#if 0
 int sps_udp_ini_open(void)
 {
     ogs_socknode_t *node = NULL;
@@ -69,6 +70,7 @@ int sps_udp_ini_open(void)
 
     return OGS_OK;
 }
+#endif
 
 int icps_udp_ini_open(void)
 {
@@ -81,23 +83,45 @@ int icps_udp_ini_open(void)
 	ogs_sockaddr_t  *internel_addr;
 	ogs_sockaddr_t  *icps_addr;
 
-    for (i = 1; i <= amf_self()->spsnum && i <= MAX_SPS_NUM; i++)
-    {
-        char ipstring[20] = {0};
-        ogs_snprintf(ipstring, sizeof(ipstring), "128.128.128.%u", i);
+	if (is_amf_icps())
+	{
+		for (i = 1; i <= amf_self()->spsnum && i <= MAX_SPS_NUM; i++)
+		{
+			char ipstring[20] = {0};
+			ogs_snprintf(ipstring, sizeof(ipstring), "128.128.128.%u", i);
 
-        rv = ogs_getaddrinfo(&internel_addr, AF_INET, ipstring, amf_self()->icps_port, 0);
-        ogs_assert(rv == OGS_OK);
+			rv = ogs_getaddrinfo(&internel_addr, AF_INET, ipstring, amf_self()->icps_port, 0);
+			ogs_assert(rv == OGS_OK);
 
-        amf_self()->sps_nodes[i] = ogs_socknode_new(internel_addr);
-        ogs_assert(amf_self()->sps_nodes[i]);
-    }
+			amf_self()->sps_nodes[i] = ogs_socknode_new(internel_addr);
+			ogs_assert(amf_self()->sps_nodes[i]);
+		}
+		
+		rv = ogs_getaddrinfo(&internel_addr, AF_INET, "128.128.128.127", amf_self()->icps_port, 0);
+		ogs_assert(rv == OGS_OK);
 
-    rv = ogs_getaddrinfo(&icps_addr, AF_INET, "128.128.128.127", amf_self()->icps_port, 0);
-    ogs_assert(rv == OGS_OK);
+		amf_self()->udp_node = ogs_socknode_new(internel_addr);
+		ogs_assert(amf_self()->udp_node);
+	}
+	else/*sps*/
+	{
+		char ipstring[20] = {0};
+		ogs_snprintf(ipstring, sizeof(ipstring), "128.128.128.%u", g_sps_id);
 
-    amf_self()->icps_node = ogs_socknode_new(icps_addr);
-    ogs_assert(amf_self()->icps_node);
+		rv = ogs_getaddrinfo(&internel_addr, AF_INET, ipstring, amf_self()->icps_port, 0);
+		ogs_assert(rv == OGS_OK);
+
+		amf_self()->udp_node = ogs_socknode_new(internel_addr);
+		ogs_assert(amf_self()->udp_node);
+	
+		rv = ogs_getaddrinfo(&icps_addr, AF_INET, "128.128.128.127", amf_self()->icps_port, 0);
+		ogs_assert(rv == OGS_OK);
+
+		amf_self()->icps_node = ogs_socknode_new(icps_addr);
+		ogs_assert(amf_self()->icps_node);
+	}
+
+
 
     /*ogs_ipv4_from_string(&internel_ipv4.addr,"128.128.128.127");
 	internel_ipv4.len = OGS_IPV4_LEN;
@@ -125,7 +149,7 @@ int icps_udp_ini_open(void)
     }
 #endif
     
-    node = amf_self()->icps_node;
+    node = amf_self()->udp_node;
     udp = ogs_udp_server(node->addr, node->option);
     if (udp) {
         ogs_info("udp_server() [%s]:%d",
@@ -141,6 +165,15 @@ int icps_udp_ini_open(void)
     node->poll = ogs_pollset_add(ogs_app()->pollset,
             OGS_POLLIN, udp->fd, icps_server_recv_cb, udp);
     ogs_assert(node->poll);
+	
+	if (is_amf_sps())
+	{
+		//set timer
+		ogs_timer_t *timer = ogs_timer_add(ogs_app()->timer_mgr,amf_timer_internel_heart_beat_timer_expire,udp);
+		
+		ogs_timer_start(timer,ogs_time_from_sec(1));
+	}
+	
     return OGS_OK;
 }
 
@@ -160,7 +193,7 @@ void udp_ini_close(void)
     }
     else
     {
-        ogs_socknode_free(amf_self()->sps_node);
+        ogs_socknode_free(amf_self()->udp_node);
     }
 }
 
@@ -241,4 +274,14 @@ void icps_client_recv_cb(short when, ogs_socket_t fd, void *data)
         ogs_pkbuf_free(e->pkbuf);
         ogs_event_free(e);
     }
+}
+
+
+int udp_ini_sendto(const void *buf, size_t len, int sps_id)
+{
+	if (sps_id > MAX_SPS_NUM)
+	{
+		return 0;
+	}
+	return ogs_sendto(amf_self()->icps_node->sock->fd, buf, len, 0, amf_self()->sps_nodes[sps_id]->addr);
 }

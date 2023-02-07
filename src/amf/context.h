@@ -115,8 +115,8 @@ typedef struct amf_context_s {
     ogs_list_t      icps_list6;     /* icps List */
 
     uint8_t         spsnum;
-    ogs_socknode_t  *sps_node;      /*sps 进程有效*/
-    ogs_socknode_t  *icps_node;
+    ogs_socknode_t  *udp_node;      /*本进程的udp socket*/
+    ogs_socknode_t  *icps_node;     /*SPS 上有效*/
 	ogs_socknode_t  *sps_nodes[MAX_SPS_NUM+1]; //todo:icps需要管理多个sps节点,根据消息中的sps_id定位到sps_node
 } amf_context_t;
 

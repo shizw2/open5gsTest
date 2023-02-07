@@ -119,6 +119,7 @@ static int amf_context_prepare(void)
 
     self.ngap_port = OGS_NGAP_SCTP_PORT;
 
+	self.spsnum = 16;
 	self.icps_port = 9777;
     return OGS_OK;
 }

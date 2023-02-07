@@ -109,8 +109,7 @@ int amf_sps_initialize()
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
 
-    rv = sps_udp_ini_open();
-    //rv = icps_udp_ini_open();
+    rv = icps_udp_ini_open();
     if (rv != OGS_OK) return rv;
 
     thread = ogs_thread_create(amf_sps_main, NULL);
