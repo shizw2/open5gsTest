@@ -1,78 +1,8 @@
 #include "udp-ini-path.h"
 
 extern int g_sps_id;
-#if 0
-int sps_udp_ini_open(void)
-{
-    ogs_socknode_t *node = NULL;
-    ogs_sock_t *udp = NULL;
-    char buf[OGS_ADDRSTRLEN];
 
-    int rv;
-    ogs_sockaddr_t  *internel_addr;
-	ogs_sockaddr_t  *icps_addr;
-
-    char ipstring[20] = {0};
-    ogs_snprintf(ipstring, sizeof(ipstring), "128.128.128.%u", g_sps_id);
-
-    rv = ogs_getaddrinfo(&internel_addr, AF_INET, ipstring, amf_self()->icps_port, 0);
-    ogs_assert(rv == OGS_OK);
-
-    amf_self()->sps_node = ogs_socknode_new(internel_addr);
-    ogs_assert(amf_self()->sps_node);
-
-    rv = ogs_getaddrinfo(&icps_addr, AF_INET, "128.128.128.127", amf_self()->icps_port, 0);
-    ogs_assert(rv == OGS_OK);
-
-    amf_self()->icps_node = ogs_socknode_new(icps_addr);
-    ogs_assert(amf_self()->icps_node); 
-
-#if 0
-    ogs_list_for_each(&amf_self()->icps_list, node) {
-        udp = ogs_udp_client(node->addr, node->option);
-        if (udp) {
-            ogs_info("ogs_udp_client() [%s]:%d",
-                    OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
-
-            node->sock = udp;
-        }else{ 
-            ogs_error("ogs_udp_client() error [%s]:%d",
-                    OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
-            return OGS_ERROR;
-        }
-
-        node->poll = ogs_pollset_add(ogs_app()->pollset,
-                OGS_POLLIN, udp->fd, icps_client_recv_cb, udp);
-        ogs_assert(node->poll);
-    }
-#endif
-    node = amf_self()->sps_node;
-    udp = ogs_udp_server(node->addr, node->option);
-    if (udp) {
-        ogs_info("udp_server() [%s]:%d",
-                OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
-
-        node->sock = udp;
-    }else{ 
-        ogs_error("udp_server() error [%s]:%d",
-                OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
-        return OGS_ERROR;
-    }
-
-    node->poll = ogs_pollset_add(ogs_app()->pollset,
-            OGS_POLLIN, udp->fd, icps_server_recv_cb, udp);
-    ogs_assert(node->poll);
-	
-    //set timer
-	ogs_timer_t *timer = ogs_timer_add(ogs_app()->timer_mgr,amf_timer_internel_heart_beat_timer_expire,udp);
-	
-	ogs_timer_start(timer,ogs_time_from_sec(1));
-
-    return OGS_OK;
-}
-#endif
-
-int icps_udp_ini_open(void)
+int udp_ini_open(void)
 {
     ogs_socknode_t *node = NULL;    
     ogs_sock_t *udp;
@@ -181,11 +111,9 @@ int icps_udp_ini_open(void)
 
 void udp_ini_close(void)
 {
+    ogs_socknode_free(amf_self()->udp_node);
     if (is_amf_icps())
     {
-        ogs_info("free socknode.");
-        ogs_socknode_free(amf_self()->icps_node);
-
         int i;
 
         for (i = 1; i <= amf_self()->spsnum && i <= MAX_SPS_NUM; i++)
@@ -195,7 +123,7 @@ void udp_ini_close(void)
     }
     else
     {
-        ogs_socknode_free(amf_self()->udp_node);
+        ogs_socknode_free(amf_self()->icps_node);
     }
 }
 
@@ -285,5 +213,5 @@ int udp_ini_sendto(const void *buf, size_t len, int sps_id)
 	{
 		return 0;
 	}
-	return ogs_sendto(amf_self()->icps_node->sock->fd, buf, len, 0, amf_self()->sps_nodes[sps_id]->addr);
+	return ogs_sendto(amf_self()->udp_node->sock->fd, buf, len, 0, amf_self()->sps_nodes[sps_id]->addr);
 }

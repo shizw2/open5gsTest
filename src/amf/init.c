@@ -67,7 +67,7 @@ int amf_initialize()
     if (rv != OGS_OK) return rv;
 
     /*增加UDP_IN_open，初始化ICPS和SPS直接的通信接口*/
-    rv = icps_udp_ini_open();
+    rv = udp_ini_open();
     if (rv != OGS_OK) return rv;
 
     thread = ogs_thread_create(amf_main, NULL);
@@ -109,7 +109,7 @@ int amf_sps_initialize()
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
 
-    rv = icps_udp_ini_open();
+    rv = udp_ini_open();
     if (rv != OGS_OK) return rv;
 
     thread = ogs_thread_create(amf_sps_main, NULL);

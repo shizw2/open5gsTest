@@ -119,8 +119,8 @@ static int amf_context_prepare(void)
 
     self.ngap_port = OGS_NGAP_SCTP_PORT;
 
-	self.spsnum = 16;
-	self.icps_port = 9777;
+	self.icps_port = 9777;  /*没配置时采用的默认值*/
+    self.spsnum    = 16;    /*没配置时采用的默认值*/
     return OGS_OK;
 }
 
@@ -392,7 +392,11 @@ int amf_context_parse_config(void)
                                         YAML_SEQUENCE_NODE);
                             } else if (!strcmp(icps_key, "port")) {
                                 const char *v = ogs_yaml_iter_value(&icps_iter);
-                                if (v) port = atoi(v);
+                                if (v) 
+                                {
+                                    port = atoi(v);
+                                    self.icps_port = port;
+                                }
                             } else if (!strcmp(icps_key, "dev")) {
                                 dev = ogs_yaml_iter_value(&icps_iter);
                             } else if (!strcmp(icps_key, "option")) {

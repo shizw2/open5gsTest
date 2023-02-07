@@ -26,6 +26,7 @@
 #include "nsmf-handler.h"
 #include "nnssf-handler.h"
 #include "nas-security.h"
+#include "udp-ini-path.h"
 
 extern int g_sps_id;
 
@@ -924,8 +925,9 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 			ogs_info("icps recv internel msg handshake req from sps,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
 
 			pmsg->msg_type = INTERNEL_MSG_HAND_SHAKE_RSP;
-			sent = ogs_sendto(amf_self()->udp_node->sock->fd, pmsg, sizeof(amf_internel_msg_t), 0, amf_self()->sps_nodes[pmsg->sps_id]->addr);
-			if (sent < 0 || sent != sizeof(amf_internel_msg_t)) {
+			//sent = ogs_sendto(amf_self()->udp_node->sock->fd, pmsg, sizeof(amf_internel_msg_t), 0, amf_self()->sps_nodes[pmsg->sps_id]->addr);
+			sent = udp_ini_sendto(pmsg, sizeof(amf_internel_msg_t), pmsg->sps_id);
+            if (sent < 0 || sent != sizeof(amf_internel_msg_t)) {
 				ogs_error("ogs_sendto() failed");
 			}
 			else
