@@ -922,23 +922,66 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 		amf_internel_msg_t *pmsg = (amf_internel_msg_t *)pkbuf->data;
 		if (is_amf_icps())
 		{
-			ogs_info("icps recv internel msg handshake req from sps,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
+            switch (pmsg->msg_type)
+            {
+                case INTERNEL_MSG_HAND_SHAKE_REQ:
+                {
+                    ogs_info("icps recv internel msg handshake req from sps,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
 
-			pmsg->msg_type = INTERNEL_MSG_HAND_SHAKE_RSP;
-			//sent = ogs_sendto(amf_self()->udp_node->sock->fd, pmsg, sizeof(amf_internel_msg_t), 0, amf_self()->sps_nodes[pmsg->sps_id]->addr);
-			sent = udp_ini_sendto(pmsg, sizeof(amf_internel_msg_t), pmsg->sps_id);
-            if (sent < 0 || sent != sizeof(amf_internel_msg_t)) {
-				ogs_error("ogs_sendto() failed");
-			}
-			else
-			{
-				ogs_info("icps send internel msg handshake rsp,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
-			}
+                    pmsg->msg_type = INTERNEL_MSG_HAND_SHAKE_RSP;
+                    sent = udp_ini_sendto(pmsg, sizeof(amf_internel_msg_t), pmsg->sps_id);
+                    if (sent < 0 || sent != sizeof(amf_internel_msg_t)) {
+                        ogs_error("ogs_sendto() failed");
+                    }
+                    else
+                    {
+                        ogs_info("icps send internel msg handshake rsp,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
+                    }
+                    
+                    //TODO:记录到激活sps列表中
+                    if (!find_module_info(pmsg->sps_id))
+                    {
+                        add_module_info(pmsg->sps_id);
+                    }
 
+                    break;
+                }
+                case  INTERNEL_MSG_NGAP:
+                {
+                    //TODO
+                    break;
+                }
+                case  INTERNEL_MSG_SBI:
+                {
+                    //TODO
+                    break;
+                }
+                default:
+                    ogs_error("icps unknown msg, msgtype:%d.",pmsg->msg_type);
+            }
 		}
 		else
 		{
-			ogs_info("sps recv internel msg handshake rsp from icps,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);		
+            switch (pmsg->msg_type)
+            {
+                case INTERNEL_MSG_HAND_SHAKE_RSP:
+                {
+                    ogs_info("sps recv internel msg handshake rsp from icps,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);		
+                    break;
+                }
+                case  INTERNEL_MSG_NGAP:
+                {
+                    //TODO
+                    break;
+                }
+                case  INTERNEL_MSG_SBI:
+                {
+                    //TODO
+                    break;
+                }
+                default:
+                    ogs_error("sps unknown msg, msgtype:%d.",pmsg->msg_type);
+            }			
 		}
         ogs_pkbuf_free(pkbuf);
         break;

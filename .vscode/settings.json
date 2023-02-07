@@ -46,6 +46,7 @@
         "ogs-sctp.h": "c",
         "ngap-path.h": "c",
         "ngap-build.h": "c",
-        "udp-ini-path.h": "c"
+        "udp-ini-path.h": "c",
+        "amf-sm.h": "c"
     }
 }

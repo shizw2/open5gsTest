@@ -2,6 +2,9 @@
 
 extern int g_sps_id;
 
+pkt_fwd_tbl_t g_pkt_fwd_tbl;//保存激活的模块信息,
+pkt_fwd_tbl_t *g_pt_pkt_fwd_tbl  = &g_pkt_fwd_tbl;
+
 int udp_ini_open(void)
 {
     ogs_socknode_t *node = NULL;    
@@ -214,4 +217,67 @@ int udp_ini_sendto(const void *buf, size_t len, int sps_id)
 		return 0;
 	}
 	return ogs_sendto(amf_self()->udp_node->sock->fd, buf, len, 0, amf_self()->sps_nodes[sps_id]->addr);
+}
+
+bool add_module_info(uint8_t b_module_no)
+{
+    if (g_pt_pkt_fwd_tbl->b_sps_num >= MAX_SPS_NUM)
+    {   
+        return false;
+    }
+    g_pt_pkt_fwd_tbl->ta_sps_infos[g_pt_pkt_fwd_tbl->b_sps_num].module_no = b_module_no;
+    g_pt_pkt_fwd_tbl->b_sps_num++;
+    ogs_info("add a new module, id:%d,sps num:%d.", b_module_no, g_pt_pkt_fwd_tbl->b_sps_num);
+    return true;
+}
+
+bool delete_module_info(uint8_t b_module_no)
+{
+    return delete_module_from_array(&(g_pt_pkt_fwd_tbl->b_sps_num),
+                                               g_pt_pkt_fwd_tbl->ta_sps_infos,
+                                               b_module_no);
+}
+
+bool find_module_info(uint8_t b_module_no)
+{
+    uint8_t      bLoop;
+
+    for (bLoop = 0; bLoop < g_pt_pkt_fwd_tbl->b_sps_num; bLoop++)
+    {
+        if (b_module_no == g_pt_pkt_fwd_tbl->ta_sps_infos[bLoop].module_no)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool delete_module_from_array(uint8_t *pbNum , module_info_t *pt_module_info, uint8_t b_module_no)
+{
+    uint8_t      bLoop;
+    uint8_t      b_module_no_temp;
+    
+    if (pbNum == NULL
+        || pt_module_info == NULL)
+    {
+        return false;
+    }
+
+    for (bLoop = 0; bLoop < (*pbNum); bLoop++)
+    {
+        b_module_no_temp = pt_module_info[bLoop].module_no;
+        if (b_module_no_temp == b_module_no)
+        {
+            ogs_info("Del module From Arrary! b_sps_id=%d, module_type=%d\n", b_module_no, pt_module_info[bLoop].module_type); 
+                        
+            (*pbNum)--;
+            pt_module_info[bLoop] = pt_module_info[*pbNum];
+            memset(&pt_module_info[*pbNum], 0x00, sizeof(module_info_t));
+                     
+            return true;
+        }
+    }
+
+    return false;
 }
