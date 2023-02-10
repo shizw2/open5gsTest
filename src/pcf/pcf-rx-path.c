@@ -467,7 +467,7 @@ int pcf_rx_send_asr(uint8_t *rx_sid, uint32_t abort_cause)
 
     ogs_assert(rx_sid);
 
-    ogs_debug("[PCF] Abort-Session-Request");
+    ogs_debug("[PCF] Abort-Session-Request,rx_sid:%s.",rx_sid);
 
     /* Create the request */
     ret = fd_msg_new(ogs_diam_rx_cmd_asr, MSGFL_ALLOC_ETEID, &req);

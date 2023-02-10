@@ -341,13 +341,12 @@ bool pcf_npcf_smpolicycontrol_handle_delete(pcf_sess_t *sess,
     ogs_info("pcf_npcf_smpolicycontrol_handle_delete");
     ogs_list_for_each(&sess->app_list, app_session) {   
         if (app_session->rx_sid != NULL){
-        //TODO: 暂时注释掉
+			ogs_info("send asr,rx_sid:%s,app_session_id=%s,sess->ipv4addr_string:%s.",app_session->rx_sid,app_session->app_session_id,sess->ipv4addr_string);
         #if 1
             rv = pcf_rx_send_asr(
                     app_session->rx_sid, OGS_DIAM_RX_ABORT_CAUSE_BEARER_RELEASED);
             ogs_assert(rv == OGS_OK);
-        #endif
-            ogs_info("should send asr,but for test,do not send,rx_sid:%s,app_session_id=%s,sess->ipv4addr_string:%s.",app_session->rx_sid,app_session->app_session_id,sess->ipv4addr_string);
+        #endif            
         }else{//还是要加else,否则，不存在N5接口的AF时,发送SBI消息，会导致异常
             pcf_sbi_send_policyauthorization_terminate_notify(app_session);   
         }     
@@ -1781,15 +1780,18 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
         if (rx_message->cmd_code == OGS_DIAM_RX_CMD_CODE_AA) {
             ogs_assert(true == pcf_sbi_send_smpolicycontrol_update_notify(
                                     sess, &SmPolicyDecision)); 
-
-            ogs_session_data_free(&session_data);
             
         }else if(rx_message->cmd_code ==
             OGS_DIAM_RX_CMD_CODE_SESSION_TERMINATION) {
             ogs_assert(true == pcf_sbi_send_smpolicycontrol_delete_notify(
                     sess, app_session, &SmPolicyDecision));            
         }
-    }
+    }else{
+		if(rx_message->cmd_code ==
+            OGS_DIAM_RX_CMD_CODE_SESSION_TERMINATION) {
+			pcf_app_remove(app_session);
+		}
+	}
 
     ogs_info("pcf_sbi_send_smpolicycontrol_update_notify end.");
 
@@ -1814,7 +1816,7 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
         }
     }
     OpenAPI_list_free(QosDecisionList);
-   
+    ogs_session_data_free(&session_data);
 
     return OGS_OK;
 
