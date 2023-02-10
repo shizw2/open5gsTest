@@ -1780,7 +1780,7 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
         if (rx_message->cmd_code == OGS_DIAM_RX_CMD_CODE_AA) {
             ogs_assert(true == pcf_sbi_send_smpolicycontrol_update_notify(
                                     sess, &SmPolicyDecision)); 
-            
+			ogs_session_data_free(&session_data);
         }else if(rx_message->cmd_code ==
             OGS_DIAM_RX_CMD_CODE_SESSION_TERMINATION) {
             ogs_assert(true == pcf_sbi_send_smpolicycontrol_delete_notify(
@@ -1816,8 +1816,6 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
         }
     }
     OpenAPI_list_free(QosDecisionList);
-    ogs_session_data_free(&session_data);
-
     return OGS_OK;
 
 #if 0
