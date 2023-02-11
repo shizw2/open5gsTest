@@ -29,6 +29,7 @@
 #include "udp-ini-path.h"
 
 extern int g_sps_id;
+extern pkt_fwd_tbl_t *g_pt_pkt_fwd_tbl;
 
 void amf_state_initial(ogs_fsm_t *s, amf_event_t *e)
 {
@@ -77,9 +78,6 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
     ogs_sbi_subscription_data_t *subscription_data = NULL;
     ogs_sbi_response_t *sbi_response = NULL;
     ogs_sbi_message_t sbi_message;
-
-    amf_internel_msg_t internel_msg;
-    ssize_t sent;
 
     amf_sm_debug(e);
 
@@ -899,17 +897,12 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
         switch (e->h.timer_id) {
         case AMF_TIMER_INTERNEL_HEARTBEAT:
-            internel_msg.msg_type   = INTERNEL_MSG_HAND_SHAKE_REQ;
-            internel_msg.sps_id     = g_sps_id;
-            internel_msg.sps_state  = 1;
-			//ogs_send(sock->fd,&internel_msg,sizeof(internel_msg),0);
-            //给icps发送握手消息
-            ogs_sendto(sock->fd,&internel_msg,sizeof(internel_msg),0, amf_self()->icps_node->addr);
-            ogs_info("sps send internel msg handshake req to icps,msg_type:%d,sps_id:%d,state:%d.",internel_msg.msg_type,internel_msg.sps_id,internel_msg.sps_state);
-			ogs_timer_t *timer = ogs_timer_add(ogs_app()->timer_mgr,amf_timer_internel_heart_beat_timer_expire,sock);	
-	        ogs_timer_start(timer, ogs_time_from_sec(1));
+            udp_ini_hand_shake();
             break;
-       
+
+        case AMF_TIMER_INTERNEL_HEARTBEAT_CHECK:            
+            udp_ini_hand_shake_check();
+            break;
         default:
             ogs_error("Unknown timer[%s:%d]",
                     amf_timer_get_name(e->h.timer_id), e->h.timer_id);
@@ -926,24 +919,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             {
                 case INTERNEL_MSG_HAND_SHAKE_REQ:
                 {
-                    ogs_info("icps recv internel msg handshake req from sps,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
-
-                    pmsg->msg_type = INTERNEL_MSG_HAND_SHAKE_RSP;
-                    sent = udp_ini_sendto(pmsg, sizeof(amf_internel_msg_t), pmsg->sps_id);
-                    if (sent < 0 || sent != sizeof(amf_internel_msg_t)) {
-                        ogs_error("ogs_sendto() failed");
-                    }
-                    else
-                    {
-                        ogs_info("icps send internel msg handshake rsp,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
-                    }
-                    
-                    //TODO:记录到激活sps列表中
-                    if (!find_module_info(pmsg->sps_id))
-                    {
-                        add_module_info(pmsg->sps_id);
-                    }
-
+                    udp_ini_handle_hand_shake(pmsg);
                     break;
                 }
                 case  INTERNEL_MSG_NGAP:

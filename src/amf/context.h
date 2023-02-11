@@ -120,7 +120,8 @@ typedef struct amf_context_s {
     ogs_socknode_t  *udp_node;      /*本进程的udp socket*/
     ogs_socknode_t  *icps_node;     /*SPS 上有效*/
 	ogs_socknode_t  *sps_nodes[MAX_SPS_NUM+1]; //管理多个sps节点,根据消息中的sps_id定位到sps_node
-    ogs_socknode_t  *active_sps_infos[MAX_SPS_NUM+1];
+    ogs_timer_t     *t_hand_shake_interval;   /* timer to send hand shake to icps node */
+    ogs_timer_t     *t_hand_shake_check;      /* timer to check hand shake in icps node */
 } amf_context_t;
 
 typedef struct amf_gnb_s {

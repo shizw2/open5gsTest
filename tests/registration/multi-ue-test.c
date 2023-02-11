@@ -67,7 +67,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
 	
 	for (iTmp = 0; iTmp < iPthreadSize; iTmp++)
 	{
-		for (i = 0; i < 10000; i++) {
+		for (i = 0; i < g_testNum; i++) {
 			uint64_t imsi_index;
 
 			/* Setup Test UE & Session Context */
@@ -96,6 +96,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
 			mobile_identity_suci.scheme_output[3] = imsi_index/10%10;
 			mobile_identity_suci.scheme_output[4] = imsi_index%10;
 
+            
 			test_ues[iTmp][i] = test_ue_add_by_suci(&mobile_identity_suci, 13);
 			ogs_assert(test_ues[iTmp][i]);
 
@@ -112,7 +113,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
 
 
 		//插入数据库单独统计
-		for (i = 0; i < 10000; i++) {
+		for (i = 0; i < g_testNum; i++) {
 #if 0
 			/* Send PDU session establishment request */
 			sess = test_sess_add_by_dnn_and_psi(test_ues[iTmp][i], "internet", 5);
@@ -130,7 +131,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
     gettimeofday(&start_time, NULL);
 	for (iTmp = 0; iTmp < iPthreadSize; iTmp++)
 	{        
-        for (i = 0; i < 10000; i++) {
+        for (i = 0; i < g_testNum; i++) {
 
             /* Send PDU session establishment request */
             sess = test_sess_add_by_dnn_and_psi(test_ues[iTmp][i], "internet", 5);
@@ -195,7 +196,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
     ogs_ngap_message_t message;
     int i;
     printf("wait for app init.\r\n");
-    ogs_msleep(60000);//wait for app init
+    ogs_msleep(6000);//wait for app init
     struct timeval start_time, stop_time;
     gettimeofday(&start_time, NULL);
 

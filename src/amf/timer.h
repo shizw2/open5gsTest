@@ -41,6 +41,7 @@ typedef enum {
     AMF_TIMER_T3570,
 	
 	AMF_TIMER_INTERNEL_HEARTBEAT,
+    AMF_TIMER_INTERNEL_HEARTBEAT_CHECK,
 
     MAX_NUM_OF_AMF_TIMER,
 
@@ -67,6 +68,7 @@ void amf_timer_t3570_expire(void *data);
 
 void amf_timer_ng_holding_timer_expire(void *data);
 void amf_timer_internel_heart_beat_timer_expire(void *data);
+void amf_timer_internel_heart_beat_check_expire(void *data);
 #ifdef __cplusplus
 }
 #endif
