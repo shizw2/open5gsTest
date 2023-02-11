@@ -79,6 +79,9 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
     ogs_sbi_response_t *sbi_response = NULL;
     ogs_sbi_message_t sbi_message;
 
+    char *supi = NULL;
+    int sps_id = 0;
+
     amf_sm_debug(e);
 
     ogs_assert(s);
@@ -156,13 +159,22 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             END
             break;
 
-        CASE(OGS_SBI_SERVICE_NAME_NAMF_COMM)
+        CASE(OGS_SBI_SERVICE_NAME_NAMF_COMM)        
             SWITCH(sbi_message.h.resource.component[0])
             CASE(OGS_SBI_RESOURCE_NAME_UE_CONTEXTS)
                 SWITCH(sbi_message.h.resource.component[2])
                 CASE(OGS_SBI_RESOURCE_NAME_N1_N2_MESSAGES)
                     SWITCH(sbi_message.h.method)
                     CASE(OGS_SBI_HTTP_METHOD_POST)
+                        //获取supi,找到sps模块
+                        char *supi = sbi_message.h.resource.component[1];
+                        sps_id = amf_sps_id_find_by_supi(supi);
+                        if (0 == sps_id){
+                            sps_id = 1;//TODO:根据情况，是丢弃还是随机选择
+                            amf_sps_id_set_supi(1,supi);
+                        }
+                        udp_ini_sendto(sbi_request->http.content,sbi_request->http.content_length,sps_id);
+
                         rv = amf_namf_comm_handle_n1_n2_message_transfer(
                                 stream, &sbi_message);
                         if (rv != OGS_OK) {

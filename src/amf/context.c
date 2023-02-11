@@ -76,6 +76,9 @@ void amf_context_init(void)
     self.supi_hash = ogs_hash_make();
     ogs_assert(self.supi_hash);
 
+    self.supi_sps_hash = ogs_hash_make();
+    ogs_assert(self.supi_sps_hash);
+
     context_initialized = 1;
 }
 
@@ -97,6 +100,9 @@ void amf_context_final(void)
     ogs_hash_destroy(self.suci_hash);
     ogs_assert(self.supi_hash);
     ogs_hash_destroy(self.supi_hash);
+
+    ogs_assert(self.supi_sps_hash);
+    ogs_hash_destroy(self.gnb_addr_hash);
 
     ogs_pool_final(&self.m_tmsi);
     ogs_pool_final(&amf_sess_pool);
@@ -2650,4 +2656,17 @@ bool amf_update_allowed_nssai(amf_ue_t *amf_ue)
     }
 
     return true;
+}
+
+int amf_sps_id_find_by_supi(char *supi)
+{
+    ogs_assert(supi);
+    return *(int *)ogs_hash_get(self.supi_sps_hash, supi, strlen(supi));
+}
+
+//需要跟ngap的分发设置保持一致
+void amf_sps_id_set_supi(int sps_id, char *supi)
+{
+    ogs_assert(supi);
+    ogs_hash_set(self.supi_hash, supi, strlen(supi), &sps_id);
 }

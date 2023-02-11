@@ -122,6 +122,7 @@ typedef struct amf_context_s {
 	ogs_socknode_t  *sps_nodes[MAX_SPS_NUM+1]; //管理多个sps节点,根据消息中的sps_id定位到sps_node
     ogs_timer_t     *t_hand_shake_interval;   /* timer to send hand shake to icps node */
     ogs_timer_t     *t_hand_shake_check;      /* timer to check hand shake in icps node */
+    ogs_hash_t      *supi_sps_hash;           /* hash table for supi to sps */
 } amf_context_t;
 
 typedef struct amf_gnb_s {
@@ -626,11 +627,17 @@ typedef struct amf_sess_s {
 #define INTERNEL_MSG_HAND_SHAKE_RSP                      1
 #define INTERNEL_MSG_NGAP                      			 2
 #define INTERNEL_MSG_SBI                                 3
+
+#define MAX_INTERNEL_MESSAGE_LEN  (1024*20)  /* max message len 10K */
+
 typedef struct amf_internel_msg_s {
     uint8_t msg_type;
     uint8_t sps_id;
     uint8_t sps_state;
+    int     msg_len;    
+    char abMsg[MAX_INTERNEL_MESSAGE_LEN];
 }amf_internel_msg_t;
+
 
 void amf_context_init(void);
 void amf_context_final(void);
@@ -800,6 +807,10 @@ uint8_t amf_selected_enc_algorithm(amf_ue_t *amf_ue);
 void amf_clear_subscribed_info(amf_ue_t *amf_ue);
 
 bool amf_update_allowed_nssai(amf_ue_t *amf_ue);
+
+int amf_sps_id_find_by_supi(char *supi);
+void amf_sps_id_set_supi(int sps_id, char *supi);
+
 #ifdef __cplusplus
 }
 #endif
