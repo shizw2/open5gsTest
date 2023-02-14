@@ -94,7 +94,7 @@ executable('open5gs-amfd',
     install_rpath : libdir,
     install : true)
 
-executable('open5gs-amf-sps',
+executable('open5gs-amf-spsd',
     sources : amf_sources,
     c_args : '-DDEFAULT_CONFIG_FILENAME="@0@/amf.yaml"'.format(open5gs_sysconfdir),
     include_directories : srcinc,

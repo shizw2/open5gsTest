@@ -166,6 +166,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 CASE(OGS_SBI_RESOURCE_NAME_N1_N2_MESSAGES)
                     SWITCH(sbi_message.h.method)
                     CASE(OGS_SBI_HTTP_METHOD_POST)
+					#if 1
                         //获取supi,找到sps模块
                         char *supi = sbi_message.h.resource.component[1];
                         sps_id = amf_sps_id_find_by_supi(supi);
@@ -173,8 +174,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                             sps_id = 1;//TODO:根据情况，是丢弃还是随机选择
                             amf_sps_id_set_supi(1,supi);
                         }
-                        udp_ini_sendto(sbi_request->http.content,sbi_request->http.content_length,sps_id);
-
+                        udp_ini_msg_sendto(INTERNEL_MSG_SBI, sbi_request->http.content,sbi_request->http.content_length,sps_id);
+				    #endif
                         rv = amf_namf_comm_handle_n1_n2_message_transfer(
                                 stream, &sbi_message);
                         if (rv != OGS_OK) {
@@ -221,6 +222,16 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
         CASE(OGS_SBI_SERVICE_NAME_NAMF_CALLBACK)
             SWITCH(sbi_message.h.resource.component[1])
             CASE(OGS_SBI_RESOURCE_NAME_SM_CONTEXT_STATUS)
+			#if 0
+				//获取supi,找到sps模块
+				char *supi = sbi_message.h.resource.component[0];
+				sps_id = amf_sps_id_find_by_supi(supi);
+				if (0 == sps_id){
+					sps_id = 1;//TODO:根据情况，是丢弃还是随机选择
+					amf_sps_id_set_supi(1,supi);
+				}
+				udp_ini_msg_sendto(INTERNEL_MSG_SBI, sbi_request->http.content,sbi_request->http.content_length,sps_id);
+			#endif	
                 amf_namf_callback_handle_sm_context_status(
                         stream, &sbi_message);
                 break;
@@ -937,11 +948,13 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 case  INTERNEL_MSG_NGAP:
                 {
                     //TODO
+					ogs_info("icps recv ngap msg.");
                     break;
                 }
                 case  INTERNEL_MSG_SBI:
                 {
                     //TODO
+					ogs_info("icps recv sbi msg.");
                     break;
                 }
                 default:
@@ -960,12 +973,17 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 case  INTERNEL_MSG_NGAP:
                 {
                     //TODO
+					ogs_info("sps recv ngap msg.");
                     break;
                 }
                 case  INTERNEL_MSG_SBI:
                 {
                     //TODO
-                    break;
+					ogs_info("sps recv sbi msg, msg_len:%d, msg_head_len:%ld.", pkbuf->len,sizeof(amf_internel_msg_t));					
+					if (pkbuf->len > sizeof(amf_internel_msg_t)){
+						ogs_info("sbi content:%s", (char*)(pkbuf->data+sizeof(amf_internel_msg_t)));
+					}
+                    break;	
                 }
                 default:
                     ogs_error("sps unknown msg, msgtype:%d.",pmsg->msg_type);

@@ -30,6 +30,8 @@ static ogs_thread_t *pcf_thread = NULL;
 static ogs_thread_t *nssf_thread = NULL;
 static ogs_thread_t *bsf_thread = NULL;
 static ogs_thread_t *udr_thread = NULL;
+static ogs_thread_t *amf_sps1_thread = NULL;
+
 
 int app_initialize(const char *const argv[])
 {
@@ -77,6 +79,11 @@ int app_initialize(const char *const argv[])
     if (ogs_app()->parameter.no_udr == 0)
         udr_thread = test_child_create("udr", argv_out);
 
+	argv_out[i++] = "-i";
+	argv_out[i++] = "1";
+	argv_out[i] = NULL;
+    amf_sps1_thread = test_child_create("amf-sps", argv_out);
+
     /*
      * Wait for all sockets listening
      * 
@@ -90,6 +97,8 @@ int app_initialize(const char *const argv[])
 void app_terminate(void)
 {
     if (amf_thread) ogs_thread_destroy(amf_thread);
+	
+	if (amf_sps1_thread) ogs_thread_destroy(amf_sps1_thread);
 
     if (smf_thread) ogs_thread_destroy(smf_thread);
     if (upf_thread) ogs_thread_destroy(upf_thread);

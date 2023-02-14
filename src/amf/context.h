@@ -119,7 +119,7 @@ typedef struct amf_context_s {
     
     ogs_socknode_t  *udp_node;      /*本进程的udp socket*/
     ogs_socknode_t  *icps_node;     /*SPS 上有效*/
-	ogs_socknode_t  *sps_nodes[MAX_SPS_NUM+1]; //管理多个sps节点,根据消息中的sps_id定位到sps_node
+	ogs_socknode_t  *sps_nodes[MAX_SPS_NUM+1]; //管理多个sps节点,根据消息中的sps_id定位到sps_node,其中0表示icps
     ogs_timer_t     *t_hand_shake_interval;   /* timer to send hand shake to icps node */
     ogs_timer_t     *t_hand_shake_check;      /* timer to check hand shake in icps node */
     ogs_hash_t      *supi_sps_hash;           /* hash table for supi to sps */
@@ -634,8 +634,6 @@ typedef struct amf_internel_msg_s {
     uint8_t msg_type;
     uint8_t sps_id;
     uint8_t sps_state;
-    int     msg_len;    
-    char abMsg[MAX_INTERNEL_MESSAGE_LEN];
 }amf_internel_msg_t;
 
 

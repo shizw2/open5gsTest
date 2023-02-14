@@ -28,9 +28,11 @@ void udp_ini_close(void);
 
 //icps给sps发送消息时调用
 int udp_ini_sendto(const void *buf, size_t len, int sps_id);
+int udp_ini_msg_sendto(int msg_type, const void *buf, size_t len, int sps_id);
 
 //sps给icps发送消息时调用
 int udp_ini_sendto_icps(const void *buf, size_t len);
+int udp_ini_msg_sendto_icps(int msg_type, const void *buf, size_t len);
 
 void udp_ini_hand_shake();
 void udp_ini_hand_shake_check();

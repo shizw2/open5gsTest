@@ -237,10 +237,82 @@ int udp_ini_sendto(const void *buf, size_t len, int sps_id)
 	return ogs_sendto(amf_self()->udp_node->sock->fd, buf, len, 0, amf_self()->sps_nodes[sps_id]->addr);
 }
 
+int udp_ini_msg_sendto(int msg_type, const void *buf, size_t len, int sps_id)
+{
+	ogs_pkbuf_t *pkbuf = NULL;
+	amf_internel_msg_t *p_internel_msg = NULL;
+	ssize_t sent;
+
+	if (sps_id > MAX_SPS_NUM)
+	{
+		return OGS_ERROR;
+	}
+	
+	ogs_info("SENDING...[%ld]", len);
+	if (len){
+		ogs_info("%s", (char*)buf);
+	}
+	
+	pkbuf = ogs_pkbuf_alloc(NULL, sizeof(amf_internel_msg_t) + len);
+    ogs_assert(pkbuf);
+    ogs_pkbuf_reserve(pkbuf, sizeof(amf_internel_msg_t));
+    ogs_pkbuf_put_data(pkbuf, buf, len);
+	
+	p_internel_msg = (amf_internel_msg_t *)pkbuf->data;
+	p_internel_msg->msg_type   = msg_type;
+    p_internel_msg->sps_id     = sps_id;
+    p_internel_msg->sps_state  = 1;
+	
+	sent = ogs_sendto(amf_self()->udp_node->sock->fd, pkbuf->data, pkbuf->len, 0, amf_self()->sps_nodes[sps_id]->addr);
+	if (sent < 0 || sent != pkbuf->len) {
+		ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
+				"ogs_sendto() failed");
+		return OGS_ERROR;
+	}
+	
+	ogs_info("udp_ini_msg_sendto success, msg_type:%d, msg_len:%d",msg_type,pkbuf->len);
+	
+	if (pkbuf->len > sizeof(amf_internel_msg_t)){
+		ogs_info("%s", (char*)(pkbuf->data+sizeof(amf_internel_msg_t)));
+	}
+	
+	ogs_pkbuf_free(pkbuf);
+	return OGS_OK;
+}
+
 //sps给icps发送消息时调用
 int udp_ini_sendto_icps(const void *buf, size_t len)
 {
 	return ogs_sendto(amf_self()->udp_node->sock->fd, buf, len, 0, amf_self()->icps_node->addr);
+}
+
+int udp_ini_msg_sendto_icps(int msg_type, const void *buf, size_t len)
+{
+	ogs_pkbuf_t *pkbuf = NULL;
+	amf_internel_msg_t *p_internel_msg = NULL;
+	ssize_t sent;
+	
+	pkbuf = ogs_pkbuf_alloc(NULL, sizeof(amf_internel_msg_t) + len);
+    ogs_assert(pkbuf);
+    ogs_pkbuf_reserve(pkbuf, sizeof(amf_internel_msg_t));
+    ogs_pkbuf_put_data(pkbuf, buf, len);
+	
+	p_internel_msg = (amf_internel_msg_t *)pkbuf->data;
+	p_internel_msg->msg_type   = msg_type;
+    p_internel_msg->sps_id     = 0;
+    p_internel_msg->sps_state  = 1;
+	
+	sent = ogs_sendto(amf_self()->udp_node->sock->fd, pkbuf->data, pkbuf->len, 0, amf_self()->icps_node->addr);
+	if (sent < 0 || sent != pkbuf->len) {
+		ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
+				"ogs_sendto() failed");
+		return OGS_ERROR;
+	}
+	
+	ogs_info("udp_ini_msg_sendto_icps success, msg_type:%d.",msg_type);
+	
+	ogs_pkbuf_free(pkbuf);
+	return OGS_OK;
 }
 
 bool add_module_info(uint8_t b_module_no)
@@ -360,6 +432,7 @@ void udp_ini_hand_shake_check()
         ogs_timer_start(amf_self()->t_hand_shake_check, ogs_time_from_sec(UDP_INI_HEART_BEAT_INTERVAL));
     }
 }
+
 
 /***************handle类函数***************/
 
