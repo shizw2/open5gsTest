@@ -240,7 +240,7 @@ int udp_ini_sendto(const void *buf, size_t len, int sps_id)
 int udp_ini_msg_sendto(int msg_type, const void *buf, size_t len, int sps_id)
 {
 	ogs_pkbuf_t *pkbuf = NULL;
-	amf_internel_msg_t *p_internel_msg = NULL;
+	amf_internel_msg_header_t *p_internel_msg = NULL;
 	ssize_t sent;
 
 	if (sps_id > MAX_SPS_NUM)
@@ -253,12 +253,12 @@ int udp_ini_msg_sendto(int msg_type, const void *buf, size_t len, int sps_id)
 		ogs_info("%s", (char*)buf);
 	}
 	
-	pkbuf = ogs_pkbuf_alloc(NULL, sizeof(amf_internel_msg_t) + len);
+	pkbuf = ogs_pkbuf_alloc(NULL, sizeof(amf_internel_msg_header_t) + len);
     ogs_assert(pkbuf);
-    ogs_pkbuf_reserve(pkbuf, sizeof(amf_internel_msg_t));
+    ogs_pkbuf_reserve(pkbuf, sizeof(amf_internel_msg_header_t));
     ogs_pkbuf_put_data(pkbuf, buf, len);
 	
-	p_internel_msg = (amf_internel_msg_t *)pkbuf->data;
+	p_internel_msg = (amf_internel_msg_header_t *)pkbuf->data;
 	p_internel_msg->msg_type   = msg_type;
     p_internel_msg->sps_id     = sps_id;
     p_internel_msg->sps_state  = 1;
@@ -272,8 +272,8 @@ int udp_ini_msg_sendto(int msg_type, const void *buf, size_t len, int sps_id)
 	
 	ogs_info("udp_ini_msg_sendto success, msg_type:%d, msg_len:%d",msg_type,pkbuf->len);
 	
-	if (pkbuf->len > sizeof(amf_internel_msg_t)){
-		ogs_info("%s", (char*)(pkbuf->data+sizeof(amf_internel_msg_t)));
+	if (pkbuf->len > sizeof(amf_internel_msg_header_t)){
+		ogs_info("%s", (char*)(pkbuf->data+sizeof(amf_internel_msg_header_t)));
 	}
 	
 	ogs_pkbuf_free(pkbuf);
@@ -289,15 +289,15 @@ int udp_ini_sendto_icps(const void *buf, size_t len)
 int udp_ini_msg_sendto_icps(int msg_type, const void *buf, size_t len)
 {
 	ogs_pkbuf_t *pkbuf = NULL;
-	amf_internel_msg_t *p_internel_msg = NULL;
+	amf_internel_msg_header_t *p_internel_msg = NULL;
 	ssize_t sent;
 	
-	pkbuf = ogs_pkbuf_alloc(NULL, sizeof(amf_internel_msg_t) + len);
+	pkbuf = ogs_pkbuf_alloc(NULL, sizeof(amf_internel_msg_header_t) + len);
     ogs_assert(pkbuf);
-    ogs_pkbuf_reserve(pkbuf, sizeof(amf_internel_msg_t));
+    ogs_pkbuf_reserve(pkbuf, sizeof(amf_internel_msg_header_t));
     ogs_pkbuf_put_data(pkbuf, buf, len);
 	
-	p_internel_msg = (amf_internel_msg_t *)pkbuf->data;
+	p_internel_msg = (amf_internel_msg_header_t *)pkbuf->data;
 	p_internel_msg->msg_type   = msg_type;
     p_internel_msg->sps_id     = 0;
     p_internel_msg->sps_state  = 1;
@@ -397,7 +397,7 @@ bool delete_module_from_array(uint8_t *pbNum , module_info_t *pt_module_info, ui
 
 void udp_ini_hand_shake()
 {
-    amf_internel_msg_t internel_msg;
+    amf_internel_msg_header_t internel_msg;
 
     internel_msg.msg_type   = INTERNEL_MSG_HAND_SHAKE_REQ;
     internel_msg.sps_id     = g_sps_id;
@@ -436,14 +436,14 @@ void udp_ini_hand_shake_check()
 
 /***************handle类函数***************/
 
-void udp_ini_handle_hand_shake(amf_internel_msg_t *pmsg)
+void udp_ini_handle_hand_shake(amf_internel_msg_header_t *pmsg)
 {
     int sent = 0;
     ogs_info("icps recv internel msg handshake req from sps,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
 
     pmsg->msg_type = INTERNEL_MSG_HAND_SHAKE_RSP;
-    sent = udp_ini_sendto(pmsg, sizeof(amf_internel_msg_t), pmsg->sps_id);
-    if (sent < 0 || sent != sizeof(amf_internel_msg_t)) {
+    sent = udp_ini_sendto(pmsg, sizeof(amf_internel_msg_header_t), pmsg->sps_id);
+    if (sent < 0 || sent != sizeof(amf_internel_msg_header_t)) {
         ogs_error("ogs_sendto() failed");
     }else{
         ogs_info("icps send internel msg handshake rsp,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
@@ -455,4 +455,14 @@ void udp_ini_handle_hand_shake(amf_internel_msg_t *pmsg)
     }else{
         p_module_info->lost_heart_beat_cnt = 0;
     }
+}
+
+void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
+{	
+	ogs_info("recv sbi msg, msg_len:%d", pkbuf->len);					
+	if (pkbuf->len > sizeof(amf_internel_msg_header_t)){
+		ogs_info("sbi content:%s", (char*)(pkbuf->data+sizeof(amf_internel_msg_header_t)));
+	}
+	
+	
 }

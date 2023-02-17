@@ -623,20 +623,6 @@ typedef struct amf_sess_s {
 
 } amf_sess_t;
 
-#define INTERNEL_MSG_HAND_SHAKE_REQ                      0
-#define INTERNEL_MSG_HAND_SHAKE_RSP                      1
-#define INTERNEL_MSG_NGAP                      			 2
-#define INTERNEL_MSG_SBI                                 3
-
-#define MAX_INTERNEL_MESSAGE_LEN  (1024*20)  /* max message len 10K */
-
-typedef struct amf_internel_msg_s {
-    uint8_t msg_type;
-    uint8_t sps_id;
-    uint8_t sps_state;
-}amf_internel_msg_t;
-
-
 void amf_context_init(void);
 void amf_context_final(void);
 amf_context_t *amf_self(void);

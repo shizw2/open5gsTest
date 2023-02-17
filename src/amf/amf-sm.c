@@ -935,7 +935,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
     case AMF_EVENT_INTERNEL_MESSAGE:
 		pkbuf = e->pkbuf;
-		amf_internel_msg_t *pmsg = (amf_internel_msg_t *)pkbuf->data;
+		amf_internel_msg_header_t *pmsg = (amf_internel_msg_header_t *)pkbuf->data;
 		if (is_amf_icps())
 		{
             switch (pmsg->msg_type)
@@ -977,12 +977,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                     break;
                 }
                 case  INTERNEL_MSG_SBI:
-                {
-                    //TODO
-					ogs_info("sps recv sbi msg, msg_len:%d, msg_head_len:%ld.", pkbuf->len,sizeof(amf_internel_msg_t));					
-					if (pkbuf->len > sizeof(amf_internel_msg_t)){
-						ogs_info("sbi content:%s", (char*)(pkbuf->data+sizeof(amf_internel_msg_t)));
-					}
+                {					
+					udp_ini_handle_sbi_msg(pkbuf);
                     break;	
                 }
                 default:
