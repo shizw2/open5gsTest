@@ -1,4 +1,5 @@
 #include "udp-ini-path.h"
+#include "namf-handler.h"
 
 extern int g_sps_id;
 
@@ -237,32 +238,35 @@ int udp_ini_sendto(const void *buf, size_t len, int sps_id)
 	return ogs_sendto(amf_self()->udp_node->sock->fd, buf, len, 0, amf_self()->sps_nodes[sps_id]->addr);
 }
 
-int udp_ini_msg_sendto(int msg_type, const void *buf, size_t len, int sps_id)
+int udp_ini_msg_sendto(int msg_type, ogs_sbi_udp_header_t *header,const void *buf, size_t len, int sps_id)
 {
 	ogs_pkbuf_t *pkbuf = NULL;
-	amf_internel_msg_header_t *p_internel_msg = NULL;
+	amf_internel_msg_header_t internel_msg;
 	ssize_t sent;
 
 	if (sps_id > MAX_SPS_NUM)
 	{
 		return OGS_ERROR;
 	}
-	
+
+#if 0	
 	ogs_info("SENDING...[%ld]", len);
 	if (len){
 		ogs_info("%s", (char*)buf);
 	}
-	
-	pkbuf = ogs_pkbuf_alloc(NULL, sizeof(amf_internel_msg_header_t) + len);
+#endif
+
+    internel_msg.msg_type   = msg_type;
+    internel_msg.sps_id     = sps_id;
+    internel_msg.sps_state  = 1;
+
+	pkbuf = ogs_pkbuf_alloc(NULL, sizeof(amf_internel_msg_header_t) + sizeof(ogs_sbi_udp_header_t) + len);
     ogs_assert(pkbuf);
-    ogs_pkbuf_reserve(pkbuf, sizeof(amf_internel_msg_header_t));
-    ogs_pkbuf_put_data(pkbuf, buf, len);
 	
-	p_internel_msg = (amf_internel_msg_header_t *)pkbuf->data;
-	p_internel_msg->msg_type   = msg_type;
-    p_internel_msg->sps_id     = sps_id;
-    p_internel_msg->sps_state  = 1;
-	
+    ogs_pkbuf_put_data(pkbuf, &internel_msg, sizeof(amf_internel_msg_header_t));
+    ogs_pkbuf_put_data(pkbuf, header, sizeof(ogs_sbi_udp_header_t));
+    ogs_pkbuf_put_data(pkbuf, buf, len);	
+
 	sent = ogs_sendto(amf_self()->udp_node->sock->fd, pkbuf->data, pkbuf->len, 0, amf_self()->sps_nodes[sps_id]->addr);
 	if (sent < 0 || sent != pkbuf->len) {
 		ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
@@ -271,9 +275,10 @@ int udp_ini_msg_sendto(int msg_type, const void *buf, size_t len, int sps_id)
 	}
 	
 	ogs_info("udp_ini_msg_sendto success, msg_type:%d, msg_len:%d",msg_type,pkbuf->len);
-	
-	if (pkbuf->len > sizeof(amf_internel_msg_header_t)){
-		ogs_info("%s", (char*)(pkbuf->data+sizeof(amf_internel_msg_header_t)));
+
+	ogs_print_sbi_udp_header(header);
+	if (pkbuf->len > sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)){
+		ogs_info("%s", (char*)(pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)));
 	}
 	
 	ogs_pkbuf_free(pkbuf);
@@ -289,18 +294,16 @@ int udp_ini_sendto_icps(const void *buf, size_t len)
 int udp_ini_msg_sendto_icps(int msg_type, const void *buf, size_t len)
 {
 	ogs_pkbuf_t *pkbuf = NULL;
-	amf_internel_msg_header_t *p_internel_msg = NULL;
+	amf_internel_msg_header_t internel_msg;
 	ssize_t sent;
 	
 	pkbuf = ogs_pkbuf_alloc(NULL, sizeof(amf_internel_msg_header_t) + len);
     ogs_assert(pkbuf);
-    ogs_pkbuf_reserve(pkbuf, sizeof(amf_internel_msg_header_t));
-    ogs_pkbuf_put_data(pkbuf, buf, len);
+    //ogs_pkbuf_reserve(pkbuf, sizeof(amf_internel_msg_header_t));
+	internel_msg.msg_type   = msg_type;   
 	
-	p_internel_msg = (amf_internel_msg_header_t *)pkbuf->data;
-	p_internel_msg->msg_type   = msg_type;
-    p_internel_msg->sps_id     = 0;
-    p_internel_msg->sps_state  = 1;
+    ogs_pkbuf_put_data(pkbuf, &internel_msg, sizeof(amf_internel_msg_header_t));
+    ogs_pkbuf_put_data(pkbuf, buf, len);
 	
 	sent = ogs_sendto(amf_self()->udp_node->sock->fd, pkbuf->data, pkbuf->len, 0, amf_self()->icps_node->addr);
 	if (sent < 0 || sent != pkbuf->len) {
@@ -459,10 +462,183 @@ void udp_ini_handle_hand_shake(amf_internel_msg_header_t *pmsg)
 
 void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
 {	
-	ogs_info("recv sbi msg, msg_len:%d", pkbuf->len);					
-	if (pkbuf->len > sizeof(amf_internel_msg_header_t)){
-		ogs_info("sbi content:%s", (char*)(pkbuf->data+sizeof(amf_internel_msg_header_t)));
-	}
-	
-	
+    ogs_sbi_message_t sbi_message;
+    ogs_sbi_request_t request;
+    ogs_sbi_udp_header_t *p_udp_header;
+    int rv;
+    const char *api_version = NULL;
+    ogs_sbi_stream_t *stream = NULL;
+
+	ogs_info("recv sbi msg, msg_len:%d,msg_head_len:%ld,udp_head_len:%ld.", pkbuf->len,sizeof(amf_internel_msg_header_t),sizeof(ogs_sbi_udp_header_t));					
+	if (pkbuf->len > sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)){
+		//根据header解析content
+        request.http.content = pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t);
+        request.http.content_length = pkbuf->len - sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t);
+      
+        p_udp_header = (ogs_sbi_udp_header_t*)(char*)(pkbuf->data+3);
+
+        sbi_message.http.content_type = p_udp_header->content_type;
+        
+        ogs_info("sbi content:%s", request.http.content);
+        ogs_info("content_type:%s", sbi_message.http.content_type);
+        ogs_print_sbi_udp_header(p_udp_header);
+
+        rv = ogs_sbi_parse_udp_request(&sbi_message,&request,p_udp_header);
+
+        if (rv != OGS_OK) {
+            /* 'sbi_message' buffer is released in ogs_sbi_parse_request() */
+            ogs_error("ogs_sbi_parse_udp_request, parse HTTP sbi_message");
+            return;
+        }
+
+        SWITCH(sbi_message.h.service.name)
+        CASE(OGS_SBI_SERVICE_NAME_NUDM_SDM)
+            api_version = OGS_SBI_API_V2;
+            break;
+        DEFAULT
+            api_version = OGS_SBI_API_V1;
+        END
+
+        ogs_assert(api_version);
+        if (strcmp(sbi_message.h.api.version, api_version) != 0) {
+            ogs_error("Not supported version [%s]", sbi_message.h.api.version);
+            ogs_assert(true ==
+                ogs_sbi_server_send_error(
+                    stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
+                    &sbi_message, "Not supported version", NULL));
+            ogs_sbi_message_free(&sbi_message);
+            return;
+        }
+
+        SWITCH(sbi_message.h.service.name)
+        CASE(OGS_SBI_SERVICE_NAME_NNRF_NFM)
+
+            SWITCH(sbi_message.h.resource.component[0])
+            CASE(OGS_SBI_RESOURCE_NAME_NF_STATUS_NOTIFY)
+                SWITCH(sbi_message.h.method)
+                CASE(OGS_SBI_HTTP_METHOD_POST)
+                    ogs_nnrf_nfm_handle_nf_status_notify(stream, &sbi_message);
+                    break;
+
+                DEFAULT
+                    ogs_error("Invalid HTTP method [%s]", sbi_message.h.method);
+                    ogs_assert(true ==
+                        ogs_sbi_server_send_error(stream,
+                            OGS_SBI_HTTP_STATUS_FORBIDDEN, &sbi_message,
+                            "Invalid HTTP method", sbi_message.h.method));
+                END
+                break;
+
+            DEFAULT
+                ogs_error("Invalid resource name [%s]",
+                        sbi_message.h.resource.component[0]);
+                ogs_assert(true ==
+                    ogs_sbi_server_send_error(stream,
+                        OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
+                        "Invalid resource name",
+                        sbi_message.h.resource.component[0]));
+            END
+            break;
+
+        CASE(OGS_SBI_SERVICE_NAME_NAMF_COMM)        
+            SWITCH(sbi_message.h.resource.component[0])
+            CASE(OGS_SBI_RESOURCE_NAME_UE_CONTEXTS)
+                SWITCH(sbi_message.h.resource.component[2])
+                CASE(OGS_SBI_RESOURCE_NAME_N1_N2_MESSAGES)
+                    SWITCH(sbi_message.h.method)
+                    CASE(OGS_SBI_HTTP_METHOD_POST)					
+                        rv = amf_namf_comm_handle_n1_n2_message_transfer(
+                                stream, &sbi_message);
+                        if (rv != OGS_OK) {
+                            ogs_assert(true ==
+                                ogs_sbi_server_send_error(stream,
+                                    OGS_SBI_HTTP_STATUS_BAD_REQUEST,
+                                    &sbi_message,
+                                    "No N1N2MessageTransferReqData", NULL));
+                        }
+                        break;
+
+                    DEFAULT
+                        ogs_error("Invalid HTTP method [%s]",
+                                sbi_message.h.method);
+                        ogs_assert(true ==
+                            ogs_sbi_server_send_error(stream,
+                                OGS_SBI_HTTP_STATUS_FORBIDDEN, &sbi_message,
+                                "Invalid HTTP method", sbi_message.h.method));
+                    END
+                    break;
+
+                DEFAULT
+                    ogs_error("Invalid resource name [%s]",
+                            sbi_message.h.resource.component[2]);
+                    ogs_assert(true ==
+                        ogs_sbi_server_send_error(stream,
+                            OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
+                            "Invalid resource name",
+                            sbi_message.h.resource.component[2]));
+                END
+                break;
+
+            DEFAULT
+                ogs_error("Invalid resource name [%s]",
+                        sbi_message.h.resource.component[0]);
+                ogs_assert(true ==
+                    ogs_sbi_server_send_error(stream,
+                        OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
+                        "Invalid resource name",
+                        sbi_message.h.resource.component[0]));
+            END
+            break;
+
+        CASE(OGS_SBI_SERVICE_NAME_NAMF_CALLBACK)
+            SWITCH(sbi_message.h.resource.component[1])
+            CASE(OGS_SBI_RESOURCE_NAME_SM_CONTEXT_STATUS)
+			#if 0
+				//获取supi,找到sps模块
+				char *supi = sbi_message.h.resource.component[0];
+				sps_id = amf_sps_id_find_by_supi(supi);
+				if (0 == sps_id){
+					sps_id = 1;//TODO:根据情况，是丢弃还是随机选择
+					amf_sps_id_set_supi(1,supi);
+				}
+				udp_ini_msg_sendto(INTERNEL_MSG_SBI, sbi_request->http.content,sbi_request->http.content_length,sps_id);
+			#endif	
+                amf_namf_callback_handle_sm_context_status(
+                        stream, &sbi_message);
+                break;
+
+            CASE(OGS_SBI_RESOURCE_NAME_DEREG_NOTIFY)
+                amf_namf_callback_handle_dereg_notify(stream, &sbi_message);
+                break;
+
+            CASE(OGS_SBI_RESOURCE_NAME_SDMSUBSCRIPTION_NOTIFY)
+                amf_namf_callback_handle_sdm_data_change_notify(
+                        stream, &sbi_message);
+                break;
+
+            CASE(OGS_SBI_RESOURCE_NAME_AM_POLICY_NOTIFY)
+                ogs_assert(true == ogs_sbi_send_http_status_no_content(stream));
+                break;
+
+            DEFAULT
+                ogs_error("Invalid resource name [%s]",
+                        sbi_message.h.resource.component[1]);
+                ogs_assert(true ==
+                    ogs_sbi_server_send_error(stream,
+                        OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
+                        "Invalid resource name",
+                        sbi_message.h.resource.component[1]));
+            END
+            break;
+
+        DEFAULT
+            ogs_error("Invalid API name [%s]", sbi_message.h.service.name);
+            ogs_assert(true ==
+                ogs_sbi_server_send_error(stream,
+                    OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
+                    "Invalid API name", sbi_message.h.resource.component[0]));
+        END
+
+ 
+    }	
 }

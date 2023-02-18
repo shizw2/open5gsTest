@@ -110,6 +110,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             break;
         }
 
+
+
         SWITCH(sbi_message.h.service.name)
         CASE(OGS_SBI_SERVICE_NAME_NUDM_SDM)
             api_version = OGS_SBI_API_V2;
@@ -174,7 +176,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                             sps_id = 1;//TODO:根据情况，是丢弃还是随机选择
                             amf_sps_id_set_supi(1,supi);
                         }
-                        udp_ini_msg_sendto(INTERNEL_MSG_SBI, sbi_request->http.content,sbi_request->http.content_length,sps_id);
+                        udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,sps_id);
 				    #endif
                         rv = amf_namf_comm_handle_n1_n2_message_transfer(
                                 stream, &sbi_message);

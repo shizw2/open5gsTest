@@ -383,6 +383,35 @@ typedef struct ogs_sbi_header_s {
 
 } ogs_sbi_header_t;
 
+
+#define MAX_SBI_METHOD_LEN              16
+#define MAX_SBI_URI_LEN                 100
+#define MAX_SBI_SERVICE_NAME_LEN        32
+#define MAX_SBI_VERSION_LEN             16
+#define MAX_SBI_RESOURCE_COMPONENT_LEN  60
+#define MAX_SBI_CONTENT_TYPE            100
+typedef struct ogs_sbi_udp_header_s {
+    char method[MAX_SBI_METHOD_LEN]; //POST,PUT..
+    char uri[MAX_SBI_URI_LEN];
+
+    struct {
+        char  name[MAX_SBI_SERVICE_NAME_LEN]; //目前最长:nucmf-uecapabilitymanagement
+    } service;
+
+    struct {
+        char version[MAX_SBI_VERSION_LEN];
+    } api;
+
+    struct {
+#define OGS_SBI_MAX_NUM_OF_RESOURCE_COMPONENT 8
+        char component[OGS_SBI_MAX_NUM_OF_RESOURCE_COMPONENT][MAX_SBI_RESOURCE_COMPONENT_LEN];//最长：smf-selection-subscription-data
+    } resource;
+
+    char content_type[MAX_SBI_CONTENT_TYPE];//额外添加
+
+}__attribute__ ((packed)) ogs_sbi_udp_header_t;
+
+
 typedef struct ogs_sbi_part_s {
     char *content_id;
     char *content_type;
@@ -400,7 +429,7 @@ typedef struct ogs_sbi_discovery_option_s {
 
 typedef struct ogs_sbi_message_s {
     ogs_sbi_header_t h;
-
+    ogs_sbi_udp_header_t udp_h;
     struct {
         OpenAPI_nf_type_e requester_nf_type;
 
@@ -590,6 +619,9 @@ void ogs_sbi_discovery_option_parse_service_names(
         ogs_sbi_discovery_option_t *discovery_option,
         char *service_names);
 
+void ogs_print_sbi_udp_header(ogs_sbi_udp_header_t *udp_header);
+int ogs_sbi_parse_udp_request(
+        ogs_sbi_message_t *message, ogs_sbi_request_t *request, ogs_sbi_udp_header_t *p_udp_header);
 #ifdef __cplusplus
 }
 #endif

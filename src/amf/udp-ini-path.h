@@ -3,6 +3,7 @@
 
 #include "context.h"
 
+
 #define UDP_INI_HEART_BEAT_INTERVAL         1 
 #define MAX_UDP_INI_HEART_BEAT_LOST_CNT     3
 
@@ -32,7 +33,7 @@ typedef struct amf_internel_msg_header_s {
     uint8_t msg_type;
     uint8_t sps_id;
     uint8_t sps_state;
-}amf_internel_msg_header_t;
+} amf_internel_msg_header_t;
 
 
 
@@ -44,7 +45,7 @@ void udp_ini_close(void);
 
 //icps给sps发送消息时调用
 int udp_ini_sendto(const void *buf, size_t len, int sps_id);
-int udp_ini_msg_sendto(int msg_type, const void *buf, size_t len, int sps_id);
+int udp_ini_msg_sendto(int msg_type, ogs_sbi_udp_header_t *header,const void *buf, size_t len, int sps_id);
 
 //sps给icps发送消息时调用
 int udp_ini_sendto_icps(const void *buf, size_t len);

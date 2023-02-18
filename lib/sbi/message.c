@@ -53,7 +53,7 @@ void ogs_sbi_message_final(void)
     ogs_pool_final(&response_pool);
 }
 
-void ogs_sbi_message_free(ogs_sbi_message_t *message)
+void  ogs_sbi_message_free(ogs_sbi_message_t *message)
 {
     int i;
 
@@ -678,6 +678,8 @@ int ogs_sbi_parse_request(
         } else if (!ogs_strcasecmp(
                     ogs_hash_this_key(hi), OGS_SBI_CONTENT_TYPE)) {
             message->http.content_type = ogs_hash_this_val(hi);
+            snprintf(message->udp_h.content_type, MAX_SBI_CONTENT_TYPE, message->http.content_type);
+            ogs_info("test:content_type:%s.",message->http.content_type);
         } else if (!ogs_strcasecmp(ogs_hash_this_key(hi), OGS_SBI_ACCEPT)) {
             message->http.accept = ogs_hash_this_val(hi);
         } else if (!ogs_strcasecmp(ogs_hash_this_key(hi), OGS_SBI_USER_AGENT)) {
@@ -696,6 +698,38 @@ int ogs_sbi_parse_request(
         ogs_sbi_message_free(message);
         return OGS_ERROR;
     }
+
+    if (parse_content(message, &request->http) != OGS_OK) {
+        ogs_error("parse_content() failed");
+        ogs_sbi_message_free(message);
+        return OGS_ERROR;
+    }
+
+    return OGS_OK;
+}
+
+//new add for udp ini
+int ogs_sbi_parse_udp_request(
+        ogs_sbi_message_t *message, ogs_sbi_request_t *request, ogs_sbi_udp_header_t *p_udp_header)
+{
+    int i;
+    ogs_assert(request);
+    ogs_assert(message);
+
+ 
+    struct {
+#define OGS_SBI_MAX_NUM_OF_RESOURCE_COMPONENT 8
+        char *component[OGS_SBI_MAX_NUM_OF_RESOURCE_COMPONENT];
+    } resource;
+
+    //将message->h中的指针指向p_udp_header。 这样可以复用parse_content函数
+    message->h.method = p_udp_header->method;
+    message->h.uri = p_udp_header->uri;
+    message->h.service.name = p_udp_header->service.name;
+    message->h.api.version = p_udp_header->api.version;
+    for (i = 0; i < OGS_SBI_MAX_NUM_OF_RESOURCE_COMPONENT &&
+                    p_udp_header->resource.component[i]; i++)
+    message->h.resource.component[i] = p_udp_header->resource.component[i];    
 
     if (parse_content(message, &request->http) != OGS_OK) {
         ogs_error("parse_content() failed");
@@ -775,6 +809,9 @@ int ogs_sbi_parse_header(ogs_sbi_message_t *message, ogs_sbi_header_t *header)
     message->h.uri = header->uri;
     ogs_assert(message->h.uri);
 
+    snprintf(message->udp_h.method , MAX_SBI_METHOD_LEN, header->method);
+    snprintf(message->udp_h.uri , MAX_SBI_URI_LEN, header->uri);
+
     uri = ogs_strdup(header->uri);
     ogs_assert(uri);
     p = uri;
@@ -797,6 +834,7 @@ int ogs_sbi_parse_header(ogs_sbi_message_t *message, ogs_sbi_header_t *header)
         return OGS_ERROR;
     }
     message->h.service.name = header->service.name;
+    snprintf(message->udp_h.service.name , MAX_SBI_SERVICE_NAME_LEN, header->service.name);
 
     header->api.version = ogs_sbi_parse_uri(NULL, "/", &saveptr);
     if (!header->api.version) {
@@ -805,13 +843,17 @@ int ogs_sbi_parse_header(ogs_sbi_message_t *message, ogs_sbi_header_t *header)
         return OGS_ERROR;
     }
     message->h.api.version = header->api.version;
+    snprintf(message->udp_h.api.version , MAX_SBI_VERSION_LEN, header->api.version);
 
     for (i = 0; i < OGS_SBI_MAX_NUM_OF_RESOURCE_COMPONENT &&
             (component = ogs_sbi_parse_uri(NULL, "/", &saveptr)) != NULL;
          i++) {
         header->resource.component[i] = component;
         message->h.resource.component[i] = component;
+        snprintf(message->udp_h.resource.component[i] , MAX_SBI_RESOURCE_COMPONENT_LEN, component);
     }
+
+    ogs_print_sbi_udp_header(&message->udp_h);
 
     ogs_free(uri);
 
@@ -2172,6 +2214,8 @@ static int parse_multipart(
     ogs_assert(message);
     ogs_assert(http);
 
+    ogs_info("test:parse_multipart.");
+
     memset(&settings, 0, sizeof(settings));
     settings.on_header_field = &on_header_field;
     settings.on_header_value = &on_header_value;
@@ -2462,4 +2506,26 @@ void ogs_sbi_discovery_option_parse_service_names(
     }
 
     ogs_free(v);
+}
+
+
+void ogs_print_sbi_udp_header(ogs_sbi_udp_header_t *udp_header)
+{
+    if (NULL == udp_header)
+    {   
+        return;
+    }
+    int i;
+
+    ogs_info("sbi header info: method:%s,\n uri:%s,\nservice_name:%s,\n api_version:%s,\ncontent_type:%s.",
+        udp_header->method,udp_header->uri,udp_header->service.name,udp_header->api.version,
+        udp_header->content_type);
+
+    for (i = 0; i < 8; i++)
+    {
+        if (udp_header->resource.component[i][0] != '\0')
+        {
+            ogs_info("component[%d]:%s.",i,udp_header->resource.component[i]);
+        }
+    }
 }
