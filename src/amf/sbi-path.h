@@ -33,6 +33,7 @@ extern "C" {
 
 int amf_sbi_open(void);
 void amf_sbi_close(void);
+int amf_sps_sbi_open(void);
 
 bool amf_sbi_send_request(
         ogs_sbi_nf_instance_t *nf_instance, ogs_sbi_xact_t *xact);
