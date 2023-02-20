@@ -39,6 +39,8 @@ static void test1_func(abts_case *tc, void *data)
 
     bson_t *doc = NULL;
 
+    ogs_msleep(4000);
+
     /* Setup Test UE & Session Context */
     memset(&mobile_identity_suci, 0, sizeof(mobile_identity_suci));
 

@@ -276,7 +276,7 @@ int udp_ini_msg_sendto(int msg_type, ogs_sbi_udp_header_t *header,const void *bu
 	
 	ogs_info("udp_ini_msg_sendto success, msg_type:%d, msg_len:%d",msg_type,pkbuf->len);
 
-	ogs_print_sbi_udp_header(header);
+	//ogs_print_sbi_udp_header(header);
 	if (pkbuf->len > sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)){
 		ogs_info("%s", (char*)(pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)));
 	}
@@ -291,7 +291,7 @@ int udp_ini_sendto_icps(const void *buf, size_t len)
 	return ogs_sendto(amf_self()->udp_node->sock->fd, buf, len, 0, amf_self()->icps_node->addr);
 }
 
-int udp_ini_msg_sendto_icps(int msg_type, const void *buf, size_t len)
+int udp_ini_msg_sendto_icps(int msg_type, ogs_sbi_udp_header_t *header,const void *buf, size_t len)
 {
 	ogs_pkbuf_t *pkbuf = NULL;
 	amf_internel_msg_header_t internel_msg;
@@ -303,6 +303,7 @@ int udp_ini_msg_sendto_icps(int msg_type, const void *buf, size_t len)
 	internel_msg.msg_type   = msg_type;   
 	
     ogs_pkbuf_put_data(pkbuf, &internel_msg, sizeof(amf_internel_msg_header_t));
+    ogs_pkbuf_put_data(pkbuf, header, sizeof(ogs_sbi_udp_header_t));
     ogs_pkbuf_put_data(pkbuf, buf, len);
 	
 	sent = ogs_sendto(amf_self()->udp_node->sock->fd, pkbuf->data, pkbuf->len, 0, amf_self()->icps_node->addr);
@@ -477,6 +478,7 @@ void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
       
         p_udp_header = (ogs_sbi_udp_header_t*)(char*)(pkbuf->data+3);
 
+        memset(&sbi_message, 0, sizeof(sbi_message));
         sbi_message.http.content_type = p_udp_header->content_type;
         
         ogs_info("sbi content:%s", request.http.content);

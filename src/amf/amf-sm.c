@@ -224,15 +224,18 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
         CASE(OGS_SBI_SERVICE_NAME_NAMF_CALLBACK)
             SWITCH(sbi_message.h.resource.component[1])
             CASE(OGS_SBI_RESOURCE_NAME_SM_CONTEXT_STATUS)
+                udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,1);
                 amf_namf_callback_handle_sm_context_status(
                         stream, &sbi_message);
                 break;
 
             CASE(OGS_SBI_RESOURCE_NAME_DEREG_NOTIFY)
+                udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,1);
                 amf_namf_callback_handle_dereg_notify(stream, &sbi_message);
                 break;
 
             CASE(OGS_SBI_RESOURCE_NAME_SDMSUBSCRIPTION_NOTIFY)
+                udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,1);
                 amf_namf_callback_handle_sdm_data_change_notify(
                         stream, &sbi_message);
                 break;
@@ -377,7 +380,14 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
         CASE(OGS_SBI_SERVICE_NAME_NAUSF_AUTH)
         CASE(OGS_SBI_SERVICE_NAME_NUDM_UECM)
         CASE(OGS_SBI_SERVICE_NAME_NUDM_SDM)
-        CASE(OGS_SBI_SERVICE_NAME_NPCF_AM_POLICY_CONTROL)
+        CASE(OGS_SBI_SERVICE_NAME_NPCF_AM_POLICY_CONTROL)            
+            if (is_amf_icps()){
+                ogs_info("test icps:sbi_message.h.service.name:%s.",sbi_message.h.service.name);
+                udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_response->http.content,sbi_response->http.content_length,1);
+            }else{
+                ogs_info("test sps:sbi_message.h.service.name:%s.",sbi_message.h.service.name);
+                udp_ini_msg_sendto_icps(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_response->http.content,sbi_response->http.content_length);
+            }
             sbi_xact = e->h.sbi.data;
             ogs_assert(sbi_xact);
 

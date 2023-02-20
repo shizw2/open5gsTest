@@ -759,6 +759,7 @@ int ogs_sbi_parse_response(
             hi; hi = ogs_hash_next(hi)) {
         if (!ogs_strcasecmp(ogs_hash_this_key(hi), OGS_SBI_CONTENT_TYPE)) {
             message->http.content_type = ogs_hash_this_val(hi);
+            snprintf(message->udp_h.content_type, MAX_SBI_CONTENT_TYPE, "%s", message->http.content_type);
         } else if (!ogs_strcasecmp(ogs_hash_this_key(hi), OGS_SBI_LOCATION)) {
             message->http.location = ogs_hash_this_val(hi);
         }

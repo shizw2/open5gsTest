@@ -4495,8 +4495,10 @@ int icps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
 	ran_ue_icps->amf_ue_ngap_id=pmsg->amf_ue_ngap_id;
 	ran_ue_icps->m_tmsi=pmsg->m_tmsi;
 	if(ran_ue_icps){
-		rvtmp=ngap_send_to_gnb(ran_ue_icps->gnb, pkbuftmp, ran_ue_icps->gnb_ostream_id);
-		}
+		ran_ue_icps->amf_ue_ngap_id=pmsg->amf_ue_ngap_id;
+        ran_ue_icps->m_tmsi=pmsg->m_tmsi; 
+        rvtmp=ngap_send_to_gnb(ran_ue_icps->gnb, pkbuftmp, ran_ue_icps->gnb_ostream_id);
+	}
 	return rvtmp;
 }
 int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ran_ue_t * ran_ue,ogs_pkbuf_t *pkbuf)

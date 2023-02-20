@@ -34,7 +34,7 @@ int udp_ini_msg_sendto(int msg_type, ogs_sbi_udp_header_t *header,const void *bu
 
 //sps给icps发送消息时调用
 int udp_ini_sendto_icps(const void *buf, size_t len);
-int udp_ini_msg_sendto_icps(int msg_type, const void *buf, size_t len);
+int udp_ini_msg_sendto_icps(int msg_type, ogs_sbi_udp_header_t *header,const void *buf, size_t len);
 
 void udp_ini_hand_shake(void);
 void udp_ini_hand_shake_check(void);
