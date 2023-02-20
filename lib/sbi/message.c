@@ -678,7 +678,7 @@ int ogs_sbi_parse_request(
         } else if (!ogs_strcasecmp(
                     ogs_hash_this_key(hi), OGS_SBI_CONTENT_TYPE)) {
             message->http.content_type = ogs_hash_this_val(hi);
-            snprintf(message->udp_h.content_type, MAX_SBI_CONTENT_TYPE, message->http.content_type);
+            snprintf(message->udp_h.content_type, MAX_SBI_CONTENT_TYPE, "%s", message->http.content_type);
             ogs_info("test:content_type:%s.",message->http.content_type);
         } else if (!ogs_strcasecmp(ogs_hash_this_key(hi), OGS_SBI_ACCEPT)) {
             message->http.accept = ogs_hash_this_val(hi);
@@ -809,8 +809,8 @@ int ogs_sbi_parse_header(ogs_sbi_message_t *message, ogs_sbi_header_t *header)
     message->h.uri = header->uri;
     ogs_assert(message->h.uri);
 
-    snprintf(message->udp_h.method , MAX_SBI_METHOD_LEN, header->method);
-    snprintf(message->udp_h.uri , MAX_SBI_URI_LEN, header->uri);
+    snprintf(message->udp_h.method , MAX_SBI_METHOD_LEN, "%s", header->method);
+    snprintf(message->udp_h.uri , MAX_SBI_URI_LEN, "%s", header->uri);
 
     uri = ogs_strdup(header->uri);
     ogs_assert(uri);
@@ -834,7 +834,7 @@ int ogs_sbi_parse_header(ogs_sbi_message_t *message, ogs_sbi_header_t *header)
         return OGS_ERROR;
     }
     message->h.service.name = header->service.name;
-    snprintf(message->udp_h.service.name , MAX_SBI_SERVICE_NAME_LEN, header->service.name);
+    snprintf(message->udp_h.service.name , MAX_SBI_SERVICE_NAME_LEN, "%s", header->service.name);
 
     header->api.version = ogs_sbi_parse_uri(NULL, "/", &saveptr);
     if (!header->api.version) {
@@ -843,14 +843,14 @@ int ogs_sbi_parse_header(ogs_sbi_message_t *message, ogs_sbi_header_t *header)
         return OGS_ERROR;
     }
     message->h.api.version = header->api.version;
-    snprintf(message->udp_h.api.version , MAX_SBI_VERSION_LEN, header->api.version);
+    snprintf(message->udp_h.api.version , MAX_SBI_VERSION_LEN, "%s", header->api.version);
 
     for (i = 0; i < OGS_SBI_MAX_NUM_OF_RESOURCE_COMPONENT &&
             (component = ogs_sbi_parse_uri(NULL, "/", &saveptr)) != NULL;
          i++) {
         header->resource.component[i] = component;
         message->h.resource.component[i] = component;
-        snprintf(message->udp_h.resource.component[i] , MAX_SBI_RESOURCE_COMPONENT_LEN, component);
+        snprintf(message->udp_h.resource.component[i] , MAX_SBI_RESOURCE_COMPONENT_LEN, "%s", component);
     }
 
     ogs_print_sbi_udp_header(&message->udp_h);
