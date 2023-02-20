@@ -69,6 +69,8 @@ int ngap_send_to_gnb(amf_gnb_t *gnb, ogs_pkbuf_t *pkbuf, uint16_t stream_no)
 
     ogs_debug("    IP[%s] RAN_ID[%d]",
             OGS_ADDR(gnb->sctp.addr, buf), gnb->gnb_id);
+	ogs_info("    IP[%s] RAN_ID[%d]",
+				OGS_ADDR(gnb->sctp.addr, buf), gnb->gnb_id);
 
     ogs_sctp_ppid_in_pkbuf(pkbuf) = OGS_SCTP_NGAP_PPID;
     ogs_sctp_stream_no_in_pkbuf(pkbuf) = stream_no;
@@ -91,7 +93,36 @@ int ngap_send_to_ran_ue(ran_ue_t *ran_ue, ogs_pkbuf_t *pkbuf)
         ogs_pkbuf_free(pkbuf);
         return OGS_ERROR;
     }
-
+	
+    return ngap_send_to_gnb(ran_ue->gnb, pkbuf, ran_ue->gnb_ostream_id);
+}
+int ngap_send_to_ran_ue_sps(ran_ue_t *ran_ue, ogs_pkbuf_t *pkbuf)
+{
+    ogs_assert(pkbuf);
+	amf_internel_msgbuf_t tmsg;
+    uint8_t len,buff[4096];
+    ran_ue = ran_ue_cycle(ran_ue);
+    if (!ran_ue) {
+        ogs_warn("NG context has already been removed");
+        ogs_pkbuf_free(pkbuf);
+        return OGS_ERROR;
+    }
+	tmsg.msg_head.msg_type=INTERNEL_MSG_NGAP;
+	tmsg.msg_head.ran_ue_ngap_id=ran_ue->ran_ue_ngap_id;
+	tmsg.msg_head.amf_ue_ngap_id=ran_ue->amf_ue_ngap_id;
+	tmsg.msg_head.m_tmsi=ran_ue->m_tmsi;
+	tmsg.msg_head.len=pkbuf->len;	
+	len=sizeof(tmsg.msg_head);
+	memcpy(buff,&tmsg,sizeof(tmsg.msg_head));
+	memcpy(buff+len,pkbuf->data,pkbuf->len);
+	len=len+pkbuf->len;
+	printf("////////////////////9999 len:%d\n",len);
+	if(is_amf_sps())
+		{
+	       ogs_sendto(amf_self()->udp_node->sock->fd,buff,len,0, amf_self()->icps_node->addr);
+		   return OGS_OK;
+		}
+    else
     return ngap_send_to_gnb(ran_ue->gnb, pkbuf, ran_ue->gnb_ostream_id);
 }
 
@@ -155,16 +186,20 @@ int ngap_send_to_nas(ran_ue_t *ran_ue,
     ogs_nas_5gmm_header_t *h = NULL;
     ogs_pkbuf_t *nasbuf = NULL;
     amf_event_t *e = NULL;
+	//printf("========================================================2\n");
 
     ogs_assert(ran_ue);
     ogs_assert(nasPdu);
+	//printf("========================================================3\n");
 
     /* The Packet Buffer(pkbuf_t) for NAS message MUST make a HEADROOM. 
      * When calculating AES_CMAC, we need to use the headroom of the packet. */
     nasbuf = ogs_pkbuf_alloc(NULL, OGS_NAS_HEADROOM+nasPdu->size);
+	printf("========================================================4 nasPdu->size:%lu\n",nasPdu->size);
     ogs_assert(nasbuf);
     ogs_pkbuf_reserve(nasbuf, OGS_NAS_HEADROOM);
     ogs_pkbuf_put_data(nasbuf, nasPdu->buf, nasPdu->size);
+	printf("========================================================5 nasPdu->size:%lu\n",nasPdu->size);
 
     sh = (ogs_nas_5gs_security_header_t *)nasbuf->data;
     ogs_assert(sh);
@@ -198,7 +233,7 @@ int ngap_send_to_nas(ran_ue_t *ran_ue,
                 sh->security_header_type);
         return OGS_ERROR;
     }
-
+printf("========================================================nasPdu->size:%lu\n",nasPdu->size);
     if (ran_ue->amf_ue) {
         if (nas_5gs_security_decode(ran_ue->amf_ue,
                 security_header_type, nasbuf) != OGS_OK) {
@@ -245,6 +280,113 @@ int ngap_send_to_nas(ran_ue_t *ran_ue,
         return OGS_ERROR;
     }
 }
+int ngap_send_to_nas_sps(ran_ue_t *ran_ue,
+				NGAP_ProcedureCode_t procedureCode, size_t nas_len,uint8_t *nasPdu)
+	{
+		ogs_nas_5gs_security_header_t *sh = NULL;
+		ogs_nas_security_header_type_t security_header_type;
+		
+		ogs_nas_5gmm_header_t *h = NULL;
+		ogs_pkbuf_t *nasbuf = NULL;
+		amf_event_t *e = NULL;			
+		
+		ogs_assert(ran_ue);
+		ogs_assert(nasPdu);
+		printf("========================================================3len:%lu\n",nas_len);
+		
+			/* The Packet Buffer(pkbuf_t) for NAS message MUST make a HEADROOM. 
+			 * When calculating AES_CMAC, we need to use the headroom of the packet. */
+		nasbuf = ogs_pkbuf_alloc(NULL, OGS_NAS_HEADROOM+nas_len);
+		if(nasbuf){
+			     printf("========================================================4 nasPdu->size:%lu\n",nas_len);
+		}else{
+				    printf("========================================================666\n");
+				}
+			//ogs_assert(nasbuf);
+		ogs_pkbuf_reserve(nasbuf, OGS_NAS_HEADROOM);
+		printf("========================================================5 *nasPdu:%02x\n",*nasPdu);
+		ogs_pkbuf_put_data(nasbuf, nasPdu, nas_len);
+		printf("========================================================6 nasPdu->size:%lu\n",nas_len);
+		
+		sh = (ogs_nas_5gs_security_header_t *)nasbuf->data;
+		ogs_assert(sh);
+		
+		memset(&security_header_type, 0, sizeof(ogs_nas_security_header_type_t));
+		switch(sh->security_header_type) {
+			case OGS_NAS_SECURITY_HEADER_PLAIN_NAS_MESSAGE:
+				break;
+			case OGS_NAS_SECURITY_HEADER_INTEGRITY_PROTECTED:
+				security_header_type.integrity_protected = 1;
+				ogs_pkbuf_pull(nasbuf, 7);
+				break;
+			case OGS_NAS_SECURITY_HEADER_INTEGRITY_PROTECTED_AND_CIPHERED:
+				security_header_type.integrity_protected = 1;
+				security_header_type.ciphered = 1;
+				ogs_pkbuf_pull(nasbuf, 7);
+				break;
+			case OGS_NAS_SECURITY_HEADER_INTEGRITY_PROTECTED_AND_NEW_SECURITY_CONTEXT:
+				security_header_type.integrity_protected = 1;
+				security_header_type.new_security_context = 1;
+				ogs_pkbuf_pull(nasbuf, 7);
+				break;
+			case OGS_NAS_SECURITY_HEADER_INTEGRITY_PROTECTED_AND_CIPHTERD_WITH_NEW_INTEGRITY_CONTEXT:
+				security_header_type.integrity_protected = 1;
+				security_header_type.ciphered = 1;
+				security_header_type.new_security_context = 1;
+				ogs_pkbuf_pull(nasbuf, 7);
+				break;
+			default:
+				ogs_error("Not implemented(security header type:0x%x)",
+						sh->security_header_type);
+				return OGS_ERROR;
+			}
+		printf("========================================================nasPdu->size:%lu\n",nas_len);
+		if (ran_ue->amf_ue) {
+				if (nas_5gs_security_decode(ran_ue->amf_ue,
+						security_header_type, nasbuf) != OGS_OK) {
+					ogs_error("nas_eps_security_decode failed()");
+					return OGS_ERROR;
+				}
+			}
+		
+		h = (ogs_nas_5gmm_header_t *)nasbuf->data;
+		ogs_assert(h);
+		if (h->extended_protocol_discriminator ==
+					OGS_NAS_EXTENDED_PROTOCOL_DISCRIMINATOR_5GMM) {
+			int rv;
+			e = amf_event_new(AMF_EVENT_5GMM_MESSAGE);
+			if (!e) {
+					ogs_error("ngap_send_to_nas() failed");
+					ogs_pkbuf_free(nasbuf);
+					return OGS_ERROR;
+			}
+			e->ran_ue = ran_ue;
+			e->ngap.code = procedureCode;
+			e->nas.type = security_header_type.type;
+			e->pkbuf = nasbuf;
+			rv = ogs_queue_push(ogs_app()->queue, e);
+			if (rv != OGS_OK) {
+					ogs_error("ngap_send_to_nas() failed:%d", (int)rv);
+					ogs_pkbuf_free(e->pkbuf);
+					ogs_event_free(e);
+				}
+			return rv;
+			} else if (h->extended_protocol_discriminator ==
+					OGS_NAS_EXTENDED_PROTOCOL_DISCRIMINATOR_5GSM) {
+				amf_ue_t *amf_ue = ran_ue->amf_ue;
+				if (!amf_ue) {
+					ogs_error("No UE Context");
+					ogs_pkbuf_free(nasbuf);
+					return OGS_ERROR;
+				}
+				return ngap_send_to_5gsm(amf_ue, nasbuf);
+			} else {
+				ogs_error("Unknown NAS Protocol discriminator 0x%02x",
+						  h->extended_protocol_discriminator);
+				ogs_pkbuf_free(nasbuf);
+				return OGS_ERROR;
+			}
+	}
 
 int ngap_send_ng_setup_response(amf_gnb_t *gnb)
 {

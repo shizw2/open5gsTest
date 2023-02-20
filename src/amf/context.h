@@ -167,6 +167,7 @@ struct ran_ue_s {
 #define INVALID_UE_NGAP_ID      0xffffffff /* Initial value of ran_ue_ngap_id */
     uint32_t        ran_ue_ngap_id; /* eNB-UE-NGAP-ID received from eNB */
     uint64_t        amf_ue_ngap_id; /* AMF-UE-NGAP-ID received from AMF */
+	amf_m_tmsi_t	m_tmsi;// add 0206 O3 为了处理初始消息，查找amf_ue_ngap_id，查找sps_id
 
     uint16_t        gnb_ostream_id; /* SCTP output stream id for eNB */
 
@@ -623,6 +624,31 @@ typedef struct amf_sess_s {
 
 } amf_sess_t;
 
+#define INTERNEL_MSG_HAND_SHAKE_REQ                      0
+#define INTERNEL_MSG_HAND_SHAKE_RSP                      1
+#define INTERNEL_MSG_NGAP                      			 2
+#define INTERNEL_MSG_SBI                                 3
+
+#define MAX_INTERNEL_MESSAGE_LEN  (1024*20)  /* max message len 10K */
+
+typedef struct amf_internel_msg_header_s {
+    uint8_t msg_type;
+    uint8_t sps_id;
+    uint8_t sps_state;
+	uint8_t rev;/* O3 */
+	uint32_t  ran_ue_ngap_id; /* O3 */
+    uint64_t  amf_ue_ngap_id; /* O3 */
+	uint32_t  m_tmsi;/* O3 */
+	ogs_5gs_tai_t   nr_tai;
+    ogs_nr_cgi_t    nr_cgi;
+	size_t  len;
+}amf_internel_msg_header_t;
+
+typedef struct amf_internel_msgbuf_s {
+   amf_internel_msg_header_t msg_head;
+   uint8_t *buf;
+}amf_internel_msgbuf_t;
+
 void amf_context_init(void);
 void amf_context_final(void);
 amf_context_t *amf_self(void);
@@ -640,6 +666,8 @@ int amf_gnb_sock_type(ogs_sock_t *sock);
 amf_gnb_t *amf_gnb_cycle(amf_gnb_t *gnb);
 
 ran_ue_t *ran_ue_add(amf_gnb_t *gnb, uint32_t ran_ue_ngap_id);
+ran_ue_t *ran_ue_add_sps( uint32_t ran_ue_ngap_id,uint64_t amf_ue_ngap_id);//o3 0213
+
 void ran_ue_remove(ran_ue_t *ran_ue);
 void ran_ue_switch_to_gnb(ran_ue_t *ran_ue, amf_gnb_t *new_gnb);
 ran_ue_t *ran_ue_find_by_ran_ue_ngap_id(

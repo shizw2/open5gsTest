@@ -22,21 +22,6 @@ typedef struct pkt_fwd_tbl_s{
 }pkt_fwd_tbl_t;
 
 
-#define INTERNEL_MSG_HAND_SHAKE_REQ                      0
-#define INTERNEL_MSG_HAND_SHAKE_RSP                      1
-#define INTERNEL_MSG_NGAP                      			 2
-#define INTERNEL_MSG_SBI                                 3
-
-#define MAX_INTERNEL_MESSAGE_LEN  (1024*20)  /* max message len 10K */
-
-typedef struct amf_internel_msg_header_s {
-    uint8_t msg_type;
-    uint8_t sps_id;
-    uint8_t sps_state;
-} amf_internel_msg_header_t;
-
-
-
 int sps_udp_ini_open(void);
 int udp_ini_open(void);
 void icps_client_recv_cb(short when, ogs_socket_t fd, void *data);

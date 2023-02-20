@@ -22,6 +22,8 @@
 
 #include "ngap-build.h"
 
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,10 +43,15 @@ int ngap_send(ogs_sock_t *sock,
 int ngap_send_to_gnb(
         amf_gnb_t *gnb, ogs_pkbuf_t *pkb, uint16_t stream_no);
 int ngap_send_to_ran_ue(ran_ue_t *ran_ue, ogs_pkbuf_t *pkbuf);
+int ngap_send_to_ran_ue_sps(ran_ue_t *ran_ue, ogs_pkbuf_t *pkbuf);
+
 int ngap_delayed_send_to_ran_ue(ran_ue_t *ran_ue,
         ogs_pkbuf_t *pkbuf, ogs_time_t duration);
 int ngap_send_to_nas(ran_ue_t *ran_ue,
         NGAP_ProcedureCode_t procedureCode, NGAP_NAS_PDU_t *nasPdu);
+int ngap_send_to_nas_sps(ran_ue_t *ran_ue,
+				NGAP_ProcedureCode_t procedureCode, size_t len,uint8_t *nasPdu);//O3
+
 int ngap_send_to_5gsm(amf_ue_t *amf_ue, ogs_pkbuf_t *esmbuf);
 
 int ngap_send_ng_setup_response(amf_gnb_t *gnb);

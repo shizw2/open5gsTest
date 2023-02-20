@@ -22,14 +22,38 @@
 
 #include "context.h"
 
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef struct NGAP_icps_send_code_s{
+	struct {
+	NGAP_UEContextRequest_t UEContextRequest;
+	NGAP_ProcedureCode_t ProcedureCode;
+	size_t size;
+	}h;
+	uint8_t *buf;	/* Buffer with consecutive OCTET_STRING bits */
+	//size_t sizebuf;
+}NGAP_icps_send_code_t;
+
+typedef struct NGAP_icps_send_head_s{
+	
+	NGAP_UEContextRequest_t UEContextRequest;
+	NGAP_ProcedureCode_t ProcedureCode;
+	size_t size;	
+	//uint8_t *buf;	/* Buffer with consecutive OCTET_STRING bits */
+	//size_t sizebuf;
+}NGAP_icps_send_head_t;
 
 void ngap_handle_ng_setup_request(
         amf_gnb_t *gnb, ogs_ngap_message_t *message);
 void ngap_handle_initial_ue_message(
         amf_gnb_t *gnb, ogs_ngap_message_t *message);
+void ngap_handle_initial_ue_message_sps(
+        amf_gnb_t *gnb, ogs_ngap_message_t *message);
+
 void ngap_handle_uplink_nas_transport(
         amf_gnb_t *gnb, ogs_ngap_message_t *message);
 void ngap_handle_ue_radio_capability_info_indication(
@@ -83,6 +107,13 @@ void ngap_handle_ng_reset(
         amf_gnb_t *gnb, ogs_ngap_message_t *message);
 void ngap_handle_error_indication(
         amf_gnb_t *gnb, ogs_ngap_message_t *message);
+uint8_t spsid_find_by_tmsi(ran_ue_t           *ran_ue, uint32_t *m_tmsi);//O3
+uint8_t spsid_find_by_amf_ue_ngap_id(uint64_t amf_ue_ngap_id);//O3
+void ngap_icps_send_to_sps(uint8_t spsid,ran_ue_t *ran_ue, NGAP_icps_send_code_t *message);//O3
+int icps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf);//O3
+int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ran_ue_t * ran_ue,ogs_pkbuf_t *pkbuf);//O3
+
+
 
 #ifdef __cplusplus
 }

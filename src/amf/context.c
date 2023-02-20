@@ -1240,6 +1240,39 @@ ran_ue_t *ran_ue_add(amf_gnb_t *gnb, uint32_t ran_ue_ngap_id)
 
     return ran_ue;
 }
+ran_ue_t *ran_ue_add_sps( uint32_t ran_ue_ngap_id,uint64_t amf_ue_ngap_id)
+{
+    ran_ue_t *ran_ue = NULL;
+
+    //ogs_assert(gnb);
+
+    ogs_pool_alloc(&ran_ue_pool, &ran_ue);
+    if (ran_ue == NULL) {
+        ogs_error("Could not allocate ran_ue context from pool");
+        return NULL;
+    }
+
+    memset(ran_ue, 0, sizeof *ran_ue);
+
+    ran_ue->t_ng_holding = ogs_timer_add(
+            ogs_app()->timer_mgr, amf_timer_ng_holding_timer_expire, ran_ue);
+    if (!ran_ue->t_ng_holding) {
+        ogs_error("ogs_timer_add() failed");
+        ogs_pool_free(&ran_ue_pool, ran_ue);
+        return NULL;
+    }
+
+    ran_ue->index = ogs_pool_index(&ran_ue_pool, ran_ue);
+    ogs_assert(ran_ue->index > 0 && ran_ue->index <= ogs_app()->max.ue);
+
+    ran_ue->ran_ue_ngap_id = ran_ue_ngap_id;
+    ran_ue->amf_ue_ngap_id = amf_ue_ngap_id;
+   
+
+    stats_add_ran_ue();
+
+    return ran_ue;
+}
 
 void ran_ue_remove(ran_ue_t *ran_ue)
 {
@@ -1391,12 +1424,12 @@ void amf_ue_confirm_guti(amf_ue_t *amf_ue)
 
 amf_ue_t *amf_ue_add(ran_ue_t *ran_ue)
 {
-    amf_gnb_t *gnb = NULL;
+    //amf_gnb_t *gnb = NULL;//O3
     amf_ue_t *amf_ue = NULL;
 
     ogs_assert(ran_ue);
-    gnb = ran_ue->gnb;
-    ogs_assert(gnb);
+   // gnb = ran_ue->gnb;//O3
+   // ogs_assert(gnb);//O3
 
     ogs_pool_alloc(&amf_ue_pool, &amf_ue);
     if (amf_ue == NULL) {

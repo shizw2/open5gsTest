@@ -32,7 +32,14 @@ int nas_5gs_send_to_gnb(amf_ue_t *amf_ue, ogs_pkbuf_t *pkbuf)
         ogs_pkbuf_free(pkbuf);
         return OGS_ERROR;
     }
-
+	printf("7777777777777776666666666\n");
+	if(is_amf_sps())
+		{
+		 amf_ue->ran_ue->m_tmsi=*(amf_ue->next.m_tmsi);
+		 printf("77777777777777777777777777777777777777777\n");
+		 return ngap_send_to_ran_ue_sps(amf_ue->ran_ue, pkbuf);
+		}	
+	else
     return ngap_send_to_ran_ue(amf_ue->ran_ue, pkbuf);
 }
 

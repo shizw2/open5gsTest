@@ -81,6 +81,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
     char *supi = NULL;
     int sps_id = 0;
+    amf_internel_msg_header_t internel_msg;
+    ssize_t sent;
 
     amf_sm_debug(e);
 
@@ -109,8 +111,6 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                     NULL, "cannot parse HTTP sbi_message", NULL));
             break;
         }
-
-
 
         SWITCH(sbi_message.h.service.name)
         CASE(OGS_SBI_SERVICE_NAME_NUDM_SDM)
@@ -161,7 +161,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             END
             break;
 
-        CASE(OGS_SBI_SERVICE_NAME_NAMF_COMM)        
+        CASE(OGS_SBI_SERVICE_NAME_NAMF_COMM)
             SWITCH(sbi_message.h.resource.component[0])
             CASE(OGS_SBI_RESOURCE_NAME_UE_CONTEXTS)
                 SWITCH(sbi_message.h.resource.component[2])
@@ -224,16 +224,6 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
         CASE(OGS_SBI_SERVICE_NAME_NAMF_CALLBACK)
             SWITCH(sbi_message.h.resource.component[1])
             CASE(OGS_SBI_RESOURCE_NAME_SM_CONTEXT_STATUS)
-			#if 0
-				//获取supi,找到sps模块
-				char *supi = sbi_message.h.resource.component[0];
-				sps_id = amf_sps_id_find_by_supi(supi);
-				if (0 == sps_id){
-					sps_id = 1;//TODO:根据情况，是丢弃还是随机选择
-					amf_sps_id_set_supi(1,supi);
-				}
-				udp_ini_msg_sendto(INTERNEL_MSG_SBI, sbi_request->http.content,sbi_request->http.content_length,sps_id);
-			#endif	
                 amf_namf_callback_handle_sm_context_status(
                         stream, &sbi_message);
                 break;
@@ -763,7 +753,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
         gnb = amf_gnb_find_by_addr(addr);
         ogs_free(addr);
-
+        
         ogs_assert(gnb);
         ogs_assert(OGS_FSM_STATE(&gnb->sm));
 
@@ -950,7 +940,32 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 case  INTERNEL_MSG_NGAP:
                 {
                     //TODO
-					ogs_info("icps recv ngap msg.");
+                    #if 0
+                    ogs_info("ICPS rev INTERNEL_MSG_NGAP !!!!1~~~~");
+					//uint8_t *bufrev;
+					ogs_pkbuf_t *pkbuftmp = NULL;
+					ran_ue_t * ran_ue_icps=NULL;
+					pkbuftmp=ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
+					int rvtmp;
+					ogs_info("ICPS rev INTERNEL_MSG_NGAP ngap_send_to_gnb pkbuf->len:%d",pkbuf->len);
+					ogs_info("pkbuf->data:%02x%02x%02x%02x",*pkbuf->data,*(pkbuf->data+1),*(pkbuf->data+2),*(pkbuf->data+3));
+					pkbuftmp->data=pkbuf->data+sizeof(amf_internel_msg_header_t);
+					pkbuftmp->len=pkbuf->len-sizeof(amf_internel_msg_header_t);				
+					ogs_info("pkbuftmp->data:%02x%02x%02x%02x",*pkbuftmp->data,*(pkbuftmp->data+1),*(pkbuftmp->data+2),*(pkbuftmp->data+3));
+					ran_ue_icps=ran_ue_find_by_amf_ue_ngap_id(pmsg->ran_ue_ngap_id);
+					ran_ue_icps->amf_ue_ngap_id=pmsg->amf_ue_ngap_id;
+					ran_ue_icps->m_tmsi=pmsg->m_tmsi;
+					if(ran_ue_icps){
+					rvtmp=ngap_send_to_gnb(ran_ue_icps->gnb, pkbuftmp, ran_ue_icps->gnb_ostream_id);
+					if(rvtmp==OGS_OK)
+						ogs_info("ICPS rev INTERNEL_MSG_NGAP ngap_send_to_gnb !!!!1~~~~rvtmp:%d",rvtmp);
+					}
+					//ogs_pkbuf_free(pkbuftmp);
+					#endif
+					int rv;
+				    rv=icps_handle_rev_ini_ngap(pmsg,pkbuf);
+				    if(rv==OGS_OK)
+				   	 ogs_info(" ICPS rev INTERNEL_MSG_NGAP,ICPS Send TO Ngap OK! ");
                     break;
                 }
                 case  INTERNEL_MSG_SBI:
@@ -975,7 +990,40 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 case  INTERNEL_MSG_NGAP:
                 {
                     //TODO
-					ogs_info("sps recv ngap msg.");
+                  #if 0
+                   uint8_t *buf;
+				   
+                   ogs_info("SPS rev INTERNEL_MSG_NGAP !!!!1111111");
+				   
+                   amf_internel_msgbuf_t *pmsg_buf = (amf_internel_msgbuf_t *)pkbuf->data;
+				   buf=pmsg+sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t);
+				   
+				   pmsg_buf->buf=(uint8_t*)pkbuf->data+sizeof(pmsg_buf->msg_head);
+				   printf("===len:%lu==========pmsg_buf->msg_head amf ue id:%lu  pmsg->amf_ue_ngap_id:%lu\n",pmsg_buf->msg_head.len,pmsg_buf->msg_head.amf_ue_ngap_id,pmsg->amf_ue_ngap_id);
+                   NGAP_icps_send_head_t *pmsg_buf_head=(NGAP_icps_send_head_t *)pmsg_buf->buf;
+				   memcpy(buf,pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t),pmsg_buf_head->size);
+				   
+				   ogs_info("SPS rev INTERNEL_MSG_NGAP !!!!222222222ProcedureCode=== %lu",pmsg_buf_head->ProcedureCode);
+                   ogs_info("SPS rev INTERNEL_MSG_NGAP !!!!pmsg_buf->msg_head.len:%lu,sizeof(pmsg_buf_head):%lu,lll: %lu",pmsg_buf->msg_head.len,sizeof(pmsg_buf_head),sizeof(pmsg_buf_head)+sizeof(pmsg_buf->msg_head));
+				   printf("%02x%02x%02x%02x==buuff==%02x%02x%02x%02x===\n",*(buf),*(buf+1),*(buf+2),*(buf+3),*(buf+4),*(buf+5),*(buf+6),*(buf+7));		          
+                   if(pmsg_buf_head->ProcedureCode == NGAP_ProcedureCode_id_InitialUEMessage)
+                   	{  
+                   	    ogs_info("SPS rev INTERNEL_MSG_NGAP !!!!333333 amf_ue_ngap_id=%lu",pmsg->amf_ue_ngap_id);
+                   	    ran_ue=ran_ue_add_sps(pmsg->ran_ue_ngap_id,pmsg->amf_ue_ngap_id);
+						ran_ue->saved.nr_tai=pmsg_buf->msg_head.nr_tai;
+						ran_ue->saved.nr_cgi=pmsg_buf->msg_head.nr_cgi;
+					   	if(ran_ue){
+							
+							//printf("==================1 pmsg_buf_code->h.size:%lu==buf==%02x%02x%02x\n",pmsg_buf_code->h.size,*(pmsg_buf_code->buf),*(pmsg_buf_code->buf+1),*(pmsg_buf_code->buf+2));
+					          ngap_send_to_nas_sps(ran_ue, pmsg_buf_head->ProcedureCode,pmsg_buf_head->size,buf);//pmsg_buf_code->buf
+					   		}
+						
+                   	}
+				   #endif
+				   int rv;
+				   rv=sps_handle_rev_ini_ngap(pmsg,ran_ue,pkbuf);
+				   if(rv==OGS_OK)
+				   	ogs_info(" SPS rev INTERNEL_MSG_NGAP,ICPS Send SPS OK! ");
                     break;
                 }
                 case  INTERNEL_MSG_SBI:
