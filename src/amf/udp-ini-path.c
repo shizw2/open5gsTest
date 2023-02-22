@@ -1,5 +1,6 @@
 #include "udp-ini-path.h"
 #include "namf-handler.h"
+#include "sbi-path.h"
 
 extern int g_sps_id;
 
@@ -297,7 +298,7 @@ int udp_ini_msg_sendto_icps(int msg_type, ogs_sbi_udp_header_t *header,const voi
 	amf_internel_msg_header_t internel_msg;
 	ssize_t sent;
 	
-	pkbuf = ogs_pkbuf_alloc(NULL, sizeof(amf_internel_msg_header_t) + len);
+	pkbuf = ogs_pkbuf_alloc(NULL, sizeof(amf_internel_msg_header_t) + sizeof(ogs_sbi_udp_header_t) + len);
     ogs_assert(pkbuf);
     //ogs_pkbuf_reserve(pkbuf, sizeof(amf_internel_msg_header_t));
 	internel_msg.msg_type   = msg_type;   
@@ -642,5 +643,40 @@ void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
         END
 
  
+    }	
+}
+
+void udp_ini_icps_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
+{	
+    ogs_sbi_message_t sbi_message;
+    ogs_sbi_request_t request;
+    amf_internel_msg_header_t *msg_header = NULL;
+    ogs_sbi_udp_header_t *p_udp_header = NULL;
+    int rv;
+    const char *api_version = NULL;
+    ogs_sbi_stream_t *stream = NULL;
+    amf_ue_t *amf_ue = NULL;
+    ran_ue_t *ran_ue_icps = NULL;
+
+	ogs_info("icps recv sbi msg, msg_len:%d,msg_head_len:%ld,udp_head_len:%ld.", pkbuf->len,sizeof(amf_internel_msg_header_t),sizeof(ogs_sbi_udp_header_t));					
+	if (pkbuf->len >= sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)){		
+        p_udp_header = (ogs_sbi_udp_header_t*)(char*)(pkbuf->data+ sizeof(amf_internel_msg_header_t)); 
+        msg_header = (amf_internel_msg_header_t*)pkbuf->data;           
+        if (p_udp_header->service_type == OGS_SBI_SERVICE_TYPE_NAUSF_AUTH)
+        {
+            ogs_info("udp_ini_icps_handle_sbi_msg, aush auth.");
+
+            ran_ue_icps = ran_ue_find_by_amf_ue_ngap_id(p_udp_header->ran_ue_ngap_id);
+            if (ran_ue_icps && !ran_ue_icps->amf_ue){
+                ogs_info("icps add new amf_ue.");
+                amf_ue = amf_ue_add(ran_ue_icps);
+                amf_ue->suci = "suci-0-999-70-0-0-0-0000021309";
+            }
+
+            ogs_assert(true ==
+                        amf_ue_sbi_discover_and_send(
+                            OGS_SBI_SERVICE_TYPE_NAUSF_AUTH, NULL,
+                            amf_nausf_auth_build_authenticate, amf_ue, NULL));
+        }
     }	
 }

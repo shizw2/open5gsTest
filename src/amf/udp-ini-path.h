@@ -42,6 +42,8 @@ void udp_ini_hand_shake_check(void);
 void udp_ini_handle_hand_shake(amf_internel_msg_header_t *pmsg);
 void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf);
 
+void udp_ini_icps_handle_sbi_msg(ogs_pkbuf_t *pkbuf);
+
 //暂时放在这里
 bool add_module_info(uint8_t b_module_no);
 bool delete_module_info(uint8_t b_module_no);

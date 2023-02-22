@@ -29,6 +29,7 @@
 #include "npcf-handler.h"
 #include "sbi-path.h"
 #include "amf-sm.h"
+#include "udp-ini-path.h"
 
 #undef OGS_LOG_DOMAIN
 #define OGS_LOG_DOMAIN __gmm_log_domain
@@ -101,6 +102,8 @@ static void common_register_state(ogs_fsm_t *s, amf_event_t *e)
 
     ogs_sbi_response_t *sbi_response = NULL;
     ogs_sbi_message_t *sbi_message = NULL;
+
+    ogs_sbi_udp_header_t  sbi_header;
 
     ogs_assert(e);
 
@@ -275,13 +278,21 @@ static void common_register_state(ogs_fsm_t *s, amf_event_t *e)
                 break;
             }
 
+            ogs_info("amf_sbi_send_release_all_sessions");
             amf_sbi_send_release_all_sessions(
                     amf_ue, AMF_RELEASE_SM_CONTEXT_NO_STATE);
             if (amf_sess_xact_count(amf_ue) == xact_count) {
-                ogs_assert(true ==
-                    amf_ue_sbi_discover_and_send(
-                        OGS_SBI_SERVICE_TYPE_NAUSF_AUTH, NULL,
-                        amf_nausf_auth_build_authenticate, amf_ue, NULL));
+                if (is_amf_sps){
+                    ogs_info("amf_nausf_auth_build_authenticate");
+                    sbi_header.service_type = OGS_SBI_SERVICE_TYPE_NAUSF_AUTH;
+                    sbi_header.ran_ue_ngap_id = ran_ue->amf_ue_ngap_id;
+                    udp_ini_msg_sendto_icps(INTERNEL_MSG_SBI, &sbi_header, NULL,0);
+                }else{
+                    ogs_assert(true ==
+                        amf_ue_sbi_discover_and_send(
+                            OGS_SBI_SERVICE_TYPE_NAUSF_AUTH, NULL,
+                            amf_nausf_auth_build_authenticate, amf_ue, NULL));
+                }
             }
 
             OGS_FSM_TRAN(s, &gmm_state_authentication);

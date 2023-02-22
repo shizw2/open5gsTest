@@ -982,6 +982,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 {
                     //TODO
 					ogs_info("icps recv sbi msg.");
+                    udp_ini_icps_handle_sbi_msg(pkbuf);
                     break;
                 }
                 default:

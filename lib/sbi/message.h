@@ -407,7 +407,10 @@ typedef struct ogs_sbi_udp_header_s {
         char component[OGS_SBI_MAX_NUM_OF_RESOURCE_COMPONENT][MAX_SBI_RESOURCE_COMPONENT_LEN];//最长：smf-selection-subscription-data
     } resource;
 
-    char content_type[MAX_SBI_CONTENT_TYPE];//额外添加
+    char content_type[MAX_SBI_CONTENT_TYPE];
+    ogs_sbi_service_type_e service_type;
+    uint32_t  ran_ue_ngap_id; 
+    uint64_t  amf_ue_ngap_id; 
 
 }__attribute__ ((packed)) ogs_sbi_udp_header_t;
 
