@@ -60,8 +60,8 @@ int amf_initialize()
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
 
-    rv = amf_sbi_open();
-    if (rv != OGS_OK) return rv;
+    //rv = amf_sbi_open();
+    //if (rv != OGS_OK) return rv;
 
     rv = ngap_open();
     if (rv != OGS_OK) return rv;
@@ -111,6 +111,8 @@ int amf_sps_initialize()
 
     //rv = amf_sps_sbi_open();
     //if (rv != OGS_OK) return rv;
+    rv = amf_sbi_open();
+    if (rv != OGS_OK) return rv;
 
     rv = udp_ini_open();
     if (rv != OGS_OK) return rv;

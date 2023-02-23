@@ -65,10 +65,11 @@ int amf_sbi_open(void)
             OpenAPI_nf_type_SMF, OGS_SBI_SERVICE_NAME_NSMF_PDUSESSION);
     ogs_sbi_subscription_data_build_default(
             OpenAPI_nf_type_NSSF, OGS_SBI_SERVICE_NAME_NNSSF_NSSELECTION);
-
-    if (ogs_sbi_server_start_all(ogs_sbi_server_handler) != OGS_OK)
-        return OGS_ERROR;
-
+	
+	if (is_amf_icps()){
+		if (ogs_sbi_server_start_all(ogs_sbi_server_handler) != OGS_OK)
+			return OGS_ERROR;
+	}
     return OGS_OK;
 }
 

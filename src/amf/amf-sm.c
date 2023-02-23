@@ -386,7 +386,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_response->http.content,sbi_response->http.content_length,1);
             }else{
                 ogs_info("test sps:sbi_message.h.service.name:%s.",sbi_message.h.service.name);
-                udp_ini_msg_sendto_icps(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_response->http.content,sbi_response->http.content_length);
+                //udp_ini_msg_sendto_icps(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_response->http.content,sbi_response->http.content_length);
             }
             sbi_xact = e->h.sbi.data;
             ogs_assert(sbi_xact);
