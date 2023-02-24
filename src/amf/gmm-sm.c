@@ -709,6 +709,8 @@ void gmm_state_authentication(ogs_fsm_t *s, amf_event_t *e)
         CASE(OGS_SBI_SERVICE_NAME_NAUSF_AUTH)
             SWITCH(sbi_message->h.resource.component[0])
             CASE(OGS_SBI_RESOURCE_NAME_UE_AUTHENTICATIONS)
+			
+				ogs_info("OGS_SBI_SERVICE_NAME_NAUSF_AUTH,sbi_message->h.method:%s",sbi_message->h.method);
 
                 if (sbi_message->res_status != OGS_SBI_HTTP_STATUS_CREATED &&
                     sbi_message->res_status != OGS_SBI_HTTP_STATUS_OK) {

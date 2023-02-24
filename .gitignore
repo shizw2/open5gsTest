@@ -6,6 +6,7 @@ subprojects/usrsctp
 build/
 test.log
 core.*
+core-*
 open5gs.log
 install/
 webui/.next

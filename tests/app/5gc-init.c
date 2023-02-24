@@ -79,10 +79,12 @@ int app_initialize(const char *const argv[])
     if (ogs_app()->parameter.no_udr == 0)
         udr_thread = test_child_create("udr", argv_out);
 
-	argv_out[i++] = "-i";
-	argv_out[i++] = "1";
-	argv_out[i] = NULL;
-    amf_sps1_thread = test_child_create("amf-sps", argv_out);
+	if (ogs_app()->parameter.no_amf == 0){
+		argv_out[i++] = "-i";
+		argv_out[i++] = "1";
+		argv_out[i] = NULL;
+		amf_sps1_thread = test_child_create("amf-sps", argv_out);
+    }
 
     /*
      * Wait for all sockets listening
