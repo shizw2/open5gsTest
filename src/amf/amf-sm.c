@@ -230,20 +230,29 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
         CASE(OGS_SBI_SERVICE_NAME_NAMF_CALLBACK)
             SWITCH(sbi_message.h.resource.component[1])
             CASE(OGS_SBI_RESOURCE_NAME_SM_CONTEXT_STATUS)
-                udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,1);
-                amf_namf_callback_handle_sm_context_status(
+                if (is_amf_icps()){
+                    udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,1);
+                }else{
+                    amf_namf_callback_handle_sm_context_status(
                         stream, &sbi_message);
+                }
                 break;
 
             CASE(OGS_SBI_RESOURCE_NAME_DEREG_NOTIFY)
-                udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,1);
-                amf_namf_callback_handle_dereg_notify(stream, &sbi_message);
+                if (is_amf_icps()){
+                    udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,1);
+                }else{
+                    amf_namf_callback_handle_dereg_notify(stream, &sbi_message);
+                }
                 break;
 
             CASE(OGS_SBI_RESOURCE_NAME_SDMSUBSCRIPTION_NOTIFY)
-                udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,1);
-                amf_namf_callback_handle_sdm_data_change_notify(
+                if (is_amf_icps()){
+                    udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,1);
+                }else{
+                    amf_namf_callback_handle_sdm_data_change_notify(
                         stream, &sbi_message);
+                }
                 break;
 
             CASE(OGS_SBI_RESOURCE_NAME_AM_POLICY_NOTIFY)
