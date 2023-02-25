@@ -23,6 +23,7 @@
 #include "nas-path.h"
 #include "ngap-path.h"
 #include "sbi-path.h"
+#include "udp-ini-path.h"
 
 int amf_namf_comm_handle_n1_n2_message_transfer(
         ogs_sbi_stream_t *stream, ogs_sbi_message_t *recvmsg)
@@ -55,7 +56,7 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
 
     OpenAPI_ngap_ie_type_e ngapIeType = OpenAPI_ngap_ie_type_NULL;
 
-    ogs_assert(stream);
+    //ogs_assert(stream); //todo:delete at 20230225
     ogs_assert(recvmsg);
 
     N1N2MessageTransferReqData = recvmsg->N1N2MessageTransferReqData;
@@ -254,7 +255,11 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
                     OpenAPI_n1_n2_message_transfer_cause_ATTEMPTING_TO_REACH_UE;
 
                 /* Location */
-                server = ogs_sbi_server_from_stream(stream);
+                //server = ogs_sbi_server_from_stream(stream);
+                //ogs_assert(server);
+
+                //mod at 20230225 正确做法应该是根据stream找到对应的server
+                server = ogs_list_first(&ogs_sbi_self()->server_list);
                 ogs_assert(server);
 
                 memset(&header, 0, sizeof(header));
@@ -268,6 +273,7 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
                 header.resource.component[3] = sess->sm_context_ref;
 
                 sendmsg.http.location = ogs_sbi_server_uri(server, &header);
+                ogs_info("sendmsg.http.location:%s",sendmsg.http.location);
 
                 /* Store Paging Info */
                 AMF_SESS_STORE_PAGING_INFO(
@@ -401,7 +407,15 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
 
     response = ogs_sbi_build_response(&sendmsg, status);
     ogs_assert(response);
-    ogs_assert(true == ogs_sbi_server_send_response(stream, response));
+    if (is_amf_sps())
+    {
+        //发送时,content编码好发送； header先发送原始字段，到icps再编码
+        sendmsg.udp_h.stream_pointer = stream;
+        udp_ini_msg_sendto_icps(INTERNEL_MSG_SBI, &sendmsg.udp_h, response->http.content,response->http.content_length);
+    }
+    else{        
+        ogs_assert(true == ogs_sbi_server_send_response(stream, response));
+    }
 
     if (sendmsg.http.location)
         ogs_free(sendmsg.http.location);

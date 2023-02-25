@@ -1913,6 +1913,7 @@ void amf_ue_set_supi(amf_ue_t *amf_ue, char *supi)
 
 OpenAPI_rat_type_e amf_ue_rat_type(amf_ue_t *amf_ue)
 {
+#if 0
     amf_gnb_t *gnb = NULL;
     ran_ue_t *ran_ue = NULL;
 
@@ -1920,8 +1921,9 @@ OpenAPI_rat_type_e amf_ue_rat_type(amf_ue_t *amf_ue)
     ogs_assert(ran_ue);
     gnb = ran_ue->gnb;
     ogs_assert(gnb);
-
-    return gnb->rat_type;
+ return gnb->rat_type;
+#endif
+    return OpenAPI_rat_type_NR;
 }
 
 void amf_ue_associate_ran_ue(amf_ue_t *amf_ue, ran_ue_t *ran_ue)

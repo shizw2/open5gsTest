@@ -481,6 +481,7 @@ ogs_sbi_request_t *ogs_sbi_build_request(ogs_sbi_message_t *message)
     return request;
 }
 
+//mod：header需要带到icps,由icps组织到ogs_sbi_response_t中
 ogs_sbi_response_t *ogs_sbi_build_response(
         ogs_sbi_message_t *message, int status)
 {
@@ -492,6 +493,7 @@ ogs_sbi_response_t *ogs_sbi_build_response(
     ogs_expect_or_return_val(response, NULL);
 
     response->status = status;
+    message->udp_h.status = status;
 
     if (response->status != OGS_SBI_HTTP_STATUS_NO_CONTENT) {
         ogs_expect_or_return_val(true ==
@@ -501,11 +503,38 @@ ogs_sbi_response_t *ogs_sbi_build_response(
     if (message->http.location) {
         ogs_sbi_header_set(response->http.headers, "Location",
                 message->http.location);
+        snprintf(message->udp_h.http.location,  MAX_SBI_HTTP_LOCATION, "%s",message->http.location);
     }
     if (message->http.cache_control)
         ogs_sbi_header_set(response->http.headers, "Cache-Control",
-                message->http.cache_control);
+                message->http.cache_control);                
+        snprintf(message->udp_h.http.cache_control,  MAX_SBI_HTTP_LOCATION, message->http.cache_control);
+    return response;
+}
 
+ogs_sbi_response_t *ogs_sbi_update_response(
+        ogs_sbi_udp_header_t *udp_header, ogs_sbi_response_t *response)
+{   
+    ogs_assert(udp_header);
+
+    response->status = udp_header->status;
+  
+    if (udp_header->http.content_type) {
+        ogs_sbi_header_set(response->http.headers,
+                OGS_SBI_CONTENT_TYPE, udp_header->http.content_type);
+        ogs_info("ogs_sbi_update_response, content_type:%s",udp_header->http.content_type);
+    }
+
+    if (udp_header->http.location) {
+        ogs_sbi_header_set(response->http.headers, "Location",
+                udp_header->http.location);
+        ogs_info("ogs_sbi_update_response, location:%s",udp_header->http.location);        
+    }
+    if (udp_header->http.cache_control){
+        ogs_sbi_header_set(response->http.headers, "Cache-Control",
+                udp_header->http.cache_control); 
+        ogs_info("ogs_sbi_update_response, cache_control:%s",udp_header->http.cache_control);
+    }               
     return response;
 }
 
@@ -854,7 +883,7 @@ int ogs_sbi_parse_header(ogs_sbi_message_t *message, ogs_sbi_header_t *header)
         snprintf(message->udp_h.resource.component[i] , MAX_SBI_RESOURCE_COMPONENT_LEN, "%s", component);
     }
 
-    ogs_print_sbi_udp_header(&message->udp_h);
+    //ogs_print_sbi_udp_header(&message->udp_h);
 
     ogs_free(uri);
 
@@ -2063,9 +2092,11 @@ static bool build_content(
             if (message->http.content_type) {
                 ogs_sbi_header_set(http->headers,
                         OGS_SBI_CONTENT_TYPE, message->http.content_type);
+                snprintf(message->udp_h.http.content_type,  MAX_SBI_CONTENT_TYPE, "%s",message->http.content_type);
             } else {
                 ogs_sbi_header_set(http->headers,
                         OGS_SBI_CONTENT_TYPE, OGS_SBI_CONTENT_JSON_TYPE);
+                snprintf(message->udp_h.http.content_type,  MAX_SBI_CONTENT_TYPE, "%s",OGS_SBI_CONTENT_JSON_TYPE);         
             }
         }
     }
@@ -2369,7 +2400,7 @@ static bool build_multipart(
     ogs_expect_or_return_val(content_type, false);
 
     ogs_sbi_header_set(http->headers, OGS_SBI_CONTENT_TYPE, content_type);
-
+    snprintf(message->udp_h.http.content_type,  MAX_SBI_CONTENT_TYPE, "%s",content_type);    
     ogs_free(content_type);
 
     return true;
@@ -2518,11 +2549,11 @@ void ogs_print_sbi_udp_header(ogs_sbi_udp_header_t *udp_header)
     }
     int i;
 
-    ogs_info("sbi header info: method:%s,\n uri:%s,\nservice_name:%s,\n api_version:%s,\ncontent_type:%s.",
+    ogs_info("sbi header info: method:%s,\nuri:%s,\nservice_name:%s,\n api_version:%s,\ncontent_type:%s.",
         udp_header->method,udp_header->uri,udp_header->service.name,udp_header->api.version,
         udp_header->content_type);
 
-    for (i = 0; i < 8; i++)
+    for (i = 0; i < OGS_SBI_MAX_NUM_OF_RESOURCE_COMPONENT; i++)
     {
         if (udp_header->resource.component[i][0] != '\0')
         {

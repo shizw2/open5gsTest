@@ -148,10 +148,13 @@ int ngap_delayed_send_to_ran_ue(
 
         return OGS_OK;
     } else {
+  #if 0
         amf_gnb_t *gnb = NULL;
         gnb = ran_ue->gnb;
         ogs_assert(gnb);
         return ngap_send_to_ran_ue(ran_ue, pkbuf);
+  #endif
+  return ngap_send_to_ran_ue_sps(ran_ue, pkbuf);
     }
 }
 

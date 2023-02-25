@@ -168,24 +168,30 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 CASE(OGS_SBI_RESOURCE_NAME_N1_N2_MESSAGES)
                     SWITCH(sbi_message.h.method)
                     CASE(OGS_SBI_HTTP_METHOD_POST)
-					#if 1
-                        //获取supi,找到sps模块
-                        char *supi = sbi_message.h.resource.component[1];
-                        sps_id = amf_sps_id_find_by_supi(supi);
-                        if (0 == sps_id){
-                            sps_id = 1;//TODO:根据情况，是丢弃还是随机选择
-                            amf_sps_id_set_supi(1,supi);
-                        }
-                        udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,sps_id);
-				    #endif
-                        rv = amf_namf_comm_handle_n1_n2_message_transfer(
-                                stream, &sbi_message);
-                        if (rv != OGS_OK) {
-                            ogs_assert(true ==
-                                ogs_sbi_server_send_error(stream,
-                                    OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                                    &sbi_message,
-                                    "No N1N2MessageTransferReqData", NULL));
+                        if (is_amf_icps())
+                        {
+                        #if 1
+                            //获取supi,找到sps模块
+                            char *supi = sbi_message.h.resource.component[1];
+                            sps_id = amf_sps_id_find_by_supi(supi);
+                            if (0 == sps_id){
+                                sps_id = 1;//TODO:根据情况，是丢弃还是随机选择
+                                amf_sps_id_set_supi(1,supi);
+                            }
+                            sbi_message.udp_h.stream_pointer = stream;
+                            ogs_info("stream addr:%p, stream_pointer:%ld",stream, sbi_message.udp_h.stream_pointer);
+                            udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,sps_id);
+                        #endif
+                        }else{
+                            rv = amf_namf_comm_handle_n1_n2_message_transfer(
+                                    stream, &sbi_message);
+                            if (rv != OGS_OK) {
+                                ogs_assert(true ==
+                                    ogs_sbi_server_send_error(stream,
+                                        OGS_SBI_HTTP_STATUS_BAD_REQUEST,
+                                        &sbi_message,
+                                        "No N1N2MessageTransferReqData", NULL));
+                            }
                         }
                         break;
 
@@ -995,7 +1001,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             {
                 case INTERNEL_MSG_HAND_SHAKE_RSP:
                 {
-                    ogs_info("sps recv internel msg handshake rsp from icps,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);		
+                    //ogs_info("sps recv internel msg handshake rsp from icps,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);		
                     break;
                 }
                 case  INTERNEL_MSG_NGAP:
@@ -1032,7 +1038,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                    	}
 				   #endif
 				   int rv;
-				   rv=sps_handle_rev_ini_ngap(pmsg,ran_ue,pkbuf);
+				   rv=sps_handle_rev_ini_ngap(pmsg,pkbuf);
 				   if(rv==OGS_OK)
 				   	ogs_info(" SPS rev INTERNEL_MSG_NGAP,ICPS Send SPS OK! ");
                     break;

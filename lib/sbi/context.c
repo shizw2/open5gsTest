@@ -176,6 +176,7 @@ int ogs_sbi_context_parse_config(
     int rv;
     yaml_document_t *document = NULL;
     ogs_yaml_iter_t root_iter;
+    char buf[OGS_ADDRSTRLEN];
 
     document = ogs_app()->document;
     ogs_assert(document);
@@ -361,12 +362,15 @@ int ogs_sbi_context_parse_config(
                                     node->addr, is_option ? &option : NULL);
                             ogs_assert(server);
 
-                            if (addr && ogs_app()->parameter.no_ipv4 == 0)
+                            if (addr && ogs_app()->parameter.no_ipv4 == 0){
+                                ogs_info("test:ogs_sbi_server_set_advertise,addr:%s",OGS_ADDR(addr,buf));                               
                                 ogs_sbi_server_set_advertise(
                                         server, AF_INET, addr);
-
+                            }
                             if (key) server->tls.key = key;
                             if (pem) server->tls.pem = pem;
+
+                            ogs_info("test:**********key:%s,pem:%s.",key,pem);
                         }
                         node6 = ogs_list_first(&list6);
                         if (node6) {

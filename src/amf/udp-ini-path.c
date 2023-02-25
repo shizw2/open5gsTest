@@ -277,9 +277,9 @@ int udp_ini_msg_sendto(int msg_type, ogs_sbi_udp_header_t *header,const void *bu
 	
 	ogs_info("udp_ini_msg_sendto success, msg_type:%d, msg_len:%d",msg_type,pkbuf->len);
 
-	//ogs_print_sbi_udp_header(header);
+	ogs_print_sbi_udp_header(header);
 	if (pkbuf->len > sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)){
-		ogs_info("%s", (char*)(pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)));
+		ogs_info("content:%s", (char*)(pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)));
 	}
 	
 	ogs_pkbuf_free(pkbuf);
@@ -409,7 +409,7 @@ void udp_ini_hand_shake()
     internel_msg.sps_state  = 1;
     //给icps发送握手消息
     udp_ini_sendto_icps(&internel_msg,sizeof(internel_msg));
-    ogs_info("sps send internel msg handshake req to icps,msg_type:%d,sps_id:%d,state:%d.",internel_msg.msg_type,internel_msg.sps_id,internel_msg.sps_state);
+    //ogs_info("sps send internel msg handshake req to icps,msg_type:%d,sps_id:%d,state:%d.",internel_msg.msg_type,internel_msg.sps_id,internel_msg.sps_state);
     if (amf_self()->t_hand_shake_interval)
     {
         ogs_timer_start(amf_self()->t_hand_shake_interval, ogs_time_from_sec(UDP_INI_HEART_BEAT_INTERVAL));
@@ -422,8 +422,8 @@ void udp_ini_hand_shake_check()
     for (i = 0; i < g_pt_pkt_fwd_tbl->b_sps_num; i++)
     {   
         g_pt_pkt_fwd_tbl->ta_sps_infos[i].lost_heart_beat_cnt++;
-        ogs_info("icps hand shake check, acvite module num:%d, current module %d, lostcnt:%d.", 
-            g_pt_pkt_fwd_tbl->b_sps_num,g_pt_pkt_fwd_tbl->ta_sps_infos[i].module_no,g_pt_pkt_fwd_tbl->ta_sps_infos[i].lost_heart_beat_cnt);
+        //ogs_info("icps hand shake check, acvite module num:%d, current module %d, lostcnt:%d.", 
+        //   g_pt_pkt_fwd_tbl->b_sps_num,g_pt_pkt_fwd_tbl->ta_sps_infos[i].module_no,g_pt_pkt_fwd_tbl->ta_sps_infos[i].lost_heart_beat_cnt);
     
         if (g_pt_pkt_fwd_tbl->ta_sps_infos[i].lost_heart_beat_cnt >= 3)
         {
@@ -444,14 +444,14 @@ void udp_ini_hand_shake_check()
 void udp_ini_handle_hand_shake(amf_internel_msg_header_t *pmsg)
 {
     int sent = 0;
-    ogs_info("icps recv internel msg handshake req from sps,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
+    //ogs_info("icps recv internel msg handshake req from sps,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
 
     pmsg->msg_type = INTERNEL_MSG_HAND_SHAKE_RSP;
     sent = udp_ini_sendto(pmsg, sizeof(amf_internel_msg_header_t), pmsg->sps_id);
     if (sent < 0 || sent != sizeof(amf_internel_msg_header_t)) {
         ogs_error("ogs_sendto() failed");
     }else{
-        ogs_info("icps send internel msg handshake rsp,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
+        //ogs_info("icps send internel msg handshake rsp,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
     }
 
     module_info_t *p_module_info = find_module_info_ex(pmsg->sps_id);
@@ -471,18 +471,19 @@ void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
     const char *api_version = NULL;
     ogs_sbi_stream_t *stream = NULL;
 
+    memset(&request, 0, sizeof(ogs_sbi_request_t));
 	ogs_info("recv sbi msg, msg_len:%d,msg_head_len:%ld,udp_head_len:%ld.", pkbuf->len,sizeof(amf_internel_msg_header_t),sizeof(ogs_sbi_udp_header_t));					
 	if (pkbuf->len > sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)){
 		//根据header解析content
         request.http.content = pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t);
-        request.http.content_length = pkbuf->len - sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t);
+        request.http.content_length = pkbuf->len - sizeof(amf_internel_msg_header_t)-sizeof(ogs_sbi_udp_header_t);
       
-        p_udp_header = (ogs_sbi_udp_header_t*)(char*)(pkbuf->data+3);
+        p_udp_header = (ogs_sbi_udp_header_t*)(char*)(pkbuf->data+sizeof(amf_internel_msg_header_t));
 
         memset(&sbi_message, 0, sizeof(sbi_message));
         sbi_message.http.content_type = p_udp_header->content_type;
         
-        ogs_info("sbi content:%s", request.http.content);
+        ogs_info("sbi content_length:%ld,content:%s", request.http.content_length,request.http.content);
         ogs_info("content_type:%s", sbi_message.http.content_type);
         ogs_print_sbi_udp_header(p_udp_header);
 
@@ -551,7 +552,7 @@ void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
                     SWITCH(sbi_message.h.method)
                     CASE(OGS_SBI_HTTP_METHOD_POST)					
                         rv = amf_namf_comm_handle_n1_n2_message_transfer(
-                                stream, &sbi_message);
+                                p_udp_header->stream_pointer, &sbi_message);
                         if (rv != OGS_OK) {
                             ogs_assert(true ==
                                 ogs_sbi_server_send_error(stream,
@@ -649,7 +650,8 @@ void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
 void udp_ini_icps_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
 {	
     ogs_sbi_message_t sbi_message;
-    ogs_sbi_request_t request;
+    ogs_sbi_request_t request;//暂时不用
+    ogs_sbi_response_t *response;
     amf_internel_msg_header_t *msg_header = NULL;
     ogs_sbi_udp_header_t *p_udp_header = NULL;
     int rv;
@@ -658,10 +660,27 @@ void udp_ini_icps_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
     amf_ue_t *amf_ue = NULL;
     ran_ue_t *ran_ue_icps = NULL;
 
+    memset(&request, 0, sizeof(ogs_sbi_request_t));
+   
+
 	ogs_info("icps recv sbi msg, msg_len:%d,msg_head_len:%ld,udp_head_len:%ld.", pkbuf->len,sizeof(amf_internel_msg_header_t),sizeof(ogs_sbi_udp_header_t));					
 	if (pkbuf->len >= sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)){		
         p_udp_header = (ogs_sbi_udp_header_t*)(char*)(pkbuf->data+ sizeof(amf_internel_msg_header_t)); 
-        msg_header = (amf_internel_msg_header_t*)pkbuf->data;           
+        msg_header = (amf_internel_msg_header_t*)pkbuf->data;   
+
+        response = ogs_sbi_response_new();
+        response->http.content_length = pkbuf->len - sizeof(amf_internel_msg_header_t)-sizeof(ogs_sbi_udp_header_t);
+        //这里必须要拷贝一份，底层有释放操作
+        response->http.content = ogs_strndup(pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t), response->http.content_length);
+        ogs_sbi_update_response(p_udp_header,response);        
+        
+        stream = (ogs_sbi_stream_t *)p_udp_header->stream_pointer;
+        ogs_info("sbi content_length:%ld,content:%s.", response->http.content_length, response->http.content);
+        ogs_print_sbi_udp_header(p_udp_header);
+        ogs_info("steam:%p.", stream);
+        ogs_assert(true == ogs_sbi_server_send_response(stream, response));
+
+        #if 0
         if (p_udp_header->service_type == OGS_SBI_SERVICE_TYPE_NAUSF_AUTH)
         {
             ogs_info("udp_ini_icps_handle_sbi_msg, aush auth.");
@@ -678,5 +697,6 @@ void udp_ini_icps_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
                             OGS_SBI_SERVICE_TYPE_NAUSF_AUTH, NULL,
                             amf_nausf_auth_build_authenticate, amf_ue, NULL));
         }
+        #endif
     }	
 }

@@ -390,6 +390,10 @@ typedef struct ogs_sbi_header_s {
 #define MAX_SBI_VERSION_LEN             16
 #define MAX_SBI_RESOURCE_COMPONENT_LEN  60
 #define MAX_SBI_CONTENT_TYPE            100
+
+#define MAX_SBI_HTTP_LOCATION            100
+#define MAX_SBI_HTTP_CACHE_CONTROL       50
+
 typedef struct ogs_sbi_udp_header_s {
     char method[MAX_SBI_METHOD_LEN]; //POST,PUT..
     char uri[MAX_SBI_URI_LEN];
@@ -411,6 +415,25 @@ typedef struct ogs_sbi_udp_header_s {
     ogs_sbi_service_type_e service_type;
     uint32_t  ran_ue_ngap_id; 
     uint64_t  amf_ue_ngap_id; 
+
+    uint64_t stream_pointer;
+
+    //以下是response中用到
+    int status;
+    struct {
+        OpenAPI_nf_type_e requester_nf_type;
+
+        char *accept;
+        char *content_encoding;
+        char content_type[MAX_SBI_CONTENT_TYPE];
+        char location[MAX_SBI_HTTP_LOCATION];
+        char cache_control[MAX_SBI_HTTP_CACHE_CONTROL];
+
+        struct {
+            char *callback;
+            char *nrf_uri;
+        } custom;
+    } http;
 
 }__attribute__ ((packed)) ogs_sbi_udp_header_t;
 
@@ -447,6 +470,8 @@ typedef struct ogs_sbi_message_s {
             char *nrf_uri;
         } custom;
     } http;
+
+    
 
     struct {
         /* Discovery Parameter */
@@ -566,6 +591,7 @@ typedef struct ogs_sbi_request_s {
 
 typedef struct ogs_sbi_response_s {
     ogs_sbi_header_t h;
+    ogs_sbi_udp_header_t udp_h;
     ogs_sbi_http_message_t http;
 
     int status;
@@ -625,6 +651,8 @@ void ogs_sbi_discovery_option_parse_service_names(
 void ogs_print_sbi_udp_header(ogs_sbi_udp_header_t *udp_header);
 int ogs_sbi_parse_udp_request(
         ogs_sbi_message_t *message, ogs_sbi_request_t *request, ogs_sbi_udp_header_t *p_udp_header);
+ogs_sbi_response_t *ogs_sbi_update_response(
+        ogs_sbi_udp_header_t *udp_header, ogs_sbi_response_t *response);
 #ifdef __cplusplus
 }
 #endif

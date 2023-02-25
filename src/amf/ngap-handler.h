@@ -111,8 +111,7 @@ uint8_t spsid_find_by_tmsi(ran_ue_t           *ran_ue, uint32_t *m_tmsi);//O3
 uint8_t spsid_find_by_amf_ue_ngap_id(uint64_t amf_ue_ngap_id);//O3
 void ngap_icps_send_to_sps(uint8_t spsid,ran_ue_t *ran_ue, NGAP_icps_send_code_t *message);//O3
 int icps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf);//O3
-int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ran_ue_t * ran_ue,ogs_pkbuf_t *pkbuf);//O3
-
+int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf);
 
 
 #ifdef __cplusplus
