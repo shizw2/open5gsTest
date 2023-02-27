@@ -116,7 +116,7 @@ int ngap_send_to_ran_ue_sps(ran_ue_t *ran_ue, ogs_pkbuf_t *pkbuf)
 	memcpy(buff,&tmsg,sizeof(tmsg.msg_head));
 	memcpy(buff+len,pkbuf->data,pkbuf->len);
 	len=len+pkbuf->len;
-	printf("////////////////////9999 len:%d\n",len);
+	ogs_info("ngap_send_to_ran_ue_sps len:%d",len);
 	if(is_amf_sps())
 		{
 	       ogs_sendto(amf_self()->udp_node->sock->fd,buff,len,0, amf_self()->icps_node->addr);
@@ -187,22 +187,20 @@ int ngap_send_to_nas(ran_ue_t *ran_ue,
     ogs_nas_security_header_type_t security_header_type;
 
     ogs_nas_5gmm_header_t *h = NULL;
-    ogs_pkbuf_t *nasbuf = NULL;
-    amf_event_t *e = NULL;
-	//printf("========================================================2\n");
+    ogs_pkbuf_t *nasbuf = NULL;    
+	amf_event_t *e = NULL;	
 
     ogs_assert(ran_ue);
-    ogs_assert(nasPdu);
-	//printf("========================================================3\n");
+    ogs_assert(nasPdu);	
 
     /* The Packet Buffer(pkbuf_t) for NAS message MUST make a HEADROOM. 
      * When calculating AES_CMAC, we need to use the headroom of the packet. */
     nasbuf = ogs_pkbuf_alloc(NULL, OGS_NAS_HEADROOM+nasPdu->size);
-	printf("========================================================4 nasPdu->size:%lu\n",nasPdu->size);
+	
     ogs_assert(nasbuf);
     ogs_pkbuf_reserve(nasbuf, OGS_NAS_HEADROOM);
     ogs_pkbuf_put_data(nasbuf, nasPdu->buf, nasPdu->size);
-	printf("========================================================5 nasPdu->size:%lu\n",nasPdu->size);
+	
 
     sh = (ogs_nas_5gs_security_header_t *)nasbuf->data;
     ogs_assert(sh);
@@ -236,7 +234,7 @@ int ngap_send_to_nas(ran_ue_t *ran_ue,
                 sh->security_header_type);
         return OGS_ERROR;
     }
-printf("========================================================nasPdu->size:%lu\n",nasPdu->size);
+	ogs_info("========================================================nasPdu->size:%lu",nasPdu->size);
     if (ran_ue->amf_ue) {
         if (nas_5gs_security_decode(ran_ue->amf_ue,
                 security_header_type, nasbuf) != OGS_OK) {
@@ -295,21 +293,21 @@ int ngap_send_to_nas_sps(ran_ue_t *ran_ue,
 		
 		ogs_assert(ran_ue);
 		ogs_assert(nasPdu);
-		printf("========================================================3len:%lu\n",nas_len);
+		
 		
 			/* The Packet Buffer(pkbuf_t) for NAS message MUST make a HEADROOM. 
 			 * When calculating AES_CMAC, we need to use the headroom of the packet. */
 		nasbuf = ogs_pkbuf_alloc(NULL, OGS_NAS_HEADROOM+nas_len);
 		if(nasbuf){
-			     printf("========================================================4 nasPdu->size:%lu\n",nas_len);
+			     ogs_info("ngap_send_to_nas_sps============4 nasPdu->size:%lu",nas_len);
 		}else{
 				    printf("========================================================666\n");
 				}
-			//ogs_assert(nasbuf);
+		
 		ogs_pkbuf_reserve(nasbuf, OGS_NAS_HEADROOM);
-		printf("========================================================5 *nasPdu:%02x\n",*nasPdu);
+		ogs_info("ngap_send_to_nas_sps======================5 *nasPdu:%02x",*nasPdu);
 		ogs_pkbuf_put_data(nasbuf, nasPdu, nas_len);
-		printf("========================================================6 nasPdu->size:%lu\n",nas_len);
+		ogs_info("ngap_send_to_nas_sps============6 nasPdu->size:%lu",nas_len);
 		
 		sh = (ogs_nas_5gs_security_header_t *)nasbuf->data;
 		ogs_assert(sh);

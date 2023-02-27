@@ -135,7 +135,7 @@ static void common_register_state(ogs_fsm_t *s, amf_event_t *e)
 
         switch (nas_message->gmm.h.message_type) {
         case OGS_NAS_5GS_REGISTRATION_REQUEST:
-            ogs_info("Registration request");
+            ogs_info("Registration request!!!!!!!!!!");
             gmm_cause = gmm_handle_registration_request(
                     amf_ue, h, e->ngap.code,
                     &nas_message->gmm.registration_request);

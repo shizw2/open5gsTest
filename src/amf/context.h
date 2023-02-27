@@ -168,7 +168,7 @@ struct ran_ue_s {
     uint32_t        ran_ue_ngap_id; /* eNB-UE-NGAP-ID received from eNB */
     uint64_t        amf_ue_ngap_id; /* AMF-UE-NGAP-ID received from AMF */
 	amf_m_tmsi_t	m_tmsi;// add 0206 O3 为了处理初始消息，查找amf_ue_ngap_id，查找sps_id
-
+    uint8_t         sps_no;
     uint16_t        gnb_ostream_id; /* SCTP output stream id for eNB */
 
     /* UE context */

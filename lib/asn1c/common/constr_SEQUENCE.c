@@ -90,6 +90,7 @@ SEQUENCE_free(const asn_TYPE_descriptor_t *td, void *sptr,
 
 	/* Clean parsing context */
 	ctx = (asn_struct_ctx_t *)((char *)sptr + specs->ctx_offset);
+	if(ctx)//add O3
 	FREEMEM(ctx->ptr);
 
     switch(method) {

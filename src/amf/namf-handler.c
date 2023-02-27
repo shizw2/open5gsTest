@@ -56,7 +56,7 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
 
     OpenAPI_ngap_ie_type_e ngapIeType = OpenAPI_ngap_ie_type_NULL;
 
-    //ogs_assert(stream); //todo:delete at 20230225
+    ogs_assert(stream);
     ogs_assert(recvmsg);
 
     N1N2MessageTransferReqData = recvmsg->N1N2MessageTransferReqData;

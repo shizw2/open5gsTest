@@ -18,6 +18,7 @@
  */
 
 #include "ngap-path.h"
+#include "ngap-handler.h"
 
 static amf_context_t self;
 
@@ -1237,7 +1238,7 @@ ran_ue_t *ran_ue_add(amf_gnb_t *gnb, uint32_t ran_ue_ngap_id)
     ogs_list_add(&gnb->ran_ue_list, ran_ue);
 
     stats_add_ran_ue();
-
+    ran_ue->sps_no=spsid_find_by_amf_ue_ngap_id(ran_ue->amf_ue_ngap_id); //add
     return ran_ue;
 }
 ran_ue_t *ran_ue_add_sps( uint32_t ran_ue_ngap_id,uint64_t amf_ue_ngap_id)
@@ -1277,13 +1278,15 @@ ran_ue_t *ran_ue_add_sps( uint32_t ran_ue_ngap_id,uint64_t amf_ue_ngap_id)
 void ran_ue_remove(ran_ue_t *ran_ue)
 {
     ogs_assert(ran_ue);
+	if(is_amf_icps){
     ogs_assert(ran_ue->gnb);
 
     ogs_list_remove(&ran_ue->gnb->ran_ue_list, ran_ue);
 
     ogs_assert(ran_ue->t_ng_holding);
     ogs_timer_delete(ran_ue->t_ng_holding);
-
+	}
+//SPS释放如何通知ICPS，ICPS释放需要通知SPS，待处理
     ogs_pool_free(&ran_ue_pool, ran_ue);
 
     stats_remove_ran_ue();
@@ -1507,7 +1510,7 @@ amf_ue_t *amf_ue_add(ran_ue_t *ran_ue)
     amf_ue_fsm_init(amf_ue);
 
     ogs_list_add(&self.amf_ue_list, amf_ue);
-
+    //amf_ue_associate_ran_ue(amf_ue, ran_ue);//add by O3
     ogs_info("[Added] Number of AMF-UEs is now %d",
             ogs_list_count(&self.amf_ue_list));
 

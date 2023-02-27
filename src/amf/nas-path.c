@@ -32,15 +32,16 @@ int nas_5gs_send_to_gnb(amf_ue_t *amf_ue, ogs_pkbuf_t *pkbuf)
         ogs_pkbuf_free(pkbuf);
         return OGS_ERROR;
     }
-	printf("7777777777777776666666666\n");
+	
 	if(is_amf_sps())
-	{
+		{	 
+		 
         if(amf_ue->next.m_tmsi)
-        {
-            printf("7777777777777776666666666%u\n",*(amf_ue->next.m_tmsi));
+{
+		    ogs_info("nas_5gs_send_to_gnb,amf_ue->next.m_tmsi::%u\n",*(amf_ue->next.m_tmsi));
             amf_ue->ran_ue->m_tmsi=*(amf_ue->next.m_tmsi);
         }
-        printf("77777777777777777777777777777777777777777\n");
+		 ogs_info("ngap_send_to_ran_ue_sps!!!");
         return ngap_send_to_ran_ue_sps(amf_ue->ran_ue, pkbuf);
 	}	
 	else
@@ -538,8 +539,12 @@ int nas_5gs_send_gmm_status(amf_ue_t *amf_ue, ogs_nas_5gmm_cause_t cause)
     ogs_assert(amf_ue);
 
     ogs_debug("[%s] 5GMM status", amf_ue->supi);
-
+#if 1
+	ogs_info("===========amf_ue->supi==========[%s] 5GMM status", amf_ue->supi);
+    cause=OGS_SBI_HTTP_STATUS_OK;
+#endif
     gmmbuf = gmm_build_status(amf_ue, cause);
+
     ogs_expect_or_return_val(gmmbuf, OGS_ERROR);
 
     rv = nas_5gs_send_to_downlink_nas_transport(amf_ue, gmmbuf);

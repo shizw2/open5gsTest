@@ -59,6 +59,7 @@ libamf_sources = files('''
     amf-sm.c
 	
 	udp-ini-path.c
+	ngap-handler-sps.c
 
     init.c
     metrics.c
