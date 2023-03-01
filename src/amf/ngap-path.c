@@ -99,7 +99,7 @@ int ngap_send_to_ran_ue(ran_ue_t *ran_ue, ogs_pkbuf_t *pkbuf)
 int ngap_send_to_ran_ue_sps(ran_ue_t *ran_ue, ogs_pkbuf_t *pkbuf)
 {
     ogs_assert(pkbuf);
-	amf_internel_msgbuf_t tmsg;
+    amf_internel_msgbuf_t tmsg;
     uint8_t len,buff[4096];
     ran_ue = ran_ue_cycle(ran_ue);
     if (!ran_ue) {
@@ -107,22 +107,22 @@ int ngap_send_to_ran_ue_sps(ran_ue_t *ran_ue, ogs_pkbuf_t *pkbuf)
         ogs_pkbuf_free(pkbuf);
         return OGS_ERROR;
     }
-	tmsg.msg_head.msg_type=INTERNEL_MSG_NGAP;
-	tmsg.msg_head.ran_ue_ngap_id=ran_ue->ran_ue_ngap_id;
-	tmsg.msg_head.amf_ue_ngap_id=ran_ue->amf_ue_ngap_id;
-	tmsg.msg_head.m_tmsi=ran_ue->m_tmsi;
-	tmsg.msg_head.len=pkbuf->len;	
-	len=sizeof(tmsg.msg_head);
-	memcpy(buff,&tmsg,sizeof(tmsg.msg_head));
-	memcpy(buff+len,pkbuf->data,pkbuf->len);
-	len=len+pkbuf->len;
-	ogs_info("ngap_send_to_ran_ue_sps len:%d",len);
-	if(is_amf_sps())
-		{
-	       ogs_sendto(amf_self()->udp_node->sock->fd,buff,len,0, amf_self()->icps_node->addr);
-           ogs_pkbuf_free(pkbuf);
-		   return OGS_OK;
-		}
+    tmsg.msg_head.msg_type=INTERNEL_MSG_NGAP;
+    tmsg.msg_head.ran_ue_ngap_id=ran_ue->ran_ue_ngap_id;
+    tmsg.msg_head.amf_ue_ngap_id=ran_ue->amf_ue_ngap_id;
+    tmsg.msg_head.m_tmsi=ran_ue->m_tmsi;
+    tmsg.msg_head.len=pkbuf->len;	
+    len=sizeof(tmsg.msg_head);
+    memcpy(buff,&tmsg,sizeof(tmsg.msg_head));
+    memcpy(buff+len,pkbuf->data,pkbuf->len);
+    len=len+pkbuf->len;
+    ogs_info("ngap_send_to_ran_ue_sps len:%d",len);
+    if(is_amf_sps())
+        {
+            ogs_sendto(amf_self()->udp_node->sock->fd,buff,len,0, amf_self()->icps_node->addr);
+            ogs_pkbuf_free(pkbuf);
+            return OGS_OK;
+        }
     else
     return ngap_send_to_gnb(ran_ue->gnb, pkbuf, ran_ue->gnb_ostream_id);
 }
