@@ -120,6 +120,7 @@ int ngap_send_to_ran_ue_sps(ran_ue_t *ran_ue, ogs_pkbuf_t *pkbuf)
 	if(is_amf_sps())
 		{
 	       ogs_sendto(amf_self()->udp_node->sock->fd,buff,len,0, amf_self()->icps_node->addr);
+           ogs_pkbuf_free(pkbuf);
 		   return OGS_OK;
 		}
     else

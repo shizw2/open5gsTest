@@ -82,7 +82,8 @@ void ngap_handle_ue_radio_capability_info_indication_sps(ran_ue_t * ran_ue,size_
 	ogs_info("ngap_handle_ue_radio_capability_info_indication_sps　size＝＝　%lu",size);
     if(size)	{
 		UERadioCapability=malloc(sizeof(NGAP_UERadioCapability_t));
-		UERadioCapability->size=UERadioCa->size;		
+		UERadioCapability->size=UERadioCa->size;	
+		UERadioCapability->buf = CALLOC(UERadioCapability->size, sizeof(uint8_t));	
 		memcpy(UERadioCapability->buf,buf+sizeof(size_t),UERadioCa->size);
 		ogs_info("UERadioCapability->size:%lu sizeof(size_t)=%lu",UERadioCapability->size,sizeof(size_t));
 		ogs_info("UERadioCapability->buf::%2x%2x%2x%2x ",*(UERadioCapability->buf),*(UERadioCapability->buf+1),*(UERadioCapability->buf+2),*(UERadioCapability->buf+3));

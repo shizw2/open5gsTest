@@ -481,7 +481,7 @@ void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
         p_udp_header = (ogs_sbi_udp_header_t*)(char*)(pkbuf->data+sizeof(amf_internel_msg_header_t));
 
         memset(&sbi_message, 0, sizeof(sbi_message));
-        sbi_message.http.content_type = p_udp_header->content_type;
+        sbi_message.http.content_type = p_udp_header->request.content_type;
         
         ogs_info("sbi content_length:%ld,content:%s", request.http.content_length,request.http.content);
         ogs_info("content_type:%s", sbi_message.http.content_type);

@@ -395,46 +395,46 @@ typedef struct ogs_sbi_header_s {
 #define MAX_SBI_HTTP_CACHE_CONTROL       50
 
 typedef struct ogs_sbi_udp_header_s {
-    char method[MAX_SBI_METHOD_LEN]; //POST,PUT..
-    char uri[MAX_SBI_URI_LEN];
-
-    struct {
-        char  name[MAX_SBI_SERVICE_NAME_LEN]; //目前最长:nucmf-uecapabilitymanagement
-    } service;
-
-    struct {
-        char version[MAX_SBI_VERSION_LEN];
-    } api;
-
-    struct {
-#define OGS_SBI_MAX_NUM_OF_RESOURCE_COMPONENT 8
-        char component[OGS_SBI_MAX_NUM_OF_RESOURCE_COMPONENT][MAX_SBI_RESOURCE_COMPONENT_LEN];//最长：smf-selection-subscription-data
-    } resource;
-
-    char content_type[MAX_SBI_CONTENT_TYPE];
-    ogs_sbi_service_type_e service_type;
+ 
+    //ogs_sbi_service_type_e service_type;
     uint32_t  ran_ue_ngap_id; 
     uint64_t  amf_ue_ngap_id; 
 
     uint64_t stream_pointer;
 
-    //以下是response中用到
-    int status;
-    struct {
-        OpenAPI_nf_type_e requester_nf_type;
+    union {
+        struct{
+            char method[MAX_SBI_METHOD_LEN]; //POST,PUT..
+            char uri[MAX_SBI_URI_LEN];
 
-        char *accept;
-        char *content_encoding;
-        char content_type[MAX_SBI_CONTENT_TYPE];
-        char location[MAX_SBI_HTTP_LOCATION];
-        char cache_control[MAX_SBI_HTTP_CACHE_CONTROL];
+            struct {
+                char  name[MAX_SBI_SERVICE_NAME_LEN]; //目前最长:nucmf-uecapabilitymanagement
+            } service;
 
-        struct {
-            char *callback;
-            char *nrf_uri;
-        } custom;
-    } http;
+            struct {
+                char version[MAX_SBI_VERSION_LEN];
+            } api;
 
+            struct {
+                #define OGS_SBI_MAX_NUM_OF_RESOURCE_COMPONENT 8
+                char component[OGS_SBI_MAX_NUM_OF_RESOURCE_COMPONENT][MAX_SBI_RESOURCE_COMPONENT_LEN];//最长：smf-selection-subscription-data
+            } resource;
+
+            char content_type[MAX_SBI_CONTENT_TYPE];
+        }request;
+
+        //以下是response中用到
+        struct{
+            int status;
+            struct {
+                OpenAPI_nf_type_e requester_nf_type;
+               
+                char content_type[MAX_SBI_CONTENT_TYPE];
+                char location[MAX_SBI_HTTP_LOCATION];
+                char cache_control[MAX_SBI_HTTP_CACHE_CONTROL];
+            } http;
+        }response;
+    };
 }__attribute__ ((packed)) ogs_sbi_udp_header_t;
 
 
