@@ -1278,7 +1278,7 @@ ran_ue_t *ran_ue_add_sps( uint32_t ran_ue_ngap_id,uint64_t amf_ue_ngap_id)
 void ran_ue_remove(ran_ue_t *ran_ue)
 {
     ogs_assert(ran_ue);
-	if(is_amf_icps){
+	if(is_amf_icps()){
     ogs_assert(ran_ue->gnb);
 
     ogs_list_remove(&ran_ue->gnb->ran_ue_list, ran_ue);

@@ -118,11 +118,11 @@ int ngap_send_to_ran_ue_sps(ran_ue_t *ran_ue, ogs_pkbuf_t *pkbuf)
     len=len+pkbuf->len;
     ogs_info("ngap_send_to_ran_ue_sps len:%d",len);
     if(is_amf_sps())
-        {
-            ogs_sendto(amf_self()->udp_node->sock->fd,buff,len,0, amf_self()->icps_node->addr);
-            ogs_pkbuf_free(pkbuf);
-            return OGS_OK;
-        }
+    {
+        ogs_sendto(amf_self()->udp_node->sock->fd,buff,len,0, amf_self()->icps_node->addr);
+        ogs_pkbuf_free(pkbuf);
+        return OGS_OK;
+    }
     else
     return ngap_send_to_gnb(ran_ue->gnb, pkbuf, ran_ue->gnb_ostream_id);
 }
