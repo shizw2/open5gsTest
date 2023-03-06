@@ -427,7 +427,7 @@ typedef struct ogs_sbi_udp_header_s {
         struct{
             int status;
             struct {
-                OpenAPI_nf_type_e requester_nf_type;
+                //OpenAPI_nf_type_e requester_nf_type;
                
                 char content_type[MAX_SBI_CONTENT_TYPE];
                 char location[MAX_SBI_HTTP_LOCATION];
@@ -648,7 +648,7 @@ void ogs_sbi_discovery_option_parse_service_names(
         ogs_sbi_discovery_option_t *discovery_option,
         char *service_names);
 
-void ogs_print_sbi_udp_header(ogs_sbi_udp_header_t *udp_header);
+void ogs_print_sbi_udp_header(ogs_sbi_udp_header_t *udp_header, bool is_request);
 int ogs_sbi_parse_udp_request(
         ogs_sbi_message_t *message, ogs_sbi_request_t *request, ogs_sbi_udp_header_t *p_udp_header);
 ogs_sbi_response_t *ogs_sbi_update_response(

@@ -97,6 +97,13 @@ int ngap_send_error_indication2(
 int ngap_send_ng_reset_ack(
         amf_gnb_t *gnb,
         NGAP_UE_associatedLogicalNG_connectionList_t *partOfNG_Interface);
+int ngap_send_to_gnb_sps(ran_ue_t *ran_ue, ogs_pkbuf_t *pkbuf);
+int ngap_send_error_indication_sps(				
+				ran_ue_t *ran_ue,
+				NGAP_Cause_PR group, long cause);
+int ngap_send_error_indication2_sps(
+						amf_ue_t *amf_ue, NGAP_Cause_PR group, long cause);
+
 
 #ifdef __cplusplus
 }

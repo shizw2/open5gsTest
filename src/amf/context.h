@@ -629,13 +629,17 @@ typedef struct amf_sess_s {
 #define INTERNEL_MSG_NGAP                      			 2
 #define INTERNEL_MSG_SBI                                 3
 
+#define INTERNEL_DOWN_NGAP_TO_UE                         0
+#define INTERNEL_DOWN_NGAP_TO_NB                         1
+
+
 #define MAX_INTERNEL_MESSAGE_LEN  (1024*20)  /* max message len 10K */
 
 typedef struct amf_internel_msg_header_s {
     uint8_t msg_type;
     uint8_t sps_id;
     uint8_t sps_state;
-	uint8_t rev;/* O3 */
+	uint8_t down_ngap_type;/* O3 */
 	uint32_t  ran_ue_ngap_id; /* O3 */
     uint64_t  amf_ue_ngap_id; /* O3 */
 	uint32_t  m_tmsi;/* O3 */

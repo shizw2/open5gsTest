@@ -22,7 +22,7 @@
 #include "sbi-path.h"
 #include "nas-path.h"
 #include "udp-ini-path.h"
-#include "ngap-handler-sps.h"
+//#include "ngap-handler-sps.h"
 
 
 extern pkt_fwd_tbl_t g_pkt_fwd_tbl;//保存激活的模块信息,
@@ -358,7 +358,7 @@ void ngap_handle_initial_ue_message(amf_gnb_t *gnb, ogs_ngap_message_t *message)
 	//add 
     NGAP_icps_send_code_t *send_code=NULL;
 	send_code=(NGAP_icps_send_code_t *)malloc(sizeof(NGAP_icps_send_code_t));
-	send_code->buf=(uint8_t*)malloc(sizeof(uint8_t));
+	send_code->buf=(uint8_t*)malloc(OGS_MAX_SDU_LEN);
 	//add end
     ogs_assert(gnb);
     ogs_assert(gnb->sctp.sock);
@@ -579,19 +579,21 @@ void ngap_handle_initial_ue_message(amf_gnb_t *gnb, ogs_ngap_message_t *message)
     if (UEContextRequest) {
         if (*UEContextRequest == NGAP_UEContextRequest_requested) {
             ran_ue->ue_context_requested = true;
+			ogs_info("ngap_handle_initial_ue_message ran_ue->ue_context_requested  = true ");
+			send_code->h.UEContextRequest=NGAP_UEContextRequest_requested;
         }
     }
 #if 0 	
     ngap_send_to_nas(ran_ue, NGAP_ProcedureCode_id_InitialUEMessage, NAS_PDU);
 #endif//modify 20230202 by O3
     ngap_icps_send_to_sps(sps_id,ran_ue, send_code);
-#if 0 
 
-	if(send_code){
+	
+
+	if(send_code)
 	  	free(send_code);
-   	}
+ 
 
-#endif
 
 }
 
@@ -817,7 +819,7 @@ void ngap_handle_uplink_nas_transport(
     //add 
 	NGAP_icps_send_code_t *send_code=NULL;
 	send_code=(NGAP_icps_send_code_t *)malloc(sizeof(NGAP_icps_send_code_t));
-	send_code->buf=(uint8_t*)malloc(sizeof(uint8_t));
+	send_code->buf=(uint8_t*)malloc(OGS_MAX_SDU_LEN);
 	//add end
 
     ogs_assert(gnb);
@@ -952,7 +954,8 @@ void ngap_handle_uplink_nas_transport(
 	sps_id=ran_ue->sps_no;
 	printf(" =================sps_id:%d========ran_ue->amf_ue_ngap_id:%lu\n",sps_id,amf_ue_ngap_id);
 	ngap_icps_send_to_sps(sps_id,ran_ue, send_code);
-	//if(send_code)free(send_code);
+	
+	if(send_code)free(send_code);
     //add end
     //ngap_send_to_nas(ran_ue, NGAP_ProcedureCode_id_UplinkNASTransport, NAS_PDU);
 }
@@ -979,7 +982,7 @@ void ngap_handle_ue_radio_capability_info_indication(
 	uint8_t sps_id;
 	NGAP_icps_send_code_t *send_code=NULL;
 	send_code=(NGAP_icps_send_code_t *)malloc(sizeof(NGAP_icps_send_code_t));
-	send_code->buf=(uint8_t*)malloc(sizeof(uint8_t));
+	send_code->buf=(uint8_t*)malloc(OGS_MAX_SDU_LEN);
 	//add end
     ogs_assert(gnb);
     ogs_assert(gnb->sctp.sock);
@@ -1072,8 +1075,9 @@ void ngap_handle_ue_radio_capability_info_indication(
 		ngap_icps_send_to_sps(sps_id,ran_ue, send_code);
 		
 	}
-	//if(send_code)
-		//free(send_code);
+	
+	if(send_code)
+		free(send_code);
 	//add end
 }
 
@@ -1102,8 +1106,7 @@ void ngap_handle_initial_context_setup_response(
 	//add 
 	NGAP_icps_send_code_t *send_code=NULL;
 	send_code=(NGAP_icps_send_code_t *)malloc(sizeof(NGAP_icps_send_code_t));
-	send_code->buf=(uint8_t*)malloc(sizeof(uint8_t));
-	
+	send_code->buf=(uint8_t*)malloc(OGS_MAX_SDU_LEN);	
 	int len0=0;
 	//add end
     
@@ -1184,10 +1187,7 @@ void ngap_handle_initial_context_setup_response(
         return;
     }
 #endif
-	//add
-	//memcpy(send_code->buf+len,&(PDUSessionList->list.count),sizeof(PDUSessionList->list.count))
-	//len=len+sizeof(NGAP_PDUSessionID_t);
-	//add end
+	
 	if(PDUSessionList){
 	 	ogs_info("======ngap_handle_initial_context_setup_response");
 		send_code->h.PDUsessioncount=(uint8_t)PDUSessionList->list.count;
@@ -1202,7 +1202,12 @@ void ngap_handle_initial_context_setup_response(
     for (i = 0; PDUSessionList && i < PDUSessionList->list.count; i++) {
         PDUSessionItem = (NGAP_PDUSessionResourceSetupItemCxtRes_t *)
             PDUSessionList->list.array[i];
+		if (PDUSessionItem) 
+			transfer = &PDUSessionItem->pDUSessionResourceSetupResponseTransfer;
+		else
+			return;
 #if 0
+
         if (!PDUSessionItem) {
             ogs_error("No PDUSessionResourceSetupItemCxtRes");
             ogs_assert(OGS_OK ==
@@ -1284,7 +1289,8 @@ void ngap_handle_initial_context_setup_response(
 	sps_id=ran_ue->sps_no;
 	ogs_info(" =====ngap_handle_initial_context_setup_response============sps_id:%d========ran_ue->amf_ue_ngap_id:%lu",sps_id,ran_ue->amf_ue_ngap_id);
 	ngap_icps_send_to_sps(sps_id,ran_ue, send_code);
-	//if(send_code)free(send_code);
+	
+	if(send_code)free(send_code);
 		  
 //add end	
 #if 0
@@ -1526,8 +1532,8 @@ void ngap_handle_ue_context_release_request(
     uint64_t amf_ue_ngap_id;
 
     ran_ue_t *ran_ue = NULL;
-    amf_ue_t *amf_ue = NULL;
-    amf_sess_t *sess = NULL;
+    //amf_ue_t *amf_ue = NULL;
+    //amf_sess_t *sess = NULL;
 
     NGAP_InitiatingMessage_t *initiatingMessage = NULL;
     NGAP_UEContextReleaseRequest_t *UEContextReleaseRequest = NULL;
@@ -1538,6 +1544,16 @@ void ngap_handle_ue_context_release_request(
     NGAP_PDUSessionResourceListCxtRelReq_t *PDUSessionList = NULL;
     NGAP_PDUSessionResourceItemCxtRelReq_t *PDUSessionItem = NULL;
     NGAP_Cause_t *Cause = NULL;
+	NGAP_Cause_sps_t *Trancause=NULL;
+	//add 
+	uint8_t sps_id;
+	NGAP_icps_send_code_t *send_code=NULL;
+	send_code=(NGAP_icps_send_code_t *)malloc(sizeof(NGAP_icps_send_code_t));
+	send_code->buf=(uint8_t*)malloc(sizeof(uint8_t));	
+	int len0=0;
+	Trancause=(NGAP_Cause_sps_t *)malloc(sizeof(NGAP_Cause_sps_t));
+	//add end
+    
 
     ogs_assert(gnb);
     ogs_assert(gnb->sctp.sock);
@@ -1613,6 +1629,9 @@ void ngap_handle_ue_context_release_request(
                 gnb, &ran_ue->ran_ue_ngap_id, &ran_ue->amf_ue_ngap_id,
                 NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error));
         return;
+    }else{ //else add 
+		Trancause->present=Cause->present;
+		Trancause->choice.radioNetwork=Cause->choice.radioNetwork;
     }
 
     ogs_debug("    Cause[Group:%d Cause:%d]",
@@ -1631,7 +1650,7 @@ void ngap_handle_ue_context_release_request(
         ogs_warn("Invalid cause group[%d]", Cause->present);
         break;
     }
-
+#if 0
     amf_ue = ran_ue->amf_ue;
     if (!amf_ue) {
         ogs_error("Cannot find AMF-UE Context [%lld]",
@@ -1681,6 +1700,7 @@ void ngap_handle_ue_context_release_request(
                             sess, AMF_UPDATE_SM_CONTEXT_DEACTIVATED,
                             Cause->present, (int)Cause->choice.radioNetwork);
                 }
+				
             }
         }
 
@@ -1690,10 +1710,37 @@ void ngap_handle_ue_context_release_request(
                     Cause->present, (int)Cause->choice.radioNetwork,
                     NGAP_UE_CTX_REL_NG_REMOVE_AND_UNLINK, 0));
     }
+#endif
+
+	// add
+	//add
+	if(PDUSessionList){
+	 	ogs_info("======ngap_handle_initial_context_setup_response");
+		send_code->h.PDUsessioncount=(uint8_t)PDUSessionList->list.count;
+	}else {
+		ogs_info("======ngap_handle_initial_context_setup_response,PDUSessionList is NULL");
+		send_code->h.PDUsessioncount=0;
+	}
+	for(i = 0; PDUSessionList && i < PDUSessionList->list.count; i++){
+		memcpy(send_code->buf+len0,&(PDUSessionItem->pDUSessionID),sizeof(NGAP_PDUSessionID_t));
+		len0 =len0+sizeof(NGAP_PDUSessionID_t);		
+		
+	}
+	memcpy(send_code->buf+len0,Trancause,sizeof(NGAP_Cause_sps_t));
+	len0=len0+sizeof(NGAP_Cause_sps_t);
+	// add end
+	send_code->h.ProcedureCode=NGAP_ProcedureCode_id_UEContextReleaseRequest;	
+	send_code->h.size=len0;	
+	sps_id=ran_ue->sps_no;
+	ogs_info(" =====ngap_handle_initial_context_setup_response============sps_id:%d========ran_ue->amf_ue_ngap_id:%lu",sps_id,ran_ue->amf_ue_ngap_id);
+	ngap_icps_send_to_sps(sps_id,ran_ue, send_code);
+	if(send_code)free(send_code);		  
+	//add end	
+	
 }
 
 void ngap_handle_ue_context_release_complete(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message)
+        amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf)
 {
     int i;
     char buf[OGS_ADDRSTRLEN];
@@ -1707,6 +1754,11 @@ void ngap_handle_ue_context_release_complete(
     NGAP_UEContextReleaseComplete_IEs_t *ie = NULL;
     NGAP_RAN_UE_NGAP_ID_t *RAN_UE_NGAP_ID = NULL;
     NGAP_AMF_UE_NGAP_ID_t *AMF_UE_NGAP_ID = NULL;
+    //add 
+    uint8_t sps_id;
+    NGAP_icps_send_head_t *send_code_head=NULL;
+    send_code_head=(NGAP_icps_send_head_t *)malloc(sizeof(NGAP_icps_send_head_t));  
+    //add end
 
     ogs_assert(gnb);
     ogs_assert(gnb->sctp.sock);
@@ -1765,8 +1817,17 @@ void ngap_handle_ue_context_release_complete(
                 NGAP_CauseRadioNetwork_unknown_local_UE_NGAP_ID));
         return;
     }
-
+#if 0
     ngap_handle_ue_context_release_action(ran_ue);
+#endif    
+    //add
+    send_code_head->ProcedureCode=NGAP_ProcedureCode_id_UEContextRelease;	
+	send_code_head->size=pkbuf->len;	
+	sps_id=ran_ue->sps_no;
+	//ogs_info(" =====ngap_handle_ue_context_release_complete============sps_id:%d========ran_ue->amf_ue_ngap_id:%lu",sps_id,ran_ue->amf_ue_ngap_id);
+	ngap_icps_send_to_sps_pkg(sps_id,ran_ue, send_code_head,pkbuf->data);	
+	if(send_code_head)free(send_code_head);
+    //add end
 }
 
 void ngap_handle_ue_context_release_action(ran_ue_t *ran_ue)
@@ -1851,15 +1912,15 @@ void ngap_handle_ue_context_release_action(ran_ue_t *ran_ue)
 }
 
 void ngap_handle_pdu_session_resource_setup_response(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message)
+        amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf)
 {
     char buf[OGS_ADDRSTRLEN];
     int i;
 
-    amf_ue_t *amf_ue = NULL;
+    //amf_ue_t *amf_ue = NULL;
     ran_ue_t *ran_ue = NULL;
     uint64_t amf_ue_ngap_id;
-    amf_nsmf_pdusession_sm_context_param_t param;
+	//   amf_nsmf_pdusession_sm_context_param_t param;
 
     NGAP_SuccessfulOutcome_t *successfulOutcome = NULL;
     NGAP_PDUSessionResourceSetupResponse_t *PDUSessionResourceSetupResponse;
@@ -1867,6 +1928,7 @@ void ngap_handle_pdu_session_resource_setup_response(
     NGAP_PDUSessionResourceSetupResponseIEs_t *ie = NULL;
     NGAP_RAN_UE_NGAP_ID_t *RAN_UE_NGAP_ID = NULL;
     NGAP_AMF_UE_NGAP_ID_t *AMF_UE_NGAP_ID = NULL;
+#if 0
     NGAP_PDUSessionResourceSetupListSURes_t *PDUSessionList = NULL;
     NGAP_PDUSessionResourceSetupItemSURes_t *PDUSessionItem = NULL;
     NGAP_PDUSessionResourceFailedToSetupListSURes_t
@@ -1874,6 +1936,12 @@ void ngap_handle_pdu_session_resource_setup_response(
     NGAP_PDUSessionResourceFailedToSetupItemSURes_t
         *PDUSessionFailedItem = NULL;
     OCTET_STRING_t *transfer = NULL;
+#endif
+	//add 
+	uint8_t sps_id;
+	NGAP_icps_send_head_t *send_code_head=NULL;
+	send_code_head=(NGAP_icps_send_head_t *)malloc(sizeof(NGAP_icps_send_head_t));	
+	//add end
 
     ogs_assert(gnb);
     ogs_assert(gnb->sctp.sock);
@@ -1897,6 +1965,7 @@ void ngap_handle_pdu_session_resource_setup_response(
         case NGAP_ProtocolIE_ID_id_AMF_UE_NGAP_ID:
             AMF_UE_NGAP_ID = &ie->value.choice.AMF_UE_NGAP_ID;
             break;
+#if 0
         case NGAP_ProtocolIE_ID_id_PDUSessionResourceSetupListSURes:
             PDUSessionList =
                 &ie->value.choice.PDUSessionResourceSetupListSURes;
@@ -1905,6 +1974,7 @@ void ngap_handle_pdu_session_resource_setup_response(
             PDUSessionFailedList =
                 &ie->value.choice.PDUSessionResourceFailedToSetupListSURes;
             break;
+#endif
         default:
             break;
         }
@@ -1944,6 +2014,7 @@ void ngap_handle_pdu_session_resource_setup_response(
 
     ogs_debug("    RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld]",
             ran_ue->ran_ue_ngap_id, (long long)ran_ue->amf_ue_ngap_id);
+#if 0
 
     amf_ue = ran_ue->amf_ue;
     if (!amf_ue) {
@@ -1957,11 +2028,34 @@ void ngap_handle_pdu_session_resource_setup_response(
         return;
     }
 
+	if(PDUSessionList){
+	 	ogs_info("======ngap_handle_initial_context_setup_response");
+		send_code->h.PDUsessioncount=(uint8_t)PDUSessionList->list.count;
+	}
+	else {
+		ogs_info("======ngap_handle_initial_context_setup_response,PDUSessionList is NULL");
+		send_code->h.PDUsessioncount=0;
+	}
+	
+	if(PDUSessionFailedList){
+	 	ogs_info("======ngap_handle_initial_context_setup_response");
+		send_code->h.PDUsessionfailedcount=(uint8_t)PDUSessionFailedList->list.count;
+	}
+	else {
+		ogs_info("======ngap_handle_initial_context_setup_response,PDUSessionFailedList->list.count is NULL");
+		send_code->h.PDUsessionfailedcount=0;
+	}
+
     if (PDUSessionList) {
         for (i = 0; i < PDUSessionList->list.count; i++) {
-            amf_sess_t *sess = NULL;
+            
             PDUSessionItem = (NGAP_PDUSessionResourceSetupItemSURes_t *)
                 PDUSessionList->list.array[i];
+		if (PDUSessionItem) 
+				transfer = &PDUSessionItem->pDUSessionResourceSetupResponseTransfer;
+		else
+			return;
+
 
             if (!PDUSessionItem) {
                 ogs_error("No PDUSessionResourceSetupItemSURes");
@@ -2029,6 +2123,15 @@ void ngap_handle_pdu_session_resource_setup_response(
                     sess, AMF_UPDATE_SM_CONTEXT_ACTIVATED, &param));
 
             ogs_pkbuf_free(param.n2smbuf);
+
+			//add		
+			memcpy(send_code->buf+len0,&(PDUSessionItem->pDUSessionID),sizeof(NGAP_PDUSessionID_t));
+			len0 =len0+sizeof(NGAP_PDUSessionID_t);
+			memcpy(send_code->buf+len0,&(transfer->size),sizeof(transfer->size));
+			len0=len0+sizeof(transfer->size);		
+			memcpy(send_code->buf+len0,&transfer->buf,transfer->size);
+			len0=len0+transfer->size;
+			// add end
         }
     } else if (PDUSessionFailedList) {
         for (i = 0; i < PDUSessionFailedList->list.count; i++) {
@@ -2036,7 +2139,13 @@ void ngap_handle_pdu_session_resource_setup_response(
             PDUSessionFailedItem =
                 (NGAP_PDUSessionResourceFailedToSetupItemSURes_t *)
                 PDUSessionFailedList->list.array[i];
-
+///////add
+		if(PDUSessionFailedItem)return;
+		transfer =
+						&PDUSessionFailedItem->
+							pDUSessionResourceSetupUnsuccessfulTransfer;
+		if(transfer)return;
+//////add end
             if (!PDUSessionFailedItem) {
                 ogs_error("No PDUSessionResourceFailedToSetupItemSURes");
                 ogs_assert(OGS_OK ==
@@ -2149,6 +2258,16 @@ void ngap_handle_pdu_session_resource_setup_response(
                     sess, AMF_UPDATE_SM_CONTEXT_SETUP_FAIL, &param));
 
             ogs_pkbuf_free(param.n2smbuf);
+
+			//add		
+			memcpy(send_code->buf+len0,&(PDUSessionFailedItem->pDUSessionID),sizeof(NGAP_PDUSessionID_t));
+			len0 =len0+sizeof(NGAP_PDUSessionID_t);
+			memcpy(send_code->buf+len0,&(transfer->size),sizeof(transfer->size));
+			len0=len0+sizeof(transfer->size);		
+			memcpy(send_code->buf+len0,&transfer->buf,transfer->size);
+			len0=len0+transfer->size;
+			// add end
+
         }
     } else {
         ogs_error("No PDUSessionResourceList");
@@ -2156,6 +2275,17 @@ void ngap_handle_pdu_session_resource_setup_response(
             ngap_send_error_indication2(amf_ue,
                 NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error));
     }
+	// add
+#endif	
+	send_code_head->ProcedureCode=NGAP_ProcedureCode_id_PDUSessionResourceSetup;
+	
+	send_code_head->size=pkbuf->len;
+	ogs_info(" =====ngap_handle_pdu_session_resource_setup_response====pkbuf->len:%d==",pkbuf->len);
+	sps_id=ran_ue->sps_no;
+	ogs_info(" =====ngap_handle_pdu_session_resource_setup_response============sps_id:%d========ran_ue->amf_ue_ngap_id:%lu",sps_id,ran_ue->amf_ue_ngap_id);
+	ngap_icps_send_to_sps_pkg(sps_id,ran_ue, send_code_head,pkbuf->data);
+	//ogs_pkbuf_free(pkbuf);
+	if(send_code_head)free(send_code_head);
 }
 
 void ngap_handle_pdu_session_resource_modify_response(
@@ -2334,15 +2464,15 @@ void ngap_handle_pdu_session_resource_modify_response(
 }
 
 void ngap_handle_pdu_session_resource_release_response(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message)
+        amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf)
 {
     char buf[OGS_ADDRSTRLEN];
     int i;
 
-    amf_ue_t *amf_ue = NULL;
+    //amf_ue_t *amf_ue = NULL;
     ran_ue_t *ran_ue = NULL;
     uint64_t amf_ue_ngap_id;
-    amf_nsmf_pdusession_sm_context_param_t param;
+    //amf_nsmf_pdusession_sm_context_param_t param;
 
     NGAP_SuccessfulOutcome_t *successfulOutcome = NULL;
     NGAP_PDUSessionResourceReleaseResponse_t
@@ -2354,7 +2484,11 @@ void ngap_handle_pdu_session_resource_release_response(
     NGAP_PDUSessionResourceReleasedListRelRes_t *PDUSessionList = NULL;
     NGAP_PDUSessionResourceReleasedItemRelRes_t *PDUSessionItem = NULL;
     OCTET_STRING_t *transfer = NULL;
-
+    //add 
+	uint8_t sps_id;
+	NGAP_icps_send_head_t *send_code_head=NULL;
+	send_code_head=(NGAP_icps_send_head_t *)malloc(sizeof(NGAP_icps_send_head_t));	
+	//add end
     ogs_assert(gnb);
     ogs_assert(gnb->sctp.sock);
 
@@ -2420,7 +2554,7 @@ void ngap_handle_pdu_session_resource_release_response(
 
     ogs_debug("    RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld]",
             ran_ue->ran_ue_ngap_id, (long long)ran_ue->amf_ue_ngap_id);
-
+#if 0
     amf_ue = ran_ue->amf_ue;
     if (!amf_ue) {
         ogs_error("Cannot find AMF-UE Context [%lld]",
@@ -2506,7 +2640,17 @@ void ngap_handle_pdu_session_resource_release_response(
                 sess, AMF_UPDATE_SM_CONTEXT_N2_RELEASED, &param));
 
         ogs_pkbuf_free(param.n2smbuf);
-    }
+    }    
+#endif
+   //add
+    send_code_head->ProcedureCode=NGAP_ProcedureCode_id_PDUSessionResourceRelease;	
+	send_code_head->size=pkbuf->len;	
+	sps_id=ran_ue->sps_no;
+	//ogs_info(" =====ngap_handle_pdu_session_resource_setup_response============sps_id:%d========ran_ue->amf_ue_ngap_id:%lu",sps_id,ran_ue->amf_ue_ngap_id);
+	ngap_icps_send_to_sps_pkg(sps_id,ran_ue, send_code_head,pkbuf->data);
+	//ogs_pkbuf_free(pkbuf);
+	if(send_code_head)free(send_code_head);
+    //add end
 }
 
 void ngap_handle_uplink_ran_configuration_transfer(
@@ -4568,6 +4712,51 @@ void ngap_icps_send_to_sps(uint8_t sps_id,ran_ue_t *ran_ue, NGAP_icps_send_code_
 	  }
 
 }
+void ngap_icps_send_to_sps_pkg(
+	uint8_t sps_id,ran_ue_t *ran_ue, NGAP_icps_send_head_t *send_code_head,unsigned char * buf)
+{
+ 		
+	ssize_t sent,len;
+	uint8_t buff[8192];
+	if(!ran_ue){
+        ogs_error("ran_ue is NULL");
+        return;
+       }
+	if(!send_code_head){
+        ogs_error("send_code_head is NULL");
+        return;
+       }
+	if((sps_id<1)||(sps_id>MAX_SPS_NUM)){
+        ogs_error("sps_id=%d",sps_id);
+        return;
+       }
+	  
+	amf_internel_msg_header_t tmsg;
+	tmsg.msg_type = INTERNEL_MSG_NGAP;	 
+	tmsg.ran_ue_ngap_id=ran_ue->ran_ue_ngap_id;
+	tmsg.amf_ue_ngap_id=ran_ue->amf_ue_ngap_id;
+	tmsg.nr_tai=ran_ue->saved.nr_tai;
+	tmsg.nr_cgi=ran_ue->saved.nr_cgi;
+	  
+	len=sizeof(amf_internel_msg_header_t)+send_code_head->size;
+	tmsg.len=len;
+    ogs_info(" =====ngap_icps_send_to_sps=len:%lu,sizeof(NGAP_icps_send_head_t):%lu,send_code_head->size=%lu==",len,sizeof(NGAP_icps_send_head_t),send_code_head->size);
+	memcpy(buff,&(tmsg),sizeof(amf_internel_msg_header_t));	  
+	memcpy(buff+sizeof(amf_internel_msg_header_t),send_code_head,sizeof(NGAP_icps_send_head_t));
+	memcpy(buff+sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t),buf,send_code_head->size);	 
+	  ogs_info("ngap_icps_send_to_sps :%02x%02x%02x%02x=====%02x%02x%02x%02x",buff[48],buff[49],buff[50],buff[51],buff[56],buff[57],buff[58],buff[59]);
+	 
+	  sent = udp_ini_sendto(buff, sizeof(amf_internel_msg_header_t)+len, sps_id);
+	  if (sent < 0 || sent != (sizeof(amf_internel_msg_header_t)+len)) {
+			ogs_error("ogs_sendto() failed ");
+	  }
+	  else
+	  {
+		ogs_info("ngap_icps_send_to_sps_pkg ok! sent=====================%lu",sent);
+	  }
+      return;
+}
+
 int icps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
 {
 	 ogs_info("ICPS rev INTERNEL_MSG_NGAP !!!!1~~~~");
@@ -4580,15 +4769,19 @@ int icps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
 	int rvtmp;
 	ogs_info("ICPS rev INTERNEL_MSG_NGAP ngap_send_to_gnb pkbuf->len:%d",pkbuf->len);
 	ogs_info("pkbuf->data:%02x%02x%02x%02x",*pkbuf->data,*(pkbuf->data+1),*(pkbuf->data+2),*(pkbuf->data+3));
-	pkbuftmp->data=pkbuf->data+sizeof(amf_internel_msg_header_t);
-	pkbuftmp->len=pkbuf->len-sizeof(amf_internel_msg_header_t);				
+	//pkbuftmp->data=pkbuf->data+sizeof(amf_internel_msg_header_t);
+	pkbuftmp->len=pkbuf->len-sizeof(amf_internel_msg_header_t);
+    memcpy(pkbuftmp->data,pkbuf->data+sizeof(amf_internel_msg_header_t),pkbuftmp->len);
 	ogs_info("pkbuftmp->data:%02x%02x%02x%02x",*pkbuftmp->data,*(pkbuftmp->data+1),*(pkbuftmp->data+2),*(pkbuftmp->data+3));
 	ran_ue_icps=ran_ue_find_by_amf_ue_ngap_id(pmsg->ran_ue_ngap_id);
 	if(ran_ue_icps){
 		ran_ue_icps->amf_ue_ngap_id=pmsg->amf_ue_ngap_id;
-        ran_ue_icps->m_tmsi=pmsg->m_tmsi; 
+	    ran_ue_icps->m_tmsi=pmsg->m_tmsi;
+       // print_buf(pkbuftmp->data,pkbuftmp->len);
         rvtmp=ngap_send_to_gnb(ran_ue_icps->gnb, pkbuftmp, ran_ue_icps->gnb_ostream_id);
 	}
+	
+	
 	return rvtmp;
 }
 

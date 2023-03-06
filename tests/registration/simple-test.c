@@ -96,6 +96,7 @@ static void test1_func(abts_case *tc, void *data)
     ABTS_INT_EQUAL(tc, OGS_OK, test_db_insert_ue(test_ue, doc));
 
     /* Send Registration request */
+    ogs_info("Send Registration request.");
     test_ue->registration_request_param.guti = 1;
     gmmbuf = testgmm_build_registration_request(test_ue, NULL, false, false);
     ABTS_PTR_NOTNULL(tc, gmmbuf);
@@ -115,11 +116,13 @@ static void test1_func(abts_case *tc, void *data)
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Receive Identity request */
+    ogs_info("Receive Identity reques.");
     recvbuf = testgnb_ngap_read(ngap);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     testngap_recv(test_ue, recvbuf);
 
     /* Send Identity response */
+    ogs_info("Send Identity response.");
     gmmbuf = testgmm_build_identity_response(test_ue);
     ABTS_PTR_NOTNULL(tc, gmmbuf);
     sendbuf = testngap_build_uplink_nas_transport(test_ue, gmmbuf);
@@ -128,11 +131,13 @@ static void test1_func(abts_case *tc, void *data)
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Receive Authentication request */
+    ogs_info("Receive Authentication request.");
     recvbuf = testgnb_ngap_read(ngap);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     testngap_recv(test_ue, recvbuf);
 
     /* Send Authentication response */
+    ogs_info("Send Authentication response.");
     gmmbuf = testgmm_build_authentication_response(test_ue);
     ABTS_PTR_NOTNULL(tc, gmmbuf);
     sendbuf = testngap_build_uplink_nas_transport(test_ue, gmmbuf);
@@ -141,11 +146,13 @@ static void test1_func(abts_case *tc, void *data)
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Receive Security mode command */
+    ogs_info("Receive Security mode command.");
     recvbuf = testgnb_ngap_read(ngap);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     testngap_recv(test_ue, recvbuf);
 
     /* Send Security mode complete */
+    ogs_info("Send Security mode complete.");
     gmmbuf = testgmm_build_security_mode_complete(test_ue, nasbuf);
     ABTS_PTR_NOTNULL(tc, gmmbuf);
     sendbuf = testngap_build_uplink_nas_transport(test_ue, gmmbuf);
@@ -155,6 +162,7 @@ static void test1_func(abts_case *tc, void *data)
 
     /* Receive InitialContextSetupRequest +
      * Registration accept */
+    ogs_info("Receive InitialContextSetupRequest + Registration accept.");
     recvbuf = testgnb_ngap_read(ngap);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     testngap_recv(test_ue, recvbuf);
@@ -163,18 +171,21 @@ static void test1_func(abts_case *tc, void *data)
             test_ue->ngap_procedure_code);
 
     /* Send UERadioCapabilityInfoIndication */
+    ogs_info("Send UERadioCapabilityInfoIndication.");
     sendbuf = testngap_build_ue_radio_capability_info_indication(test_ue);
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Send InitialContextSetupResponse */
+    ogs_info("Send InitialContextSetupResponse.");
     sendbuf = testngap_build_initial_context_setup_response(test_ue, false);
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Send Registration complete */
+    ogs_info("Send Registration complete.");
     gmmbuf = testgmm_build_registration_complete(test_ue);
     ABTS_PTR_NOTNULL(tc, gmmbuf);
     sendbuf = testngap_build_uplink_nas_transport(test_ue, gmmbuf);
@@ -183,11 +194,13 @@ static void test1_func(abts_case *tc, void *data)
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Receive Configuration update command */
+    ogs_info("Receive Configuration update commandt.");
     recvbuf = testgnb_ngap_read(ngap);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     testngap_recv(test_ue, recvbuf);
 
     /* Send PDU session establishment request */
+    ogs_info("Send PDU session establishment request.");
     sess = test_sess_add_by_dnn_and_psi(test_ue, "internet", 5);
     ogs_assert(sess);
 
@@ -212,6 +225,7 @@ static void test1_func(abts_case *tc, void *data)
     /* Receive PDUSessionResourceSetupRequest +
      * DL NAS transport +
      * PDU session establishment accept */
+    ogs_info("Receive PDUSessionResourceSetupRequest,DL NAS transport,PDU session establishment accept.");
     recvbuf = testgnb_ngap_read(ngap);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     testngap_recv(test_ue, recvbuf);
@@ -226,6 +240,7 @@ static void test1_func(abts_case *tc, void *data)
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Send PDUSessionResourceSetupResponse */
+    ogs_info("Send PDUSessionResourceSetupResponse.");
     sendbuf = testngap_sess_build_pdu_session_resource_setup_response(sess);
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);

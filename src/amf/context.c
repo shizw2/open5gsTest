@@ -1278,14 +1278,14 @@ ran_ue_t *ran_ue_add_sps( uint32_t ran_ue_ngap_id,uint64_t amf_ue_ngap_id)
 void ran_ue_remove(ran_ue_t *ran_ue)
 {
     ogs_assert(ran_ue);
-	if(is_amf_icps()){
-    ogs_assert(ran_ue->gnb);
+    if(is_amf_icps()){
+        ogs_assert(ran_ue->gnb);
 
-    ogs_list_remove(&ran_ue->gnb->ran_ue_list, ran_ue);
+        ogs_list_remove(&ran_ue->gnb->ran_ue_list, ran_ue);
 
-    ogs_assert(ran_ue->t_ng_holding);
-    ogs_timer_delete(ran_ue->t_ng_holding);
-	}
+        ogs_assert(ran_ue->t_ng_holding);
+        ogs_timer_delete(ran_ue->t_ng_holding);
+    }
 //SPS释放如何通知ICPS，ICPS释放需要通知SPS，待处理
     ogs_pool_free(&ran_ue_pool, ran_ue);
 
@@ -1924,7 +1924,7 @@ OpenAPI_rat_type_e amf_ue_rat_type(amf_ue_t *amf_ue)
     ogs_assert(ran_ue);
     gnb = ran_ue->gnb;
     ogs_assert(gnb);
- return gnb->rat_type;
+    return gnb->rat_type;
 #endif
     return OpenAPI_rat_type_NR;
 }

@@ -708,7 +708,7 @@ int ogs_sbi_parse_request(
                     ogs_hash_this_key(hi), OGS_SBI_CONTENT_TYPE)) {
             message->http.content_type = ogs_hash_this_val(hi);
             snprintf(message->udp_h.request.content_type, MAX_SBI_CONTENT_TYPE, "%s", message->http.content_type);
-            ogs_info("test:content_type:%s.",message->http.content_type);
+            //ogs_info("test:content_type:%s.",message->http.content_type);
         } else if (!ogs_strcasecmp(ogs_hash_this_key(hi), OGS_SBI_ACCEPT)) {
             message->http.accept = ogs_hash_this_val(hi);
         } else if (!ogs_strcasecmp(ogs_hash_this_key(hi), OGS_SBI_USER_AGENT)) {
@@ -2246,7 +2246,7 @@ static int parse_multipart(
     ogs_assert(message);
     ogs_assert(http);
 
-    ogs_info("test:parse_multipart.");
+    //ogs_info("test:parse_multipart.");
 
     memset(&settings, 0, sizeof(settings));
     settings.on_header_field = &on_header_field;
@@ -2541,7 +2541,7 @@ void ogs_sbi_discovery_option_parse_service_names(
 }
 
 
-void ogs_print_sbi_udp_header(ogs_sbi_udp_header_t *udp_header)
+void ogs_print_sbi_udp_header(ogs_sbi_udp_header_t *udp_header, bool is_request)
 {
     if (NULL == udp_header)
     {   
@@ -2549,15 +2549,21 @@ void ogs_print_sbi_udp_header(ogs_sbi_udp_header_t *udp_header)
     }
     int i;
 
-    ogs_info("sbi header info: method:%s,\nuri:%s,\nservice_name:%s,\n api_version:%s,\ncontent_type:%s.",
-        udp_header->request.method,udp_header->request.uri,udp_header->request.service.name,udp_header->request.api.version,
-        udp_header->request.content_type);
+    if (is_request == true){
+        ogs_info("sbi request header info:\nmethod:%s,\nuri:%s,\nservice_name:%s,\napi_version:%s,\ncontent_type:%s.",
+            udp_header->request.method,udp_header->request.uri,udp_header->request.service.name,udp_header->request.api.version,
+            udp_header->request.content_type);
 
-    for (i = 0; i < OGS_SBI_MAX_NUM_OF_RESOURCE_COMPONENT; i++)
-    {
-        if (udp_header->request.resource.component[i][0] != '\0')
+        for (i = 0; i < OGS_SBI_MAX_NUM_OF_RESOURCE_COMPONENT; i++)
         {
-            ogs_info("component[%d]:%s.",i,udp_header->request.resource.component[i]);
+            if (udp_header->request.resource.component[i][0] != '\0')
+            {
+                ogs_info("component[%d]:%s.",i,udp_header->request.resource.component[i]);
+            }
         }
+    }else{
+        ogs_info("sbi response header info:\nstatus:%d,\ncontent_type:%s,\nlocation:%s,\ncache_control:%s.",
+            udp_header->response.status,udp_header->response.http.content_type,
+            udp_header->response.http.location,udp_header->response.http.cache_control);
     }
 }

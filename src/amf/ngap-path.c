@@ -26,6 +26,7 @@
 #include "nas-security.h"
 #include "nas-path.h"
 #include "sbi-path.h"
+#include "ngap-handler-sps.h"
 
 int ngap_open(void)
 {
@@ -83,6 +84,36 @@ int ngap_send_to_gnb(amf_gnb_t *gnb, ogs_pkbuf_t *pkbuf, uint16_t stream_no)
     }
 }
 
+int ngap_send_to_gnb_sps(ran_ue_t *ran_ue, ogs_pkbuf_t *pkbuf)
+{
+    
+    ogs_assert(pkbuf);
+    amf_internel_msg_header_t tmsg;
+    uint8_t buff[OGS_MAX_SDU_LEN];
+    int len;
+    ran_ue = ran_ue_cycle(ran_ue);
+    if (!ran_ue) {
+        ogs_warn("NG context has already been removed");
+        ogs_pkbuf_free(pkbuf);
+        return OGS_ERROR;
+    }
+	tmsg.msg_type=INTERNEL_MSG_NGAP;
+	tmsg.ran_ue_ngap_id=ran_ue->ran_ue_ngap_id;
+	tmsg.amf_ue_ngap_id=ran_ue->amf_ue_ngap_id;
+	tmsg.m_tmsi=ran_ue->m_tmsi;
+	tmsg.down_ngap_type=INTERNEL_DOWN_NGAP_TO_NB;
+	tmsg.len=pkbuf->len;	
+	len=sizeof(tmsg);
+	memcpy(buff,&tmsg,sizeof(tmsg));
+	memcpy(buff+len,pkbuf->data,pkbuf->len);
+	len=len+pkbuf->len;
+	ogs_info("ngap_send_to_ran_ue_sps len:%d",len);
+	ogs_sendto(amf_self()->udp_node->sock->fd,buff,len,0, amf_self()->icps_node->addr);
+	ogs_pkbuf_free(pkbuf);
+    return OGS_OK;
+	
+}
+
 int ngap_send_to_ran_ue(ran_ue_t *ran_ue, ogs_pkbuf_t *pkbuf)
 {
     ogs_assert(pkbuf);
@@ -100,7 +131,8 @@ int ngap_send_to_ran_ue_sps(ran_ue_t *ran_ue, ogs_pkbuf_t *pkbuf)
 {
     ogs_assert(pkbuf);
     amf_internel_msgbuf_t tmsg;
-    uint8_t len,buff[4096];
+    int len;
+    uint8_t buff[OGS_MAX_SDU_LEN];
     ran_ue = ran_ue_cycle(ran_ue);
     if (!ran_ue) {
         ogs_warn("NG context has already been removed");
@@ -111,12 +143,13 @@ int ngap_send_to_ran_ue_sps(ran_ue_t *ran_ue, ogs_pkbuf_t *pkbuf)
     tmsg.msg_head.ran_ue_ngap_id=ran_ue->ran_ue_ngap_id;
     tmsg.msg_head.amf_ue_ngap_id=ran_ue->amf_ue_ngap_id;
     tmsg.msg_head.m_tmsi=ran_ue->m_tmsi;
+	tmsg.msg_head.down_ngap_type=INTERNEL_DOWN_NGAP_TO_UE;
     tmsg.msg_head.len=pkbuf->len;	
     len=sizeof(tmsg.msg_head);
     memcpy(buff,&tmsg,sizeof(tmsg.msg_head));
     memcpy(buff+len,pkbuf->data,pkbuf->len);
     len=len+pkbuf->len;
-    ogs_info("ngap_send_to_ran_ue_sps len:%d",len);
+	ogs_info("ngap_send_to_ran_ue_sps len:%d,pkbuf->len=%d,sizeof(tmsg.msg_head)=%lu",len,pkbuf->len,sizeof(tmsg.msg_head));
     if(is_amf_sps())
     {
         ogs_sendto(amf_self()->udp_node->sock->fd,buff,len,0, amf_self()->icps_node->addr);
@@ -570,6 +603,7 @@ int ngap_send_pdu_resource_setup_request(
 
         ran_ue->initial_context_setup_request_sent = true;
     } else {
+		ogs_info("ngap_send_pdu_resource_setup_request ran_ue->initial_context_setup_request_sent ==%d",ran_ue->initial_context_setup_request_sent);
         ngapbuf = ngap_sess_build_pdu_session_resource_setup_request(
                 sess, NULL, n2smbuf);
         ogs_expect_or_return_val(ngapbuf, OGS_ERROR);
@@ -736,6 +770,25 @@ int ngap_send_error_indication(
     return rv;
 }
 
+int ngap_send_error_indication_sps(				
+				ran_ue_t *ran_ue,
+				NGAP_Cause_PR group, long cause)
+{
+	int rv;
+	ogs_pkbuf_t *ngapbuf = NULL;
+	
+	ogs_assert(ran_ue);
+		
+	ngapbuf = ogs_ngap_build_error_indication(
+					&ran_ue->ran_ue_ngap_id, &ran_ue->amf_ue_ngap_id, group, cause);
+	ogs_expect_or_return_val(ngapbuf, OGS_ERROR);
+		
+	rv = ngap_send_to_gnb_sps(ran_ue, ngapbuf);
+	ogs_expect(rv == OGS_OK);
+		
+	return rv;
+}
+
 int ngap_send_error_indication2(
         amf_ue_t *amf_ue, NGAP_Cause_PR group, long cause)
 {
@@ -751,6 +804,22 @@ int ngap_send_error_indication2(
 
     rv = ngap_send_error_indication(
         gnb, &ran_ue->ran_ue_ngap_id, &ran_ue->amf_ue_ngap_id, group, cause);
+    ogs_expect(rv == OGS_OK);
+
+    return rv;
+}
+int ngap_send_error_indication2_sps(
+        amf_ue_t *amf_ue, NGAP_Cause_PR group, long cause)
+{
+    int rv;
+    
+    ran_ue_t *ran_ue;
+
+    ogs_assert(amf_ue);
+    ran_ue = ran_ue_cycle(amf_ue->ran_ue);
+    ogs_expect_or_return_val(ran_ue, OGS_ERROR); 
+    rv = ngap_send_error_indication_sps(
+       ran_ue, group, cause);
     ogs_expect(rv == OGS_OK);
 
     return rv;

@@ -277,9 +277,9 @@ int udp_ini_msg_sendto(int msg_type, ogs_sbi_udp_header_t *header,const void *bu
 	
 	ogs_info("udp_ini_msg_sendto success, msg_type:%d, msg_len:%d",msg_type,pkbuf->len);
 
-	ogs_print_sbi_udp_header(header);
+	ogs_print_sbi_udp_header(header, true);
 	if (pkbuf->len > sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)){
-		ogs_info("content:%s", (char*)(pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)));
+		ogs_info("sbi content:%s", (char*)(pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)));
 	}
 	
 	ogs_pkbuf_free(pkbuf);
@@ -472,7 +472,7 @@ void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
     ogs_sbi_stream_t *stream = NULL;
 
     memset(&request, 0, sizeof(ogs_sbi_request_t));
-	ogs_info("recv sbi msg, msg_len:%d,msg_head_len:%ld,udp_head_len:%ld.", pkbuf->len,sizeof(amf_internel_msg_header_t),sizeof(ogs_sbi_udp_header_t));					
+	ogs_info("sps recv sbi msg, msg_len:%d,msg_head_len:%ld,udp_head_len:%ld.", pkbuf->len,sizeof(amf_internel_msg_header_t),sizeof(ogs_sbi_udp_header_t));					
 	if (pkbuf->len > sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)){
 		//根据header解析content
         request.http.content = pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t);
@@ -483,9 +483,10 @@ void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
         memset(&sbi_message, 0, sizeof(sbi_message));
         sbi_message.http.content_type = p_udp_header->request.content_type;
         
+        ogs_print_sbi_udp_header(p_udp_header,true);
+        ogs_info("http.content_type:%s", sbi_message.http.content_type);    
         ogs_info("sbi content_length:%ld,content:%s", request.http.content_length,request.http.content);
-        ogs_info("content_type:%s", sbi_message.http.content_type);
-        ogs_print_sbi_udp_header(p_udp_header);
+            
 
         rv = ogs_sbi_parse_udp_request(&sbi_message,&request,p_udp_header);
 
@@ -675,8 +676,9 @@ void udp_ini_icps_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
         ogs_sbi_update_response(p_udp_header,response);        
         
         stream = (ogs_sbi_stream_t *)p_udp_header->stream_pointer;
+        ogs_print_sbi_udp_header(p_udp_header,false);
         ogs_info("sbi content_length:%ld,content:%s.", response->http.content_length, response->http.content);
-        ogs_print_sbi_udp_header(p_udp_header);
+        
         ogs_info("steam:%p.", stream);
         ogs_assert(true == ogs_sbi_server_send_response(stream, response));
 

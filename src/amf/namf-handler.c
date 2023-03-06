@@ -24,6 +24,8 @@
 #include "ngap-path.h"
 #include "sbi-path.h"
 #include "udp-ini-path.h"
+#include "ngap-handler-sps.h"
+
 
 int amf_namf_comm_handle_n1_n2_message_transfer(
         ogs_sbi_stream_t *stream, ogs_sbi_message_t *recvmsg)
@@ -412,6 +414,7 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
         //发送时,content编码好发送； header先发送原始字段，到icps再编码
         sendmsg.udp_h.stream_pointer = stream;
         udp_ini_msg_sendto_icps(INTERNEL_MSG_SBI, &sendmsg.udp_h, response->http.content,response->http.content_length);
+        ogs_sbi_response_free(response);
     }
     else{        
         ogs_assert(true == ogs_sbi_server_send_response(stream, response));

@@ -70,6 +70,9 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
                     NGAP_ProcedureCode_id_NGSetup)) {
             break;
         }
+	//move to here
+		pkbuf = e->pkbuf;
+		ogs_assert(pkbuf);
 
         switch (pdu->present) {
         case NGAP_NGAP_PDU_PR_initiatingMessage:
@@ -103,9 +106,10 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 break;
             case NGAP_ProcedureCode_id_UplinkRANConfigurationTransfer:
 				ogs_info("********Receive:NGAP_ProcedureCode_id_UplinkRANConfigurationTransfer   ********");
+#if 0
                 pkbuf = e->pkbuf;
                 ogs_assert(pkbuf);
-
+#endif
                 ngap_handle_uplink_ran_configuration_transfer(gnb, pdu, pkbuf);
                 break;
             case NGAP_ProcedureCode_id_HandoverPreparation:
@@ -153,7 +157,7 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 break;
             case NGAP_ProcedureCode_id_PDUSessionResourceSetup:
 				ogs_info("********Receive: NGAP_ProcedureCode_id_PDUSessionResourceSetup:  ********");
-                ngap_handle_pdu_session_resource_setup_response(gnb, pdu);
+                ngap_handle_pdu_session_resource_setup_response(gnb, pdu,pkbuf);
                 break;
             case NGAP_ProcedureCode_id_PDUSessionResourceModify:
 				ogs_info("********Receive: NGAP_ProcedureCode_id_PDUSessionResourceModify:  ********");
@@ -161,7 +165,7 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 break;
             case NGAP_ProcedureCode_id_PDUSessionResourceRelease:
 				ogs_info("********Receive: NGAP_ProcedureCode_id_PDUSessionResourceRelease:  ********");
-                ngap_handle_pdu_session_resource_release_response(gnb, pdu);
+                ngap_handle_pdu_session_resource_release_response(gnb, pdu,pkbuf);
                 break;
 #if 0
             case NGAP_ProcedureCode_id_UEContextModification:
@@ -170,7 +174,7 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
 #endif
             case NGAP_ProcedureCode_id_UEContextRelease:
 				ogs_info("********Receive: NGAP_ProcedureCode_id_UEContextRelease:  ********");
-                ngap_handle_ue_context_release_complete(gnb, pdu);
+                ngap_handle_ue_context_release_complete(gnb, pdu,pkbuf);
                 break;
             case NGAP_ProcedureCode_id_HandoverResourceAllocation:
 				ogs_info("********Receive: NGAP_ProcedureCode_id_HandoverResourceAllocation:  ********");
