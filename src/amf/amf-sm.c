@@ -113,6 +113,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             break;
         }
 
+        sbi_message.udp_h.stream_pointer = stream;
+
         SWITCH(sbi_message.h.service.name)
         CASE(OGS_SBI_SERVICE_NAME_NUDM_SDM)
             api_version = OGS_SBI_API_V2;
@@ -178,8 +180,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                             if (0 == sps_id){
                                 sps_id = 1;//TODO:根据情况，是丢弃还是随机选择
                                 amf_sps_id_set_supi(1,supi);
-                            }
-                            sbi_message.udp_h.stream_pointer = stream;
+                            }                            
                             ogs_info("stream addr:%p, stream_pointer:%ld",stream, sbi_message.udp_h.stream_pointer);
                             udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,sps_id);
                         #endif

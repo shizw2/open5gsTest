@@ -496,6 +496,8 @@ void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
             return;
         }
 
+        stream = p_udp_header->stream_pointer;
+
         SWITCH(sbi_message.h.service.name)
         CASE(OGS_SBI_SERVICE_NAME_NUDM_SDM)
             api_version = OGS_SBI_API_V2;
@@ -553,7 +555,7 @@ void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
                     SWITCH(sbi_message.h.method)
                     CASE(OGS_SBI_HTTP_METHOD_POST)					
                         rv = amf_namf_comm_handle_n1_n2_message_transfer(
-                                p_udp_header->stream_pointer, &sbi_message);
+                                stream, &sbi_message);
                         if (rv != OGS_OK) {
                             ogs_assert(true ==
                                 ogs_sbi_server_send_error(stream,
@@ -644,7 +646,7 @@ void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
                     "Invalid API name", sbi_message.h.resource.component[0]));
         END
 
- 
+        ogs_sbi_message_free(&sbi_message);
     }	
 }
 

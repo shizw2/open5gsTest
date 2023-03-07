@@ -1549,7 +1549,7 @@ void ngap_handle_ue_context_release_request(
 	uint8_t sps_id;
 	NGAP_icps_send_code_t *send_code=NULL;
 	send_code=(NGAP_icps_send_code_t *)malloc(sizeof(NGAP_icps_send_code_t));
-	send_code->buf=(uint8_t*)malloc(sizeof(uint8_t));	
+	send_code->buf=(uint8_t*)malloc(sizeof(OGS_MAX_SDU_LEN));	
 	int len0=0;
 	Trancause=(NGAP_Cause_sps_t *)malloc(sizeof(NGAP_Cause_sps_t));
 	//add end
