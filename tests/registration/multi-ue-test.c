@@ -224,8 +224,8 @@ static void muti_ue_threads(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, ngap);
 
     /* gNB connects to UPF */
-    //gtpu = test_gtpu_server(1, AF_INET);
-    //ABTS_PTR_NOTNULL(tc, gtpu);
+    gtpu = test_gtpu_server(1, AF_INET);
+    ABTS_PTR_NOTNULL(tc, gtpu);
 
     /* Send NG-Setup Reqeust */
     sendbuf = testngap_build_ng_setup_request(0x4000, 22);
@@ -429,11 +429,25 @@ static void muti_ue_threads(abts_case *tc, void *data)
                 NGAP_ProcedureCode_id_PDUSessionResourceSetup,
                 test_ue[i]->ngap_procedure_code);
 
+        /* Send GTP-U ICMP Packet */
+        ogs_info("Send GTP-U ICMP Packet");
+        qos_flow = test_qos_flow_find_by_qfi(sess, 1);
+        ogs_assert(qos_flow);
+        rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
+        ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
         /* Send PDUSessionResourceSetupResponse */
+        ogs_info("Send PDUSessionResourceSetupResponse");
         sendbuf = testngap_sess_build_pdu_session_resource_setup_response(sess);
         ABTS_PTR_NOTNULL(tc, sendbuf);
         rv = testgnb_ngap_send(ngap, sendbuf);
         ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
+        /* Receive GTP-U ICMP Packet */
+        ogs_info("Receive GTP-U ICMP Packet");
+        recvbuf = testgnb_gtpu_read(gtpu);
+        ABTS_PTR_NOTNULL(tc, recvbuf);
+        ogs_pkbuf_free(recvbuf);
 	}
 #endif	
 	gettimeofday(&stop_time, NULL);

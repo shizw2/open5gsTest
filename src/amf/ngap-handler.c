@@ -1722,6 +1722,8 @@ void ngap_handle_ue_context_release_request(
 		send_code->h.PDUsessioncount=0;
 	}
 	for(i = 0; PDUSessionList && i < PDUSessionList->list.count; i++){
+        PDUSessionItem = (NGAP_PDUSessionResourceItemCxtRelReq_t *)
+                    PDUSessionList->list.array[i];
 		memcpy(send_code->buf+len0,&(PDUSessionItem->pDUSessionID),sizeof(NGAP_PDUSessionID_t));
 		len0 =len0+sizeof(NGAP_PDUSessionID_t);		
 		
