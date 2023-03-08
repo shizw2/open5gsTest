@@ -508,7 +508,7 @@ ogs_sbi_response_t *ogs_sbi_build_response(
     if (message->http.cache_control)
         ogs_sbi_header_set(response->http.headers, "Cache-Control",
                 message->http.cache_control);                
-        snprintf(message->udp_h.response.http.cache_control,  MAX_SBI_HTTP_LOCATION, message->http.cache_control);
+        snprintf(message->udp_h.response.http.cache_control,  MAX_SBI_HTTP_LOCATION, "%s",message->http.cache_control);
     return response;
 }
 
