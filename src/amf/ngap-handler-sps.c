@@ -97,8 +97,10 @@ int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
 				ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_UEContextReleaseRequest");
 				ogs_info(" NGAP_ProcedureCode_id_UEContextReleaseRequest-pmsg_buf_head->PDUsessioncount:%u",pmsg_buf_head->PDUsessioncount);
 				ran_ue=ran_ue_find_by_amf_ue_ngap_id(pmsg->amf_ue_ngap_id);
-			    if(ran_ue)
+			    if(ran_ue){
+					ogs_info("find ue.");
 					ngap_handle_ue_context_release_request_sps(ran_ue,pmsg_buf_head->PDUsessioncount,pmsg_buf_head->size,buf);
+				}
 				break;
 			case NGAP_ProcedureCode_id_PathSwitchRequest:
 				ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_PathSwitchRequest");
@@ -405,9 +407,9 @@ void ngap_handle_ue_context_release_request_sps        (ran_ue_t * ran_ue,uint8_
 {
 
 	int i,j;
-	if(ran_ue)
+	if(ran_ue == NULL)
 		return;
-	if(buf)
+	if(buf  == NULL)
 		return;
 
     amf_ue_t *amf_ue = NULL;
@@ -422,11 +424,12 @@ void ngap_handle_ue_context_release_request_sps        (ran_ue_t * ran_ue,uint8_
 	Cause=malloc(sizeof(NGAP_Cause_t));
 	
 	if(PDUSessionItem && size){
-		
+		ogs_info("ngap_handle_ue_context_release_request_sps proc.");
 		for(j=0;j<count;j++){
 				memcpy(&(PDUSessionItem->pDUSessionID),(buf+j*sizeof(NGAP_PDUSessionID_t)),sizeof(NGAP_PDUSessionID_t));
 			}
-		memcpy(Trancause,(buf+count*sizeof(NGAP_PDUSessionID_t)),sizeof(NGAP_Cause_sps_t));
+		//memcpy(Trancause,(buf+count*sizeof(NGAP_PDUSessionID_t)),sizeof(NGAP_Cause_sps_t));
+		Trancause = (NGAP_Cause_sps_t*)(buf+count*sizeof(NGAP_PDUSessionID_t));
 		Cause->present=Trancause->present;
 		Cause->choice.radioNetwork=Trancause->choice.radioNetwork;
 		}else{
@@ -439,7 +442,7 @@ void ngap_handle_ue_context_release_request_sps        (ran_ue_t * ran_ue,uint8_
 			return;
 			}
 
-    ogs_debug("    RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld]",
+    ogs_info("    RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld]",
             ran_ue->ran_ue_ngap_id, (long long)ran_ue->amf_ue_ngap_id);
     amf_ue = ran_ue->amf_ue;
     if (!amf_ue) {
@@ -456,6 +459,7 @@ void ngap_handle_ue_context_release_request_sps        (ran_ue_t * ran_ue,uint8_
         amf_ue->deactivation.cause = (int)Cause->choice.radioNetwork;
 
         if (count==0) {
+			ogs_info("amf_sbi_send_deactivate_all_sessions.");
             amf_sbi_send_deactivate_all_sessions(
                     amf_ue, AMF_UPDATE_SM_CONTEXT_DEACTIVATED,
                     Cause->present, (int)Cause->choice.radioNetwork);
@@ -475,10 +479,13 @@ void ngap_handle_ue_context_release_request_sps        (ran_ue_t * ran_ue,uint8_
                 sess = amf_sess_find_by_psi(amf_ue,
                         PDUSessionItem->pDUSessionID);
                 if (SESSION_CONTEXT_IN_SMF(sess)) {
+					ogs_info("amf_sbi_send_deactivate_session.");
                     amf_sbi_send_deactivate_session(
                             sess, AMF_UPDATE_SM_CONTEXT_DEACTIVATED,
                             Cause->present, (int)Cause->choice.radioNetwork);
-                }
+                }else{
+					ogs_info("SESSION_CONTEXT_IN_SMF not.");
+				}
             }
         }
 
