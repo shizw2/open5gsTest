@@ -275,7 +275,7 @@ int udp_ini_msg_sendto(int msg_type, ogs_sbi_udp_header_t *header,const void *bu
 		return OGS_ERROR;
 	}
 	
-	ogs_info("udp_ini_msg_sendto success, msg_type:%d, msg_len:%d",msg_type,pkbuf->len);
+	ogs_info("udp_ini_msg_sendto success, msg_type:%d, msg_len:%d, stream:%lx.",msg_type,pkbuf->len,header->stream_pointer);
 
 	ogs_print_sbi_udp_header(header, true);
 	if (pkbuf->len > sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)){
@@ -497,6 +497,8 @@ void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
         }
 
         stream = p_udp_header->stream_pointer;
+
+        ogs_info("udp_ini_handle_sbi_msg, stream:%p.",stream);
 
         SWITCH(sbi_message.h.service.name)
         CASE(OGS_SBI_SERVICE_NAME_NUDM_SDM)
