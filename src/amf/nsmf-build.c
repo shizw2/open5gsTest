@@ -52,6 +52,7 @@ ogs_sbi_request_t *amf_nsmf_pdusession_build_create_sm_context(
 
     memset(&SmContextCreateData, 0, sizeof(SmContextCreateData));
 
+    //mod at 20230313
     SmContextCreateData.serving_nf_id =
         NF_INSTANCE_ID(ogs_sbi_self()->nf_instance);
     if (!SmContextCreateData.serving_nf_id) {

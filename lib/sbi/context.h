@@ -93,6 +93,7 @@ typedef struct ogs_sbi_nf_instance_s {
     (_iD) && ogs_sbi_self()->nf_instance && \
         strcmp((_iD), ogs_sbi_self()->nf_instance->id) != 0
     char *id;
+    char *icps_id;
 
 #define NF_INSTANCE_TYPE(__nFInstance) \
     ((__nFInstance) ? ((__nFInstance)->nf_type) : OpenAPI_nf_type_NULL)
