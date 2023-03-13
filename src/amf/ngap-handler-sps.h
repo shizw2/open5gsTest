@@ -44,14 +44,33 @@ typedef struct NGAP_Cause_sps_s{
 }NGAP_Cause_sps_t;
 
 
-int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf);//O3
-void ngap_handle_initial_context_setup_response_sps(ran_ue_t *ran_ue,uint8_t count,size_t size,uint8_t *buf);
+int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf);
+void ngap_handle_initial_ue_message_sps(ran_ue_t *ran_ue,ogs_ngap_message_t *message);
 void ngap_handle_ue_radio_capability_info_indication_sps(ran_ue_t *ran_ue,size_t size,uint8_t *buf);
-void ngap_handle_ue_context_release_request_sps(ran_ue_t *ran_ue,uint8_t count,size_t size,uint8_t *buf);
 void ngap_handle_pdu_session_resource_setup_response_sps(ran_ue_t *ran_ue,ogs_ngap_message_t *message);
 void print_buf(unsigned char *buf, int len);
 void ngap_handle_pdu_session_resource_release_response_sps(ran_ue_t *ran_ue,ogs_ngap_message_t *message);
 void ngap_handle_ue_context_release_complete_sps(ran_ue_t *ran_ue,ogs_ngap_message_t *message);
+void ngap_handle_path_switch_request_sps(        ran_ue_t *ran_ue,ogs_ngap_message_t *message);
+void ngap_handle_pdu_session_resource_modify_response_sps(
+        ran_ue_t *ran_ue, ogs_ngap_message_t *message);
+void ngap_handle_handover_cancel_sps(
+        ran_ue_t *ran_ue, ogs_ngap_message_t *message);
+void ngap_handle_handover_request_ack_sps(
+        ran_ue_t *ran_ue, ogs_ngap_message_t *message);
+void ngap_handle_handover_failure_sps(
+        ran_ue_t *ran_ue, ogs_ngap_message_t *message);
+void ngap_handle_handover_required_sps(
+        ran_ue_t *ran_ue, ogs_ngap_message_t *message);
+void   ngap_handle_handover_notification_sps(
+        ran_ue_t *ran_ue, ogs_ngap_message_t *message);
+void ngap_handle_initial_context_setup_failure_sps(
+        ran_ue_t *ran_ue,ogs_ngap_message_t *message);
+void ngap_handle_ue_context_release_request_sps(
+        ran_ue_t *ran_ue,ogs_ngap_message_t *message);
+void ngap_handle_initial_context_setup_response_sps(
+        ran_ue_t *ran_ue,ogs_ngap_message_t *message);
+
 
 
 #ifdef __cplusplus

@@ -34,8 +34,11 @@ int amf_sbi_open(void)
 
     /* Build NF instance information. It will be transmitted to NRF. */
     ogs_sbi_nf_instance_build_default(nf_instance, OpenAPI_nf_type_AMF);
-    ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_SMF);
+    //if (is_amf_icps()){
+    ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_SMF);    
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_SCP);
+    //}
+    
 
     /* Build NF service information. It will be transmitted to NRF. */
     if (ogs_sbi_nf_service_is_available(OGS_SBI_SERVICE_NAME_NAMF_COMM)) {
@@ -404,7 +407,7 @@ void amf_sbi_send_deactivate_all_ue_in_gnb(amf_gnb_t *gnb, int state)
             new_xact_count = amf_sess_xact_count(amf_ue);
 
             if (old_xact_count == new_xact_count) {
-                ran_ue_remove(ran_ue);
+                ran_ue_remove_sps(ran_ue);
                 amf_ue_deassociate(amf_ue);
             }
         } else {
@@ -415,7 +418,7 @@ void amf_sbi_send_deactivate_all_ue_in_gnb(amf_gnb_t *gnb, int state)
 
             if (state == AMF_REMOVE_S1_CONTEXT_BY_LO_CONNREFUSED ||
                 state == AMF_REMOVE_S1_CONTEXT_BY_RESET_ALL) {
-                ran_ue_remove(ran_ue);
+                ran_ue_remove_sps(ran_ue);
             } else {
                 /* At this point, it does not support other action */
                 ogs_fatal("Invalid state [%d]", state);

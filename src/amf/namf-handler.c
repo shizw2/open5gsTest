@@ -260,7 +260,7 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
                 //server = ogs_sbi_server_from_stream(stream);
                 //ogs_assert(server);
 
-                //mod at 20230225 正确做法应该是根据stream找到对应的server
+                //mod at 20230225 TODO:正确做法应该是根据stream找到对应的server
                 server = ogs_list_first(&ogs_sbi_self()->server_list);
                 ogs_assert(server);
 

@@ -46,23 +46,20 @@ typedef struct NGAP_icps_send_code_s{
 void ngap_handle_ng_setup_request(
         amf_gnb_t *gnb, ogs_ngap_message_t *message);
 void ngap_handle_initial_ue_message(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message);
-void ngap_handle_initial_ue_message_sps(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message);
-
+        amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf);
 void ngap_handle_uplink_nas_transport(
         amf_gnb_t *gnb, ogs_ngap_message_t *message);
 void ngap_handle_ue_radio_capability_info_indication(
         amf_gnb_t *gnb, ogs_ngap_message_t *message);
 void ngap_handle_initial_context_setup_response(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message);
+        amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf);
 void ngap_handle_initial_context_setup_failure(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message);
+        amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf);
 
 void ngap_handle_pdu_session_resource_setup_response(
         amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf);
 void ngap_handle_pdu_session_resource_modify_response(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message);
+        amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf);
 void ngap_handle_pdu_session_resource_release_response(
         amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf);
 
@@ -72,7 +69,7 @@ void ngap_handle_ue_context_modification_failure(
         amf_gnb_t *gnb, ogs_ngap_message_t *message);
 
 void ngap_handle_ue_context_release_request(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message);
+        amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf);
 void ngap_handle_ue_context_release_complete(
         amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf);
 void ngap_handle_ue_context_release_action(ran_ue_t *ran_ue);
@@ -81,20 +78,20 @@ void ngap_handle_uplink_ran_configuration_transfer(
         amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf);
 
 void ngap_handle_path_switch_request(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message);
+        amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf);
 
 void ngap_handle_handover_required(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message);
+        amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf);
 void ngap_handle_handover_request_ack(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message);
+        amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf);
 void ngap_handle_handover_failure(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message);
+        amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf);
 void ngap_handle_handover_cancel(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message);
+        amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf);
 void ngap_handle_uplink_ran_status_transfer(
         amf_gnb_t *gnb, ogs_ngap_message_t *message);
 void ngap_handle_handover_notification(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message);
+        amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf);
 
 void ngap_handle_ran_configuration_update(
         amf_gnb_t *gnb, ogs_ngap_message_t *message);
@@ -109,10 +106,8 @@ void ngap_icps_send_to_sps(uint8_t spsid,ran_ue_t *ran_ue, NGAP_icps_send_code_t
 int icps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf);//O3
 void ngap_icps_send_to_sps_pkg(
 	uint8_t sps_id,ran_ue_t *ran_ue, NGAP_icps_send_head_t *send_code_head,unsigned char * buf);
-
-
-
-
+void ngap_icps_send_to_sps_pkg2(
+        ran_ue_t *ran_ue,NGAP_ProcedureCode_t ProcedureCode,ogs_pkbuf_t * pkbuf);
 
 
 #ifdef __cplusplus

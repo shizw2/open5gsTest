@@ -1519,6 +1519,7 @@ bool ogs_sbi_discovery_option_is_matched(
 
         ogs_list_for_each(&nf_instance->nf_service_list, nf_service) {
             for (i = 0; i < discovery_option->num_of_service_names; i++) {
+                ogs_info("nf_servcie name:%s, discovery_option->service_names:%s",nf_service->name,discovery_option->service_names[i]);
                 if (nf_service->name &&
                     discovery_option->service_names[i] &&
                     strcmp(nf_service->name,

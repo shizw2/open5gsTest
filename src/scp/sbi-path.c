@@ -219,6 +219,7 @@ static int request_handler(ogs_sbi_request_t *request, void *data)
         return OGS_ERROR;
     }
 
+    ogs_info("target_nf_type %d service_type %d",target_nf_type , service_type);
     if (target_nf_type || service_type) {
         if (!target_nf_type || !service_type) {
             ogs_error("[%s] No Mandatory Discovery [%d:%d]",
@@ -234,6 +235,7 @@ static int request_handler(ogs_sbi_request_t *request, void *data)
             if (discovery_option && discovery_option->target_nf_instance_id) {
                 nf_instance = ogs_sbi_nf_instance_find(
                         discovery_option->target_nf_instance_id);
+                ogs_info("test:discovery_option->target_nf_instance_id:%s",discovery_option->target_nf_instance_id);
                 if (nf_instance) {
                     client = ogs_sbi_client_find_by_service_type(
                                 nf_instance, service_type);
@@ -273,12 +275,12 @@ static int request_handler(ogs_sbi_request_t *request, void *data)
             /* Setup New URI */
             newuri = ogs_msprintf("%s%s", apiroot, request->h.uri);
             ogs_assert(newuri);
-
+            ogs_info("1apiroot:%s,url:%s",apiroot, request->h.uri);
             ogs_free(apiroot);
 
         } else if (headers.target_apiroot) {
             ogs_sockaddr_t *addr = NULL;
-
+            
             /* Find or Add Client Instance */
             addr = ogs_sbi_getaddr_from_uri(headers.target_apiroot);
             if (!addr) {
@@ -293,9 +295,11 @@ static int request_handler(ogs_sbi_request_t *request, void *data)
 
             client = ogs_sbi_client_find(addr);
             if (!client) {
+                ogs_info("test:ogs_sbi_client_add.");
                 client = ogs_sbi_client_add(addr);
                 ogs_assert(client);
             }
+            ogs_info("test:OGS_SBI_SETUP_CLIENT.");
             OGS_SBI_SETUP_CLIENT(assoc, client);
 
             ogs_freeaddrinfo(addr);
@@ -304,7 +308,7 @@ static int request_handler(ogs_sbi_request_t *request, void *data)
             newuri = ogs_msprintf("%s%s",
                     headers.target_apiroot, request->h.uri);
             ogs_assert(newuri);
-
+            ogs_info("2apiroot:%s,url:%s",headers.target_apiroot, request->h.uri);
         } else if (client) {
             /* Client ApiRoot */
             apiroot = ogs_sbi_client_apiroot(client);
@@ -313,7 +317,7 @@ static int request_handler(ogs_sbi_request_t *request, void *data)
             /* Setup New URI */
             newuri = ogs_msprintf("%s%s", apiroot, request->h.uri);
             ogs_assert(newuri);
-
+            ogs_info("3apiroot:%s,url:%s",apiroot, request->h.uri);
             ogs_free(apiroot);
         }
 
@@ -325,10 +329,11 @@ static int request_handler(ogs_sbi_request_t *request, void *data)
         copy_request(&scp_request, request, next_scp ? true : false);
         ogs_assert(scp_request.http.headers);
 
-        /* Setup NEW URI */
+        /* Setup NEW URI */        
         scp_request.h.uri = newuri;
         ogs_assert(scp_request.h.uri);
 
+        ogs_info("test:ogs_sbi_client_send_request.");
         /* Send the HTTP Request with New URI and HTTP Headers */
         if (ogs_sbi_client_send_request(
                     client, response_handler, &scp_request, assoc) != true) {

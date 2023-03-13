@@ -631,6 +631,12 @@ typedef struct amf_sess_s {
 
 #define INTERNEL_DOWN_NGAP_TO_UE                         0
 #define INTERNEL_DOWN_NGAP_TO_NB                         1
+#define INTERNEL_DOWN_NGAP_TO_NB_PAGE                    2                    
+#define INTERNEL_DOWN_NGAP_TO_REMOVE_UE                  3
+#define INTERNEL_DOWN_NGAP_TO_SYNC_RAN_UE                4
+
+#define INTERNEL_UP_NGAP_TO_NG_SET                      10
+
 
 
 #define MAX_INTERNEL_MESSAGE_LEN  (1024*20)  /* max message len 10K */
@@ -642,6 +648,7 @@ typedef struct amf_internel_msg_header_s {
 	uint8_t down_ngap_type;/* O3 */
 	uint32_t  ran_ue_ngap_id; /* O3 */
     uint64_t  amf_ue_ngap_id; /* O3 */
+    uint64_t  pre_amf_ue_ngap_id; /* O3 */
 	uint32_t  m_tmsi;/* O3 */
 	ogs_5gs_tai_t   nr_tai;
     ogs_nr_cgi_t    nr_cgi;
@@ -826,6 +833,9 @@ bool amf_update_allowed_nssai(amf_ue_t *amf_ue);
 
 int amf_sps_id_find_by_supi(char *supi);
 void amf_sps_id_set_supi(int sps_id, char *supi);
+void ran_ue_remove_sps(ran_ue_t *ran_ue);
+void amf_ue_ran_ue_sps_icps_sync(amf_ue_t *amf_ue, ran_ue_t *ran_ue);
+
 
 #ifdef __cplusplus
 }

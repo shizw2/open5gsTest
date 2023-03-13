@@ -76,10 +76,14 @@ int ngap_send_to_gnb(amf_gnb_t *gnb, ogs_pkbuf_t *pkbuf, uint16_t stream_no)
     ogs_sctp_ppid_in_pkbuf(pkbuf) = OGS_SCTP_NGAP_PPID;
     ogs_sctp_stream_no_in_pkbuf(pkbuf) = stream_no;
 
+    //print_buf(pkbuf->data,pkbuf->len);
+
     if (gnb->sctp.type == SOCK_STREAM) {
-        ogs_sctp_write_to_buffer(&gnb->sctp, pkbuf);
+        ogs_info("sctp.type is SOCK_STREAM");
+        ogs_sctp_write_to_buffer(&gnb->sctp, pkbuf);        
         return OGS_OK;
     } else {
+        ogs_info("sctp.type is NOT SOCK_STREAM");
         return ogs_sctp_senddata(gnb->sctp.sock, pkbuf, gnb->sctp.addr);
     }
 }
@@ -99,7 +103,7 @@ int ngap_send_to_gnb_sps(ran_ue_t *ran_ue, ogs_pkbuf_t *pkbuf)
     }
 	tmsg.msg_type=INTERNEL_MSG_NGAP;
 	tmsg.ran_ue_ngap_id=ran_ue->ran_ue_ngap_id;
-	tmsg.amf_ue_ngap_id=ran_ue->amf_ue_ngap_id;
+	tmsg.amf_ue_ngap_id=ran_ue->amf_ue_ngap_id;    
 	tmsg.m_tmsi=ran_ue->m_tmsi;
 	tmsg.down_ngap_type=INTERNEL_DOWN_NGAP_TO_NB;
 	tmsg.len=pkbuf->len;	
@@ -107,7 +111,28 @@ int ngap_send_to_gnb_sps(ran_ue_t *ran_ue, ogs_pkbuf_t *pkbuf)
 	memcpy(buff,&tmsg,sizeof(tmsg));
 	memcpy(buff+len,pkbuf->data,pkbuf->len);
 	len=len+pkbuf->len;
-	ogs_info("ngap_send_to_ran_ue_sps len:%d",len);
+	ogs_info("ngap_send_to_gnb_sps len:%d",len);
+	ogs_sendto(amf_self()->udp_node->sock->fd,buff,len,0, amf_self()->icps_node->addr);
+	ogs_pkbuf_free(pkbuf);
+    return OGS_OK;
+	
+}
+
+int ngap_send_to_gnb_sps_page(ogs_pkbuf_t *pkbuf)
+{
+    
+    ogs_assert(pkbuf);
+    amf_internel_msg_header_t tmsg;
+    uint8_t buff[OGS_MAX_SDU_LEN];
+    int len;  
+	tmsg.msg_type=INTERNEL_MSG_NGAP;
+	tmsg.down_ngap_type=INTERNEL_DOWN_NGAP_TO_NB_PAGE;
+	tmsg.len=pkbuf->len;	
+	len=sizeof(tmsg);
+	memcpy(buff,&tmsg,sizeof(tmsg));
+	memcpy(buff+len,pkbuf->data,pkbuf->len);
+	len=len+pkbuf->len;
+	ogs_info("ngap_send_to_gnb_sps_page:%d",len);
 	ogs_sendto(amf_self()->udp_node->sock->fd,buff,len,0, amf_self()->icps_node->addr);
 	ogs_pkbuf_free(pkbuf);
     return OGS_OK;
@@ -268,7 +293,7 @@ int ngap_send_to_nas(ran_ue_t *ran_ue,
                 sh->security_header_type);
         return OGS_ERROR;
     }
-	ogs_info("========================================================nasPdu->size:%lu",nasPdu->size);
+	//ogs_info("========================================================nasPdu->size:%lu",nasPdu->size);
     if (ran_ue->amf_ue) {
         if (nas_5gs_security_decode(ran_ue->amf_ue,
                 security_header_type, nasbuf) != OGS_OK) {
@@ -332,16 +357,17 @@ int ngap_send_to_nas_sps(ran_ue_t *ran_ue,
 			/* The Packet Buffer(pkbuf_t) for NAS message MUST make a HEADROOM. 
 			 * When calculating AES_CMAC, we need to use the headroom of the packet. */
 		nasbuf = ogs_pkbuf_alloc(NULL, OGS_NAS_HEADROOM+nas_len);
+#if 0
 		if(nasbuf){
 			     ogs_info("ngap_send_to_nas_sps============4 nasPdu->size:%lu",nas_len);
 		}else{
 				    printf("========================================================666\n");
 				}
-		
+#endif		
 		ogs_pkbuf_reserve(nasbuf, OGS_NAS_HEADROOM);
-		ogs_info("ngap_send_to_nas_sps======================5 *nasPdu:%02x",*nasPdu);
+		//ogs_info("ngap_send_to_nas_sps======================5 *nasPdu:%02x",*nasPdu);
 		ogs_pkbuf_put_data(nasbuf, nasPdu, nas_len);
-		ogs_info("ngap_send_to_nas_sps============6 nasPdu->size:%lu",nas_len);
+		//ogs_info("ngap_send_to_nas_sps============6 nasPdu->size:%lu",nas_len);
 		
 		sh = (ogs_nas_5gs_security_header_t *)nasbuf->data;
 		ogs_assert(sh);
@@ -375,7 +401,7 @@ int ngap_send_to_nas_sps(ran_ue_t *ran_ue,
 						sh->security_header_type);
 				return OGS_ERROR;
 			}
-		printf("========================================================nasPdu->size:%lu\n",nas_len);
+		//printf("========================================================nasPdu->size:%lu\n",nas_len);
 		if (ran_ue->amf_ue) {
 				if (nas_5gs_security_decode(ran_ue->amf_ue,
 						security_header_type, nasbuf) != OGS_OK) {
@@ -539,7 +565,7 @@ int ngap_send_amf_ue_context_release_command(
     return OGS_OK;
 }
 
-int ngap_send_paging(amf_ue_t *amf_ue)
+int ngap_send_paging(amf_ue_t *amf_ue)//需要修改
 {
     ogs_pkbuf_t *ngapbuf = NULL;
     amf_gnb_t *gnb = NULL;
@@ -569,6 +595,53 @@ int ngap_send_paging(amf_ue_t *amf_ue)
             }
         }
     }
+
+    /* Start T3513 */
+    ogs_timer_start(amf_ue->t3513.timer, 
+            amf_timer_cfg(AMF_TIMER_T3513)->duration);
+
+    return OGS_OK;
+}
+int ngap_send_paging_icps(ran_ue_t *ran_ue,ogs_pkbuf_t *pkbuf)//需要修改
+{
+    amf_gnb_t *gnb = NULL;
+    int i, j;
+    int rv;
+
+    ogs_list_for_each(&amf_self()->gnb_list, gnb) {
+        for (i = 0; i < gnb->num_of_supported_ta_list; i++) {
+            for (j = 0; j < gnb->supported_ta_list[i].num_of_bplmn_list; j++) {
+                if (memcmp(&gnb->supported_ta_list[i].bplmn_list[j].plmn_id,
+                            &ran_ue->saved.nr_tai.plmn_id, OGS_PLMN_ID_LEN) == 0 &&
+                    gnb->supported_ta_list[i].tac.v == ran_ue->saved.nr_tai.tac.v) {                    
+                    rv = ngap_send_to_gnb(gnb, pkbuf, NGAP_NON_UE_SIGNALLING);
+                    ogs_expect_or_return_val(rv == OGS_OK, rv);
+                }
+            }
+        }
+    }
+
+    return OGS_OK;
+}
+
+
+int ngap_send_paging_sps(amf_ue_t *amf_ue)//需要修改
+{
+    ogs_pkbuf_t *ngapbuf = NULL;
+    amf_gnb_t *gnb = NULL;
+    int i, j;
+    int rv;
+
+   if (amf_ue->t3513.pkbuf) {
+        ngapbuf = amf_ue->t3513.pkbuf;
+   } else {
+            ngapbuf = ngap_build_paging(amf_ue);
+            ogs_expect_or_return_val(ngapbuf, OGS_ERROR);
+           }
+           amf_ue->t3513.pkbuf = ogs_pkbuf_copy(ngapbuf);
+           ogs_expect_or_return_val(amf_ue->t3513.pkbuf, OGS_ERROR);
+           rv = ngap_send_to_gnb_sps_page(ngapbuf);
+           ogs_expect_or_return_val(rv == OGS_OK, rv);
 
     /* Start T3513 */
     ogs_timer_start(amf_ue->t3513.timer, 
@@ -670,7 +743,7 @@ int ngap_send_handover_request(amf_ue_t *amf_ue)
     ngapbuf = ngap_build_handover_request(target_ue);
     ogs_expect_or_return_val(ngapbuf, OGS_ERROR);
 
-    rv = ngap_send_to_ran_ue(target_ue, ngapbuf);
+    rv = ngap_send_to_ran_ue_sps(target_ue, ngapbuf);
     ogs_expect(rv == OGS_OK);
 
     return rv;
@@ -688,7 +761,7 @@ int ngap_send_handover_preparation_failure(
     ngapbuf = ngap_build_handover_preparation_failure(source_ue, cause);
     ogs_expect_or_return_val(ngapbuf, OGS_ERROR);
 
-    rv = ngap_send_to_ran_ue(source_ue, ngapbuf);
+    rv = ngap_send_to_ran_ue_sps(source_ue, ngapbuf);
     ogs_expect(rv == OGS_OK);
 
     return rv;
@@ -708,7 +781,7 @@ int ngap_send_handover_command(amf_ue_t *amf_ue)
     ngapbuf = ngap_build_handover_command(source_ue);
     ogs_expect_or_return_val(ngapbuf, OGS_ERROR);
 
-    rv = ngap_send_to_ran_ue(source_ue, ngapbuf);
+    rv = ngap_send_to_ran_ue_sps(source_ue, ngapbuf);
     ogs_expect(rv == OGS_OK);
 
     return rv;
@@ -724,7 +797,7 @@ int ngap_send_handover_cancel_ack(ran_ue_t *source_ue)
     ngapbuf = ngap_build_handover_cancel_ack(source_ue);
     ogs_expect_or_return_val(ngapbuf, OGS_ERROR);
 
-    rv = ngap_send_to_ran_ue(source_ue, ngapbuf);
+    rv = ngap_send_to_ran_ue_sps(source_ue, ngapbuf);
     ogs_expect(rv == OGS_OK);
 
     return rv;
@@ -743,7 +816,7 @@ int ngap_send_downlink_ran_status_transfer(
     ngapbuf = ngap_build_uplink_ran_status_transfer(target_ue, transfer);
     ogs_expect_or_return_val(ngapbuf, OGS_ERROR);
 
-    rv = ngap_send_to_ran_ue(target_ue, ngapbuf);
+    rv = ngap_send_to_ran_ue_sps(target_ue, ngapbuf);
     ogs_expect(rv == OGS_OK);
 
     return rv;

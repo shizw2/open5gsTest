@@ -86,7 +86,7 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 break;
             case NGAP_ProcedureCode_id_InitialUEMessage:
 				ogs_info("********Receive:NGAP_ProcedureCode_id_InitialUEMessage   ********");
-                ngap_handle_initial_ue_message(gnb, pdu);
+                ngap_handle_initial_ue_message(gnb, pdu,pkbuf);
                 break;
             case NGAP_ProcedureCode_id_UplinkNASTransport:
 				ogs_info("********Receive:NGAP_ProcedureCode_id_UplinkNASTransport   ********");
@@ -98,11 +98,11 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 break;
             case NGAP_ProcedureCode_id_UEContextReleaseRequest:
 				ogs_info("********Receive:NGAP_ProcedureCode_id_UEContextReleaseRequest   ********");
-                ngap_handle_ue_context_release_request( gnb, pdu);
+                ngap_handle_ue_context_release_request(gnb, pdu,pkbuf);
                 break;
             case NGAP_ProcedureCode_id_PathSwitchRequest:
 				ogs_info("********Receive:NGAP_ProcedureCode_id_PathSwitchRequest   ********");
-                ngap_handle_path_switch_request(gnb, pdu);
+                ngap_handle_path_switch_request(gnb, pdu,pkbuf);
                 break;
             case NGAP_ProcedureCode_id_UplinkRANConfigurationTransfer:
 				ogs_info("********Receive:NGAP_ProcedureCode_id_UplinkRANConfigurationTransfer   ********");
@@ -114,7 +114,7 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 break;
             case NGAP_ProcedureCode_id_HandoverPreparation:
 				ogs_info("********Receive:NGAP_ProcedureCode_id_HandoverPreparation   ********");
-                ngap_handle_handover_required(gnb, pdu);
+                ngap_handle_handover_required(gnb, pdu,pkbuf);
                 break;
             case NGAP_ProcedureCode_id_UplinkRANStatusTransfer:
 				ogs_info("********Receive: NGAP_ProcedureCode_id_UplinkRANStatusTransfer:  ********");
@@ -122,11 +122,11 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 break;
             case NGAP_ProcedureCode_id_HandoverNotification:
             	ogs_info("********Receive:  NGAP_ProcedureCode_id_HandoverNotification: ********");
-                ngap_handle_handover_notification(gnb, pdu);
+                ngap_handle_handover_notification(gnb, pdu,pkbuf);
                 break;
             case NGAP_ProcedureCode_id_HandoverCancel:
 				ogs_info("********Receive:  NGAP_ProcedureCode_id_HandoverCancel: ********");
-                ngap_handle_handover_cancel(gnb, pdu);
+                ngap_handle_handover_cancel(gnb, pdu,pkbuf);
                 break;
             case NGAP_ProcedureCode_id_RANConfigurationUpdate:
 				ogs_info("********Receive:NGAP_ProcedureCode_id_RANConfigurationUpdate:   ********");
@@ -153,7 +153,7 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
             switch (successfulOutcome->procedureCode) {
             case NGAP_ProcedureCode_id_InitialContextSetup:
 				ogs_info("********Receive: NGAP_ProcedureCode_id_InitialContextSetup:  ********");
-                ngap_handle_initial_context_setup_response(gnb, pdu);
+                ngap_handle_initial_context_setup_response(gnb, pdu,pkbuf);
                 break;
             case NGAP_ProcedureCode_id_PDUSessionResourceSetup:
 				ogs_info("********Receive: NGAP_ProcedureCode_id_PDUSessionResourceSetup:  ********");
@@ -161,24 +161,27 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 break;
             case NGAP_ProcedureCode_id_PDUSessionResourceModify:
 				ogs_info("********Receive: NGAP_ProcedureCode_id_PDUSessionResourceModify:  ********");
-                ngap_handle_pdu_session_resource_modify_response(gnb, pdu);
+                ngap_handle_pdu_session_resource_modify_response(gnb, pdu,pkbuf);
                 break;
             case NGAP_ProcedureCode_id_PDUSessionResourceRelease:
 				ogs_info("********Receive: NGAP_ProcedureCode_id_PDUSessionResourceRelease:  ********");
                 ngap_handle_pdu_session_resource_release_response(gnb, pdu,pkbuf);
                 break;
 #if 0
+
             case NGAP_ProcedureCode_id_UEContextModification:
                 ngap_handle_ue_context_modification_response(gnb, pdu);
                 break;
 #endif
+
             case NGAP_ProcedureCode_id_UEContextRelease:
 				ogs_info("********Receive: NGAP_ProcedureCode_id_UEContextRelease:  ********");
                 ngap_handle_ue_context_release_complete(gnb, pdu,pkbuf);
                 break;
+
             case NGAP_ProcedureCode_id_HandoverResourceAllocation:
 				ogs_info("********Receive: NGAP_ProcedureCode_id_HandoverResourceAllocation:  ********");
-                ngap_handle_handover_request_ack(gnb, pdu);
+                ngap_handle_handover_request_ack(gnb, pdu,pkbuf);
                 break;
             default:
                 ogs_error("Not implemented(choice:%d, proc:%d)",
@@ -193,7 +196,7 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
             switch (unsuccessfulOutcome->procedureCode) {
             case NGAP_ProcedureCode_id_InitialContextSetup :
 				ogs_info("********Receive: NGAP_ProcedureCode_id_InitialContextSetup :  ********");
-                ngap_handle_initial_context_setup_failure(gnb, pdu);
+                ngap_handle_initial_context_setup_failure(gnb, pdu,pkbuf);
                 break;
 #if 0
             case NGAP_ProcedureCode_id_UEContextModification:
@@ -202,7 +205,7 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
 #endif
             case NGAP_ProcedureCode_id_HandoverResourceAllocation :
 				ogs_info("********Receive: NGAP_ProcedureCode_id_HandoverResourceAllocation :  ********");
-                ngap_handle_handover_failure(gnb, pdu);
+                ngap_handle_handover_failure(gnb, pdu,pkbuf);
                 break;
             default:
                 ogs_error("Not implemented(choice:%d, proc:%d)",

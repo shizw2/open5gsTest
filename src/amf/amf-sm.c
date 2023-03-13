@@ -134,6 +134,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             break;
         }
 
+        ogs_info("test:amf sbi server, service name:%s.",sbi_message.h.service.name);
+
         SWITCH(sbi_message.h.service.name)
         CASE(OGS_SBI_SERVICE_NAME_NNRF_NFM)
 
@@ -913,6 +915,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                         NGAP_UE_CTX_REL_NG_CONTEXT_REMOVE, 0));
             }
             amf_ue_associate_ran_ue(amf_ue, ran_ue);
+            ogs_info("????????SPS AMF_EVENT_5GMM_MESSAGE amf_ue->ran_ue->amf_ue_ngap_id:%lu",amf_ue->ran_ue->amf_ue_ngap_id);
         }
 
         ogs_assert(amf_ue);

@@ -234,7 +234,7 @@ static void test1_func(abts_case *tc, void *data)
             test_ue->ngap_procedure_code);
 
     /* Send GTP-U ICMP Packet */
-	ogs_info("Send GTP-U ICMP Packet.");
+    ogs_info("Send GTP-U ICMP Packet.");
     qos_flow = test_qos_flow_find_by_qfi(sess, 1);
     ogs_assert(qos_flow);
     rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
@@ -248,29 +248,29 @@ static void test1_func(abts_case *tc, void *data)
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Receive GTP-U ICMP Packet */
-	ogs_info("Send Receive GTP-U ICMP Packet1.");
+    ogs_info("Send Receive GTP-U ICMP Packet1.");
     recvbuf = testgnb_gtpu_read(gtpu);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     ogs_pkbuf_free(recvbuf);
 
     /* Send GTP-U ICMP Packet */
-	ogs_info("Send GTP-U ICMP Packet.");
+    ogs_info("Send GTP-U ICMP Packet.");
     rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Receive GTP-U ICMP Packet */
-	ogs_info("Send Receive GTP-U ICMP Packet2.");
+    ogs_info("Send Receive GTP-U ICMP Packet2.");
     recvbuf = testgnb_gtpu_read(gtpu);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     ogs_pkbuf_free(recvbuf);
 
     /* Send GTP-U Router Solicitation */
-	ogs_info("Send GTP-U Router Solicitation.");
+    ogs_info("Send GTP-U Router Solicitation.");
     rv = test_gtpu_send_slacc_rs(gtpu, qos_flow);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Receive GTP-U Router Advertisement */
-	ogs_info("Receive GTP-U Router Advertisement.");
+    ogs_info("Receive GTP-U Router Advertisement.");
     recvbuf = test_gtpu_read(gtpu);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     testgtpu_recv(test_ue, recvbuf);
@@ -287,7 +287,7 @@ static void test1_func(abts_case *tc, void *data)
 #endif
 
     /* Send UEContextReleaseRequest */
-	ogs_info("Send UEContextReleaseRequest.");
+    ogs_info("Send UEContextReleaseRequest.");
     sendbuf = testngap_build_ue_context_release_request(test_ue,
             NGAP_Cause_PR_radioNetwork, NGAP_CauseRadioNetwork_user_inactivity,
             true);
@@ -296,7 +296,7 @@ static void test1_func(abts_case *tc, void *data)
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Receive UEContextReleaseCommand */
-	ogs_info("Receive UEContextReleaseCommand.");
+    ogs_info("Receive UEContextReleaseCommand.");
     recvbuf = testgnb_ngap_read(ngap);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     testngap_recv(test_ue, recvbuf);
@@ -305,14 +305,14 @@ static void test1_func(abts_case *tc, void *data)
             test_ue->ngap_procedure_code);
 
     /* Send UEContextReleaseComplete */
-	ogs_info("Send UEContextReleaseComplete.");
+    ogs_info("Send UEContextReleaseComplete.");
     sendbuf = testngap_build_ue_context_release_complete(test_ue);
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Send De-registration request */
-	ogs_info("Send De-registration request.");
+    ogs_info("Send De-registration request.");
     gmmbuf = testgmm_build_de_registration_request(test_ue, 1, true, false);
     ABTS_PTR_NOTNULL(tc, gmmbuf);
     sendbuf = testngap_build_initial_ue_message(test_ue, gmmbuf,
@@ -322,7 +322,7 @@ static void test1_func(abts_case *tc, void *data)
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Receive UEContextReleaseCommand */
-	ogs_info("Receive UEContextReleaseCommand.");
+    ogs_info("Receive UEContextReleaseCommand.");
     recvbuf = testgnb_ngap_read(ngap);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     testngap_recv(test_ue, recvbuf);
@@ -331,7 +331,7 @@ static void test1_func(abts_case *tc, void *data)
             test_ue->ngap_procedure_code);
 
     /* Send UEContextReleaseComplete */
-	ogs_info("Send UEContextReleaseComplete.");
+    ogs_info("Send UEContextReleaseComplete.");
     sendbuf = testngap_build_ue_context_release_complete(test_ue);
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);

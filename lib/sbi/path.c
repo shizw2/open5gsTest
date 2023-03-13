@@ -212,6 +212,9 @@ bool ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
                     sbi_object->service_type_array[service_type], nf_instance);
     }
 
+    if (nf_instance){
+        ogs_info("ogs_sbi_discover_and_send,request->h.uri:%s, nf_instance id:%s",request->h.uri,nf_instance->id);
+    }
     /* Target Client */
     if (request->h.uri == NULL) {
         if (nf_instance) {
@@ -262,10 +265,12 @@ bool ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
              */
             if (discovery_option &&
                 discovery_option->target_nf_instance_id) {
+                ogs_info("set target_nf_instance_id1:%s",discovery_option->target_nf_instance_id);
                 ogs_sbi_header_set(request->http.headers,
                         OGS_SBI_CUSTOM_DISCOVERY_TARGET_NF_INSTANCE_ID,
                         discovery_option->target_nf_instance_id);
             } else if (nf_instance && nf_instance->id) {
+                ogs_info("set target_nf_instance_id2:%s",discovery_option->target_nf_instance_id);
                 ogs_sbi_header_set(request->http.headers,
                         OGS_SBI_CUSTOM_DISCOVERY_TARGET_NF_INSTANCE_ID,
                         nf_instance->id);
@@ -280,7 +285,7 @@ bool ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
         /***********************
          * DIRECT COMMUNICATION
          ***********************/
-
+        ogs_info("client instance is available, use direct communication");
         /* If `client` instance is available, use direct communication */
         ogs_expect_or_return_val(true ==
             ogs_sbi_client_send_request(
@@ -290,6 +295,7 @@ bool ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
         /**********************************************
          * No SCP and Client, Use NRF for NF-Discovery
          **********************************************/
+        ogs_info("No SCP and Client, Use NRF for NF-Discovery");
         return ogs_sbi_discover_only(xact);
     }
 

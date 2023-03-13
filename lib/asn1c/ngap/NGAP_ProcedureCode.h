@@ -96,6 +96,9 @@ per_type_encoder_f NGAP_ProcedureCode_encode_aper;
 #define NGAP_ProcedureCode_id_DownlinkRANEarlyStatusTransfer	((NGAP_ProcedureCode_t)63)
 #define NGAP_ProcedureCode_id_AMFCPRelocationIndication	((NGAP_ProcedureCode_t)64)
 #define NGAP_ProcedureCode_id_ConnectionEstablishmentIndication	((NGAP_ProcedureCode_t)65)
+#define NGAP_ProcedureCode_id_HandoverResourceAllocation_Fail ((NGAP_ProcedureCode_t)213)//私自扩展
+#define NGAP_ProcedureCode_id_InitialContextSetup_Fail ((NGAP_ProcedureCode_t)214)//私自扩展
+
 
 #ifdef __cplusplus
 }

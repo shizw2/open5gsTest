@@ -69,6 +69,10 @@ int ngap_send_amf_ue_context_release_command(
     uint8_t action, ogs_time_t duration);
 
 int ngap_send_paging(amf_ue_t *amf_ue);
+int ngap_send_paging_sps(amf_ue_t *amf_ue);//add
+int ngap_send_paging_icps(ran_ue_t *ran_ue,ogs_pkbuf_t *pkbuf);//add
+
+
 int ngap_send_pdu_resource_setup_request(
         amf_sess_t *sess, ogs_pkbuf_t *n2smbuf);
 
@@ -98,6 +102,8 @@ int ngap_send_ng_reset_ack(
         amf_gnb_t *gnb,
         NGAP_UE_associatedLogicalNG_connectionList_t *partOfNG_Interface);
 int ngap_send_to_gnb_sps(ran_ue_t *ran_ue, ogs_pkbuf_t *pkbuf);
+int ngap_send_to_gnb_sps_page(ogs_pkbuf_t *ngapbuf);
+
 int ngap_send_error_indication_sps(				
 				ran_ue_t *ran_ue,
 				NGAP_Cause_PR group, long cause);

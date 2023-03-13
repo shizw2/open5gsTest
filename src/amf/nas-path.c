@@ -35,8 +35,8 @@ int nas_5gs_send_to_gnb(amf_ue_t *amf_ue, ogs_pkbuf_t *pkbuf)
 	
 	if(is_amf_sps())
 		{	 
-		 
-        if(amf_ue->next.m_tmsi)
+		 // ogs_info("nas_5gs_send_to_gnb,amf_ue->next.m_tmsi::%u,amf_ue->current.m_tmsi:%u\n",*(amf_ue->next.m_tmsi),*(amf_ue->current.m_tmsi));
+                 if(amf_ue->next.m_tmsi)
 {
 		    ogs_info("nas_5gs_send_to_gnb,amf_ue->next.m_tmsi::%u\n",*(amf_ue->next.m_tmsi));
             amf_ue->ran_ue->m_tmsi=*(amf_ue->next.m_tmsi);
@@ -138,6 +138,8 @@ int nas_5gs_send_registration_accept(amf_ue_t *amf_ue)
      * whether it received UE Context Request IE of InitialUEMessage.
      */
     transfer_needed = PDU_RES_SETUP_REQ_TRANSFER_NEEDED(amf_ue);
+    
+    ogs_info("nas_5gs_send_registration_accept,ran_ue->initial_context_setup_request_sent:%d,ran_ue->ue_context_requested:%d,transfer_needed:%d",ran_ue->initial_context_setup_request_sent,ran_ue->ue_context_requested == true,transfer_needed);
 
     if (ran_ue->initial_context_setup_request_sent == false &&
         (ran_ue->ue_context_requested == true || transfer_needed == true)) {

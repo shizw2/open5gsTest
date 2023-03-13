@@ -102,14 +102,14 @@ ogs_sbi_client_t *ogs_sbi_client_add(ogs_sockaddr_t *addr)
 {
     ogs_sbi_client_t *client = NULL;
     CURLM *multi = NULL;
-
+    char buf[OGS_ADDRSTRLEN];
     ogs_assert(addr);
 
     ogs_pool_alloc(&client_pool, &client);
     ogs_assert(client);
     memset(client, 0, sizeof(ogs_sbi_client_t));
 
-    ogs_debug("ogs_sbi_client_add()");
+    ogs_debug("ogs_sbi_client_add(),addr:%s %d", OGS_ADDR(addr,buf),OGS_PORT(addr));
     OGS_OBJECT_REF(client);
 
     ogs_assert(OGS_OK == ogs_copyaddrinfo(&client->node.addr, addr));
@@ -569,8 +569,12 @@ static void check_multi_info(ogs_sbi_client_t *client)
                 if (conn->memory_overflow == true)
                     level = OGS_LOG_ERROR;
 
-                ogs_log_message(level, 0, "[%d:%s] %s",
+                ogs_log_message(OGS_LOG_INFO, 0, "[%d:%s] %s",
                         response->status, response->h.method, response->h.uri);
+                if (response->status == 400){
+                    ogs_info("test:[%d:%s] %s",
+                        response->status, response->h.method, response->h.uri);
+                }
 
                 if (conn->memory) {
                     response->http.content =
@@ -582,6 +586,12 @@ static void check_multi_info(ogs_sbi_client_t *client)
 
                 ogs_log_message(level, 0, "RECEIVED[%d]",
                         (int)response->http.content_length);
+
+                if (response->status == 400){
+                    ogs_info("test:RECEIVED[%d]",
+                        (int)response->http.content_length);
+                }
+
                 if (response->http.content_length && response->http.content)
                     ogs_log_message(level, 0, "%s", response->http.content);
 
@@ -623,7 +633,11 @@ bool ogs_sbi_client_send_request(
         ogs_assert(request->h.uri);
     }
     ogs_debug("[%s] %s", request->h.method, request->h.uri);
-
+    ogs_info("test:[%s] %s", request->h.method, request->h.uri);
+    //if (request->http.content_length == 788){
+        ogs_info("test:content3:%s", request->http.content);
+    //} 
+    
     conn = connection_add(client, client_cb, request, data);
     ogs_expect_or_return_val(conn, false);
 

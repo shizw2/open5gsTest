@@ -1269,6 +1269,7 @@ ogs_pkbuf_t *ngap_ue_build_pdu_session_resource_setup_request(
      * The UE Aggregate Maximum Bit Rate IE should be sent to the NG-RAN node
      * if the AMF has not sent it previously.
      */
+     ogs_info("<<<<<ngap_ue_build_pdu_session_resource_setup_request=ran_ue->ue_ambr_sent:%d,PDUSessionList->list.count=%d",ran_ue->ue_ambr_sent,PDUSessionList->list.count);
     if (ran_ue->ue_ambr_sent == false &&
         PDU_RES_SETUP_REQ_TRANSFER_NEEDED(amf_ue) == true) {
         ogs_assert(amf_ue->ue_ambr.downlink && amf_ue->ue_ambr.uplink);
@@ -1415,6 +1416,8 @@ ogs_pkbuf_t *ngap_sess_build_pdu_session_resource_setup_request(
      * The UE Aggregate Maximum Bit Rate IE should be sent to the NG-RAN node
      * if the AMF has not sent it previously.
      */
+     ogs_info("<<<<<ngap_sess_build_pdu_session_resource_setup_request=ran_ue->ue_ambr_sent:%d,PDUSessionList->list.count=%d",ran_ue->ue_ambr_sent,PDUSessionList->list.count);
+
     if (ran_ue->ue_ambr_sent == false) {
         ogs_assert(amf_ue->ue_ambr.downlink && amf_ue->ue_ambr.uplink);
 

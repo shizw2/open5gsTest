@@ -196,6 +196,8 @@ bool ogs_sbi_server_send_error(ogs_sbi_stream_t *stream,
     problem.title = (char*)title;
     problem.detail = (char*)detail;
 
+    ogs_info("ogs_sbi_server_send_error,title:%s,detail:%s.",title,detail);
+
     ogs_sbi_server_send_problem(stream, &problem);
 
     if (problem.type)

@@ -19,6 +19,8 @@
 
 #include "ngap-path.h"
 #include "ngap-handler.h"
+#include "ngap-handler-sps.h"
+
 
 static amf_context_t self;
 
@@ -1282,10 +1284,11 @@ void ran_ue_remove(ran_ue_t *ran_ue)
         ogs_assert(ran_ue->gnb);
 
         ogs_list_remove(&ran_ue->gnb->ran_ue_list, ran_ue);
+       }
 
         ogs_assert(ran_ue->t_ng_holding);
         ogs_timer_delete(ran_ue->t_ng_holding);
-    }
+	
 //SPS释放如何通知ICPS，ICPS释放需要通知SPS，待处理
     ogs_pool_free(&ran_ue_pool, ran_ue);
 
@@ -1608,7 +1611,7 @@ void amf_ue_remove_all()
     ogs_list_for_each_safe(&self.amf_ue_list, next, amf_ue) {
         ran_ue_t *ran_ue = ran_ue_cycle(amf_ue->ran_ue);
 
-        if (ran_ue) ran_ue_remove(ran_ue);
+        if (ran_ue) ran_ue_remove_sps(ran_ue);
 
         amf_ue_remove(amf_ue);
     }
@@ -1862,7 +1865,7 @@ void amf_ue_set_suci(amf_ue_t *amf_ue,
                 ogs_info("[%s]    RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld]",
                         old_amf_ue->suci, old_amf_ue->ran_ue->ran_ue_ngap_id,
                         (long long)old_amf_ue->ran_ue->amf_ue_ngap_id);
-                ran_ue_remove(old_amf_ue->ran_ue);
+                ran_ue_remove_sps(old_amf_ue->ran_ue);
             }
 
     /*
@@ -2715,3 +2718,69 @@ void amf_sps_id_set_supi(int sps_id, char *supi)
     ogs_assert(supi);
     ogs_hash_set(self.supi_sps_hash, supi, strlen(supi), &sps_id);
 }
+void ran_ue_remove_sps(ran_ue_t *ran_ue)
+{
+    ogs_assert(ran_ue); 
+    amf_internel_msgbuf_t tmsg;
+    int len;
+    uint8_t buff[OGS_MAX_SDU_LEN];
+    ran_ue = ran_ue_cycle(ran_ue);
+    if (!ran_ue) {
+        ogs_warn("NG context has already been removed");        
+        return ;
+    }
+	tmsg.msg_head.msg_type=INTERNEL_MSG_NGAP;
+	tmsg.msg_head.ran_ue_ngap_id=ran_ue->ran_ue_ngap_id;
+	tmsg.msg_head.amf_ue_ngap_id=ran_ue->amf_ue_ngap_id;
+	tmsg.msg_head.m_tmsi=ran_ue->m_tmsi;
+	tmsg.msg_head.down_ngap_type=INTERNEL_DOWN_NGAP_TO_REMOVE_UE;
+	tmsg.msg_head.len=0;	
+	len=sizeof(tmsg.msg_head);
+	memcpy(buff,&tmsg,sizeof(tmsg.msg_head));	
+	ogs_info("ran_ue_remove_sps,ran_ue->ran_ue_ngap_id=%d,ran_ue->amf_ue_ngap_id:%lu",ran_ue->ran_ue_ngap_id,ran_ue->amf_ue_ngap_id);
+	if(is_amf_sps())
+		{
+	       ogs_sendto(amf_self()->udp_node->sock->fd,buff,len,0, amf_self()->icps_node->addr);  
+		   
+		}else{
+            
+            ogs_assert(ran_ue->gnb);
+    	    ogs_list_remove(&ran_ue->gnb->ran_ue_list, ran_ue);
+          }
+    ogs_assert(ran_ue->t_ng_holding);
+    ogs_timer_delete(ran_ue->t_ng_holding);
+
+    ogs_pool_free(&ran_ue_pool, ran_ue);
+
+    stats_remove_ran_ue();
+    
+}
+void amf_ue_ran_ue_sps_icps_sync(amf_ue_t *amf_ue, ran_ue_t *ran_ue)
+{
+    ogs_assert(ran_ue); 
+    amf_internel_msg_header_t tmsg;
+    int len;
+    uint8_t buff[OGS_MAX_SDU_LEN];
+    ran_ue = ran_ue_cycle(ran_ue);
+    if (!ran_ue) {
+        ogs_warn("amf_ue_ran_ue_sps_icps_sync ran_ue has already been removed");        
+        return ;
+    }
+	tmsg.msg_type=INTERNEL_MSG_NGAP;
+	tmsg.ran_ue_ngap_id=ran_ue->ran_ue_ngap_id;
+	tmsg.amf_ue_ngap_id=amf_ue->ran_ue->amf_ue_ngap_id;
+    tmsg.pre_amf_ue_ngap_id=ran_ue->amf_ue_ngap_id;
+	tmsg.m_tmsi=ran_ue->m_tmsi;
+	tmsg.down_ngap_type=INTERNEL_DOWN_NGAP_TO_SYNC_RAN_UE;
+	tmsg.len=0;	
+	len=sizeof(tmsg);
+	memcpy(buff,&tmsg,sizeof(tmsg));	
+	ogs_info("amf_ue_ran_ue_sps_icps_sync ran_ue_ngap_id=%d,amf_ue_ngap_id:%lu",tmsg.ran_ue_ngap_id,tmsg.amf_ue_ngap_id);
+	if(is_amf_sps())
+		{
+	       ogs_sendto(amf_self()->udp_node->sock->fd,buff,len,0, amf_self()->icps_node->addr);  
+		   
+		}
+
+}
+

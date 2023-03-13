@@ -616,7 +616,7 @@ int amf_nsmf_pdusession_handle_update_sm_context(
 
                     if (ran_ue) {
                         ogs_debug("    SUPI[%s]", amf_ue->supi);
-                        ran_ue_remove(ran_ue);
+                        ran_ue_remove_sps(ran_ue);
                     } else {
                         ogs_warn("[%s] RAN-NG Context has already been removed",
                                 amf_ue->supi);
@@ -634,7 +634,7 @@ int amf_nsmf_pdusession_handle_update_sm_context(
                         ogs_assert(gnb);
 
                         ogs_debug("    SUPI[%s]", amf_ue->supi);
-                        ran_ue_remove(ran_ue);
+                        ran_ue_remove_sps(ran_ue);
 
                         if (ogs_list_count(&gnb->ran_ue_list) == 0)
                             ogs_assert(OGS_OK ==
@@ -658,7 +658,7 @@ int amf_nsmf_pdusession_handle_update_sm_context(
                         ogs_assert(gnb);
 
                         ogs_debug("    SUPI[%s]", amf_ue->supi);
-                        ran_ue_remove(ran_ue);
+                        ran_ue_remove_sps(ran_ue);
 
                         ogs_list_for_each(&gnb->ran_ue_list, iter) {
                             if (iter->part_of_ng_reset_requested == true) {

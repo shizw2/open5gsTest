@@ -59,6 +59,8 @@ ogs_sbi_request_t *amf_nsmf_pdusession_build_create_sm_context(
         goto end;
     }
 
+    ogs_info("amf_nsmf_pdusession_build_create_sm_context,serving nf_id:%s.",SmContextCreateData.serving_nf_id);
+
     SmContextCreateData.serving_network =
         ogs_sbi_build_plmn_id_nid(&amf_ue->nr_tai.plmn_id);
     if (!SmContextCreateData.serving_nf_id) {
