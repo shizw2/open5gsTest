@@ -247,6 +247,7 @@ int udp_ini_msg_sendto(int msg_type, ogs_sbi_udp_header_t *header,const void *bu
 
 	if (sps_id > MAX_SPS_NUM)
 	{
+        ogs_error("sps id %d is out of range.",sps_id);
 		return OGS_ERROR;
 	}
 

@@ -181,9 +181,13 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                             sps_id = amf_sps_id_find_by_supi(supi);
                             if (0 == sps_id){
                                 sps_id = 1;//TODO:根据情况，是丢弃还是随机选择
+                                ogs_info("can not find sps id by supi %s, set sps_id as %d temporary.",supi,sps_id);
                                 amf_sps_id_set_supi(1,supi);
+
+                                sps_id = amf_sps_id_find_by_supi(supi);
+                                ogs_info("test: find sps id %d by supi %s.",sps_id,supi);
                             }                            
-                            ogs_info("stream addr:%p, stream_pointer:%ld",stream, sbi_message.udp_h.stream_pointer);
+                            ogs_info("stream addr:%p, stream_pointer:%ld,supi:%s,sps_id:%d.",stream, sbi_message.udp_h.stream_pointer,supi,sps_id);
                             udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,sps_id);
                         #endif
                         }else{
