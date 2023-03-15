@@ -603,16 +603,6 @@ void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
         CASE(OGS_SBI_SERVICE_NAME_NAMF_CALLBACK)
             SWITCH(sbi_message.h.resource.component[1])
             CASE(OGS_SBI_RESOURCE_NAME_SM_CONTEXT_STATUS)
-			#if 0
-				//获取supi,找到sps模块
-				char *supi = sbi_message.h.resource.component[0];
-				sps_id = amf_sps_id_find_by_supi(supi);
-				if (0 == sps_id){
-					sps_id = 1;//TODO:根据情况，是丢弃还是随机选择
-					amf_sps_id_set_supi(1,supi);
-				}
-				udp_ini_msg_sendto(INTERNEL_MSG_SBI, sbi_request->http.content,sbi_request->http.content_length,sps_id);
-			#endif	
                 amf_namf_callback_handle_sm_context_status(
                         stream, &sbi_message);
                 break;
