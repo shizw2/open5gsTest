@@ -89,6 +89,7 @@ static void hash_set_test(abts_case *tc, void *data)
 {
     ogs_hash_t *h = NULL;
     char *result = NULL;
+    int *resultint = NULL;
 
     h = ogs_hash_make();
     ABTS_PTR_NOTNULL(tc, h);
@@ -96,6 +97,15 @@ static void hash_set_test(abts_case *tc, void *data)
     ogs_hash_set(h, "key", OGS_HASH_KEY_STRING, "value");
     result = ogs_hash_get(h, "key", OGS_HASH_KEY_STRING);
     ABTS_STR_EQUAL(tc, "value", result);
+
+    int value = 2;
+    printf("value %p \r\n",&value);
+    ogs_hash_set(h, "key2", OGS_HASH_KEY_STRING, &value);
+    resultint = ogs_hash_get(h, "key2", OGS_HASH_KEY_STRING);
+    printf("resutl %p \r\n",resultint);
+    printf("resutl %d \r\n",*resultint);
+    fflush(stdout);
+    ABTS_INT_EQUAL(tc, 2, *resultint);
 
     ogs_hash_destroy(h);
 }
