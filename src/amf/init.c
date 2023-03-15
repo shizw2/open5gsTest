@@ -27,7 +27,7 @@ static void amf_main(void *data);
 static void amf_sps_main(void *data);
 static int initialized = 0;
 
-
+int globalid = 2;
 
 int amf_initialize()
 {
@@ -74,6 +74,17 @@ int amf_initialize()
     if (!thread) return OGS_ERROR;
 
     initialized = 1;
+
+	char supi[20] = "12345";
+	int sps_id = amf_sps_id_find_by_supi(supi);
+	if (0 == sps_id){
+		//sps_id = 1;//TODO:根据情况，是丢弃还是随机选择
+		ogs_info("can not find sps id by supi %s, set sps_id as %d temporary.",supi,sps_id);
+		amf_sps_id_set_supi(&globalid,supi);
+
+		sps_id = amf_sps_id_find_by_supi(supi);
+		ogs_info("test: find sps id %d by supi %s.",sps_id,supi);
+	}   
 
     return OGS_OK;
 }

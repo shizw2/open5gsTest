@@ -2713,11 +2713,19 @@ int amf_sps_id_find_by_supi(char *supi)
 }
 
 //需要跟ngap的分发设置保持一致
+#if 0
 void amf_sps_id_set_supi(int sps_id, char *supi)
 {
     ogs_assert(supi);
     ogs_hash_set(self.supi_sps_hash, supi, strlen(supi), &sps_id);
 }
+#endif
+void amf_sps_id_set_supi(int *sps_id, char *supi)
+{
+    ogs_assert(supi);
+    ogs_hash_set(self.supi_sps_hash, supi, strlen(supi), sps_id);
+}
+
 void ran_ue_remove_sps(ran_ue_t *ran_ue)
 {
     ogs_assert(ran_ue); 
