@@ -181,7 +181,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                             sps_id = amf_sps_id_find_by_supi(supi);
                             if (0 == sps_id){
                                 ogs_info("can not find sps id by supi %s, set sps_id as %d temporary,supilen:%ld.",supi,g_pt_pkt_fwd_tbl->ta_sps_infos[0].module_no,strlen(supi));
-                                amf_sps_id_set_supi(&g_pt_pkt_fwd_tbl->ta_sps_infos[0].module_no,supi);
+                                amf_sps_id_set_supi((int*)&g_pt_pkt_fwd_tbl->ta_sps_infos[0].module_no,supi);
 
                                 sps_id = amf_sps_id_find_by_supi(supi);
                                 ogs_info("test: find sps id %d by supi %s.",sps_id,supi);

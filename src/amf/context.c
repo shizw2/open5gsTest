@@ -2707,10 +2707,10 @@ int amf_sps_id_find_by_supi(char *supi)
     sps_id = (int*)ogs_hash_get(self.supi_sps_hash, "imsi-999700000021309", strlen(supi));
    
 	if (NULL == sps_id){
-        ogs_info("amf_sps_id_find_by_supi can not find sps id by supi:%s,len:%ld.",supi,strlen(supi));
+        ogs_error("amf_sps_id_find_by_supi can not find sps id by supi:%s,len:%ld.",supi,strlen(supi));
 		return 0;
 	}else{
-        ogs_info("amf_sps_id_find_by_supi spsid addr:%p, value:%d,len:%ld,modueladdr:%p,no:%d.",sps_id, *sps_id,strlen(supi),&g_pt_pkt_fwd_tbl->ta_sps_infos[0].module_no,g_pt_pkt_fwd_tbl->ta_sps_infos[0].module_no);
+        ogs_error("amf_sps_id_find_by_supi spsid addr:%p, value:%d,len:%ld,modueladdr:%p,no:%d.",sps_id, *sps_id,strlen(supi),&g_pt_pkt_fwd_tbl->ta_sps_infos[0].module_no,g_pt_pkt_fwd_tbl->ta_sps_infos[0].module_no);
 		return *sps_id;
 	}
 }
@@ -2727,7 +2727,7 @@ void amf_sps_id_set_supi(int *sps_id, char *supi)
 {
     ogs_assert(supi);
     ogs_hash_set(self.supi_sps_hash, "imsi-999700000021309", strlen(supi), sps_id);
-    ogs_info("amf_sps_id_set_supi spsid addr:%p,len:%ld.",sps_id,strlen(supi));
+    ogs_error("amf_sps_id_set_supi spsid addr:%p,len:%ld.",sps_id,strlen(supi));
 }
 
 void ran_ue_remove_sps(ran_ue_t *ran_ue)

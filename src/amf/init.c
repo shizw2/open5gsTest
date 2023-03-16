@@ -28,7 +28,7 @@ static void amf_sps_main(void *data);
 static int initialized = 0;
 
 int globalid = 2;
-
+extern pkt_fwd_tbl_t *g_pt_pkt_fwd_tbl;
 int amf_initialize()
 {
     int rv;
@@ -74,9 +74,24 @@ int amf_initialize()
     if (!thread) return OGS_ERROR;
 
     initialized = 1;
+
+    g_pt_pkt_fwd_tbl->ta_sps_infos[0].module_no=1;
+	char supi[20] = "im-1234";
+	int sps_id = amf_sps_id_find_by_supi(supi);
+	if (0 == sps_id){
+		ogs_error("can not find sps id by supi %s, set sps_id as %d temporary,supilen:%ld.",supi,g_pt_pkt_fwd_tbl->ta_sps_infos[0].module_no,strlen(supi));
+		amf_sps_id_set_supi((int*)&g_pt_pkt_fwd_tbl->ta_sps_infos[0].module_no,supi);
+
+		sps_id = amf_sps_id_find_by_supi(supi);
+		ogs_error("test: find sps id %d by supi %s.",sps_id,supi);
+	}else{
+		ogs_error("find sps id %d by supi %s.",sps_id,supi);
+	} 
     
     return OGS_OK;
 }
+
+
 
 int amf_sps_initialize()
 {
@@ -121,6 +136,8 @@ int amf_sps_initialize()
     if (!thread) return OGS_ERROR;
 
     initialized = 1;
+
+	
 
     return OGS_OK;
 }
