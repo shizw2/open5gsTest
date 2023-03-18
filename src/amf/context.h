@@ -831,8 +831,8 @@ void amf_clear_subscribed_info(amf_ue_t *amf_ue);
 
 bool amf_update_allowed_nssai(amf_ue_t *amf_ue);
 
-int amf_sps_id_find_by_supi(char *supi);
-void amf_sps_id_set_supi(int *sps_id, char *supi);
+uint8_t amf_sps_id_find_by_supi(char *supi);
+void amf_sps_id_set_supi(uint8_t *sps_id, char *supi);
 void ran_ue_remove_sps(ran_ue_t *ran_ue);
 void amf_ue_ran_ue_sps_icps_sync(amf_ue_t *amf_ue, ran_ue_t *ran_ue);
 

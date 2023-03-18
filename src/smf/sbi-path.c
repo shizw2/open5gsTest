@@ -154,7 +154,7 @@ void smf_namf_comm_send_n1_n2_message_transfer(
 
     discovery_option = ogs_sbi_discovery_option_new();
     ogs_assert(discovery_option);
-    ogs_info("ogs_sbi_discovery_option_set_target_nf_instance_id:%s.",sess->serving_nf_id);
+    ogs_info("test:ogs_sbi_discovery_option_set_target_nf_instance_id:%s.",sess->serving_nf_id);
     ogs_sbi_discovery_option_set_target_nf_instance_id(
             discovery_option, sess->serving_nf_id);
 

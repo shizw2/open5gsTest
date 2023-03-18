@@ -2700,34 +2700,28 @@ bool amf_update_allowed_nssai(amf_ue_t *amf_ue)
 }
 
 extern pkt_fwd_tbl_t *g_pt_pkt_fwd_tbl;
-int amf_sps_id_find_by_supi(char *supi)
+//注意,supi不能是临时变量,指针必须是有效的,指针被释放后hash找不到
+uint8_t amf_sps_id_find_by_supi(char *supi)
 {
     ogs_assert(supi);
-	int *sps_id = NULL;
-    sps_id = (int*)ogs_hash_get(self.supi_sps_hash, "imsi-999700000021309", strlen(supi));
-   
-	if (NULL == sps_id){
+    void *sps_id = NULL;
+    sps_id = (int*)ogs_hash_get(self.supi_sps_hash, supi, strlen(supi));
+
+    if (NULL == sps_id){
         ogs_error("amf_sps_id_find_by_supi can not find sps id by supi:%s,len:%ld.",supi,strlen(supi));
-		return 0;
-	}else{
-        ogs_error("amf_sps_id_find_by_supi spsid addr:%p, value:%d,len:%ld,modueladdr:%p,no:%d.",sps_id, *sps_id,strlen(supi),&g_pt_pkt_fwd_tbl->ta_sps_infos[0].module_no,g_pt_pkt_fwd_tbl->ta_sps_infos[0].module_no);
-		return *sps_id;
-	}
+        return 0;
+    }else{
+        //ogs_info("amf_sps_id_find_by_supi spsid addr:%p, value:%d,len:%ld,modueladdr:%p,no:%d.",sps_id, *(uint8_t*)sps_id,strlen(supi),&g_pt_pkt_fwd_tbl->ta_sps_infos[0].module_no,g_pt_pkt_fwd_tbl->ta_sps_infos[0].module_no);
+        return *(uint8_t*)sps_id;
+    }
 }
 
 //需要跟ngap的分发设置保持一致
-#if 0
-void amf_sps_id_set_supi(int sps_id, char *supi)
+void amf_sps_id_set_supi(uint8_t *sps_id, char *supi)
 {
     ogs_assert(supi);
-    ogs_hash_set(self.supi_sps_hash, supi, strlen(supi), &sps_id);
-}
-#endif
-void amf_sps_id_set_supi(int *sps_id, char *supi)
-{
-    ogs_assert(supi);
-    ogs_hash_set(self.supi_sps_hash, "imsi-999700000021309", strlen(supi), sps_id);
-    ogs_error("amf_sps_id_set_supi spsid addr:%p,len:%ld.",sps_id,strlen(supi));
+    ogs_hash_set(self.supi_sps_hash, supi, strlen(supi), sps_id);
+    //ogs_info("amf_sps_id_set_supi spsid addr:%p,len:%ld.",sps_id,strlen(supi));
 }
 
 void ran_ue_remove_sps(ran_ue_t *ran_ue)

@@ -241,50 +241,50 @@ int udp_ini_sendto(const void *buf, size_t len, int sps_id)
 
 int udp_ini_msg_sendto(int msg_type, ogs_sbi_udp_header_t *header,const void *buf, size_t len, int sps_id)
 {
-	ogs_pkbuf_t *pkbuf = NULL;
-	amf_internel_msg_header_t internel_msg;
-	ssize_t sent;
+    ogs_pkbuf_t *pkbuf = NULL;
+    amf_internel_msg_header_t internel_msg;
+    ssize_t sent;
 
-	if (sps_id > MAX_SPS_NUM)
-	{
+    if (sps_id > MAX_SPS_NUM)
+    {
         ogs_error("sps id %d is out of range.",sps_id);
-		return OGS_ERROR;
-	}
+        return OGS_ERROR;
+    }
 
-#if 0	
-	ogs_info("SENDING...[%ld]", len);
-	if (len){
-		ogs_info("%s", (char*)buf);
-	}
-#endif
+    #if 0	
+    ogs_info("SENDING...[%ld]", len);
+    if (len){
+        ogs_info("%s", (char*)buf);
+    }
+    #endif
 
     internel_msg.msg_type   = msg_type;
     internel_msg.sps_id     = sps_id;
     internel_msg.sps_state  = 1;
 
-	pkbuf = ogs_pkbuf_alloc(NULL, sizeof(amf_internel_msg_header_t) + sizeof(ogs_sbi_udp_header_t) + len);
+    pkbuf = ogs_pkbuf_alloc(NULL, sizeof(amf_internel_msg_header_t) + sizeof(ogs_sbi_udp_header_t) + len);
     ogs_assert(pkbuf);
-	
+
     ogs_pkbuf_put_data(pkbuf, &internel_msg, sizeof(amf_internel_msg_header_t));
     ogs_pkbuf_put_data(pkbuf, header, sizeof(ogs_sbi_udp_header_t));
     ogs_pkbuf_put_data(pkbuf, buf, len);	
 
-	sent = ogs_sendto(amf_self()->udp_node->sock->fd, pkbuf->data, pkbuf->len, 0, amf_self()->sps_nodes[sps_id]->addr);
-	if (sent < 0 || sent != pkbuf->len) {
-		ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
-				"ogs_sendto() failed");
-		return OGS_ERROR;
-	}
-	
-	ogs_info("udp_ini_msg_sendto success, msg_type:%d, msg_len:%d, stream:%lx.",msg_type,pkbuf->len,header->stream_pointer);
+    sent = ogs_sendto(amf_self()->udp_node->sock->fd, pkbuf->data, pkbuf->len, 0, amf_self()->sps_nodes[sps_id]->addr);
+    if (sent < 0 || sent != pkbuf->len) {
+        ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
+                "ogs_sendto() failed");
+        return OGS_ERROR;
+    }
 
-	ogs_print_sbi_udp_header(header, true);
-	if (pkbuf->len > sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)){
-		ogs_info("sbi content:%s", (char*)(pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)));
-	}
-	
-	ogs_pkbuf_free(pkbuf);
-	return OGS_OK;
+    ogs_info("udp_ini_msg_sendto success, msg_type:%d, msg_len:%d, stream:%lx.",msg_type,pkbuf->len,header->stream_pointer);
+
+    ogs_print_sbi_udp_header(header, true);
+    if (pkbuf->len > sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)){
+        ogs_info("sbi content:%s", (char*)(pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)));
+    }
+
+    ogs_pkbuf_free(pkbuf);
+    return OGS_OK;
 }
 
 //sps给icps发送消息时调用

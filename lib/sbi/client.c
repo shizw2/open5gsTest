@@ -569,7 +569,7 @@ static void check_multi_info(ogs_sbi_client_t *client)
                 if (conn->memory_overflow == true)
                     level = OGS_LOG_ERROR;
 
-                ogs_log_message(OGS_LOG_INFO, 0, "[%d:%s] %s",
+                ogs_log_message(level, 0, "[%d:%s] %s",
                         response->status, response->h.method, response->h.uri);
                 if (response->status == 400){
                     ogs_info("test:[%d:%s] %s",
@@ -634,10 +634,7 @@ bool ogs_sbi_client_send_request(
     }
     ogs_debug("[%s] %s", request->h.method, request->h.uri);
     ogs_info("test:[%s] %s", request->h.method, request->h.uri);
-    //if (request->http.content_length == 788){
-        ogs_info("test:content3:%s", request->http.content);
-    //} 
-    
+
     conn = connection_add(client, client_cb, request, data);
     ogs_expect_or_return_val(conn, false);
 

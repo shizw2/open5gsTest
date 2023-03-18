@@ -42,7 +42,6 @@ abts_suite *test_uuid(abts_suite *suite);
 const struct testlist {
     abts_suite *(*func)(abts_suite *suite);
 } alltests[] = {
-#if 0
     {test_list},
     {test_pool},
     {test_strings},
@@ -59,9 +58,8 @@ const struct testlist {
     {test_poll},
     {test_tlv},
     {test_fsm},
- #endif   
     {test_hash},
-    //{test_uuid},
+    {test_uuid},
     {NULL},
 };
 

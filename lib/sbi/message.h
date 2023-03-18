@@ -428,10 +428,19 @@ typedef struct ogs_sbi_udp_header_s {
             int status;
             struct {
                 //OpenAPI_nf_type_e requester_nf_type;
+
+                //char *accept;
+                //char *content_encoding; 
                
                 char content_type[MAX_SBI_CONTENT_TYPE];
                 char location[MAX_SBI_HTTP_LOCATION];
                 char cache_control[MAX_SBI_HTTP_CACHE_CONTROL];
+
+                //struct {
+                //        char *callback;
+                //        char *nrf_uri;
+                //} custom;
+                
             } http;
         }response;
     };
@@ -457,10 +466,10 @@ typedef struct ogs_sbi_message_s {
     ogs_sbi_header_t h;
     ogs_sbi_udp_header_t udp_h;
     struct {
-        OpenAPI_nf_type_e requester_nf_type;
+        OpenAPI_nf_type_e requester_nf_type;//请求中用到
 
-        char *accept;
-        char *content_encoding;
+        char *accept;           //请求中用到
+        char *content_encoding; //请求中用到
         char *content_type;
         char *location;
         char *cache_control;
@@ -468,7 +477,7 @@ typedef struct ogs_sbi_message_s {
         struct {
             char *callback;
             char *nrf_uri;
-        } custom;
+        } custom;               //请求中用到
     } http;
 
     

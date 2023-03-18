@@ -86,7 +86,7 @@ void ogs_nnrf_nfm_handle_nf_profile(
                     node->data, ogs_sbi_self()->sbi_port, 0);
             if (rv != OGS_OK) continue;
 
-            ogs_debug("nf_instance, addr:%s, port:%d,sbi_port:%d.", OGS_ADDR(addr, buf), OGS_PORT(addr),ogs_sbi_self()->sbi_port);
+            ogs_debug("test:nf_instance, addr:%s, port:%d,sbi_port:%d.", OGS_ADDR(addr, buf), OGS_PORT(addr),ogs_sbi_self()->sbi_port);
             nf_instance->ipv4[nf_instance->num_of_ipv4] = addr;
             nf_instance->num_of_ipv4++;
         }

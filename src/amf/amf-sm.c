@@ -81,7 +81,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
     ogs_sbi_message_t sbi_message;
 
     char *supi = NULL;
-    int sps_id = 0;
+    uint8_t sps_id = 0;
     amf_internel_msg_header_t internel_msg;
     ssize_t sent;
 
@@ -175,22 +175,19 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                     CASE(OGS_SBI_HTTP_METHOD_POST)
                         if (is_amf_icps())
                         {
-                        #if 1
                             //获取supi,找到sps模块
                             char *supi = sbi_message.h.resource.component[1];
                             sps_id = amf_sps_id_find_by_supi(supi);
                             if (0 == sps_id){
                                 ogs_info("can not find sps id by supi %s, set sps_id as %d temporary,supilen:%ld.",supi,g_pt_pkt_fwd_tbl->ta_sps_infos[0].module_no,strlen(supi));
-                                amf_sps_id_set_supi((int*)&g_pt_pkt_fwd_tbl->ta_sps_infos[0].module_no,supi);
+                                amf_sps_id_set_supi((uint8_t*)&g_pt_pkt_fwd_tbl->ta_sps_infos[0].module_no,supi);
 
-                                sps_id = amf_sps_id_find_by_supi(supi);
-                                ogs_info("test: find sps id %d by supi %s.",sps_id,supi);
+                                sps_id = g_pt_pkt_fwd_tbl->ta_sps_infos[0].module_no;
                             }else{
                                 ogs_info("find sps id %d by supi %s.",sps_id,supi);
                             }                            
                             ogs_info("stream addr:%p, stream_pointer:%ld,supi:%s,sps_id:%d.",stream, sbi_message.udp_h.stream_pointer,supi,sps_id);
                             udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,sps_id);
-                        #endif
                         }else{
                             rv = amf_namf_comm_handle_n1_n2_message_transfer(
                                     stream, &sbi_message);
