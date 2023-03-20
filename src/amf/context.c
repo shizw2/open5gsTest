@@ -79,6 +79,9 @@ void amf_context_init(void)
     self.supi_hash = ogs_hash_make();
     ogs_assert(self.supi_hash);
 
+    self.supi_ran_hash = ogs_hash_make();
+    ogs_assert(self.supi_ran_hash);
+
     self.supi_sps_hash = ogs_hash_make();
     ogs_assert(self.supi_sps_hash);
 
@@ -1339,6 +1342,26 @@ ran_ue_t *ran_ue_cycle(ran_ue_t *ran_ue)
     return ogs_pool_cycle(&ran_ue_pool, ran_ue);
 }
 
+//add at 2323/03/18
+ran_ue_t *ran_ue_find_by_supi(char *supi)
+{
+    ogs_assert(supi);
+    return (ran_ue_t *)ogs_hash_get(self.supi_ran_hash, supi, strlen(supi));
+}
+
+void ran_ue_set_supi(ran_ue_t *ran_ue, char *supi)
+{
+    ogs_assert(supi);
+
+    if (ran_ue->supi) {
+        ogs_hash_set(self.supi_ran_hash, ran_ue->supi, strlen(ran_ue->supi), NULL);
+        ogs_free(ran_ue->supi);
+    }
+    ran_ue->supi = ogs_strdup(supi);
+    ogs_assert(ran_ue->supi);
+    ogs_hash_set(self.supi_ran_hash, ran_ue->supi, strlen(ran_ue->supi), ran_ue);
+}
+
 void amf_ue_new_guti(amf_ue_t *amf_ue)
 {
     if (amf_ue->next.m_tmsi) {
@@ -2322,6 +2345,7 @@ int amf_m_tmsi_pool_generate()
         /* for mapped-GUTI */
         *m_tmsi |= 0xc0000000;
         *m_tmsi &= 0xff00ffff;
+        *m_tmsi |=(g_sps_id<<16);
 
         for (j = 0; j < index; j++) {
             if (*m_tmsi == self.m_tmsi.array[j]) {
@@ -2727,7 +2751,7 @@ void amf_sps_id_set_supi(uint8_t *sps_id, char *supi)
 void ran_ue_remove_sps(ran_ue_t *ran_ue)
 {
     ogs_assert(ran_ue); 
-    amf_internel_msgbuf_t tmsg;
+    amf_internel_msg_header_t tmsg;
     int len;
     uint8_t buff[OGS_MAX_SDU_LEN];
     ran_ue = ran_ue_cycle(ran_ue);
@@ -2735,14 +2759,14 @@ void ran_ue_remove_sps(ran_ue_t *ran_ue)
         ogs_warn("NG context has already been removed");        
         return ;
     }
-	tmsg.msg_head.msg_type=INTERNEL_MSG_NGAP;
-	tmsg.msg_head.ran_ue_ngap_id=ran_ue->ran_ue_ngap_id;
-	tmsg.msg_head.amf_ue_ngap_id=ran_ue->amf_ue_ngap_id;
-	tmsg.msg_head.m_tmsi=ran_ue->m_tmsi;
-	tmsg.msg_head.down_ngap_type=INTERNEL_DOWN_NGAP_TO_REMOVE_UE;
-	tmsg.msg_head.len=0;	
-	len=sizeof(tmsg.msg_head);
-	memcpy(buff,&tmsg,sizeof(tmsg.msg_head));	
+	tmsg.msg_type=INTERNEL_MSG_NGAP;
+	tmsg.ran_ue_ngap_id=ran_ue->ran_ue_ngap_id;
+	tmsg.amf_ue_ngap_id=ran_ue->amf_ue_ngap_id;
+	tmsg.m_tmsi=ran_ue->m_tmsi;
+	tmsg.down_ngap_type=INTERNEL_DOWN_NGAP_TO_REMOVE_UE;
+	tmsg.len=0;	
+	len=sizeof(tmsg);
+	memcpy(buff,&tmsg,sizeof(tmsg));	
 	ogs_info("ran_ue_remove_sps,ran_ue->ran_ue_ngap_id=%d,ran_ue->amf_ue_ngap_id:%lu",ran_ue->ran_ue_ngap_id,ran_ue->amf_ue_ngap_id);
 	if(is_amf_sps())
 		{
@@ -2786,6 +2810,27 @@ void amf_ue_ran_ue_sps_icps_sync(amf_ue_t *amf_ue, ran_ue_t *ran_ue)
 		{
 	       ogs_sendto(amf_self()->udp_node->sock->fd,buff,len,0, amf_self()->icps_node->addr);  
 		   
+		}
+
+}
+void amf_ue_ran_ue_icpstosps_sync(uint8_t sps_id,int ue_num,uint64_t *ue_id,int state)
+{
+    
+    amf_internel_msg_header_t tmsg;
+    int len;
+    uint8_t buff[OGS_MAX_SDU_LEN];   
+	tmsg.msg_type=INTERNEL_MSG_NGAP;
+	tmsg.down_ngap_type=state;
+	tmsg.len=ue_num*sizeof(uint64_t);	
+	len=sizeof(tmsg);
+	memcpy(buff,&tmsg,sizeof(tmsg));    
+    memcpy(buff+len,ue_id,ue_num*sizeof(uint64_t));
+    len=len+ue_num*sizeof(uint64_t);
+	ogs_info("amf_ue_ran_ue_icpstosps_sync,len:%d,tmsg.down_ngap_type=%d",len,tmsg.down_ngap_type);
+    print_buf(buff,len);
+	if(is_amf_icps())
+		{
+	       udp_ini_sendto(buff, len, sps_id); 		   
 		}
 
 }

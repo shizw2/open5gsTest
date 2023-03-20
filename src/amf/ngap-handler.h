@@ -48,9 +48,9 @@ void ngap_handle_ng_setup_request(
 void ngap_handle_initial_ue_message(
         amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf);
 void ngap_handle_uplink_nas_transport(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message);
+        amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf);
 void ngap_handle_ue_radio_capability_info_indication(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message);
+        amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf);
 void ngap_handle_initial_context_setup_response(
         amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf);
 void ngap_handle_initial_context_setup_failure(
@@ -97,7 +97,7 @@ void ngap_handle_ran_configuration_update(
         amf_gnb_t *gnb, ogs_ngap_message_t *message);
 
 void ngap_handle_ng_reset(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message);
+        amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf);
 void ngap_handle_error_indication(
         amf_gnb_t *gnb, ogs_ngap_message_t *message);
 uint8_t spsid_find_by_tmsi(ran_ue_t           *ran_ue, uint32_t *m_tmsi);//O3

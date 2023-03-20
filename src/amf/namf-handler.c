@@ -286,7 +286,7 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
                 AMF_SESS_STORE_N2_TRANSFER(
                         sess, pdu_session_resource_setup_request, n2buf);
 
-                ogs_assert(OGS_OK == ngap_send_paging(amf_ue));
+                ogs_assert(OGS_OK == ngap_send_paging_sps(amf_ue));
 
             } else if (CM_CONNECTED(amf_ue)) {
                 ogs_assert(OGS_OK ==
@@ -345,7 +345,7 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
                     OGS_NAS_5GS_PDU_SESSION_MODIFICATION_COMMAND,
                     n1buf, n2buf);
 
-            ogs_assert(OGS_OK == ngap_send_paging(amf_ue));
+            ogs_assert(OGS_OK == ngap_send_paging_sps(amf_ue));
 
         } else if (CM_CONNECTED(amf_ue)) {
             gmmbuf = gmm_build_dl_nas_transport(sess,

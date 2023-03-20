@@ -384,7 +384,7 @@ int amf_nsmf_pdusession_handle_update_sm_context(
                     ogs_error("[%s:%d] No N2 SM Content",
                             amf_ue->supi, sess->psi);
                     ogs_expect(OGS_OK ==
-                        ngap_send_error_indication2(amf_ue,
+                        ngap_send_error_indication2_sps(amf_ue,
                             NGAP_Cause_PR_protocol,
                             NGAP_CauseProtocol_semantic_error));
 
@@ -406,7 +406,7 @@ int amf_nsmf_pdusession_handle_update_sm_context(
                 ogs_error("Not implemented [%d]",
                         SmContextUpdatedData->n2_sm_info_type);
                 ogs_expect(OGS_OK ==
-                    ngap_send_error_indication2(amf_ue,
+                    ngap_send_error_indication2_sps(amf_ue,
                         NGAP_Cause_PR_protocol,
                         NGAP_CauseProtocol_semantic_error));
             }
@@ -630,15 +630,16 @@ int amf_nsmf_pdusession_handle_update_sm_context(
                     amf_ue_deassociate(amf_ue);
 
                     if (ran_ue) {
-                        amf_gnb_t *gnb = ran_ue->gnb;
-                        ogs_assert(gnb);
+                        //amf_gnb_t *gnb = ran_ue->gnb;
+                        //ogs_assert(gnb);
 
                         ogs_debug("    SUPI[%s]", amf_ue->supi);
                         ran_ue_remove_sps(ran_ue);
 
+                       /* 需要处理码?我理解这个地方不需要处理
                         if (ogs_list_count(&gnb->ran_ue_list) == 0)
                             ogs_assert(OGS_OK ==
-                                ngap_send_ng_reset_ack(gnb, NULL));
+                                ngap_send_ng_reset_ack(gnb, NULL));*/
 
                     } else {
                         ogs_warn("[%s] RAN-NG Context has already been removed",
@@ -648,18 +649,19 @@ int amf_nsmf_pdusession_handle_update_sm_context(
 
             } else if (state == AMF_REMOVE_S1_CONTEXT_BY_RESET_PARTIAL) {
                 if (AMF_SESSION_SYNC_DONE(amf_ue, state)) {
-                    ran_ue_t *iter = NULL;
+                    //ran_ue_t *iter = NULL;
                     ran_ue = ran_ue_cycle(amf_ue->ran_ue);
 
                     amf_ue_deassociate(amf_ue);
 
                     if (ran_ue) {
-                        amf_gnb_t *gnb = ran_ue->gnb;
-                        ogs_assert(gnb);
+                        //amf_gnb_t *gnb = ran_ue->gnb;
+                        //ogs_assert(gnb);
 
                         ogs_debug("    SUPI[%s]", amf_ue->supi);
                         ran_ue_remove_sps(ran_ue);
-
+#if 0
+                        //为什么要进行下面的处理？没理解，在收到ng_reset处理不够吗？
                         ogs_list_for_each(&gnb->ran_ue_list, iter) {
                             if (iter->part_of_ng_reset_requested == true) {
                                 /* The GNB_UE context
@@ -679,7 +681,7 @@ int amf_nsmf_pdusession_handle_update_sm_context(
 
                         /* Clear NG-Reset Ack Buffer */
                         gnb->ng_reset_ack = NULL;
-
+#endif
                     } else {
                         ogs_warn("[%s] RAN-NG Context has already been removed",
                                 amf_ue->supi);
@@ -732,7 +734,7 @@ int amf_nsmf_pdusession_handle_update_sm_context(
             ogs_error("[%d:%d] No Error [%d]",
                     sess->psi, sess->pti, recvmsg->res_status);
             ogs_expect(OGS_OK ==
-                ngap_send_error_indication2(amf_ue,
+                ngap_send_error_indication2_sps(amf_ue,
                     NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error));
 
             return OGS_ERROR;
@@ -787,7 +789,7 @@ int amf_nsmf_pdusession_handle_update_sm_context(
         ogs_error("[%d:%d] Error Indication", sess->psi, sess->pti);
 
         ogs_expect(OGS_OK ==
-            ngap_send_error_indication2(amf_ue,
+            ngap_send_error_indication2_sps(amf_ue,
                 NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error));
 
         return OGS_ERROR;

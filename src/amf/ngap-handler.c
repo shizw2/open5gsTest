@@ -605,7 +605,7 @@ void ngap_handle_initial_ue_message(amf_gnb_t *gnb, ogs_ngap_message_t *message,
 
 
 void ngap_handle_uplink_nas_transport(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message)
+        amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf)
 {
     char buf[OGS_ADDRSTRLEN];
     int i;
@@ -613,7 +613,7 @@ void ngap_handle_uplink_nas_transport(
    // amf_ue_t *amf_ue = NULL;
     ran_ue_t *ran_ue = NULL;
     uint64_t amf_ue_ngap_id;
-	uint8_t sps_id;//add
+	//uint8_t sps_id;//add
 
     NGAP_InitiatingMessage_t *initiatingMessage = NULL;
     NGAP_UplinkNASTransport_t *UplinkNASTransport = NULL;
@@ -735,6 +735,7 @@ void ngap_handle_uplink_nas_transport(
                 NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error));
         return;
     }
+    #if 0
 	// add
 	send_code->h.ProcedureCode=NGAP_ProcedureCode_id_UplinkNASTransport;
 	send_code->h.size=NAS_PDU->size;
@@ -742,6 +743,7 @@ void ngap_handle_uplink_nas_transport(
 		//send_code->sizebuf=NAS_PDU->size;
 	printf("!!!!!!!!!!!!!!!!!! ProcedureCode=%lu size=%lu,NAS_PDU->buf:%02x%02x%02x\n", send_code->h.ProcedureCode, NAS_PDU->size,*(NAS_PDU->buf),*(NAS_PDU->buf+1),*(NAS_PDU->buf+2));  
 	//add end	
+    #endif
     UserLocationInformationNR =
         UserLocationInformation->choice.userLocationInformationNR;
     ogs_assert(UserLocationInformationNR);
@@ -759,17 +761,20 @@ void ngap_handle_uplink_nas_transport(
    // memcpy(&amf_ue->nr_tai, &ran_ue->saved.nr_tai, sizeof(ogs_5gs_tai_t));
    // memcpy(&amf_ue->nr_cgi, &ran_ue->saved.nr_cgi, sizeof(ogs_nr_cgi_t));
 	//add
+	#if 0
 	sps_id=ran_ue->sps_no;
 	printf(" =================sps_id:%d========ran_ue->amf_ue_ngap_id:%lu\n",sps_id,amf_ue_ngap_id);
 	ngap_icps_send_to_sps(sps_id,ran_ue, send_code);
 	
 	if(send_code)free(send_code);
+    #endif
     //add end
+    ngap_icps_send_to_sps_pkg2(ran_ue, NGAP_ProcedureCode_id_UplinkNASTransport,pkbuf);
     //ngap_send_to_nas(ran_ue, NGAP_ProcedureCode_id_UplinkNASTransport, NAS_PDU);
 }
 
 void ngap_handle_ue_radio_capability_info_indication(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message)
+        amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf)
 {
     char buf[OGS_ADDRSTRLEN];
     int i;
@@ -785,13 +790,14 @@ void ngap_handle_ue_radio_capability_info_indication(
     NGAP_RAN_UE_NGAP_ID_t *RAN_UE_NGAP_ID = NULL;
     NGAP_AMF_UE_NGAP_ID_t *AMF_UE_NGAP_ID = NULL;
     NGAP_UERadioCapability_t *UERadioCapability = NULL;
-    
+#if 0    
 	//add 
 	uint8_t sps_id;
 	NGAP_icps_send_code_t *send_code=NULL;
 	send_code=(NGAP_icps_send_code_t *)malloc(sizeof(NGAP_icps_send_code_t));
 	send_code->buf=(uint8_t*)malloc(OGS_MAX_SDU_LEN);
 	//add end
+#endif
     ogs_assert(gnb);
     ogs_assert(gnb->sctp.sock);
 
@@ -865,7 +871,7 @@ void ngap_handle_ue_radio_capability_info_indication(
                 NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error));
         return;
     }
-
+#if 0
     if (ran_ue->amf_ue)
         OGS_ASN_STORE_DATA(&ran_ue->amf_ue->ueRadioCapability,
                 UERadioCapability);
@@ -887,6 +893,8 @@ void ngap_handle_ue_radio_capability_info_indication(
 	if(send_code)
 		free(send_code);
 	//add end
+#endif
+    ngap_icps_send_to_sps_pkg2(ran_ue,NGAP_ProcedureCode_id_UERadioCapabilityInfoIndication,pkbuf);
 }
 
 void ngap_handle_initial_context_setup_response(
@@ -4178,11 +4186,11 @@ void ngap_handle_ran_configuration_update(
 }
 
 void ngap_handle_ng_reset(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message)
+        amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf)
 {
     char buf[OGS_ADDRSTRLEN];
     int i, old_xact_count = 0, new_xact_count = 0;
-
+    int j=0;
 
     NGAP_InitiatingMessage_t *initiatingMessage = NULL;
     NGAP_NGReset_t *NGReset = NULL;
@@ -4193,7 +4201,7 @@ void ngap_handle_ng_reset(
     NGAP_UE_associatedLogicalNG_connectionList_t *partOfNG_Interface = NULL;
 
     ran_ue_t *iter = NULL;
-
+    bool sps_flag[MAX_SPS_NUM+1];
     ogs_assert(gnb);
     ogs_assert(gnb->sctp.sock);
 
@@ -4202,7 +4210,10 @@ void ngap_handle_ng_reset(
     ogs_assert(initiatingMessage);
     NGReset = &initiatingMessage->value.choice.NGReset;
     ogs_assert(NGReset);
-
+    for(j=0;j<MAX_SPS_NUM+1;j++)
+        {
+            sps_flag[j]=false;
+        }
     ogs_warn("NGReset");
 
     for (i = 0; i < NGReset->protocolIEs.list.count; i++) {
@@ -4240,7 +4251,7 @@ void ngap_handle_ng_reset(
                 NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error));
         return;
     }
-
+    ogs_info("NG  ResetType->present=%d",ResetType->present);
     switch (ResetType->present) {
     case NGAP_ResetType_PR_nG_Interface:
         ogs_warn("    NGAP_ResetType_PR_nG_Interface");
@@ -4323,6 +4334,10 @@ void ngap_handle_ng_reset(
                             (long long)amf_ue_ngap_id);
                     continue;
                 }
+                if(!sps_flag[ran_ue->sps_no]){
+                    ngap_icps_send_to_sps_pkg2(ran_ue,NGAP_ProcedureCode_id_NGReset,pkbuf);
+                    sps_flag[ran_ue->sps_no]=true;
+                }
 
             } else if (item->rAN_UE_NGAP_ID) {
 
@@ -4334,6 +4349,8 @@ void ngap_handle_ng_reset(
                             (int)*item->rAN_UE_NGAP_ID);
                     continue;
                 }
+                amf_ue_ran_ue_icpstosps_sync(ran_ue->sps_no,1,ran_ue->amf_ue_ngap_id,AMF_REMOVE_S1_CONTEXT_BY_RESET_ALL);//temp
+                
             } else {
                 ogs_error("No UE NGAP ID");
                 continue;
@@ -4342,8 +4359,11 @@ void ngap_handle_ng_reset(
             ogs_assert(ran_ue);
 
             /* RAN_UE Context where PartOfNG_interface was requested */
-            ran_ue->part_of_ng_reset_requested = true;
 
+            //add 
+            ran_ue->part_of_ng_reset_requested = true;          
+            ran_ue_remove(ran_ue);
+#if 0            
             amf_ue = ran_ue->amf_ue;
             ogs_assert(amf_ue);
 
@@ -4357,6 +4377,7 @@ void ngap_handle_ng_reset(
             new_xact_count = amf_sess_xact_count(amf_ue);
 
             if (old_xact_count == new_xact_count) ran_ue_remove(ran_ue);
+#endif            
         }
 
         ogs_list_for_each(&gnb->ran_ue_list, iter) {
@@ -4485,11 +4506,15 @@ uint8_t spsid_find_by_tmsi(ran_ue_t *ran_ue,uint32_t *m_tmsi)
 {
      ogs_assert(ran_ue);  
 	 ogs_assert(m_tmsi);
-     if(ran_ue->m_tmsi==*m_tmsi)
+     uint8_t sps_id;
+     sps_id=((*m_tmsi) & 0x00FF0000)%256;
+     if(find_module_info(sps_id))
      {
+        ogs_info("spsid_find_by_tmsi sps_id:%d,*m_tmsi=:%d",sps_id,*m_tmsi);
+     	return sps_id;
+     }else{
      	return spsid_find_by_amf_ue_ngap_id(ran_ue->amf_ue_ngap_id);
-     }	 
-	else return 1;
+            }
      
 }
 void ngap_icps_send_to_sps(uint8_t sps_id,ran_ue_t *ran_ue, NGAP_icps_send_code_t *send_code)
@@ -4584,7 +4609,8 @@ void ngap_icps_send_to_sps_pkg2(            ran_ue_t *ran_ue,NGAP_ProcedureCode_
       }       
    
 	send_code_head=(NGAP_icps_send_head_t *)malloc(sizeof(NGAP_icps_send_head_t));	
-	send_code_head->ProcedureCode=ProcedureCode;	
+	send_code_head->ProcedureCode=ProcedureCode;
+    ogs_info("send_code_head->ProcedureCode=%lu",send_code_head->ProcedureCode);
 	send_code_head->size=pkbuf->len;	
 	sps_id=ran_ue->sps_no;
     if((sps_id<1)||(sps_id>MAX_SPS_NUM)){
@@ -4625,12 +4651,19 @@ int icps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
 	
 	ogs_pkbuf_t *pkbuftmp = NULL;
     ran_ue_t * ran_ue_icps=NULL;
+    int rvtmp;	
+
+    
+	ogs_info("icps_handle_rev_ini_ngap,pmsg->amf_ue_ngap_id:%lu,pmsg->ran_ue_ngap_id:%d",pmsg->amf_ue_ngap_id,pmsg->ran_ue_ngap_id);
+    
+    if(pmsg->down_ngap_type==INTERNEL_DOWN_NGAP_TO_NB_PAGE){
+        ogs_info("ICPS Send page !!!");
 	pkbuftmp=ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
-	int rvtmp;
-	ogs_info("ICPS rev INTERNEL_MSG_NGAP ngap_send_to_gnb pkbuf->len:%d",pkbuf->len);
 	pkbuftmp->len=pkbuf->len-sizeof(amf_internel_msg_header_t);
     memcpy(pkbuftmp->data,pkbuf->data+sizeof(amf_internel_msg_header_t),pkbuftmp->len);
-	ogs_info("icps_handle_rev_ini_ngap,pmsg->amf_ue_ngap_id:%lu,pmsg->ran_ue_ngap_id:%d",pmsg->amf_ue_ngap_id,pmsg->ran_ue_ngap_id);
+        rvtmp=ngap_send_paging_icps(&(pmsg->nr_tai),pkbuftmp);
+        return rvtmp;
+        }
     ran_ue_icps=ran_ue_find_by_amf_ue_ngap_id(pmsg->amf_ue_ngap_id);
 	if(ran_ue_icps){
 	    ran_ue_icps->amf_ue_ngap_id=pmsg->amf_ue_ngap_id;
@@ -4638,19 +4671,22 @@ int icps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
         }else{
               ogs_error("no find ran_ue!pmsg->ran_ue_ngap_id=%d",pmsg->ran_ue_ngap_id);
               rvtmp=OGS_ERROR;
+              
               return rvtmp;
              }
     switch (pmsg->down_ngap_type)
-        {
-            case INTERNEL_DOWN_NGAP_TO_NB_PAGE:
-                ogs_info("Send page !!!");
-                rvtmp=ngap_send_paging_icps(ran_ue_icps,pkbuftmp);
-                break;
+        {           
             case INTERNEL_DOWN_NGAP_TO_NB:
+                pkbuftmp=ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
+	            pkbuftmp->len=pkbuf->len-sizeof(amf_internel_msg_header_t);
+                memcpy(pkbuftmp->data,pkbuf->data+sizeof(amf_internel_msg_header_t),pkbuftmp->len);
                 rvtmp=ngap_send_to_gnb(ran_ue_icps->gnb, pkbuftmp, NGAP_NON_UE_SIGNALLING);
                 break;
             case INTERNEL_DOWN_NGAP_TO_UE:
                 ran_ue_icps->m_tmsi=pmsg->m_tmsi; 
+                pkbuftmp=ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
+	            pkbuftmp->len=pkbuf->len-sizeof(amf_internel_msg_header_t);
+                memcpy(pkbuftmp->data,pkbuf->data+sizeof(amf_internel_msg_header_t),pkbuftmp->len);
                 rvtmp=ngap_send_to_gnb(ran_ue_icps->gnb, pkbuftmp, ran_ue_icps->gnb_ostream_id);                
                 break;
             case INTERNEL_DOWN_NGAP_TO_REMOVE_UE:

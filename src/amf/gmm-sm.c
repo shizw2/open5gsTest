@@ -407,7 +407,7 @@ static void common_register_state(ogs_fsm_t *s, amf_event_t *e)
             } else {
                 amf_ue->t3513.retry_count++;
                 /* If t3513 is timeout, the saved pkbuf is used.  */
-                ogs_assert(OGS_OK == ngap_send_paging(amf_ue));
+                ogs_assert(OGS_OK == ngap_send_paging_sps(amf_ue));
             }
             break;
 

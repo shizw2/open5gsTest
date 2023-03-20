@@ -41,6 +41,7 @@ extern int __gmm_log_domain;
 #define OGS_LOG_DOMAIN __amf_log_domain
 
 #define MAX_SPS_NUM         16
+#define MAX_UE_NUM_SINGLE_NG      512
 
 typedef struct ran_ue_s ran_ue_t;
 typedef struct amf_ue_s amf_ue_t;
@@ -103,6 +104,7 @@ typedef struct amf_context_s {
     ogs_hash_t      *guti_ue_hash;          /* hash table (GUTI : AMF_UE) */
     ogs_hash_t      *suci_hash;     /* hash table (SUCI) */
     ogs_hash_t      *supi_hash;     /* hash table (SUPI) */
+    ogs_hash_t      *supi_ran_hash; /* hash table (SUPI:ran_ue) */
 
     OGS_POOL(m_tmsi, amf_m_tmsi_t); /* M-TMSI Pool */
 
@@ -204,6 +206,8 @@ struct ran_ue_s {
     uint8_t         ue_ctx_rel_action;
 
     bool            part_of_ng_reset_requested;
+
+    char *supi;//icps使用
 
     /* Related Context */
     amf_gnb_t       *gnb;
@@ -626,8 +630,10 @@ typedef struct amf_sess_s {
 
 #define INTERNEL_MSG_HAND_SHAKE_REQ                      0
 #define INTERNEL_MSG_HAND_SHAKE_RSP                      1
-#define INTERNEL_MSG_NGAP                      			 2
+#define INTERNEL_MSG_NGAP                      		 2
 #define INTERNEL_MSG_SBI                                 3
+#define INTERNEL_MSG_SUPI_NOTIFY                         4 //sps通知icps 
+#define INTERNEL_MSG_NF_INSTANCE_NOTIFY                  5 //icps通知sps
 
 #define INTERNEL_DOWN_NGAP_TO_UE                         0
 #define INTERNEL_DOWN_NGAP_TO_NB                         1
@@ -640,6 +646,8 @@ typedef struct amf_sess_s {
 
 
 #define MAX_INTERNEL_MESSAGE_LEN  (1024*20)  /* max message len 10K */
+#define MAX_SUPI_LENGTH            20
+#define MAX_NF_INSTANCE_ID         40
 
 typedef struct amf_internel_msg_header_s {
     uint8_t msg_type;
@@ -657,7 +665,13 @@ typedef struct amf_internel_msg_header_s {
 
 typedef struct amf_internel_msgbuf_s {
    amf_internel_msg_header_t msg_head;
-   uint8_t *buf;
+   
+   //不同内部消息携带不同的内容,采用union节省空间
+   union{
+        char supi[MAX_SUPI_LENGTH];
+        char nf_instance_id[MAX_NF_INSTANCE_ID];
+        uint8_t *buf;
+   };
 }amf_internel_msgbuf_t;
 
 void amf_context_init(void);
@@ -835,7 +849,10 @@ uint8_t amf_sps_id_find_by_supi(char *supi);
 void amf_sps_id_set_supi(uint8_t *sps_id, char *supi);
 void ran_ue_remove_sps(ran_ue_t *ran_ue);
 void amf_ue_ran_ue_sps_icps_sync(amf_ue_t *amf_ue, ran_ue_t *ran_ue);
+void amf_ue_ran_ue_icpstosps_sync(uint8_t sps_id,int ue_num,uint64_t *ue_id,int state);
 
+ran_ue_t *ran_ue_find_by_supi(char *supi);
+void ran_ue_set_supi(ran_ue_t *ran_ue, char *supi);
 
 #ifdef __cplusplus
 }

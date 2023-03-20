@@ -90,11 +90,11 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 break;
             case NGAP_ProcedureCode_id_UplinkNASTransport:
 				ogs_info("********Receive:NGAP_ProcedureCode_id_UplinkNASTransport   ********");
-                ngap_handle_uplink_nas_transport(gnb, pdu);
+                ngap_handle_uplink_nas_transport(gnb, pdu,pkbuf);
                 break;
             case NGAP_ProcedureCode_id_UERadioCapabilityInfoIndication:
 				ogs_info("********Receive:NGAP_ProcedureCode_id_UERadioCapabilityInfoIndication   ********");
-                ngap_handle_ue_radio_capability_info_indication(gnb, pdu);
+                ngap_handle_ue_radio_capability_info_indication(gnb, pdu,pkbuf);
                 break;
             case NGAP_ProcedureCode_id_UEContextReleaseRequest:
 				ogs_info("********Receive:NGAP_ProcedureCode_id_UEContextReleaseRequest   ********");
@@ -134,7 +134,7 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 break;
             case NGAP_ProcedureCode_id_NGReset:
 				ogs_info("********Receive: NGAP_ProcedureCode_id_NGReset:  ********");
-                ngap_handle_ng_reset(gnb, pdu);
+                ngap_handle_ng_reset(gnb, pdu,pkbuf);
                 break;
             case NGAP_ProcedureCode_id_ErrorIndication:
 				ogs_info("********Receive: NGAP_ProcedureCode_id_ErrorIndication:  ********");

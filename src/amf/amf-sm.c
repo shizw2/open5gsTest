@@ -176,6 +176,12 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                         if (is_amf_icps())
                         {
                             //获取supi,找到sps模块
+                            ran_ue = ran_ue_find_by_supi(sbi_message.h.resource.component[1]);
+                            if (!ran_ue) {
+                                ogs_error("No UE context [%s]", supi);
+                                break;
+                            }
+                            /*
                             char *supi = sbi_message.h.resource.component[1];
                             sps_id = amf_sps_id_find_by_supi(supi);
                             if (0 == sps_id){
@@ -185,7 +191,13 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                                 sps_id = g_pt_pkt_fwd_tbl->ta_sps_infos[0].module_no;
                             }else{
                                 ogs_info("find sps id %d by supi %s.",sps_id,supi);
-                            }                            
+                            } 
+                            */    
+                            sps_id = ran_ue->sps_no; 
+                            if (sps_id == 0 || sps_id > MAX_SPS_NUM){
+                                ogs_error("sps id %d is invalid.",sps_id);                                
+                                break;
+                            }                 
                             ogs_info("stream addr:%p, stream_pointer:%ld,supi:%s,sps_id:%d.",stream, sbi_message.udp_h.stream_pointer,supi,sps_id);
                             udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,sps_id);
                         }else{
@@ -944,7 +956,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
         switch (e->h.timer_id) {
         case AMF_TIMER_INTERNEL_HEARTBEAT:
-            udp_ini_hand_shake();
+            udp_ini_send_hand_shake();
             break;
 
         case AMF_TIMER_INTERNEL_HEARTBEAT_CHECK:            
@@ -966,7 +978,12 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             {
                 case INTERNEL_MSG_HAND_SHAKE_REQ:
                 {
-                    udp_ini_handle_hand_shake(pmsg);
+                    udp_ini_icps_handle_hand_shake(pmsg);
+                    break;
+                }
+                case INTERNEL_MSG_SUPI_NOTIFY:
+                {
+                    udp_ini_icps_handle_supi_notify(pkbuf);
                     break;
                 }
                 case  INTERNEL_MSG_NGAP:
@@ -981,8 +998,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 }
                 case  INTERNEL_MSG_SBI:
                 {
-                    //TODO
-					ogs_info("icps recv sbi msg.");
+                    ogs_info("icps recv sbi msg.");
                     udp_ini_icps_handle_sbi_msg(pkbuf);
                     break;
                 }

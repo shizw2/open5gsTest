@@ -21,6 +21,7 @@
 #include "nas-path.h"
 #include "ngap-path.h"
 #include "nnrf-handler.h"
+#include "ngap-handler.h"
 
 int amf_sbi_open(void)
 {
@@ -386,10 +387,27 @@ void amf_sbi_send_deactivate_all_sessions(
 
 void amf_sbi_send_deactivate_all_ue_in_gnb(amf_gnb_t *gnb, int state)
 {
-    amf_ue_t *amf_ue = NULL;
+    
     ran_ue_t *ran_ue = NULL, *ran_ue_next;
-
+    int i=0,j=0,k=0,num[MAX_SPS_NUM+1];
+    uint64_t ue[MAX_SPS_NUM+1][MAX_UE_NUM_SINGLE_NG];
+    uint8_t sps_id;
+    for(i=0;i<MAX_SPS_NUM+1;i++){
+        num[i]=0;
+        }
     ogs_list_for_each_safe(&gnb->ran_ue_list, ran_ue_next, ran_ue) {
+        sps_id=spsid_find_by_amf_ue_ngap_id(ran_ue->amf_ue_ngap_id);
+        k=num[sps_id];
+        ue[sps_id][k]=ran_ue->amf_ue_ngap_id;
+        num[sps_id]=num[sps_id]+1;
+        ran_ue_remove(ran_ue);
+        if(num[sps_id]>=MAX_UE_NUM_SINGLE_NG){
+            amf_ue_ran_ue_icpstosps_sync(sps_id,num[sps_id],ue[sps_id],state);
+            num[sps_id]=0;
+            ogs_error("NEED TO MODIF MAX_UE_NUM_SINGLE_NG!");
+            return;
+            }
+#if 0
         int old_xact_count = 0, new_xact_count = 0;
 
         amf_ue = ran_ue->amf_ue;
@@ -422,7 +440,18 @@ void amf_sbi_send_deactivate_all_ue_in_gnb(amf_gnb_t *gnb, int state)
                 ogs_assert_if_reached();
             }
         }
+#endif
+       for(j=1;j<MAX_SPS_NUM+1;j++)
+        {
+        if(num[j]>0)
+            {
+                ogs_info("UE NUM============%d",num[j]);
+                amf_ue_ran_ue_icpstosps_sync(j,num[j],ue[j],state);
     }
+        }
+        
+    }
+    
 }
 
 void amf_sbi_send_release_session(amf_sess_t *sess, int state)
@@ -504,3 +533,52 @@ bool amf_sbi_send_n1_n2_failure_notify(
 
     return rc;
 }
+void amf_sbi_send_deactivate_all_ue_in_gnb_sps(uint8_t *buf,size_t len, int state)
+{
+    amf_ue_t *amf_ue = NULL;
+    ran_ue_t *ran_ue = NULL;
+    int i=0,old_xact_count = 0, new_xact_count = 0;
+    uint64_t ue[MAX_UE_NUM_SINGLE_NG];
+    print_buf(buf,len);
+    for(i=0;i<len;i++){   
+       ue[i]=(uint64_t)buf[i*sizeof(uint64_t)];
+       ogs_info("amf_sbi_send_deactivate_all_ue_in_gnb_sps,%ld,len=%lu",ue[i],len);
+       len=len-sizeof(uint64_t);        
+       ran_ue=ran_ue_find_by_amf_ue_ngap_id(ue[i]);
+        if(!ran_ue){
+            continue;
+            }
+        amf_ue = ran_ue->amf_ue;
+
+        if (amf_ue) {
+            old_xact_count = amf_sess_xact_count(amf_ue);
+
+            amf_sbi_send_deactivate_all_sessions(
+                amf_ue, state, NGAP_Cause_PR_radioNetwork,
+                NGAP_CauseRadioNetwork_failure_in_radio_interface_procedure);
+
+            new_xact_count = amf_sess_xact_count(amf_ue);
+
+            if (old_xact_count == new_xact_count) {
+                ran_ue_remove(ran_ue);
+                amf_ue_deassociate(amf_ue);
+            }
+        } else {
+            ogs_warn("amf_sbi_send_deactivate_all_ue_in_gnb()");
+            ogs_warn("    RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld] State[%d]",
+                ran_ue->ran_ue_ngap_id, (long long)ran_ue->amf_ue_ngap_id,
+                state);
+
+            if (state == AMF_REMOVE_S1_CONTEXT_BY_LO_CONNREFUSED ||
+                state == AMF_REMOVE_S1_CONTEXT_BY_RESET_ALL) {
+                ran_ue_remove(ran_ue);
+            } else {
+                /* At this point, it does not support other action */
+                ogs_fatal("Invalid state [%d]", state);
+                ogs_assert_if_reached();
+            }
+        }
+        }
+   free(buf);
+}
+        

@@ -118,7 +118,7 @@ int ngap_send_to_gnb_sps(ran_ue_t *ran_ue, ogs_pkbuf_t *pkbuf)
 	
 }
 
-int ngap_send_to_gnb_sps_page(ogs_pkbuf_t *pkbuf)
+int ngap_send_to_gnb_sps_page(ogs_5gs_tai_t *nr_tai,ogs_pkbuf_t *pkbuf)
 {
     
     ogs_assert(pkbuf);
@@ -127,7 +127,9 @@ int ngap_send_to_gnb_sps_page(ogs_pkbuf_t *pkbuf)
     int len;  
 	tmsg.msg_type=INTERNEL_MSG_NGAP;
 	tmsg.down_ngap_type=INTERNEL_DOWN_NGAP_TO_NB_PAGE;
-	tmsg.len=pkbuf->len;	
+	tmsg.len=pkbuf->len;
+        tmsg.nr_tai.plmn_id=nr_tai->plmn_id;
+        tmsg.nr_tai.tac.v=nr_tai->tac.v;
 	len=sizeof(tmsg);
 	memcpy(buff,&tmsg,sizeof(tmsg));
 	memcpy(buff+len,pkbuf->data,pkbuf->len);
@@ -602,7 +604,7 @@ int ngap_send_paging(amf_ue_t *amf_ue)//需要修改
 
     return OGS_OK;
 }
-int ngap_send_paging_icps(ran_ue_t *ran_ue,ogs_pkbuf_t *pkbuf)//需要修改
+int ngap_send_paging_icps(ogs_5gs_tai_t *nr_tai,ogs_pkbuf_t *pkbuf)
 {
     amf_gnb_t *gnb = NULL;
     int i, j;
@@ -612,8 +614,8 @@ int ngap_send_paging_icps(ran_ue_t *ran_ue,ogs_pkbuf_t *pkbuf)//需要修改
         for (i = 0; i < gnb->num_of_supported_ta_list; i++) {
             for (j = 0; j < gnb->supported_ta_list[i].num_of_bplmn_list; j++) {
                 if (memcmp(&gnb->supported_ta_list[i].bplmn_list[j].plmn_id,
-                            &ran_ue->saved.nr_tai.plmn_id, OGS_PLMN_ID_LEN) == 0 &&
-                    gnb->supported_ta_list[i].tac.v == ran_ue->saved.nr_tai.tac.v) {                    
+                            &(nr_tai->plmn_id), OGS_PLMN_ID_LEN) == 0 &&
+                    gnb->supported_ta_list[i].tac.v == nr_tai->tac.v) {                    
                     rv = ngap_send_to_gnb(gnb, pkbuf, NGAP_NON_UE_SIGNALLING);
                     ogs_expect_or_return_val(rv == OGS_OK, rv);
                 }
@@ -625,7 +627,7 @@ int ngap_send_paging_icps(ran_ue_t *ran_ue,ogs_pkbuf_t *pkbuf)//需要修改
 }
 
 
-int ngap_send_paging_sps(amf_ue_t *amf_ue)//需要修改
+int ngap_send_paging_sps(amf_ue_t *amf_ue)
 {
     ogs_pkbuf_t *ngapbuf = NULL;
     amf_gnb_t *gnb = NULL;
@@ -640,7 +642,7 @@ int ngap_send_paging_sps(amf_ue_t *amf_ue)//需要修改
            }
            amf_ue->t3513.pkbuf = ogs_pkbuf_copy(ngapbuf);
            ogs_expect_or_return_val(amf_ue->t3513.pkbuf, OGS_ERROR);
-           rv = ngap_send_to_gnb_sps_page(ngapbuf);
+           rv = ngap_send_to_gnb_sps_page(&(amf_ue->nr_tai),ngapbuf);
            ogs_expect_or_return_val(rv == OGS_OK, rv);
 
     /* Start T3513 */

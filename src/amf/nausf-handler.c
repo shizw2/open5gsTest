@@ -19,6 +19,7 @@
 
 #include "nausf-handler.h"
 #include "nas-path.h"
+#include "udp-ini-path.h"
 
 int amf_nausf_auth_handle_authenticate(
         amf_ue_t *amf_ue, ogs_sbi_message_t *message)
@@ -152,6 +153,9 @@ int amf_nausf_auth_handle_authenticate_confirmation(
 
         ogs_kdf_kamf(amf_ue->supi, amf_ue->abba, amf_ue->abba_len,
                 kseaf, amf_ue->kamf);
+
+        /*通知icps supi*/
+        udp_ini_send_supi_notify(amf_ue);
 
         return OGS_OK;
 

@@ -170,6 +170,8 @@ ogs_sbi_request_t *smf_namf_callback_build_sm_context_status(
     ogs_assert(sess);
     ogs_assert(sess->sm_context_status_uri);
 
+    ogs_info("smf_namf_callback_build_sm_context_status,sm_context_status_uri:%s.",sess->sm_context_status_uri);
+
     memset(&StatusInfo, 0, sizeof(StatusInfo));
     StatusInfo.resource_status = OpenAPI_resource_status_RELEASED;
 

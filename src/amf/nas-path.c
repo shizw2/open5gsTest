@@ -99,7 +99,7 @@ int nas_5gs_send_registration_accept(amf_ue_t *amf_ue)
     ran_ue = ran_ue_cycle(amf_ue->ran_ue);
     ogs_expect_or_return_val(ran_ue, OGS_ERROR);
 
-    ogs_debug("[%s] Registration accept", amf_ue->supi);
+    ogs_info("[%s] Registration accept", amf_ue->supi);
 
     if (amf_ue->next.m_tmsi) {
         if (amf_ue->t3550.pkbuf) {

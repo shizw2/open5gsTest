@@ -32,6 +32,8 @@ ogs_sbi_request_t *amf_nudm_uecm_build_registration(
     ogs_assert(amf_ue);
     ogs_assert(amf_ue->supi);
 
+    ogs_info("amf_nudm_uecm_build_registration.");
+
     memset(&message, 0, sizeof(message));
     message.h.method = (char *)OGS_SBI_HTTP_METHOD_PUT;
     message.h.service.name = (char *)OGS_SBI_SERVICE_NAME_NUDM_UECM;
