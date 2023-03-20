@@ -2701,6 +2701,8 @@ void ngap_handle_path_switch_request(
     ogs_info("    [OLD] TAC[%d] CellID[0x%llx]",
         amf_ue->nr_tai.tac.v, (long long)amf_ue->nr_cgi.cell_id);
 #endif
+    ngap_icps_send_to_sps_pkg2(ran_ue, NGAP_ProcedureCode_id_PathSwitchRequest,pkbuf);
+
     /* Update RAN-UE-NGAP-ID */
     ran_ue->ran_ue_ngap_id = *RAN_UE_NGAP_ID;
 
@@ -2872,7 +2874,7 @@ void ngap_handle_path_switch_request(
         ogs_pkbuf_free(param.n2smbuf);
     }
 #endif
-    ngap_icps_send_to_sps_pkg2(ran_ue, NGAP_ProcedureCode_id_PathSwitchRequest,pkbuf);
+    
 }
 
 void ngap_handle_handover_required(
@@ -4487,8 +4489,10 @@ uint8_t spsid_find_by_amf_ue_ngap_id(uint64_t amf_ue_ngap_id)
 {
      uint8_t sps_no,i=0;
      printf("=== spsid_find_by_amf_ue_ngap_id! amf_ue_ngap_id==%lu,g_pkt_fwd_tbl.b_sps_num=%d\n",amf_ue_ngap_id,g_pkt_fwd_tbl.b_sps_num);
-     if(g_pkt_fwd_tbl.b_sps_num==0)
+     if(g_pkt_fwd_tbl.b_sps_num==0){
+        printf("spsid_find_by_amf_ue_ngap_id,no sps id.\r\n");
 	 	return 0;
+     }
 	 sps_no=(amf_ue_ngap_id)%g_pkt_fwd_tbl.b_sps_num+1;
 	 while(!find_module_info(sps_no)){	 	
 	   if(sps_no>(g_pkt_fwd_tbl.b_sps_num))
@@ -4496,9 +4500,13 @@ uint8_t spsid_find_by_amf_ue_ngap_id(uint64_t amf_ue_ngap_id)
 	   else
 	   	sps_no=sps_no+1;
 	   i++;
-	   if(i>g_pkt_fwd_tbl.b_sps_num)
+	   if(i>g_pkt_fwd_tbl.b_sps_num){
+        printf("spsid_find_by_amf_ue_ngap_id,sps id invalid, set default to 1.\r\n");
 	   	return 1;
+        }
 	 }
+
+     printf("spsid_find_by_amf_ue_ngap_id,sps id %d.\r\n",sps_no);
 	 return sps_no;
 	 //根据工作态的SPS节点数来计算
 }
@@ -4603,6 +4611,7 @@ void ngap_icps_send_to_sps_pkg2(            ran_ue_t *ran_ue,NGAP_ProcedureCode_
     uint8_t sps_id;
 	NGAP_icps_send_head_t *send_code_head=NULL;
     amf_internel_msg_header_t tmsg;
+    memset(&tmsg,0,sizeof(amf_internel_msg_header_t));
      if(!ran_ue){
          ogs_error("ran_ue is NULL");
          return;

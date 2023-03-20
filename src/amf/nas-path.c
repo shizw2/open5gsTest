@@ -36,13 +36,11 @@ int nas_5gs_send_to_gnb(amf_ue_t *amf_ue, ogs_pkbuf_t *pkbuf)
 	if(is_amf_sps())
 		{	 
 		 // ogs_info("nas_5gs_send_to_gnb,amf_ue->next.m_tmsi::%u,amf_ue->current.m_tmsi:%u\n",*(amf_ue->next.m_tmsi),*(amf_ue->current.m_tmsi));
-                 if(amf_ue->next.m_tmsi)
-{
+                 if(amf_ue->next.m_tmsi){
 		    ogs_info("nas_5gs_send_to_gnb,amf_ue->next.m_tmsi::%u\n",*(amf_ue->next.m_tmsi));
             amf_ue->ran_ue->m_tmsi=*(amf_ue->next.m_tmsi);
         }
-		 if(amf_ue->current.m_tmsi)
-{
+		 if(amf_ue->current.m_tmsi){
 		    ogs_info("nas_5gs_send_to_gnb,amf_ue->currunt.m_tmsi::%u\n",*(amf_ue->current.m_tmsi));
 		   amf_ue->ran_ue->m_tmsi=*(amf_ue->current.m_tmsi);
 		 }

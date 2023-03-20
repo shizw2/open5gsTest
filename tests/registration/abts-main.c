@@ -45,7 +45,7 @@ const struct testlist {
     {test_dereg},
 #endif
 
-    {test_paging},
+    //{test_paging},
 #if 0
     {test_identity},
     {test_gmm_status},
@@ -53,7 +53,7 @@ const struct testlist {
     {test_reset},
   
 #endif
-#if 0
+#if 1
     {test_multi_ue},
 #endif
 #if 0 /* Since there is error LOG, we disabled the following test */

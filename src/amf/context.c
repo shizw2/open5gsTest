@@ -1274,7 +1274,7 @@ ran_ue_t *ran_ue_add_sps( uint32_t ran_ue_ngap_id,uint64_t amf_ue_ngap_id)
     ran_ue->ran_ue_ngap_id = ran_ue_ngap_id;
     ran_ue->amf_ue_ngap_id = amf_ue_ngap_id;
    
-
+    ogs_info("ran_ue_add_sps,ran_ue index:%d, amf_ue_ngap_id:%ld",ran_ue->index,ran_ue->amf_ue_ngap_id);
     stats_add_ran_ue();
 
     return ran_ue;
