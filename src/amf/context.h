@@ -125,6 +125,7 @@ typedef struct amf_context_s {
     ogs_timer_t     *t_hand_shake_interval;   /* timer to send hand shake to icps node */
     ogs_timer_t     *t_hand_shake_check;      /* timer to check hand shake in icps node */
     ogs_hash_t      *supi_sps_hash;           /* hash table for supi to sps */
+    ogs_hash_t      *amf_ue_ngap_id_hash;     /*通过ICPS的amf_ue_ngap_id寻找SPS RAN_UE*/
 } amf_context_t;
 
 typedef struct amf_gnb_s {
@@ -208,6 +209,7 @@ struct ran_ue_s {
     bool            part_of_ng_reset_requested;
 
     char *supi;//icps使用
+    uint64_t *amf_ue_ngap_id_icps;
 
     /* Related Context */
     amf_gnb_t       *gnb;
@@ -853,6 +855,10 @@ void amf_ue_ran_ue_icpstosps_sync(uint8_t sps_id,int ue_num,uint64_t *ue_id,int 
 
 ran_ue_t *ran_ue_find_by_supi(char *supi);
 void ran_ue_set_supi(ran_ue_t *ran_ue, char *supi);
+ran_ue_t *ran_ue_find_by_amf_ue_ngap_id_sps(uint64_t *amf_ue_ngap_id_icps);
+void ran_ue_set_amf_ue_ngap_id(ran_ue_t *ran_ue, uint64_t *amf_ue_ngap_id_icps);
+
+
 
 #ifdef __cplusplus
 }

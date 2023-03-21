@@ -84,6 +84,9 @@ void amf_context_init(void)
 
     self.supi_sps_hash = ogs_hash_make();
     ogs_assert(self.supi_sps_hash);
+    
+    self.amf_ue_ngap_id_hash = ogs_hash_make();
+    ogs_assert(self.amf_ue_ngap_id_hash);
 
     context_initialized = 1;
 }
@@ -1269,12 +1272,14 @@ ran_ue_t *ran_ue_add_sps( uint32_t ran_ue_ngap_id,uint64_t amf_ue_ngap_id)
     }
 
     ran_ue->index = ogs_pool_index(&ran_ue_pool, ran_ue);
+ 
     ogs_assert(ran_ue->index > 0 && ran_ue->index <= ogs_app()->max.ue);
 
     ran_ue->ran_ue_ngap_id = ran_ue_ngap_id;
     ran_ue->amf_ue_ngap_id = amf_ue_ngap_id;
    
-    ogs_info("ran_ue_add_sps,ran_ue index:%d, amf_ue_ngap_id:%ld",ran_ue->index,ran_ue->amf_ue_ngap_id);
+    ran_ue_set_amf_ue_ngap_id(ran_ue,&amf_ue_ngap_id);
+
     stats_add_ran_ue();
 
     return ran_ue;
@@ -1340,6 +1345,24 @@ ran_ue_t *ran_ue_find_by_amf_ue_ngap_id(uint64_t amf_ue_ngap_id)
 ran_ue_t *ran_ue_cycle(ran_ue_t *ran_ue)
 {
     return ogs_pool_cycle(&ran_ue_pool, ran_ue);
+}
+ran_ue_t *ran_ue_find_by_amf_ue_ngap_id_sps(uint64_t *amf_ue_ngap_id_icps)
+{
+    ogs_assert(amf_ue_ngap_id_icps);
+    return (ran_ue_t *)ogs_hash_get(self.amf_ue_ngap_id_hash, amf_ue_ngap_id_icps, sizeof(uint64_t));
+}
+
+void ran_ue_set_amf_ue_ngap_id(ran_ue_t *ran_ue, uint64_t *amf_ue_ngap_id_icps)
+{
+    ogs_assert(amf_ue_ngap_id_icps);
+
+    if (ran_ue->amf_ue_ngap_id_icps) {
+        ogs_hash_set(self.amf_ue_ngap_id_hash, ran_ue->amf_ue_ngap_id_icps, sizeof(uint64_t), NULL);
+        ogs_free(ran_ue->amf_ue_ngap_id_icps);
+    }    
+    ran_ue->amf_ue_ngap_id_icps=ogs_memdup(amf_ue_ngap_id_icps, sizeof(uint64_t));
+    ogs_assert(ran_ue->amf_ue_ngap_id_icps);
+    ogs_hash_set(self.amf_ue_ngap_id_hash, ran_ue->amf_ue_ngap_id_icps, sizeof(uint64_t), ran_ue);
 }
 
 //add at 2323/03/18

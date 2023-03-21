@@ -249,7 +249,12 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             SWITCH(sbi_message.h.resource.component[1])
             CASE(OGS_SBI_RESOURCE_NAME_SM_CONTEXT_STATUS)
                 if (is_amf_icps()){
-                    udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,1);
+					ran_ue = ran_ue_find_by_supi(sbi_message.h.resource.component[0]);
+					if (!ran_ue) {
+						ogs_error("No UE context [%s]", supi);
+						break;
+					}
+                    udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,ran_ue->sps_no);
                 }else{
                     amf_namf_callback_handle_sm_context_status(
                         stream, &sbi_message);
@@ -258,7 +263,12 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
             CASE(OGS_SBI_RESOURCE_NAME_DEREG_NOTIFY)
                 if (is_amf_icps()){
-                    udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,1);
+					ran_ue = ran_ue_find_by_supi(sbi_message.h.resource.component[0]);
+					if (!ran_ue) {
+						ogs_error("No UE context [%s]", supi);
+						break;
+					}
+                    udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,ran_ue->sps_no);
                 }else{
                     amf_namf_callback_handle_dereg_notify(stream, &sbi_message);
                 }
@@ -266,6 +276,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
             CASE(OGS_SBI_RESOURCE_NAME_SDMSUBSCRIPTION_NOTIFY)
                 if (is_amf_icps()){
+					ogs_error("to be done");
                     udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,1);
                 }else{
                     amf_namf_callback_handle_sdm_data_change_notify(
