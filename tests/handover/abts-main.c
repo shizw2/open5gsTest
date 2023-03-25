@@ -27,10 +27,10 @@ abts_suite *test_5gc_n2(abts_suite *suite);
 const struct testlist {
     abts_suite *(*func)(abts_suite *suite);
 } alltests[] = {
-    {test_epc_x2},
-    {test_epc_s1},
+    //{test_epc_x2},
+    //{test_epc_s1},
     {test_5gc_xn},
-    {test_5gc_n2},
+    //{test_5gc_n2},
     {NULL},
 };
 

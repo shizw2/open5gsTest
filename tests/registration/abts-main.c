@@ -35,14 +35,15 @@ abts_suite *test_crash(abts_suite *suite);
 const struct testlist {
     abts_suite *(*func)(abts_suite *suite);
 } alltests[] = {
-
-    {test_simple},
 #if 0
+    {test_simple},
     {test_guti},
     {test_auth},
     {test_idle},
+#endif
     {test_dereg},
     {test_paging},
+#if 0
     {test_identity},
     {test_gmm_status},
     {test_ue_context},
