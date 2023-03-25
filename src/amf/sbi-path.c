@@ -180,7 +180,7 @@ bool amf_sess_sbi_discover_and_send(
         return false;
     }
 
-    xact->state = state;
+    xact->state = state; 
 
     if (ogs_sbi_discover_and_send(xact) != true) {
         ogs_error("amf_sess_sbi_discover_and_send() failed");

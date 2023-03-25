@@ -524,7 +524,7 @@ int ngap_send_ran_ue_context_release_command(
 
     ogs_assert(ran_ue);
 
-    ogs_debug("UEContextReleaseCommand");
+    ogs_info("UEContextReleaseCommand");
     ogs_debug("    RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld]",
             ran_ue->ran_ue_ngap_id, (long long)ran_ue->amf_ue_ngap_id);
 
@@ -744,7 +744,7 @@ int ngap_send_handover_request(amf_ue_t *amf_ue)
 
     ngapbuf = ngap_build_handover_request(target_ue);
     ogs_expect_or_return_val(ngapbuf, OGS_ERROR);
-
+    ogs_info(">>>>>>>ngap_send_handover_request");
     rv = ngap_send_to_ran_ue_sps(target_ue, ngapbuf);
     ogs_expect(rv == OGS_OK);
 
@@ -762,7 +762,7 @@ int ngap_send_handover_preparation_failure(
 
     ngapbuf = ngap_build_handover_preparation_failure(source_ue, cause);
     ogs_expect_or_return_val(ngapbuf, OGS_ERROR);
-
+    ogs_info(">>>>>>>ngap_send_handover_preparation_failure");
     rv = ngap_send_to_ran_ue_sps(source_ue, ngapbuf);
     ogs_expect(rv == OGS_OK);
 
@@ -782,6 +782,7 @@ int ngap_send_handover_command(amf_ue_t *amf_ue)
 
     ngapbuf = ngap_build_handover_command(source_ue);
     ogs_expect_or_return_val(ngapbuf, OGS_ERROR);
+    ogs_info(">>>>>>>ngap_send_handover_command");
 
     rv = ngap_send_to_ran_ue_sps(source_ue, ngapbuf);
     ogs_expect(rv == OGS_OK);
@@ -798,7 +799,7 @@ int ngap_send_handover_cancel_ack(ran_ue_t *source_ue)
 
     ngapbuf = ngap_build_handover_cancel_ack(source_ue);
     ogs_expect_or_return_val(ngapbuf, OGS_ERROR);
-
+    ogs_info(">>>>>>>ngap_send_handover_cancel_ack");
     rv = ngap_send_to_ran_ue_sps(source_ue, ngapbuf);
     ogs_expect(rv == OGS_OK);
 

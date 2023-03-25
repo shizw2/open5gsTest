@@ -61,7 +61,7 @@ void ngap_handle_handover_request_ack_sps(
 void ngap_handle_handover_failure_sps(
         ran_ue_t *ran_ue, ogs_ngap_message_t *message);
 void ngap_handle_handover_required_sps(
-        ran_ue_t *ran_ue, ogs_ngap_message_t *message);
+        uint64_t target_amf_ue_ngap_id,ran_ue_t *ran_ue, ogs_ngap_message_t *message);
 void   ngap_handle_handover_notification_sps(
         ran_ue_t *ran_ue, ogs_ngap_message_t *message);
 void ngap_handle_initial_context_setup_failure_sps(

@@ -2813,6 +2813,7 @@ void ran_ue_remove_sps(ran_ue_t *ran_ue)
           }
     ogs_assert(ran_ue->t_ng_holding);
     ogs_timer_delete(ran_ue->t_ng_holding);
+    ogs_hash_set(self.amf_ue_ngap_id_hash, ran_ue->amf_ue_ngap_id_icps, sizeof(uint64_t), NULL);           
 
     ogs_pool_free(&ran_ue_pool, ran_ue);
 
@@ -2861,7 +2862,7 @@ void amf_ue_ran_ue_icpstosps_sync(uint8_t sps_id,int ue_num,uint64_t *ue_id,int 
     memcpy(buff+len,ue_id,ue_num*sizeof(uint64_t));
     len=len+ue_num*sizeof(uint64_t);
 	ogs_info("amf_ue_ran_ue_icpstosps_sync,len:%d,tmsg.down_ngap_type=%d",len,tmsg.down_ngap_type);
-    print_buf(buff,len);
+    //print_buf(buff,len);
 	if(is_amf_icps())
 		{
 	       udp_ini_sendto(buff, len, sps_id); 		   

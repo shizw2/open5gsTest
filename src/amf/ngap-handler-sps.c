@@ -10,188 +10,188 @@
 
 int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
 { 
-		uint8_t *buf=NULL;
-		int rev;
-		ran_ue_t * ran_ue=NULL;
-		amf_ue_t *amf_ue = NULL;
-		ogs_assert(pmsg);
-		
-		ogs_assert(pkbuf);
-		ogs_ngap_message_t message;
-        memset(&message, 0, sizeof(ogs_ngap_message_t));
-		ogs_pkbuf_t *pkbuftmp = NULL;
-		int rc;
-        ogs_info("SPS rev INTERNEL_MSG_NGAP !!!!1111111pmsg->down_ngap_type=%d",pmsg->down_ngap_type);
-		if((pmsg->down_ngap_type==AMF_REMOVE_S1_CONTEXT_BY_LO_CONNREFUSED )||
-                (pmsg->down_ngap_type == AMF_REMOVE_S1_CONTEXT_BY_RESET_ALL)){
-                buf=(uint8_t *)malloc(OGS_MAX_SDU_LEN);
-                memcpy(buf,pkbuf->data+sizeof(amf_internel_msg_header_t),pmsg->len); 
-                print_buf(pkbuf->data,sizeof(amf_internel_msg_header_t)+pmsg->len);
-                amf_sbi_send_deactivate_all_ue_in_gnb_sps(buf, pmsg->len,pmsg->down_ngap_type); 
-                return OGS_OK;
-               }           
-		#if 0		
-        NGAP_icps_send_head_t *pmsg_buf_head=(NGAP_icps_send_head_t *)malloc(sizeof(NGAP_icps_send_head_t));                
-		memcpy(pmsg_buf_head,pkbuf->data+sizeof(amf_internel_msg_header_t),sizeof(NGAP_icps_send_head_t));         
-		
-		ogs_info("SPS rev INTERNEL_MSG_NGAP !!! Begin ogs_ngap_decode!!=== %lu",pmsg_buf_head->ProcedureCode);
-		pkbuftmp=ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
-        ogs_pkbuf_put_data(pkbuftmp,pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t),pmsg_buf_head->size);
-		#endif
-        //pkbuftmp->len=pmsg_buf_head->size;
-		//memcpy(pkbuftmp->data,pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t),pmsg_buf_head->size);
-		
-        NGAP_icps_send_head_t *pmsg_buf_head = pkbuf->data+sizeof(amf_internel_msg_header_t);    
-        ogs_info("SPS rev INTERNEL_MSG_NGAP !!! Begin ogs_ngap_decode!!=== %lu",pmsg_buf_head->ProcedureCode);		 
-        ogs_pkbuf_pull(pkbuf,sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t));
-        
-        rc = ogs_ngap_decode(&message, pkbuf);
-		if(rc!=OGS_OK){
-				ogs_error("SPS Cannot decode NGAP message");
-	            //ogs_pkbuf_free(pkbuftmp);
-	            //free(pmsg_buf_head);
-				return OGS_ERROR;
-			}			
-	   
-		//	memcpy(buf,pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t),pmsg_buf_head->size);             
-           
-			
-        switch(pmsg_buf_head->ProcedureCode) {  
-                                
-			case NGAP_ProcedureCode_id_InitialUEMessage:
-				ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_InitialUEMessage");
-               // ran_ue=ran_ue_find_by_amf_ue_ngap_id(pmsg->amf_ue_ngap_id);
-                ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
-				if(!ran_ue){
-					ran_ue=ran_ue_add_sps(pmsg->ran_ue_ngap_id,pmsg->amf_ue_ngap_id);
-
-                    }
-                if(ran_ue){                    			    
-                    ngap_handle_initial_ue_message_sps(ran_ue,&message);					
-			        }
-				break;
-			case NGAP_ProcedureCode_id_UplinkNASTransport:	         
-                ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_UplinkNASTransport amf_ue_ngap_id=%lu",pmsg->amf_ue_ngap_id);
-                ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
-				if(!ran_ue){
-					ran_ue=ran_ue_add_sps(pmsg->ran_ue_ngap_id,pmsg->amf_ue_ngap_id);
-                    }
-                if(ran_ue){
-                    ngap_handle_uplink_nas_transport_sps(ran_ue,&message);					
-			        }
-				break;
-			case NGAP_ProcedureCode_id_InitialContextSetup:	
-				ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_InitialContextSetup");
-				//ogs_info(" NGAP_ProcedureCode_id_InitialContextSetup-pmsg_buf_head->PDUsessioncount:%u",pmsg_buf_head->PDUsessioncount);
-				ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
-			    if(ran_ue)
-					ngap_handle_initial_context_setup_response_sps(ran_ue,&message);
-				break;
-			case NGAP_ProcedureCode_id_UERadioCapabilityInfoIndication:				
-				ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_UERadioCapabilityInfoIndication");
-				
-				ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
-			    if(ran_ue)
-					ngap_handle_ue_radio_capability_info_indication_sps(ran_ue,&message);
-				break;
-			case NGAP_ProcedureCode_id_UEContextReleaseRequest:
-				ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_UEContextReleaseRequest");
-				ogs_info(" NGAP_ProcedureCode_id_UEContextReleaseRequest-pmsg_buf_head->PDUsessioncount:%u",pmsg_buf_head->PDUsessioncount);
-				ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
-			    if(ran_ue)
-					ngap_handle_ue_context_release_request_sps(ran_ue,&message);
-				break;
-			case NGAP_ProcedureCode_id_PathSwitchRequest:                
-				ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_PathSwitchRequest");
-                ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
-			    if(ran_ue){
-                    ran_ue->ran_ue_ngap_id=pmsg->ran_ue_ngap_id;
-                    ngap_handle_path_switch_request_sps(ran_ue,&message);
-                 }
-				break;
-			case NGAP_ProcedureCode_id_HandoverPreparation:
-				ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_HandoverPreparation");
-                ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
-			    if(ran_ue){
-                    ran_ue->ran_ue_ngap_id=pmsg->ran_ue_ngap_id;
-                    ngap_handle_handover_required_sps(ran_ue,&message);
-                 }
-				break;				
-			case NGAP_ProcedureCode_id_UplinkRANStatusTransfer:
-				ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_UplinkRANStatusTransfer");
-				break;
-			case NGAP_ProcedureCode_id_HandoverNotification:
-				ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_HandoverNotification");
-                ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
-                if(ran_ue){
-                    ran_ue->ran_ue_ngap_id=pmsg->ran_ue_ngap_id;
-                    ngap_handle_handover_notification_sps(ran_ue,&message);
-                 }                
-				break;
-			case NGAP_ProcedureCode_id_HandoverCancel:
-				ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_HandoverCancel");
-                ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
-			    if(ran_ue){
-                    ran_ue->ran_ue_ngap_id=pmsg->ran_ue_ngap_id;
-                    ngap_handle_handover_cancel_sps(ran_ue,&message);
-                 }
-				break;
-			case NGAP_ProcedureCode_id_ErrorIndication:
-				ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_ErrorIndication");
-				break;
-			case NGAP_ProcedureCode_id_PDUSessionResourceSetup:				
-				ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_PDUSessionResourceSetup");
-				ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
-			    if(ran_ue)
-					ngap_handle_pdu_session_resource_setup_response_sps(ran_ue,&message);
-				break;
-			case NGAP_ProcedureCode_id_PDUSessionResourceModify:
-				ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_PDUSessionResourceModify");
-				break;
-			case NGAP_ProcedureCode_id_PDUSessionResourceRelease:
-				ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_PDUSessionResourceRelease");
-                ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
-			    if(ran_ue)
-                    ngap_handle_pdu_session_resource_release_response_sps(ran_ue,&message);
-				break;
-			case NGAP_ProcedureCode_id_UEContextRelease:
-                ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
-			    if(ran_ue)
-                    ngap_handle_ue_context_release_complete_sps(ran_ue,&message);
-				ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_UEContextRelease");
-				break;
-			case NGAP_ProcedureCode_id_HandoverResourceAllocation:
-				ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_HandoverResourceAllocation");
-                ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
-			    if(ran_ue)
-					ngap_handle_handover_request_ack_sps(ran_ue,&message);
-				break;							
-			case NGAP_ProcedureCode_id_HandoverResourceAllocation_Fail:
-				ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_Handover fail");
-                ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
-			    if(ran_ue)
-					ngap_handle_handover_failure_sps(ran_ue,&message);
-				break;
-            case NGAP_ProcedureCode_id_InitialContextSetup_Fail:
-                ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_Handover fail");
-                ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
-			    if(ran_ue)
-					ngap_handle_initial_context_setup_failure_sps(ran_ue,&message);
-			    break;
-             case NGAP_ProcedureCode_id_NGReset:
-                ogs_info(">>>>>>>>SPS rev NGAP_ProcedureCode_id_NGReset");
-                ngap_handle_ng_reset_sps(&message);
-                break;
-			default:
-				ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP pmsg_buf_head->ProcedureCode=%lu",pmsg_buf_head->ProcedureCode);
-			    break;
-        }
-        if(pkbuftmp)
-		    ogs_pkbuf_free(pkbuftmp);
+    uint8_t *buf=NULL;
+    int rev;
+    ran_ue_t * ran_ue=NULL;
+    amf_ue_t *amf_ue = NULL;
+    ogs_assert(pmsg);
+    
+    ogs_assert(pkbuf);
+    ogs_ngap_message_t message;
+    memset(&message, 0, sizeof(ogs_ngap_message_t));
+    ogs_pkbuf_t *pkbuftmp = NULL;
+    int rc;
+    ogs_info("SPS rev INTERNEL_MSG_NGAP !!!!1111111pmsg->down_ngap_type=%d",pmsg->down_ngap_type);
+    if((pmsg->down_ngap_type==AMF_REMOVE_S1_CONTEXT_BY_LO_CONNREFUSED )||
+            (pmsg->down_ngap_type == AMF_REMOVE_S1_CONTEXT_BY_RESET_ALL)){
+            buf=(uint8_t *)malloc(OGS_MAX_SDU_LEN);
+            memcpy(buf,pkbuf->data+sizeof(amf_internel_msg_header_t),pmsg->len); 
+            print_buf(pkbuf->data,sizeof(amf_internel_msg_header_t)+pmsg->len);
+            amf_sbi_send_deactivate_all_ue_in_gnb_sps(buf, pmsg->len,pmsg->down_ngap_type); 
+            return OGS_OK;
+            }           
+    #if 0		
+    NGAP_icps_send_head_t *pmsg_buf_head=(NGAP_icps_send_head_t *)malloc(sizeof(NGAP_icps_send_head_t));                
+    memcpy(pmsg_buf_head,pkbuf->data+sizeof(amf_internel_msg_header_t),sizeof(NGAP_icps_send_head_t));         
+    
+    ogs_info("SPS rev INTERNEL_MSG_NGAP !!! Begin ogs_ngap_decode!!=== %lu",pmsg_buf_head->ProcedureCode);
+    pkbuftmp=ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
+    ogs_pkbuf_put_data(pkbuftmp,pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t),pmsg_buf_head->size);
+    #endif
+    //pkbuftmp->len=pmsg_buf_head->size;
+    //memcpy(pkbuftmp->data,pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t),pmsg_buf_head->size);
+    
+    NGAP_icps_send_head_t *pmsg_buf_head = pkbuf->data+sizeof(amf_internel_msg_header_t);    
+    ogs_info("SPS rev INTERNEL_MSG_NGAP !!! Begin ogs_ngap_decode!!=== %lu",pmsg_buf_head->ProcedureCode);		 
+    ogs_pkbuf_pull(pkbuf,sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t));
+    
+    rc = ogs_ngap_decode(&message, pkbuf);
+    if(rc!=OGS_OK){
+        ogs_error("SPS Cannot decode NGAP message");
+        //ogs_pkbuf_free(pkbuftmp);
         //free(pmsg_buf_head);
-        if(&message)
-		    ogs_ngap_free(&message);
-		return rev;
+        return OGS_ERROR;
+    }			
+    
+    //	memcpy(buf,pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t),pmsg_buf_head->size);             
+        
+        
+    switch(pmsg_buf_head->ProcedureCode) {  
+                            
+        case NGAP_ProcedureCode_id_InitialUEMessage:
+            ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_InitialUEMessage");
+            // ran_ue=ran_ue_find_by_amf_ue_ngap_id(pmsg->amf_ue_ngap_id);
+            ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
+            if(!ran_ue){
+                ran_ue=ran_ue_add_sps(pmsg->ran_ue_ngap_id,pmsg->amf_ue_ngap_id);
+
+            }
+            if(ran_ue){                    			    
+                ngap_handle_initial_ue_message_sps(ran_ue,&message);					
+            }
+            break;
+        case NGAP_ProcedureCode_id_UplinkNASTransport:	         
+            ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_UplinkNASTransport amf_ue_ngap_id=%lu",pmsg->amf_ue_ngap_id);
+            ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
+            if(!ran_ue){
+                ran_ue=ran_ue_add_sps(pmsg->ran_ue_ngap_id,pmsg->amf_ue_ngap_id);
+            }
+            if(ran_ue){
+                ngap_handle_uplink_nas_transport_sps(ran_ue,&message);					
+            }
+            break;
+        case NGAP_ProcedureCode_id_InitialContextSetup:	
+            ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_InitialContextSetup");
+            //ogs_info(" NGAP_ProcedureCode_id_InitialContextSetup-pmsg_buf_head->PDUsessioncount:%u",pmsg_buf_head->PDUsessioncount);
+            ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
+            if(ran_ue)
+                ngap_handle_initial_context_setup_response_sps(ran_ue,&message);
+            break;
+        case NGAP_ProcedureCode_id_UERadioCapabilityInfoIndication:				
+            ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_UERadioCapabilityInfoIndication");
+            
+            ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
+            if(ran_ue)
+                ngap_handle_ue_radio_capability_info_indication_sps(ran_ue,&message);
+            break;
+        case NGAP_ProcedureCode_id_UEContextReleaseRequest:
+            ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_UEContextReleaseRequest");
+            ogs_info(" NGAP_ProcedureCode_id_UEContextReleaseRequest-pmsg_buf_head->PDUsessioncount:%u",pmsg_buf_head->PDUsessioncount);
+            ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
+            if(ran_ue)
+                ngap_handle_ue_context_release_request_sps(ran_ue,&message);
+            break;
+        case NGAP_ProcedureCode_id_PathSwitchRequest:                
+            ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_PathSwitchRequest");
+            ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
+            if(ran_ue){
+                ran_ue->ran_ue_ngap_id=pmsg->ran_ue_ngap_id;
+                ngap_handle_path_switch_request_sps(ran_ue,&message);
+            }
+            break;
+        case NGAP_ProcedureCode_id_HandoverPreparation:
+            ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_HandoverPreparation");
+            ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
+            if(ran_ue){
+                ran_ue->ran_ue_ngap_id=pmsg->ran_ue_ngap_id;
+                    ngap_handle_handover_required_sps(pmsg->pre_amf_ue_ngap_id,ran_ue,&message);
+            }
+            break;				
+        case NGAP_ProcedureCode_id_UplinkRANStatusTransfer:
+            ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_UplinkRANStatusTransfer");
+            break;
+        case NGAP_ProcedureCode_id_HandoverNotification:
+            ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_HandoverNotification");
+            ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
+            if(ran_ue){
+                ran_ue->ran_ue_ngap_id=pmsg->ran_ue_ngap_id;
+                ngap_handle_handover_notification_sps(ran_ue,&message);
+            }                
+            break;
+        case NGAP_ProcedureCode_id_HandoverCancel:
+            ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_HandoverCancel");
+            ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
+            if(ran_ue){
+                ran_ue->ran_ue_ngap_id=pmsg->ran_ue_ngap_id;
+                ngap_handle_handover_cancel_sps(ran_ue,&message);
+            }
+            break;
+        case NGAP_ProcedureCode_id_ErrorIndication:
+            ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_ErrorIndication");
+            break;
+        case NGAP_ProcedureCode_id_PDUSessionResourceSetup:				
+            ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_PDUSessionResourceSetup");
+            ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
+            if(ran_ue)
+                ngap_handle_pdu_session_resource_setup_response_sps(ran_ue,&message);
+            break;
+        case NGAP_ProcedureCode_id_PDUSessionResourceModify:
+            ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_PDUSessionResourceModify");
+            break;
+        case NGAP_ProcedureCode_id_PDUSessionResourceRelease:
+            ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_PDUSessionResourceRelease");
+            ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
+            if(ran_ue)
+                ngap_handle_pdu_session_resource_release_response_sps(ran_ue,&message);
+            break;
+        case NGAP_ProcedureCode_id_UEContextRelease:
+            ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
+            if(ran_ue)
+                ngap_handle_ue_context_release_complete_sps(ran_ue,&message);
+            ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_UEContextRelease");
+            break;
+        case NGAP_ProcedureCode_id_HandoverResourceAllocation:
+            ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_HandoverResourceAllocation");
+            ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
+            if(ran_ue)
+                ngap_handle_handover_request_ack_sps(ran_ue,&message);
+            break;							
+        case NGAP_ProcedureCode_id_HandoverResourceAllocation_Fail:
+            ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_Handover fail");
+            ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
+            if(ran_ue)
+                ngap_handle_handover_failure_sps(ran_ue,&message);
+            break;
+        case NGAP_ProcedureCode_id_InitialContextSetup_Fail:
+            ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_Handover fail");
+            ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
+            if(ran_ue)
+                ngap_handle_initial_context_setup_failure_sps(ran_ue,&message);
+            break;
+        case NGAP_ProcedureCode_id_NGReset:
+            ogs_info(">>>>>>>>SPS rev NGAP_ProcedureCode_id_NGReset");
+            ngap_handle_ng_reset_sps(&message);
+            break;
+        default:
+            ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP pmsg_buf_head->ProcedureCode=%lu",pmsg_buf_head->ProcedureCode);
+            break;
+    }
+    //if(pkbuftmp)
+    //    ogs_pkbuf_free(pkbuftmp);
+    //free(pmsg_buf_head);
+    if(&message)
+        ogs_ngap_free(&message);
+    return rev;
 }
 
 
@@ -1378,7 +1378,7 @@ void ngap_handle_pdu_session_resource_release_response_sps(
     }
 }
 void ngap_handle_handover_required_sps(
-        ran_ue_t *ran_ue, ogs_ngap_message_t *message)
+       uint64_t target_amf_ue_ngap_id, ran_ue_t *ran_ue, ogs_ngap_message_t *message)
 {
     char buf[OGS_ADDRSTRLEN];
     int i;
@@ -1464,7 +1464,8 @@ void ngap_handle_handover_required_sps(
         return;
     }
 
-    source_ue = ran_ue_find_by_amf_ue_ngap_id(amf_ue_ngap_id);
+    //source_ue = ran_ue_find_by_amf_ue_ngap_id(amf_ue_ngap_id);
+    source_ue=ran_ue;
     if (!source_ue) {
         ogs_error("No RAN UE Context : AMF_UE_NGAP_ID[%lld]",
                 (long long)amf_ue_ngap_id);
@@ -1591,7 +1592,7 @@ void ngap_handle_handover_required_sps(
     }
 #endif
     /* Target UE add O3 0323 */
-       target_ue = ran_ue_add_sps(INVALID_UE_NGAP_ID,amf_ue_ngap_id);
+       target_ue = ran_ue_add_sps(INVALID_UE_NGAP_ID,target_amf_ue_ngap_id);
        if (target_ue == NULL) {
            ogs_assert(OGS_OK ==
                ngap_send_error_indication2_sps(amf_ue, NGAP_Cause_PR_misc,
@@ -1752,6 +1753,24 @@ void ngap_handle_handover_request_ack_sps(
     }
 
    
+    if (!RAN_UE_NGAP_ID) {
+        ogs_error("No RAN_UE_NGAP_ID");
+        
+        return;
+    }
+
+    if (!AMF_UE_NGAP_ID) {
+        ogs_error("No AMF_UE_NGAP_ID");
+        
+        return;
+    }
+
+    if (asn_INTEGER2ulong(AMF_UE_NGAP_ID,
+                (unsigned long *)&amf_ue_ngap_id) != 0) {
+        ogs_error("Invalid AMF_UE_NGAP_ID");
+       
+        return;
+    }
     target_ue = ran_ue_find_by_amf_ue_ngap_id_sps(&amf_ue_ngap_id);
     if (!target_ue) {
         ogs_error("No RAN UE Context : AMF_UE_NGAP_ID[%lld]",
@@ -2104,6 +2123,12 @@ void   ngap_handle_handover_notification_sps(
         }
     }
 
+    if (asn_INTEGER2ulong(AMF_UE_NGAP_ID,
+                 (unsigned long *)&amf_ue_ngap_id) != 0) {
+         ogs_error("Invalid AMF_UE_NGAP_ID");
+        
+         return;
+     }
 
 
     target_ue = ran_ue_find_by_amf_ue_ngap_id_sps(&amf_ue_ngap_id);

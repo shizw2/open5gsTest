@@ -834,12 +834,16 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
         switch (e->h.timer_id) {
         case AMF_TIMER_NG_DELAYED_SEND:
-            gnb = e->gnb;
-            ogs_assert(gnb);
+            
             pkbuf = e->pkbuf;
             ogs_assert(pkbuf);
-
+        if(is_amf_icps()){
+            gnb = e->gnb;
+            ogs_assert(gnb);
             ogs_expect(OGS_OK == ngap_send_to_ran_ue(ran_ue, pkbuf));
+            }else{
+                    ogs_expect(OGS_OK == ngap_send_to_ran_ue_sps(ran_ue, pkbuf));
+                }
             ogs_timer_delete(e->timer);
             break;
         case AMF_TIMER_NG_HOLDING:
@@ -1047,7 +1051,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 		}
 
         if (is_amf_icps()&& pmsg->msg_type == INTERNEL_MSG_NGAP){
-            //NGAP的在内部自行释放,这里不需要再次释放
+            //NGAP的在sctp发送后自行释放,这里不需要再次释放
         }else{
             ogs_pkbuf_free(pkbuf);
         }

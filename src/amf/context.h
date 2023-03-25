@@ -658,7 +658,7 @@ typedef struct amf_internel_msg_header_s {
 	uint8_t down_ngap_type;/* O3 */
 	uint32_t  ran_ue_ngap_id; /* O3 */
     uint64_t  amf_ue_ngap_id; /* O3 */
-    uint64_t  pre_amf_ue_ngap_id; /* O3 */
+    uint64_t  pre_amf_ue_ngap_id; /* O3 向上target_ue,向下同步使用*/
 	uint32_t  m_tmsi;/* O3 */
 	ogs_5gs_tai_t   nr_tai;
     ogs_nr_cgi_t    nr_cgi;

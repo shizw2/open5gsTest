@@ -3107,7 +3107,7 @@ void ngap_handle_handover_required(
                 NGAP_CauseMisc_control_processing_overload));*/
         return;
     }
-
+    target_ue->sps_no=source_ue->sps_no;
     /* Source UE - Target UE associated */
     source_ue_associate_target_ue_icps(source_ue, target_ue);
 
@@ -3434,7 +3434,7 @@ void ngap_handle_handover_request_ack(
         ogs_pkbuf_free(param.n2smbuf);
     }
 #endif
-    ngap_icps_send_to_sps_pkg2(target_ue, NGAP_ProcedureCode_id_HandoverResourceAllocation+200,pkbuf);
+    ngap_icps_send_to_sps_pkg2(target_ue, NGAP_ProcedureCode_id_HandoverResourceAllocation,pkbuf);
 
 }
 
@@ -3547,7 +3547,7 @@ void ngap_handle_handover_failure(
         ngap_send_ran_ue_context_release_command(target_ue,
             NGAP_Cause_PR_radioNetwork, NGAP_CauseRadioNetwork_ho_failure_in_target_5GC_ngran_node_or_target_system,
             NGAP_UE_CTX_REL_NG_HANDOVER_FAILURE, 0));
-    ngap_icps_send_to_sps_pkg2(target_ue, NGAP_ProcedureCode_id_HandoverResourceAllocation,pkbuf);
+    ngap_icps_send_to_sps_pkg2(target_ue, NGAP_ProcedureCode_id_HandoverResourceAllocation_Fail,pkbuf);
 }
 
 void ngap_handle_handover_cancel(
@@ -3778,6 +3778,7 @@ void ngap_handle_uplink_ran_status_transfer(
                 NGAP_CauseRadioNetwork_inconsistent_remote_UE_NGAP_ID));
         return;
     }
+#if 0
     amf_ue = source_ue->amf_ue;
     if (!amf_ue) {
         ogs_error("Cannot find AMF-UE Context [%lld]",
@@ -3794,7 +3795,7 @@ void ngap_handle_uplink_ran_status_transfer(
         source_ue->ran_ue_ngap_id, (long long)source_ue->amf_ue_ngap_id);
     ogs_debug("    Target : RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld] ",
         target_ue->ran_ue_ngap_id, (long long)target_ue->amf_ue_ngap_id);
-
+#endif
     ogs_assert(OGS_OK ==
         ngap_send_downlink_ran_status_transfer(
             target_ue, RANStatusTransfer_TransparentContainer));
@@ -4623,6 +4624,9 @@ void ngap_icps_send_to_sps_pkg2(            ran_ue_t *ran_ue,NGAP_ProcedureCode_
     tmsg.msg_type = INTERNEL_MSG_NGAP;   
     tmsg.ran_ue_ngap_id=ran_ue->ran_ue_ngap_id;
     tmsg.amf_ue_ngap_id=ran_ue->amf_ue_ngap_id;
+    if(ran_ue->target_ue){
+        tmsg.pre_amf_ue_ngap_id=ran_ue->target_ue->amf_ue_ngap_id;
+        }
     memcpy(&tmsg.nr_tai, &ran_ue->saved.nr_tai, sizeof(ogs_5gs_tai_t));
     memcpy(&tmsg.nr_cgi, &ran_ue->saved.nr_cgi, sizeof(ogs_nr_cgi_t));
           

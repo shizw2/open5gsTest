@@ -204,7 +204,7 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 break;
 #endif
             case NGAP_ProcedureCode_id_HandoverResourceAllocation :
-				ogs_info("********Receive: NGAP_ProcedureCode_id_HandoverResourceAllocation :  ********");
+				ogs_info("********Receive: NGAP_ProcedureCode_id_HandoverResourceAllocation failure:  ********");
                 ngap_handle_handover_failure(gnb, pdu,pkbuf);
                 break;
             default:
