@@ -249,11 +249,11 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             SWITCH(sbi_message.h.resource.component[1])
             CASE(OGS_SBI_RESOURCE_NAME_SM_CONTEXT_STATUS)
                 if (is_amf_icps()){
-					ran_ue = ran_ue_find_by_supi(sbi_message.h.resource.component[0]);
-					if (!ran_ue) {
-						ogs_error("No UE context [%s]", supi);
-						break;
-					}
+                    ran_ue = ran_ue_find_by_supi(sbi_message.h.resource.component[0]);
+                    if (!ran_ue) {
+                        ogs_error("No UE context [%s]", supi);
+                        break;
+                    }
                     udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,ran_ue->sps_no);
                 }else{
                     amf_namf_callback_handle_sm_context_status(
@@ -263,11 +263,11 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
             CASE(OGS_SBI_RESOURCE_NAME_DEREG_NOTIFY)
                 if (is_amf_icps()){
-					ran_ue = ran_ue_find_by_supi(sbi_message.h.resource.component[0]);
-					if (!ran_ue) {
-						ogs_error("No UE context [%s]", supi);
-						break;
-					}
+                    ran_ue = ran_ue_find_by_supi(sbi_message.h.resource.component[0]);
+                    if (!ran_ue) {
+                        ogs_error("No UE context [%s]", supi);
+                        break;
+                    }
                     udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,ran_ue->sps_no);
                 }else{
                     amf_namf_callback_handle_dereg_notify(stream, &sbi_message);
@@ -276,7 +276,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
             CASE(OGS_SBI_RESOURCE_NAME_SDMSUBSCRIPTION_NOTIFY)
                 if (is_amf_icps()){
-					ogs_error("to be done");
+                    ogs_error("todo:OGS_SBI_RESOURCE_NAME_SDMSUBSCRIPTION_NOTIFY");
                     udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,1);
                 }else{
                     amf_namf_callback_handle_sdm_data_change_notify(
@@ -1045,7 +1045,12 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                     ogs_error("sps unknown msg, msgtype:%d.",pmsg->msg_type);
             }			
 		}
-        ogs_pkbuf_free(pkbuf);
+
+        if (is_amf_icps()&& pmsg->msg_type == INTERNEL_MSG_NGAP){
+            //NGAP的在内部自行释放,这里不需要再次释放
+        }else{
+            ogs_pkbuf_free(pkbuf);
+        }
         break;
     default:
         ogs_error("No handler for event %s", amf_event_get_name(e));

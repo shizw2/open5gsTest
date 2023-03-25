@@ -1247,6 +1247,7 @@ ran_ue_t *ran_ue_add(amf_gnb_t *gnb, uint32_t ran_ue_ngap_id)
 
     stats_add_ran_ue();
     ran_ue->sps_no=spsid_find_by_amf_ue_ngap_id(ran_ue->amf_ue_ngap_id); //add
+    ogs_info("ran_ue->sps_no:%d",ran_ue->sps_no);
     return ran_ue;
 }
 ran_ue_t *ran_ue_add_sps( uint32_t ran_ue_ngap_id,uint64_t amf_ue_ngap_id)
@@ -2010,6 +2011,16 @@ void source_ue_associate_target_ue(
     ogs_assert(amf_ue);
 
     target_ue->amf_ue = amf_ue;
+    target_ue->source_ue = source_ue;
+    source_ue->target_ue = target_ue;
+}
+void source_ue_associate_target_ue_icps(
+        ran_ue_t *source_ue, ran_ue_t *target_ue)
+{
+    
+    ogs_assert(source_ue);
+    ogs_assert(target_ue);
+    
     target_ue->source_ue = source_ue;
     source_ue->target_ue = target_ue;
 }

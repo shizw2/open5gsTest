@@ -3109,7 +3109,7 @@ void ngap_handle_handover_required(
     }
 
     /* Source UE - Target UE associated */
-    source_ue_associate_target_ue(source_ue, target_ue);
+    source_ue_associate_target_ue_icps(source_ue, target_ue);
 
     /* Context Transfer */
     target_ue->ue_context_requested = source_ue->ue_context_requested;
@@ -3204,7 +3204,7 @@ void ngap_handle_handover_required(
         ogs_pkbuf_free(param.n2smbuf);
     }
  #endif
-     ngap_icps_send_to_sps_pkg2(target_ue, NGAP_ProcedureCode_id_HandoverPreparation,pkbuf);
+     ngap_icps_send_to_sps_pkg2(source_ue, NGAP_ProcedureCode_id_HandoverPreparation,pkbuf);
 }
 
 void ngap_handle_handover_request_ack(
@@ -4489,10 +4489,8 @@ uint8_t spsid_find_by_amf_ue_ngap_id(uint64_t amf_ue_ngap_id)
 {
      uint8_t sps_no,i=0;
      printf("=== spsid_find_by_amf_ue_ngap_id! amf_ue_ngap_id==%lu,g_pkt_fwd_tbl.b_sps_num=%d\n",amf_ue_ngap_id,g_pkt_fwd_tbl.b_sps_num);
-     if(g_pkt_fwd_tbl.b_sps_num==0){
-        printf("spsid_find_by_amf_ue_ngap_id,no sps id.\r\n");
+     if(g_pkt_fwd_tbl.b_sps_num==0)
 	 	return 0;
-     }
 	 sps_no=(amf_ue_ngap_id)%g_pkt_fwd_tbl.b_sps_num+1;
 	 while(!find_module_info(sps_no)){	 	
 	   if(sps_no>(g_pkt_fwd_tbl.b_sps_num))
@@ -4500,13 +4498,9 @@ uint8_t spsid_find_by_amf_ue_ngap_id(uint64_t amf_ue_ngap_id)
 	   else
 	   	sps_no=sps_no+1;
 	   i++;
-	   if(i>g_pkt_fwd_tbl.b_sps_num){
-        printf("spsid_find_by_amf_ue_ngap_id,sps id invalid, set default to 1.\r\n");
+	   if(i>g_pkt_fwd_tbl.b_sps_num)
 	   	return 1;
-        }
 	 }
-
-     printf("spsid_find_by_amf_ue_ngap_id,sps id %d.\r\n",sps_no);
 	 return sps_no;
 	 //根据工作态的SPS节点数来计算
 }
@@ -4515,10 +4509,10 @@ uint8_t spsid_find_by_tmsi(ran_ue_t *ran_ue,uint32_t *m_tmsi)
      ogs_assert(ran_ue);  
 	 ogs_assert(m_tmsi);
      uint8_t sps_id;
-     sps_id=((*m_tmsi) & 0x00FF0000)%256;
-     if(find_module_info(sps_id))
-     {
-        ogs_info("spsid_find_by_tmsi sps_id:%d,*m_tmsi=:%d",sps_id,*m_tmsi);
+     sps_id=(((*m_tmsi) & 0x00FF0000)>>16)%256;
+     ogs_info("spsid_find_by_tmsi sps_id:%d,*m_tmsi=:0x%x",sps_id,*m_tmsi);
+     if(find_module_info(sps_id)){
+        
      	return sps_id;
      }else{
      	return spsid_find_by_amf_ue_ngap_id(ran_ue->amf_ue_ngap_id);
@@ -4658,7 +4652,7 @@ int icps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
 	ogs_assert(pmsg);
 	ogs_assert(pkbuf);
 	
-	ogs_pkbuf_t *pkbuftmp = NULL;
+	//ogs_pkbuf_t *pkbuftmp = NULL;
     ran_ue_t * ran_ue_icps=NULL;
     int rvtmp;	
 
@@ -4667,55 +4661,61 @@ int icps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
     
     if(pmsg->down_ngap_type==INTERNEL_DOWN_NGAP_TO_NB_PAGE){
         ogs_info("ICPS Send page !!!");
-	pkbuftmp=ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
-	pkbuftmp->len=pkbuf->len-sizeof(amf_internel_msg_header_t);
-    memcpy(pkbuftmp->data,pkbuf->data+sizeof(amf_internel_msg_header_t),pkbuftmp->len);
-        rvtmp=ngap_send_paging_icps(&(pmsg->nr_tai),pkbuftmp);
+        //pkbuftmp=ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
+        //pkbuftmp->len=pkbuf->len-sizeof(amf_internel_msg_header_t);
+        //memcpy(pkbuftmp->data,pkbuf->data+sizeof(amf_internel_msg_header_t),pkbuftmp->len);
+        ogs_pkbuf_pull(pkbuf,sizeof(amf_internel_msg_header_t));
+        rvtmp=ngap_send_paging_icps(&(pmsg->nr_tai),pkbuf);
         return rvtmp;
-        }
+    }
     ran_ue_icps=ran_ue_find_by_amf_ue_ngap_id(pmsg->amf_ue_ngap_id);
 	if(ran_ue_icps){
 	    ran_ue_icps->amf_ue_ngap_id=pmsg->amf_ue_ngap_id;
 	         
-        }else{
-              ogs_error("no find ran_ue!pmsg->ran_ue_ngap_id=%d",pmsg->ran_ue_ngap_id);
-              rvtmp=OGS_ERROR;
-              
-              return rvtmp;
-             }
+    }else{
+        ogs_error("no find ran_ue!pmsg->ran_ue_ngap_id=%d",pmsg->ran_ue_ngap_id);
+        rvtmp=OGS_ERROR;
+        ogs_pkbuf_free(pkbuf);
+        return rvtmp;
+    }
+
     switch (pmsg->down_ngap_type)
-        {           
-            case INTERNEL_DOWN_NGAP_TO_NB:
-                pkbuftmp=ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
-	            pkbuftmp->len=pkbuf->len-sizeof(amf_internel_msg_header_t);
-                memcpy(pkbuftmp->data,pkbuf->data+sizeof(amf_internel_msg_header_t),pkbuftmp->len);
-                rvtmp=ngap_send_to_gnb(ran_ue_icps->gnb, pkbuftmp, NGAP_NON_UE_SIGNALLING);
-                break;
-            case INTERNEL_DOWN_NGAP_TO_UE:
-                ran_ue_icps->m_tmsi=pmsg->m_tmsi; 
-                pkbuftmp=ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
-	            pkbuftmp->len=pkbuf->len-sizeof(amf_internel_msg_header_t);
-                memcpy(pkbuftmp->data,pkbuf->data+sizeof(amf_internel_msg_header_t),pkbuftmp->len);
-                rvtmp=ngap_send_to_gnb(ran_ue_icps->gnb, pkbuftmp, ran_ue_icps->gnb_ostream_id);                
-                break;
-            case INTERNEL_DOWN_NGAP_TO_REMOVE_UE:
-                ogs_info("REMOVE_UE ran_ue_icps->ran_ue_ngap_id=%d,ran_ue_icps->amf_ue_ngap_id:%lu",ran_ue_icps->ran_ue_ngap_id,ran_ue_icps->amf_ue_ngap_id);                
-                ran_ue_remove(ran_ue_icps);
-                break;
-            case INTERNEL_DOWN_NGAP_TO_SYNC_RAN_UE:
-                ran_ue_icps=ran_ue_find_by_amf_ue_ngap_id(pmsg->pre_amf_ue_ngap_id);
-                if(ran_ue_icps){
-                        ogs_info("pmsg->pre_amf_ue_ngap_id=:%lu",pmsg->pre_amf_ue_ngap_id);
-                        ran_ue_icps->amf_ue_ngap_id=pmsg->pre_amf_ue_ngap_id;
-                        ogs_info("sync amf_ue_ngap_id %lu ran_ue_icps->ran_ue_ngap_id:%d OK",ran_ue_icps->amf_ue_ngap_id,ran_ue_icps->ran_ue_ngap_id);
-                   }
-                
-                break;
-            default :
-                rvtmp=OGS_ERROR;
-                ogs_error("unkown down_ngap_type!");
-                break;
-        }
+    {           
+        case INTERNEL_DOWN_NGAP_TO_NB:
+            //pkbuftmp=ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
+            //pkbuftmp->len=pkbuf->len-sizeof(amf_internel_msg_header_t);
+            //memcpy(pkbuftmp->data,pkbuf->data+sizeof(amf_internel_msg_header_t),pkbuftmp->len);
+            ogs_pkbuf_pull(pkbuf,sizeof(amf_internel_msg_header_t));
+            rvtmp=ngap_send_to_gnb(ran_ue_icps->gnb, pkbuf, NGAP_NON_UE_SIGNALLING);
+            break;
+        case INTERNEL_DOWN_NGAP_TO_UE:
+            ran_ue_icps->m_tmsi=pmsg->m_tmsi; 
+            //pkbuftmp=ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
+            //pkbuftmp->len=pkbuf->len-sizeof(amf_internel_msg_header_t);
+            //memcpy(pkbuftmp->data,pkbuf->data+sizeof(amf_internel_msg_header_t),pkbuftmp->len);
+            ogs_pkbuf_pull(pkbuf,sizeof(amf_internel_msg_header_t));
+            rvtmp=ngap_send_to_gnb(ran_ue_icps->gnb, pkbuf, ran_ue_icps->gnb_ostream_id);                
+            break;
+        case INTERNEL_DOWN_NGAP_TO_REMOVE_UE:
+            ogs_info("REMOVE_UE ran_ue_icps->ran_ue_ngap_id=%d,ran_ue_icps->amf_ue_ngap_id:%lu",ran_ue_icps->ran_ue_ngap_id,ran_ue_icps->amf_ue_ngap_id);                
+            ran_ue_remove(ran_ue_icps);
+            ogs_pkbuf_free(pkbuf);
+            break;
+        case INTERNEL_DOWN_NGAP_TO_SYNC_RAN_UE:
+            ran_ue_icps=ran_ue_find_by_amf_ue_ngap_id(pmsg->pre_amf_ue_ngap_id);
+            if(ran_ue_icps){
+                    ogs_info("pmsg->pre_amf_ue_ngap_id=:%lu",pmsg->pre_amf_ue_ngap_id);
+                    ran_ue_icps->amf_ue_ngap_id=pmsg->pre_amf_ue_ngap_id;
+                    ogs_info("sync amf_ue_ngap_id %lu ran_ue_icps->ran_ue_ngap_id:%d OK",ran_ue_icps->amf_ue_ngap_id,ran_ue_icps->ran_ue_ngap_id);
+                }
+            ogs_pkbuf_free(pkbuf);
+            break;
+        default :
+            rvtmp=OGS_ERROR;
+            ogs_error("unkown down_ngap_type!");
+            ogs_pkbuf_free(pkbuf);
+            break;
+    }
    
 	return rvtmp;
 }

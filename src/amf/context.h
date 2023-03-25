@@ -778,6 +778,8 @@ void ran_ue_deassociate(ran_ue_t *ran_ue);
 void amf_ue_deassociate(amf_ue_t *amf_ue);
 void source_ue_associate_target_ue(ran_ue_t *source_ue, ran_ue_t *target_ue);
 void source_ue_deassociate_target_ue(ran_ue_t *ran_ue);
+void source_ue_associate_target_ue_icps(
+        ran_ue_t *source_ue, ran_ue_t *target_ue);
 
 amf_sess_t *amf_sess_add(amf_ue_t *amf_ue, uint8_t psi);
 

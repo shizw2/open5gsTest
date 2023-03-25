@@ -30,20 +30,26 @@ int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
                 amf_sbi_send_deactivate_all_ue_in_gnb_sps(buf, pmsg->len,pmsg->down_ngap_type); 
                 return OGS_OK;
                }           
-				
+		#if 0		
         NGAP_icps_send_head_t *pmsg_buf_head=(NGAP_icps_send_head_t *)malloc(sizeof(NGAP_icps_send_head_t));                
 		memcpy(pmsg_buf_head,pkbuf->data+sizeof(amf_internel_msg_header_t),sizeof(NGAP_icps_send_head_t));         
 		
 		ogs_info("SPS rev INTERNEL_MSG_NGAP !!! Begin ogs_ngap_decode!!=== %lu",pmsg_buf_head->ProcedureCode);
 		pkbuftmp=ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
         ogs_pkbuf_put_data(pkbuftmp,pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t),pmsg_buf_head->size);
-		//pkbuftmp->len=pmsg_buf_head->size;
+		#endif
+        //pkbuftmp->len=pmsg_buf_head->size;
 		//memcpy(pkbuftmp->data,pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t),pmsg_buf_head->size);
-		rc = ogs_ngap_decode(&message, pkbuftmp);
+		
+        NGAP_icps_send_head_t *pmsg_buf_head = pkbuf->data+sizeof(amf_internel_msg_header_t);    
+        ogs_info("SPS rev INTERNEL_MSG_NGAP !!! Begin ogs_ngap_decode!!=== %lu",pmsg_buf_head->ProcedureCode);		 
+        ogs_pkbuf_pull(pkbuf,sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t));
+        
+        rc = ogs_ngap_decode(&message, pkbuf);
 		if(rc!=OGS_OK){
 				ogs_error("SPS Cannot decode NGAP message");
-	            ogs_pkbuf_free(pkbuftmp);
-	            free(pmsg_buf_head);
+	            //ogs_pkbuf_free(pkbuftmp);
+	            //free(pmsg_buf_head);
 				return OGS_ERROR;
 			}			
 	   
@@ -57,7 +63,8 @@ int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
                // ran_ue=ran_ue_find_by_amf_ue_ngap_id(pmsg->amf_ue_ngap_id);
                 ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
 				if(!ran_ue){
-					ran_ue=ran_ue_add_sps(pmsg->ran_ue_ngap_id,pmsg->amf_ue_ngap_id);
+					ran_ue=ran_ue_add_sps(pmsg->ran_ue_ngap_id,pmsg->amf_ue_ngap_id);
+
                     }
                 if(ran_ue){                    			    
                     ngap_handle_initial_ue_message_sps(ran_ue,&message);					
@@ -181,7 +188,7 @@ int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
         }
         if(pkbuftmp)
 		    ogs_pkbuf_free(pkbuftmp);
-        free(pmsg_buf_head);
+        //free(pmsg_buf_head);
         if(&message)
 		    ogs_ngap_free(&message);
 		return rev;
@@ -1444,7 +1451,26 @@ void ngap_handle_handover_required_sps(
         }
     }
 
+    if (!AMF_UE_NGAP_ID) {
+    ogs_error("No AMF_UE_NGAP_ID");
+
+    return;
+    }
+
+    if (asn_INTEGER2ulong(AMF_UE_NGAP_ID,
+                (unsigned long *)&amf_ue_ngap_id) != 0) {
+        ogs_error("Invalid AMF_UE_NGAP_ID");
    
+        return;
+    }
+
+    source_ue = ran_ue_find_by_amf_ue_ngap_id(amf_ue_ngap_id);
+    if (!source_ue) {
+        ogs_error("No RAN UE Context : AMF_UE_NGAP_ID[%lld]",
+                (long long)amf_ue_ngap_id);
+        
+        return;
+    }
     ogs_debug("    Source : RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld] ",
         source_ue->ran_ue_ngap_id, (long long)source_ue->amf_ue_ngap_id);
 
@@ -1491,6 +1517,7 @@ void ngap_handle_handover_required_sps(
                 NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error));
         return;
     }
+    #if 0
     targetRANNodeID = TargetID->choice.targetRANNodeID;
     if (!targetRANNodeID) {
         ogs_error("No targetRANNodeID");
@@ -1529,7 +1556,7 @@ void ngap_handle_handover_required_sps(
                 NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error));
         return;
     }
-
+#endif
     if (!PDUSessionList) {
         ogs_error("No PDUSessionList");
         ogs_assert(OGS_OK ==
@@ -1553,7 +1580,7 @@ void ngap_handle_handover_required_sps(
                 NGAP_Cause_PR_nas, NGAP_CauseNas_authentication_failure));
         return;
     }
-
+#if 0
     /* Target UE */
     target_ue = ran_ue_add(target_gnb, INVALID_UE_NGAP_ID);
     if (target_ue == NULL) {
@@ -1562,6 +1589,15 @@ void ngap_handle_handover_required_sps(
                 NGAP_CauseMisc_control_processing_overload));
         return;
     }
+#endif
+    /* Target UE add O3 0323 */
+       target_ue = ran_ue_add_sps(INVALID_UE_NGAP_ID,amf_ue_ngap_id);
+       if (target_ue == NULL) {
+           ogs_assert(OGS_OK ==
+               ngap_send_error_indication2_sps(amf_ue, NGAP_Cause_PR_misc,
+                   NGAP_CauseMisc_control_processing_overload));
+           return;
+       }
 
     /* Source UE - Target UE associated */
     source_ue_associate_target_ue(source_ue, target_ue);
