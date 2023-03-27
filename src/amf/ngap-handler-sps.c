@@ -41,7 +41,7 @@ int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
     //pkbuftmp->len=pmsg_buf_head->size;
     //memcpy(pkbuftmp->data,pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t),pmsg_buf_head->size);
     
-    NGAP_icps_send_head_t *pmsg_buf_head = pkbuf->data+sizeof(amf_internel_msg_header_t);    
+    NGAP_icps_send_head_t *pmsg_buf_head = (NGAP_icps_send_head_t *)(pkbuf->data+sizeof(amf_internel_msg_header_t));    
     ogs_info("SPS rev INTERNEL_MSG_NGAP !!! Begin ogs_ngap_decode!!=== %lu",pmsg_buf_head->ProcedureCode);		 
     ogs_pkbuf_pull(pkbuf,sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t));
     
