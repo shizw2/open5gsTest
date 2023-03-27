@@ -108,6 +108,10 @@ void ngap_icps_send_to_sps_pkg(
 	uint8_t sps_id,ran_ue_t *ran_ue, NGAP_icps_send_head_t *send_code_head,unsigned char * buf);
 void ngap_icps_send_to_sps_pkg2(
         ran_ue_t *ran_ue,NGAP_ProcedureCode_t ProcedureCode,ogs_pkbuf_t * pkbuf);
+void get_spsno_form_nasguti(ran_ue_t *ran_ue, NGAP_NAS_PDU_t *nasPdu);
+uint8_t pre_ogs_nas_5gmm_decode(ogs_nas_5gs_message_t *message, ogs_pkbuf_t *pkbuf);
+uint8_t pre_nas_5gs_decode_service_request(ogs_nas_5gs_message_t *message, ogs_pkbuf_t *pkbuf);
+uint8_t pre_nas_5gs_decode_registration_request(ogs_nas_5gs_message_t *message, ogs_pkbuf_t *pkbuf);
 
 
 #ifdef __cplusplus

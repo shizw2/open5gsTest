@@ -147,6 +147,9 @@ int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
             break;
         case NGAP_ProcedureCode_id_PDUSessionResourceModify:
             ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_PDUSessionResourceModify");
+                ran_ue=ran_ue_find_by_amf_ue_ngap_id_sps(&(pmsg->amf_ue_ngap_id));
+			    if(ran_ue)
+                    ngap_handle_pdu_session_resource_modify_response_sps(ran_ue,&message);
             break;
         case NGAP_ProcedureCode_id_PDUSessionResourceRelease:
             ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP NGAP_ProcedureCode_id_PDUSessionResourceRelease");
@@ -366,6 +369,7 @@ void ngap_handle_initial_ue_message_sps(ran_ue_t *ran_ue,ogs_ngap_message_t *mes
        
         return;
     }
+   
 
     UserLocationInformationNR =
         UserLocationInformation->choice.userLocationInformationNR;
@@ -2521,7 +2525,16 @@ void ngap_handle_pdu_session_resource_modify_response_sps(
             break;
         }
     }
-
+    amf_ue = ran_ue->amf_ue;
+    if (!amf_ue) {
+        ogs_error("Cannot find AMF-UE Context");
+        ogs_assert(OGS_OK ==
+            ngap_send_error_indication_sps(
+                ran_ue,
+                NGAP_Cause_PR_radioNetwork,
+                NGAP_CauseRadioNetwork_unknown_local_UE_NGAP_ID));
+        return;
+    }
 
     if (!PDUSessionList) {
         ogs_error("No PDUSessionResourceModifyListModRes");
@@ -2914,13 +2927,5 @@ void ngap_handle_uplink_nas_transport_sps(
 
     ngap_send_to_nas(ran_ue, NGAP_ProcedureCode_id_UplinkNASTransport, NAS_PDU);
 }
-
-
-
-
-
-
-
-
 
 

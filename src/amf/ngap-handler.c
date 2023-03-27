@@ -565,6 +565,11 @@ void ngap_handle_initial_ue_message(amf_gnb_t *gnb, ogs_ngap_message_t *message,
                 NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error));
         return;
     }
+    if (!FiveG_S_TMSI){
+            ogs_info("ran_ue->sps_no:%d",ran_ue->sps_no);
+            get_spsno_form_nasguti(ran_ue,NAS_PDU);
+            ogs_info("ran_ue->sps_no:%d",ran_ue->sps_no);
+        }
 
     UserLocationInformationNR =
         UserLocationInformation->choice.userLocationInformationNR;
@@ -579,8 +584,6 @@ void ngap_handle_initial_ue_message(amf_gnb_t *gnb, ogs_ngap_message_t *message,
         ran_ue->ran_ue_ngap_id, (long long)ran_ue->amf_ue_ngap_id,
         ran_ue->saved.nr_tai.tac.v, (long long)ran_ue->saved.nr_cgi.cell_id);
   
-
-
     if (UEContextRequest) {
         if (*UEContextRequest == NGAP_UEContextRequest_requested) {
             ran_ue->ue_context_requested = true;
@@ -591,16 +594,8 @@ void ngap_handle_initial_ue_message(amf_gnb_t *gnb, ogs_ngap_message_t *message,
 #if 0 	
     ngap_send_to_nas(ran_ue, NGAP_ProcedureCode_id_InitialUEMessage, NAS_PDU);
 #endif//modify 20230202 by O3
-    //ngap_icps_send_to_sps(sps_id,ran_ue, send_code);
-    print_buf(pkbuf->data,pkbuf->len);
-    ngap_icps_send_to_sps_pkg2(ran_ue,NGAP_ProcedureCode_id_InitialUEMessage,pkbuf);
-
-	
-    //if(send_code)
-	  	//free(send_code);
  
-
-
+    ngap_icps_send_to_sps_pkg2(ran_ue,NGAP_ProcedureCode_id_InitialUEMessage,pkbuf);
 }
 
 
@@ -3539,7 +3534,7 @@ void ngap_handle_handover_failure(
     }
     ogs_debug("    Cause[Group:%d Cause:%d]",
             Cause->present, (int)Cause->choice.radioNetwork);
-
+#if 0
     ogs_assert(OGS_OK ==
         ngap_send_handover_preparation_failure(source_ue, Cause));
 
@@ -3547,6 +3542,7 @@ void ngap_handle_handover_failure(
         ngap_send_ran_ue_context_release_command(target_ue,
             NGAP_Cause_PR_radioNetwork, NGAP_CauseRadioNetwork_ho_failure_in_target_5GC_ngran_node_or_target_system,
             NGAP_UE_CTX_REL_NG_HANDOVER_FAILURE, 0));
+ #endif
     ngap_icps_send_to_sps_pkg2(target_ue, NGAP_ProcedureCode_id_HandoverResourceAllocation_Fail,pkbuf);
 }
 
@@ -4723,4 +4719,185 @@ int icps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
    
 	return rvtmp;
 }
+
+void get_spsno_form_nasguti(ran_ue_t *ran_ue, NGAP_NAS_PDU_t *nasPdu)
+{
+    ogs_nas_5gs_security_header_t *sh = NULL;
+    ogs_nas_security_header_type_t security_header_type;
+
+    ogs_nas_5gmm_header_t *h = NULL;
+    ogs_pkbuf_t *nasbuf = NULL;
+    
+    
+    ogs_assert(nasPdu);
+
+    /* The Packet Buffer(pkbuf_t) for NAS message MUST make a HEADROOM. 
+     * When calculating AES_CMAC, we need to use the headroom of the packet. */
+    nasbuf = ogs_pkbuf_alloc(NULL, OGS_NAS_HEADROOM+nasPdu->size);
+    ogs_assert(nasbuf);
+    ogs_pkbuf_reserve(nasbuf, OGS_NAS_HEADROOM);
+    ogs_pkbuf_put_data(nasbuf, nasPdu->buf, nasPdu->size);
+
+    sh = (ogs_nas_5gs_security_header_t *)nasbuf->data;
+    ogs_assert(sh);
+
+    memset(&security_header_type, 0, sizeof(ogs_nas_security_header_type_t));
+    switch(sh->security_header_type) {
+    case OGS_NAS_SECURITY_HEADER_PLAIN_NAS_MESSAGE:
+        break;
+    case OGS_NAS_SECURITY_HEADER_INTEGRITY_PROTECTED:
+        security_header_type.integrity_protected = 1;
+        ogs_pkbuf_pull(nasbuf, 7);
+        break;
+    case OGS_NAS_SECURITY_HEADER_INTEGRITY_PROTECTED_AND_CIPHERED:
+        security_header_type.integrity_protected = 1;
+        security_header_type.ciphered = 1;
+        ogs_pkbuf_pull(nasbuf, 7);
+        break;
+    case OGS_NAS_SECURITY_HEADER_INTEGRITY_PROTECTED_AND_NEW_SECURITY_CONTEXT:
+        security_header_type.integrity_protected = 1;
+        security_header_type.new_security_context = 1;
+        ogs_pkbuf_pull(nasbuf, 7);
+        break;
+    case OGS_NAS_SECURITY_HEADER_INTEGRITY_PROTECTED_AND_CIPHTERD_WITH_NEW_INTEGRITY_CONTEXT:
+        security_header_type.integrity_protected = 1;
+        security_header_type.ciphered = 1;
+        security_header_type.new_security_context = 1;
+        ogs_pkbuf_pull(nasbuf, 7);
+        break;
+    default:
+        ogs_error("Not implemented(security header type:0x%x)",
+                sh->security_header_type);
+        ogs_assert_if_reached();
+    }
+
+    h = (ogs_nas_5gmm_header_t *)nasbuf->data;
+    ogs_assert(h);
+  
+    ogs_nas_5gs_message_t message;   
+    uint8_t sps_no;
+     sps_no=pre_ogs_nas_5gmm_decode(&message, nasbuf);
+     if(find_module_info(sps_no)){
+            ran_ue->sps_no=sps_no;
+        }    
+     ogs_pkbuf_free(nasbuf);
+
+
+}
+
+
+uint8_t pre_ogs_nas_5gmm_decode(ogs_nas_5gs_message_t *message, ogs_pkbuf_t *pkbuf)
+{
+    int size = 0;
+    int decoded = 0;
+    uint8_t sps_no;
+
+    ogs_assert(pkbuf);
+    ogs_assert(pkbuf->data);
+    ogs_assert(pkbuf->len);
+
+    memset(message, 0, sizeof(ogs_nas_5gs_message_t));
+
+    size = sizeof(ogs_nas_5gmm_header_t);
+    if (ogs_pkbuf_pull(pkbuf, size) == NULL) {
+       ogs_error("ogs_pkbuf_pull() failed [size:%d]", (int)size);
+       return OGS_ERROR;
+    }
+    memcpy(&message->gmm.h, pkbuf->data - size, size);
+    decoded += size;
+
+    switch(message->gmm.h.message_type) {
+    case OGS_NAS_5GS_REGISTRATION_REQUEST:
+        sps_no = pre_nas_5gs_decode_registration_request(message, pkbuf);
+       
+
+        //decoded += size;
+        break;    
+    
+    case OGS_NAS_5GS_SERVICE_REQUEST:
+        sps_no = pre_nas_5gs_decode_service_request(message, pkbuf);
+       
+        //decoded += size;
+        break;
+    
+    default:
+        ogs_error("Unknown message type (0x%x) or not implemented", 
+                message->gmm.h.message_type);
+        break;
+    }
+ogs_info("pre_ogs_nas_5gmm_decode sps_no:%d",sps_no);
+    //ogs_assert(ogs_pkbuf_push(pkbuf, decoded));
+
+    return sps_no;
+}
+
+uint8_t pre_nas_5gs_decode_service_request(ogs_nas_5gs_message_t *message, ogs_pkbuf_t *pkbuf)
+{
+    ogs_nas_5gs_service_request_t *service_request = &message->gmm.service_request;
+    int decoded = 0;
+    int size = 0;
+    uint8_t buff[64],*ptr;//add
+    ogs_trace("[NAS] Decode SERVICE_REQUEST\n");
+
+    size = ogs_nas_5gs_decode_key_set_identifier(&service_request->ngksi, pkbuf);
+    if (size < 0) {
+        ogs_error("ogs_nas_5gs_decode_key_set_identifier() failed");
+        return size;
+    }
+
+    decoded += size;
+
+    size = ogs_nas_5gs_decode_5gs_mobile_identity(&service_request->s_tmsi, pkbuf);
+    if (size < 0) {
+        ogs_error("ogs_nas_5gs_decode_5gs_mobile_identity() failed");
+        return size;
+    }
+    ptr=(uint8_t*)service_request->s_tmsi.buffer;
+    memcpy(buff,service_request->s_tmsi.buffer,service_request->s_tmsi.length);    
+    //return buff[4]%16;
+    return *(ptr+4);
+   
+}
+uint8_t pre_nas_5gs_decode_registration_request(ogs_nas_5gs_message_t *message, ogs_pkbuf_t *pkbuf)
+{
+    ogs_nas_5gs_registration_request_t *registration_request = &message->gmm.registration_request;
+    int decoded = 0;
+    int size = 0;
+    uint8_t sps_no;
+    ogs_nas_5gs_mobile_identity_guti_t *mobile_identity_guti = NULL;
+    ogs_nas_5gs_guti_t nas_guti;
+    memset(&nas_guti, 0, sizeof(ogs_nas_5gs_guti_t));
+
+    ogs_trace("[NAS] Decode REGISTRATION_REQUEST\n");
+
+    size = ogs_nas_5gs_decode_5gs_registration_type(&registration_request->registration_type, pkbuf);
+    if (size < 0) {
+        ogs_error("ogs_nas_5gs_decode_5gs_registration_type() failed");
+        return size;
+    }
+
+    decoded += size;
+
+    size = ogs_nas_5gs_decode_5gs_mobile_identity(&registration_request->mobile_identity, pkbuf);
+    if (size < 0) {
+        ogs_error("ogs_nas_5gs_decode_5gs_mobile_identity() failed");
+        return size;
+    }
+ 
+    mobile_identity_guti =
+                (ogs_nas_5gs_mobile_identity_guti_t *)registration_request->mobile_identity.buffer;
+    ogs_assert(mobile_identity_guti);
+
+    ogs_nas_5gs_mobile_identity_guti_to_nas_guti(mobile_identity_guti, &nas_guti); 
+    sps_no=(((nas_guti.m_tmsi) & 0x00FF0000)>>16)%256;
+    //free(mobile_identity_guti);
+    //free(registration_request);    
+    return sps_no;
+
+    
+}
+
+
+
+
 

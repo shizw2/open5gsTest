@@ -321,7 +321,8 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
                 OpenAPI_n1_n2_message_transfer_cause_ATTEMPTING_TO_REACH_UE;
 
             /* Location */
-            server = ogs_sbi_server_from_stream(stream);
+            //server = ogs_sbi_server_from_stream(stream);
+            server = ogs_list_first(&ogs_sbi_self()->server_list);
             ogs_assert(server);
 
             memset(&header, 0, sizeof(header));
@@ -335,6 +336,7 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
             header.resource.component[3] = sess->sm_context_ref;
 
             sendmsg.http.location = ogs_sbi_server_uri(server, &header);
+            ogs_info("sendmsg.http.location:%s",sendmsg.http.location);
 
             /* Store Paging Info */
             AMF_SESS_STORE_PAGING_INFO(
