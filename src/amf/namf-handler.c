@@ -523,8 +523,15 @@ cleanup:
 
     response = ogs_sbi_build_response(&sendmsg, status);
     ogs_assert(response);
-    ogs_assert(true == ogs_sbi_server_send_response(stream, response));
-
+    if (is_amf_sps())
+    {
+        sendmsg.udp_h.stream_pointer = stream;
+        udp_ini_msg_sendto_icps(INTERNEL_MSG_SBI, &sendmsg.udp_h, response->http.content,response->http.content_length);
+        ogs_sbi_response_free(response);
+    }
+    else{        
+        ogs_assert(true == ogs_sbi_server_send_response(stream, response));
+    }
     return OGS_OK;
 }
 
@@ -622,7 +629,15 @@ cleanup:
 
     response = ogs_sbi_build_response(&sendmsg, status);
     ogs_assert(response);
-    ogs_assert(true == ogs_sbi_server_send_response(stream, response));
+    if (is_amf_sps())
+    {
+        sendmsg.udp_h.stream_pointer = stream;
+        udp_ini_msg_sendto_icps(INTERNEL_MSG_SBI, &sendmsg.udp_h, response->http.content,response->http.content_length);
+        ogs_sbi_response_free(response);
+    }
+    else{        
+        ogs_assert(true == ogs_sbi_server_send_response(stream, response));
+    }
 
     return OGS_OK;
 }
@@ -733,7 +748,15 @@ cleanup:
 
     response = ogs_sbi_build_response(&sendmsg, status);
     ogs_assert(response);
-    ogs_assert(true == ogs_sbi_server_send_response(stream, response));
+    if (is_amf_sps())
+    {
+        sendmsg.udp_h.stream_pointer = stream;
+        udp_ini_msg_sendto_icps(INTERNEL_MSG_SBI, &sendmsg.udp_h, response->http.content,response->http.content_length);
+        ogs_sbi_response_free(response);
+    }
+    else{        
+        ogs_assert(true == ogs_sbi_server_send_response(stream, response));
+    }
 
     return OGS_OK;
 }
