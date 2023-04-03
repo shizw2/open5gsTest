@@ -413,6 +413,8 @@ pcf_sess_t *pcf_sess_add(pcf_ue_t *pcf_ue, uint8_t psi)
             (int)ogs_pool_index(&pcf_sess_pool, sess));
     ogs_assert(sess->sm_policy_id);
 
+    ogs_info("test:pcf_sess_add,sm_policy_id:%s.",sess->sm_policy_id);
+
     sess->pcf_ue = pcf_ue;
     sess->psi = psi;
 
@@ -469,6 +471,7 @@ void pcf_sess_remove(pcf_sess_t *sess)
         OpenAPI_subscribed_default_qos_free(sess->subscribed_default_qos);
 
     ogs_pool_free(&pcf_sess_pool, sess);
+    ogs_info("test:pcf_sess_remove,sm_policy_id:%s.",sess->sm_policy_id);
 }
 
 void pcf_sess_remove_all(pcf_ue_t *pcf_ue)

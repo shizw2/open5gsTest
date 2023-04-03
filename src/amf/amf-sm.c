@@ -176,6 +176,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                         if (is_amf_icps())
                         {
                             //获取supi,找到sps模块
+                            supi = sbi_message.h.resource.component[1];
                             ran_ue = ran_ue_find_by_supi(sbi_message.h.resource.component[1]);
                             if (!ran_ue) {
                                 ogs_error("No UE context [%s]", supi);

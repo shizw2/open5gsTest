@@ -937,6 +937,8 @@ int amf_nsmf_pdusession_handle_release_sm_context(amf_sess_t *sess, int state)
                 ogs_fatal("Release SM STATE undefined");
                 ogs_assert_if_reached();
             }
+        }else{
+            ogs_info("do nothing.");
         }
     }
 

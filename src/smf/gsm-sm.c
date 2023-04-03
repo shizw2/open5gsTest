@@ -893,6 +893,11 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
                             ogs_assert(strerror);
                             ogs_error("%s", strerror);
                             ogs_free(strerror);
+
+                            //add at 20230403 smf收到pcf的404,给amf返回404错误                            
+                            ogs_sbi_server_send_error(
+                                stream, sbi_message->res_status,
+                                sbi_message, strerror, NULL);
                             OGS_FSM_TRAN(s, smf_gsm_state_exception);
                             break;
                         }

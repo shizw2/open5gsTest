@@ -112,6 +112,13 @@ void amf_context_final(void)
 
     ogs_assert(self.supi_sps_hash);
     ogs_hash_destroy(self.supi_sps_hash);
+    
+    ogs_assert(self.supi_ran_hash);
+    ogs_hash_destroy(self.supi_ran_hash);
+    ogs_assert(self.amf_ue_ngap_id_hash);
+    ogs_hash_destroy(self.amf_ue_ngap_id_hash);
+
+    
 
     ogs_pool_final(&self.m_tmsi);
     ogs_pool_final(&amf_sess_pool);
