@@ -21,7 +21,7 @@ typedef struct pkt_fwd_tbl_s{
 
 }pkt_fwd_tbl_t;
 
-
+int send_heart_cnt;//for sps check icps offline
 int sps_udp_ini_open(void);
 int udp_ini_open(void);
 void icps_client_recv_cb(short when, ogs_socket_t fd, void *data);

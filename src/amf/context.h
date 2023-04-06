@@ -859,6 +859,9 @@ ran_ue_t *ran_ue_find_by_supi(char *supi);
 void ran_ue_set_supi(ran_ue_t *ran_ue, char *supi);
 ran_ue_t *ran_ue_find_by_amf_ue_ngap_id_sps(uint64_t *amf_ue_ngap_id_icps);
 void ran_ue_set_amf_ue_ngap_id(ran_ue_t *ran_ue, uint64_t *amf_ue_ngap_id_icps);
+void ran_ue_remove_all(void);
+void ran_ue_remove_sps_self(ran_ue_t *ran_ue);
+
 
 
 

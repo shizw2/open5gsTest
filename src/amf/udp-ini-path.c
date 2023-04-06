@@ -415,6 +415,7 @@ void udp_ini_send_hand_shake()
     {
         ogs_timer_start(amf_self()->t_hand_shake_interval, ogs_time_from_sec(UDP_INI_HEART_BEAT_INTERVAL));
     }
+    send_heart_cnt=send_heart_cnt+1;
 }
 
 void udp_ini_hand_shake_check()

@@ -370,7 +370,7 @@ void ngap_handle_initial_ue_message(amf_gnb_t *gnb, ogs_ngap_message_t *message,
     ogs_assert(InitialUEMessage);
 
     ogs_info("InitialUEMessage");
-	printf("=== IGPS InitialUEMessage! \n");
+	//printf("=== IGPS InitialUEMessage! \n");
 
     for (i = 0; i < InitialUEMessage->protocolIEs.list.count; i++) {
         ie = InitialUEMessage->protocolIEs.list.array[i];
@@ -4485,7 +4485,7 @@ void ngap_handle_error_indication(amf_gnb_t *gnb, ogs_ngap_message_t *message)
 uint8_t spsid_find_by_amf_ue_ngap_id(uint64_t amf_ue_ngap_id)
 {
      uint8_t sps_no,i=0;
-     printf("=== spsid_find_by_amf_ue_ngap_id! amf_ue_ngap_id==%lu,g_pkt_fwd_tbl.b_sps_num=%d\n",amf_ue_ngap_id,g_pkt_fwd_tbl.b_sps_num);
+     //printf("=== spsid_find_by_amf_ue_ngap_id! amf_ue_ngap_id==%lu,g_pkt_fwd_tbl.b_sps_num=%d\n",amf_ue_ngap_id,g_pkt_fwd_tbl.b_sps_num);
      if(g_pkt_fwd_tbl.b_sps_num==0)
 	 	return 0;
 	 sps_no=(amf_ue_ngap_id)%g_pkt_fwd_tbl.b_sps_num+1;
@@ -4578,12 +4578,10 @@ void ngap_icps_send_to_sps_pkg(
 	  
 	len=sizeof(NGAP_icps_send_head_t)+send_code_head->size;
 	tmsg.len=len;
-    ogs_info(" =====ngap_icps_send_to_sps=len:%lu,sizeof(NGAP_icps_send_head_t):%lu,send_code_head->size=%lu==",len,sizeof(NGAP_icps_send_head_t),send_code_head->size);
+    ogs_debug(" =====ngap_icps_send_to_sps=len:%lu,sizeof(NGAP_icps_send_head_t):%lu,send_code_head->size=%lu==",len,sizeof(NGAP_icps_send_head_t),send_code_head->size);
 	memcpy(buff,&(tmsg),sizeof(amf_internel_msg_header_t));	  
 	memcpy(buff+sizeof(amf_internel_msg_header_t),send_code_head,sizeof(NGAP_icps_send_head_t));
 	memcpy(buff+sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t),buf,send_code_head->size);	 
-	  ogs_info("ngap_icps_send_to_sps :%02x%02x%02x%02x=====%02x%02x%02x%02x",buff[48],buff[49],buff[50],buff[51],buff[56],buff[57],buff[58],buff[59]);
-	 
 	  sent = udp_ini_sendto(buff, sizeof(amf_internel_msg_header_t)+len, sps_id);
 	  if (sent < 0 || sent != (sizeof(amf_internel_msg_header_t)+len)) {
 			ogs_error("ogs_sendto() failed ");
@@ -4609,8 +4607,7 @@ void ngap_icps_send_to_sps_pkg2(            ran_ue_t *ran_ue,NGAP_ProcedureCode_
       }       
    
 	send_code_head=(NGAP_icps_send_head_t *)malloc(sizeof(NGAP_icps_send_head_t));	
-	send_code_head->ProcedureCode=ProcedureCode;
-    ogs_info("send_code_head->ProcedureCode=%lu",send_code_head->ProcedureCode);
+	send_code_head->ProcedureCode=ProcedureCode;    
 	send_code_head->size=pkbuf->len;	
 	sps_id=ran_ue->sps_no;
     if((sps_id<1)||(sps_id>MAX_SPS_NUM)){
@@ -4628,7 +4625,7 @@ void ngap_icps_send_to_sps_pkg2(            ran_ue_t *ran_ue,NGAP_ProcedureCode_
           
     len=sizeof(NGAP_icps_send_head_t)+send_code_head->size;
     tmsg.len=len;
-    ogs_info(" =====ngap_icps_send_to_sps pkg2=len:%lu,sizeof(NGAP_icps_send_head_t):%lu,send_code_head->size=%lu==",len,sizeof(NGAP_icps_send_head_t),send_code_head->size);
+    ogs_debug(" =====ngap_icps_send_to_sps pkg2=len:%lu,sizeof(NGAP_icps_send_head_t):%lu,send_code_head->size=%lu==",len,sizeof(NGAP_icps_send_head_t),send_code_head->size);
     memcpy(buff,&(tmsg),sizeof(amf_internel_msg_header_t));   
     memcpy(buff+sizeof(amf_internel_msg_header_t),send_code_head,sizeof(NGAP_icps_send_head_t));
     memcpy(buff+sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t),pkbuf->data,send_code_head->size);   
@@ -4825,7 +4822,7 @@ uint8_t pre_ogs_nas_5gmm_decode(ogs_nas_5gs_message_t *message, ogs_pkbuf_t *pkb
                 message->gmm.h.message_type);
         break;
     }
-ogs_info("pre_ogs_nas_5gmm_decode sps_no:%d",sps_no);
+    ogs_info("pre_ogs_nas_5gmm_decode sps_no:%d",sps_no);
     //ogs_assert(ogs_pkbuf_push(pkbuf, decoded));
 
     return sps_no;
@@ -4853,7 +4850,7 @@ uint8_t pre_nas_5gs_decode_service_request(ogs_nas_5gs_message_t *message, ogs_p
         return size;
     }
     ptr=(uint8_t*)service_request->s_tmsi.buffer;
-    memcpy(buff,service_request->s_tmsi.buffer,service_request->s_tmsi.length);    
+    //memcpy(buff,service_request->s_tmsi.buffer,service_request->s_tmsi.length);    
     //return buff[4]%16;
     return *(ptr+4);
    

@@ -2808,7 +2808,7 @@ void ran_ue_remove_sps(ran_ue_t *ran_ue)
 	tmsg.len=0;	
 	len=sizeof(tmsg);
 	memcpy(buff,&tmsg,sizeof(tmsg));	
-	ogs_info("ran_ue_remove_sps,ran_ue->ran_ue_ngap_id=%d,ran_ue->amf_ue_ngap_id:%lu",ran_ue->ran_ue_ngap_id,ran_ue->amf_ue_ngap_id);
+	ogs_debug("ran_ue_remove_sps,ran_ue->ran_ue_ngap_id=%d,ran_ue->amf_ue_ngap_id:%lu",ran_ue->ran_ue_ngap_id,ran_ue->amf_ue_ngap_id);
 	if(is_amf_sps())
 		{
 	       ogs_sendto(amf_self()->udp_node->sock->fd,buff,len,0, amf_self()->icps_node->addr);  
@@ -2820,13 +2820,43 @@ void ran_ue_remove_sps(ran_ue_t *ran_ue)
           }
     ogs_assert(ran_ue->t_ng_holding);
     ogs_timer_delete(ran_ue->t_ng_holding);
+    if(ran_ue->amf_ue_ngap_id_icps){
     ogs_hash_set(self.amf_ue_ngap_id_hash, ran_ue->amf_ue_ngap_id_icps, sizeof(uint64_t), NULL);           
-
+            
+        }
+    ogs_free(ran_ue->amf_ue_ngap_id_icps);
     ogs_pool_free(&ran_ue_pool, ran_ue);
 
     stats_remove_ran_ue();
     
 }
+/*ICPS 复位，SPS删除所有RAN UE*/
+void ran_ue_remove_all()
+{
+    amf_ue_t *amf_ue = NULL, *next = NULL;;
+
+    ogs_list_for_each_safe(&self.amf_ue_list, next, amf_ue) {
+        ran_ue_t *ran_ue = ran_ue_cycle(amf_ue->ran_ue);
+
+        if (ran_ue) ran_ue_remove_sps_self(ran_ue);
+        
+    }
+}
+void ran_ue_remove_sps_self(ran_ue_t *ran_ue)
+{
+     ogs_assert(ran_ue);
+     ogs_assert(ran_ue->t_ng_holding);
+     ogs_timer_delete(ran_ue->t_ng_holding);
+     if(ran_ue->amf_ue_ngap_id_icps){
+            ogs_hash_set(self.amf_ue_ngap_id_hash, ran_ue->amf_ue_ngap_id_icps, sizeof(uint64_t), NULL); 
+            
+         }
+     ogs_free(ran_ue->amf_ue_ngap_id_icps);
+     ogs_pool_free(&ran_ue_pool, ran_ue);
+       
+     stats_remove_ran_ue();
+}
+
 void amf_ue_ran_ue_sps_icps_sync(amf_ue_t *amf_ue, ran_ue_t *ran_ue)
 {
     ogs_assert(ran_ue); 
@@ -2847,7 +2877,7 @@ void amf_ue_ran_ue_sps_icps_sync(amf_ue_t *amf_ue, ran_ue_t *ran_ue)
 	tmsg.len=0;	
 	len=sizeof(tmsg);
 	memcpy(buff,&tmsg,sizeof(tmsg));	
-	ogs_info("amf_ue_ran_ue_sps_icps_sync ran_ue_ngap_id=%d,amf_ue_ngap_id:%lu",tmsg.ran_ue_ngap_id,tmsg.amf_ue_ngap_id);
+	ogs_debug("amf_ue_ran_ue_sps_icps_sync ran_ue_ngap_id=%d,amf_ue_ngap_id:%lu",tmsg.ran_ue_ngap_id,tmsg.amf_ue_ngap_id);
 	if(is_amf_sps())
 		{
 	       ogs_sendto(amf_self()->udp_node->sock->fd,buff,len,0, amf_self()->icps_node->addr);  
@@ -2868,7 +2898,7 @@ void amf_ue_ran_ue_icpstosps_sync(uint8_t sps_id,int ue_num,uint64_t *ue_id,int 
 	memcpy(buff,&tmsg,sizeof(tmsg));    
     memcpy(buff+len,ue_id,ue_num*sizeof(uint64_t));
     len=len+ue_num*sizeof(uint64_t);
-	ogs_info("amf_ue_ran_ue_icpstosps_sync,len:%d,tmsg.down_ngap_type=%d",len,tmsg.down_ngap_type);
+	ogs_debug("amf_ue_ran_ue_icpstosps_sync,len:%d,tmsg.down_ngap_type=%d",len,tmsg.down_ngap_type);
     //print_buf(buff,len);
 	if(is_amf_icps())
 		{

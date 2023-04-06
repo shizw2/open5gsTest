@@ -31,6 +31,7 @@
 
 extern int g_sps_id;
 extern pkt_fwd_tbl_t *g_pt_pkt_fwd_tbl;
+extern int send_heart_cnt;
 
 void amf_state_initial(ogs_fsm_t *s, amf_event_t *e)
 {
@@ -84,7 +85,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
     uint8_t sps_id = 0;
     amf_internel_msg_header_t internel_msg;
     ssize_t sent;
-
+    
     amf_sm_debug(e);
 
     ogs_assert(s);
@@ -972,7 +973,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
         switch (e->h.timer_id) {
         case AMF_TIMER_INTERNEL_HEARTBEAT:
-            udp_ini_send_hand_shake();
+            udp_ini_send_hand_shake();            
+            sps_check_icps_offline();
             break;
 
         case AMF_TIMER_INTERNEL_HEARTBEAT_CHECK:            
@@ -1028,7 +1030,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             {
                 case INTERNEL_MSG_HAND_SHAKE_RSP:
                 {
-                    //ogs_info("sps recv internel msg handshake rsp from icps,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);		
+                    //ogs_info("sps recv internel msg handshake rsp from icps,msg_type:%d,sps_id:%d,state:%d.",pmsg->msg_type,pmsg->sps_id,pmsg->sps_state);
+                    send_heart_cnt=send_heart_cnt-1;                   
                     break;
                 }
                 case  INTERNEL_MSG_NGAP:

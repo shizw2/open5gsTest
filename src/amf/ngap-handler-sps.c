@@ -5,8 +5,7 @@
 #include "ngap-handler-sps.h"
 #include "ngap-handler.h"
 
-
-
+extern int send_heart_cnt;
 
 int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
 { 
@@ -21,25 +20,15 @@ int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
     memset(&message, 0, sizeof(ogs_ngap_message_t));
     ogs_pkbuf_t *pkbuftmp = NULL;
     int rc;
-    ogs_info("SPS rev INTERNEL_MSG_NGAP !!!!1111111pmsg->down_ngap_type=%d",pmsg->down_ngap_type);
+    ogs_debug("SPS rev INTERNEL_MSG_NGAP !!!!1111111pmsg->down_ngap_type=%d",pmsg->down_ngap_type);
     if((pmsg->down_ngap_type==AMF_REMOVE_S1_CONTEXT_BY_LO_CONNREFUSED )||
             (pmsg->down_ngap_type == AMF_REMOVE_S1_CONTEXT_BY_RESET_ALL)){
             buf=(uint8_t *)malloc(OGS_MAX_SDU_LEN);
             memcpy(buf,pkbuf->data+sizeof(amf_internel_msg_header_t),pmsg->len); 
-            print_buf(pkbuf->data,sizeof(amf_internel_msg_header_t)+pmsg->len);
+            //print_buf(pkbuf->data,sizeof(amf_internel_msg_header_t)+pmsg->len);
             amf_sbi_send_deactivate_all_ue_in_gnb_sps(buf, pmsg->len,pmsg->down_ngap_type); 
             return OGS_OK;
             }           
-    #if 0		
-    NGAP_icps_send_head_t *pmsg_buf_head=(NGAP_icps_send_head_t *)malloc(sizeof(NGAP_icps_send_head_t));                
-    memcpy(pmsg_buf_head,pkbuf->data+sizeof(amf_internel_msg_header_t),sizeof(NGAP_icps_send_head_t));         
-    
-    ogs_info("SPS rev INTERNEL_MSG_NGAP !!! Begin ogs_ngap_decode!!=== %lu",pmsg_buf_head->ProcedureCode);
-    pkbuftmp=ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
-    ogs_pkbuf_put_data(pkbuftmp,pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t),pmsg_buf_head->size);
-    #endif
-    //pkbuftmp->len=pmsg_buf_head->size;
-    //memcpy(pkbuftmp->data,pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t),pmsg_buf_head->size);
     
     NGAP_icps_send_head_t *pmsg_buf_head = (NGAP_icps_send_head_t *)(pkbuf->data+sizeof(amf_internel_msg_header_t));    
     ogs_info("SPS rev INTERNEL_MSG_NGAP !!! Begin ogs_ngap_decode!!=== %lu",pmsg_buf_head->ProcedureCode);		 
@@ -47,15 +36,10 @@ int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
     
     rc = ogs_ngap_decode(&message, pkbuf);
     if(rc!=OGS_OK){
-        ogs_error("SPS Cannot decode NGAP message");
-        //ogs_pkbuf_free(pkbuftmp);
-        //free(pmsg_buf_head);
+			ogs_error("SPS Cannot decode NGAP message");        
         return OGS_ERROR;
     }			
-    
-    //	memcpy(buf,pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(NGAP_icps_send_head_t),pmsg_buf_head->size);             
-        
-        
+
     switch(pmsg_buf_head->ProcedureCode) {  
                             
         case NGAP_ProcedureCode_id_InitialUEMessage:
@@ -189,9 +173,7 @@ int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
             ogs_info(">>>>>>>>SPS rev INTERNEL_MSG_NGAP pmsg_buf_head->ProcedureCode=%lu",pmsg_buf_head->ProcedureCode);
             break;
     }
-    //if(pkbuftmp)
-    //    ogs_pkbuf_free(pkbuftmp);
-    //free(pmsg_buf_head);
+
     if(&message)
         ogs_ngap_free(&message);
     return rev;
@@ -257,16 +239,6 @@ void ngap_handle_initial_ue_message_sps(ran_ue_t *ran_ue,ogs_ngap_message_t *mes
 
     //ran_ue = ran_ue_find_by_ran_ue_ngap_id(gnb, *RAN_UE_NGAP_ID);
     if (ran_ue) {
-#if 0
-        ran_ue = ran_ue_add(gnb, *RAN_UE_NGAP_ID);
-        if (ran_ue == NULL) {
-            ogs_assert(OGS_OK ==
-                ngap_send_error_indication(gnb, NULL, NULL,
-                    NGAP_Cause_PR_misc,
-                    NGAP_CauseMisc_control_processing_overload));
-            return;
-        }
-#endif
      ogs_info("SPS ngap_handle_initial_ue_message AMF UE  NGAP ID =======   %lu  \n",ran_ue->amf_ue_ngap_id);
         /* Find AMF_UE if 5G-S_TMSI included */
         if (FiveG_S_TMSI) {
@@ -393,34 +365,7 @@ void ngap_handle_initial_ue_message_sps(ran_ue_t *ran_ue,ogs_ngap_message_t *mes
 
     ngap_send_to_nas(ran_ue, NGAP_ProcedureCode_id_InitialUEMessage, NAS_PDU);
 }
-#if 0
-void ngap_handle_ue_radio_capability_info_indication_sps(ran_ue_t * ran_ue,size_t size,uint8_t *buf)
-{
-	NGAP_UERadioCapability_t *UERadioCapability = NULL;
-	UERadioCapability_t *UERadioCa = NULL;
-	ogs_assert(ran_ue);
-	ogs_assert(buf);
-	UERadioCa=(UERadioCapability_t *)buf;
-	ogs_info("UERadioCapability buf::%2x%2x%2x%2x ",*(buf+8),*(buf+9),*(buf+10),*(buf+11));
-	
-	ogs_info("ngap_handle_ue_radio_capability_info_indication_sps　size＝＝　%lu",size);
-    if(size)	{
-		UERadioCapability=(NGAP_UERadioCapability_t *)malloc(sizeof(NGAP_UERadioCapability_t));
-		UERadioCapability->buf=(uint8_t *)malloc(UERadioCa->size);
-		UERadioCapability->size=UERadioCa->size;		
-		memcpy(UERadioCapability->buf,buf+sizeof(size_t),UERadioCa->size);
-		ogs_info("UERadioCapability->size:%lu sizeof(size_t)=%lu",UERadioCapability->size,sizeof(size_t));
-		ogs_info("UERadioCapability->buf::%2x%2x%2x%2x ",*(UERadioCapability->buf),*(UERadioCapability->buf+1),*(UERadioCapability->buf+2),*(UERadioCapability->buf+3));
-		if (ran_ue->amf_ue)
-        	OGS_ASN_STORE_DATA(&ran_ue->amf_ue->ueRadioCapability,
-                UERadioCapability);
-    }
-	if(UERadioCapability)
-		free(UERadioCapability);
-	
-	return;
-}
-#endif
+
 void ngap_handle_ue_radio_capability_info_indication_sps(
     ran_ue_t * ran_ue,ogs_ngap_message_t *message)
 {
@@ -2927,5 +2872,11 @@ void ngap_handle_uplink_nas_transport_sps(
 
     ngap_send_to_nas(ran_ue, NGAP_ProcedureCode_id_UplinkNASTransport, NAS_PDU);
 }
-
-
+void sps_check_icps_offline()
+{
+    if(send_heart_cnt>10){
+        ogs_info("send_heart_cnt:%d",send_heart_cnt);
+        ran_ue_remove_all();
+        send_heart_cnt=0;
+    }        
+}
