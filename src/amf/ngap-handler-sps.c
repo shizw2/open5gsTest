@@ -4,6 +4,7 @@
 #include "nas-path.h"
 #include "ngap-handler-sps.h"
 #include "ngap-handler.h"
+#include "udp-ini-path.h"
 
 extern int send_heart_cnt;
 
@@ -313,9 +314,9 @@ void ngap_handle_initial_ue_message_sps(ran_ue_t *ran_ue,ogs_ngap_message_t *mes
                             NGAP_UE_CTX_REL_NG_CONTEXT_REMOVE, 0));
                 }
                 ogs_info("ran_ue->amf_ue_ngap_id:%lu,ran_ue->ran_ue_ngap_id:%d",ran_ue->amf_ue_ngap_id,ran_ue->ran_ue_ngap_id);
-                 if(amf_ue->ran_ue)amf_ue_ran_ue_sps_icps_sync(amf_ue,ran_ue);
+                 if(amf_ue->ran_ue)amf_ue_ran_ue_sps_icps_sync(amf_ue,ran_ue);                
                 amf_ue_associate_ran_ue(amf_ue, ran_ue);
-                
+                udp_ini_send_supi_notify(amf_ue);
 				printf("SPS amf_ue_associate_ran_ue RAN UE  NGAP ID =======   %d amf_ue AMF UE  NGAP ID= %lu \n",amf_ue->ran_ue->ran_ue_ngap_id,amf_ue->ran_ue->amf_ue_ngap_id);
             }
         }

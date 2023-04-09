@@ -636,6 +636,8 @@ typedef struct amf_sess_s {
 #define INTERNEL_MSG_SBI                                 3
 #define INTERNEL_MSG_SUPI_NOTIFY                         4 //sps通知icps 
 #define INTERNEL_MSG_NF_INSTANCE_NOTIFY                  5 //icps通知sps
+#define INTERNEL_MSG_SUPI_HASH_REMOVE_NOTIFY             6
+
 
 #define INTERNEL_DOWN_NGAP_TO_UE                         0
 #define INTERNEL_DOWN_NGAP_TO_NB                         1
@@ -861,6 +863,7 @@ ran_ue_t *ran_ue_find_by_amf_ue_ngap_id_sps(uint64_t *amf_ue_ngap_id_icps);
 void ran_ue_set_amf_ue_ngap_id(ran_ue_t *ran_ue, uint64_t *amf_ue_ngap_id_icps);
 void ran_ue_remove_all(void);
 void ran_ue_remove_sps_self(ran_ue_t *ran_ue);
+void ran_ue_remove_supi(ran_ue_t *ran_ue, char *supi);
 
 
 

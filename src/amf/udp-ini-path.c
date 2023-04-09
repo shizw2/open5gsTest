@@ -462,6 +462,26 @@ void udp_ini_send_supi_notify(amf_ue_t *amf_ue)
     udp_ini_sendto_icps(&internel_msg,sizeof(internel_msg));
 }
 
+void udp_ini_send_supi_ran_hash_remove_notify(amf_ue_t *amf_ue)
+{
+    amf_internel_msgbuf_t internel_msg;
+
+    if (NULL == amf_ue)
+    {
+        return;
+    }
+
+    memset(&internel_msg, 0, sizeof(amf_internel_msgbuf_t));
+
+    internel_msg.msg_head.msg_type   = INTERNEL_MSG_SUPI_HASH_REMOVE_NOTIFY;
+    internel_msg.msg_head.sps_id     = g_sps_id;
+    internel_msg.msg_head.sps_state  = 1;    
+    
+    memcpy(internel_msg.supi,amf_ue->supi,strlen(amf_ue->supi));
+
+    ogs_info("sps send supi notify to icps, supi:%s",internel_msg.supi);
+    udp_ini_sendto_icps(&internel_msg,sizeof(internel_msg));
+}
 /***************handle类函数***************/
 
 void udp_ini_icps_handle_hand_shake(amf_internel_msg_header_t *pmsg)
@@ -739,4 +759,22 @@ void udp_ini_icps_handle_supi_notify(ogs_pkbuf_t *pkbuf)
     }
 
     ran_ue_set_supi(ran_ue_icps,msg->supi);
+}
+void udp_ini_icps_handle_supi_hash_remove_notify(ogs_pkbuf_t *pkbuf)
+{	
+    int rv;
+    ran_ue_t *ran_ue_icps = NULL;
+    amf_internel_msgbuf_t *msg = NULL;
+	
+    msg = (amf_internel_msgbuf_t*)pkbuf->data;  
+
+    ogs_info("udp_ini_icps_handle_supi_hash_remove_notify,supi:%s.",msg->supi);	
+
+    ran_ue_icps = ran_ue_find_by_supi(msg->supi);
+    if (!ran_ue_icps){
+        ogs_error("No RAN UE hash : msg->supi:%s",
+                msg->supi);
+        return;
+    }
+    ran_ue_remove_supi(ran_ue_icps,msg->supi);
 }

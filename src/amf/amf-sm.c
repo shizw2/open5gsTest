@@ -253,7 +253,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 if (is_amf_icps()){
                     ran_ue = ran_ue_find_by_supi(sbi_message.h.resource.component[0]);
                     if (!ran_ue) {
-                        ogs_error("No UE context [%s]", supi);
+                        ogs_error("No UE context [%s]", sbi_message.h.resource.component[0]);
                         break;
                     }
                     udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,ran_ue->sps_no);
@@ -267,7 +267,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 if (is_amf_icps()){
                     ran_ue = ran_ue_find_by_supi(sbi_message.h.resource.component[0]);
                     if (!ran_ue) {
-                        ogs_error("No UE context [%s]", supi);
+                        ogs_error("No UE context [%s]", sbi_message.h.resource.component[0]);
                         break;
                     }
                     udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,ran_ue->sps_no);
@@ -1002,6 +1002,11 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 case INTERNEL_MSG_SUPI_NOTIFY:
                 {
                     udp_ini_icps_handle_supi_notify(pkbuf);
+                    break;
+                }
+                case INTERNEL_MSG_SUPI_HASH_REMOVE_NOTIFY:
+                {
+                    udp_ini_icps_handle_supi_hash_remove_notify(pkbuf);
                     break;
                 }
                 case  INTERNEL_MSG_NGAP:

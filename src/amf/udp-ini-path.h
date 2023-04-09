@@ -37,6 +37,7 @@ int udp_ini_msg_sendto(int msg_type, ogs_sbi_udp_header_t *header,const void *bu
 /***************sps send类函数***************/
 void udp_ini_send_hand_shake(void);
 void udp_ini_send_supi_notify(amf_ue_t *amf_ue);
+void udp_ini_send_supi_ran_hash_remove_notify(amf_ue_t *amf_ue);
 //sps给icps发送消息时调用
 int udp_ini_sendto_icps(const void *buf, size_t len);
 int udp_ini_msg_sendto_icps(int msg_type, ogs_sbi_udp_header_t *header,const void *buf, size_t len);
@@ -50,6 +51,7 @@ void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf);
 void udp_ini_icps_handle_hand_shake(amf_internel_msg_header_t *pmsg);
 void udp_ini_icps_handle_supi_notify(ogs_pkbuf_t *pkbuf);
 void udp_ini_icps_handle_sbi_msg(ogs_pkbuf_t *pkbuf);
+void udp_ini_icps_handle_supi_hash_remove_notify(ogs_pkbuf_t *pkbuf);
 
 //暂时放在这里
 bool add_module_info(uint8_t b_module_no);

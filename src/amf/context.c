@@ -1392,6 +1392,17 @@ void ran_ue_set_supi(ran_ue_t *ran_ue, char *supi)
     ogs_assert(ran_ue->supi);
     ogs_hash_set(self.supi_ran_hash, ran_ue->supi, strlen(ran_ue->supi), ran_ue);
 }
+void ran_ue_remove_supi(ran_ue_t *ran_ue, char *supi)
+{
+    ogs_assert(supi);
+
+    if (ran_ue->supi) {
+        ogs_hash_set(self.supi_ran_hash, ran_ue->supi, strlen(ran_ue->supi), NULL);
+        ogs_free(ran_ue->supi);
+        ran_ue->supi=NULL;
+    }
+    
+}
 
 void amf_ue_new_guti(amf_ue_t *amf_ue)
 {
@@ -1620,6 +1631,8 @@ void amf_ue_remove(amf_ue_t *amf_ue)
         ogs_assert(amf_ue->msisdn[i]);
         ogs_free(amf_ue->msisdn[i]);
     }
+    if(amf_ue->supi)
+        udp_ini_send_supi_ran_hash_remove_notify(amf_ue);//0408
 
     /* Clear SubscribedInfo */
     amf_clear_subscribed_info(amf_ue);

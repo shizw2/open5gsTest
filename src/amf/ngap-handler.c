@@ -4701,9 +4701,16 @@ int icps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
         case INTERNEL_DOWN_NGAP_TO_SYNC_RAN_UE:
             ran_ue_icps=ran_ue_find_by_amf_ue_ngap_id(pmsg->pre_amf_ue_ngap_id);
             if(ran_ue_icps){
-                    ogs_info("pmsg->pre_amf_ue_ngap_id=:%lu",pmsg->pre_amf_ue_ngap_id);
-                    ran_ue_icps->amf_ue_ngap_id=pmsg->pre_amf_ue_ngap_id;
+                        ogs_info("pmsg->pre_amf_ue_ngap_id=:%lu,ran_ue_icps->amf_ue_ngap_id::%lu",pmsg->pre_amf_ue_ngap_id,ran_ue_icps->amf_ue_ngap_id);
+                        //ran_ue_icps->amf_ue_ngap_id=pmsg->pre_amf_ue_ngap_id;
                     ogs_info("sync amf_ue_ngap_id %lu ran_ue_icps->ran_ue_ngap_id:%d OK",ran_ue_icps->amf_ue_ngap_id,ran_ue_icps->ran_ue_ngap_id);
+                        ran_ue_t * ran_ue=ran_ue_find_by_amf_ue_ngap_id(pmsg->amf_ue_ngap_id);
+                        if(ran_ue){                            
+                            if (ran_ue->supi) {
+                                ogs_info("ran_ue->supi:%s",ran_ue->supi);
+                                ran_ue_remove_supi(ran_ue, ran_ue->supi);
+                            }
+                       }
                 }
             ogs_pkbuf_free(pkbuf);
             break;
