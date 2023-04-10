@@ -370,7 +370,7 @@ int ogs_sbi_context_parse_config(
                             if (key) server->tls.key = key;
                             if (pem) server->tls.pem = pem;
 
-                            ogs_info("test:**********key:%s,pem:%s.",key,pem);
+                            //ogs_info("test:**********key:%s,pem:%s.",key,pem);
                         }
                         node6 = ogs_list_first(&list6);
                         if (node6) {

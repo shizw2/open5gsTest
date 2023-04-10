@@ -1300,12 +1300,18 @@ void ran_ue_remove(ran_ue_t *ran_ue)
         ogs_assert(ran_ue->gnb);
 
         ogs_list_remove(&ran_ue->gnb->ran_ue_list, ran_ue);
-       }
 
-        ogs_assert(ran_ue->t_ng_holding);
-        ogs_timer_delete(ran_ue->t_ng_holding);
+        if (ran_ue->supi) {
+            ogs_hash_set(self.supi_ran_hash, ran_ue->supi, strlen(ran_ue->supi), NULL);
+            ogs_free(ran_ue->supi);
+            ran_ue->supi=NULL;
+        }
+    }
+
+    ogs_assert(ran_ue->t_ng_holding);
+    ogs_timer_delete(ran_ue->t_ng_holding);
 	
-//SPS释放如何通知ICPS，ICPS释放需要通知SPS，待处理
+    //SPS释放如何通知ICPS，ICPS释放需要通知SPS，待处理
     ogs_pool_free(&ran_ue_pool, ran_ue);
 
     stats_remove_ran_ue();
