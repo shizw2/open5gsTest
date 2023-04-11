@@ -513,6 +513,7 @@ void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
     int rv;
     const char *api_version = NULL;
     ogs_sbi_stream_t *stream = NULL;
+    int i;
 
     memset(&request, 0, sizeof(ogs_sbi_request_t));
 	ogs_info("sps recv sbi msg, msg_len:%d,msg_head_len:%ld,udp_head_len:%ld.", pkbuf->len,sizeof(amf_internel_msg_header_t),sizeof(ogs_sbi_udp_header_t));					
@@ -682,6 +683,19 @@ void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
         END
 
         ogs_sbi_message_free(&sbi_message);
+
+        //由于request没用使用ogs_sbi_request_new创建,因此不能使用ogs_sbi_request_free。
+        //但对于内部的一些数据,需要手动释放
+        //ogs_sbi_request_free(&request); 
+        for (i = 0; i < request.http.num_of_part; i++) {
+            if (request.http.part[i].pkbuf)
+                ogs_pkbuf_free(request.http.part[i].pkbuf);
+            if (request.http.part[i].content_id)
+                ogs_free(request.http.part[i].content_id);
+            if (request.http.part[i].content_type)
+                ogs_free(request.http.part[i].content_type);
+        }
+       
     }	
 }
 

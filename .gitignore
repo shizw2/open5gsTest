@@ -3,6 +3,7 @@ subprojects/freeDiameter
 subprojects/libtins
 subprojects/prometheus-client-c
 subprojects/usrsctp
+.vscode/
 *.pcap
 build/
 test.log
