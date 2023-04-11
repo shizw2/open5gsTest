@@ -152,6 +152,8 @@ char *ogs_talloc_strdup(const void *t, const char *p)
     char *ptr = NULL;
 
     ogs_thread_mutex_lock(ogs_mem_get_mutex());
+	
+	printf("%s\r\n",p);
 
     ptr = talloc_strdup(t, p);
     ogs_expect(ptr);
