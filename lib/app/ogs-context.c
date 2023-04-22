@@ -172,7 +172,7 @@ static void app_context_prepare(void)
 
     self.sockopt.no_delay = true;
 
-#define MAX_NUM_OF_UE               5000//1024*2    /* Num of UEs */
+#define MAX_NUM_OF_UE               20000//1024*10    /* Num of UEs */
 #define MAX_NUM_OF_PEER             64      /* Num of Peer */
 
     self.max.ue = MAX_NUM_OF_UE;
@@ -184,7 +184,7 @@ static void app_context_prepare(void)
 
     /* <Heartbeat Checking Interval>
      *  Heartbeat Interval(e.g: 10 seconds) + No Heartbeat Margin(1 second) */
-    self.time.nf_instance.no_heartbeat_margin = 1;
+    self.time.nf_instance.no_heartbeat_margin = 3;
 
     /* 3600 seconds = 1 hour */
     self.time.nf_instance.validity_duration = 3600;

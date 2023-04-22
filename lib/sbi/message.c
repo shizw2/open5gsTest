@@ -708,7 +708,7 @@ int ogs_sbi_parse_request(
                     ogs_hash_this_key(hi), OGS_SBI_CONTENT_TYPE)) {
             message->http.content_type = ogs_hash_this_val(hi);
             snprintf(message->udp_h.request.content_type, MAX_SBI_CONTENT_TYPE, "%s", message->http.content_type);
-            ogs_info("test:content_type:%s.",message->http.content_type);
+            //ogs_info("test:content_type:%s.",message->http.content_type);
         } else if (!ogs_strcasecmp(ogs_hash_this_key(hi), OGS_SBI_ACCEPT)) {
             message->http.accept = ogs_hash_this_val(hi);
         } else if (!ogs_strcasecmp(ogs_hash_this_key(hi), OGS_SBI_USER_AGENT)) {
@@ -789,7 +789,6 @@ int ogs_sbi_parse_response(
         if (!ogs_strcasecmp(ogs_hash_this_key(hi), OGS_SBI_CONTENT_TYPE)) {
             message->http.content_type = ogs_hash_this_val(hi);
             snprintf(message->udp_h.response.http.content_type, MAX_SBI_CONTENT_TYPE, "%s", message->http.content_type);
-			ogs_info("test:ogs_sbi_parse_response,content_type:%s.",message->http.content_type);
         } else if (!ogs_strcasecmp(ogs_hash_this_key(hi), OGS_SBI_LOCATION)) {
             message->http.location = ogs_hash_this_val(hi);
         }
@@ -2094,7 +2093,6 @@ static bool build_content(
                 ogs_sbi_header_set(http->headers,
                         OGS_SBI_CONTENT_TYPE, message->http.content_type);
                 snprintf(message->udp_h.response.http.content_type,  MAX_SBI_CONTENT_TYPE, "%s",message->http.content_type);
-				ogs_info("test:build_content,content_type:%s.",message->http.content_type);
             } else {
                 ogs_sbi_header_set(http->headers,
                         OGS_SBI_CONTENT_TYPE, OGS_SBI_CONTENT_JSON_TYPE);

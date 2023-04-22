@@ -330,7 +330,7 @@ bool add_module_info(uint8_t b_module_no)
     g_pt_pkt_fwd_tbl->ta_sps_infos[g_pt_pkt_fwd_tbl->b_sps_num].module_no           = b_module_no;
     g_pt_pkt_fwd_tbl->ta_sps_infos[g_pt_pkt_fwd_tbl->b_sps_num].lost_heart_beat_cnt = 0;
     g_pt_pkt_fwd_tbl->b_sps_num++;
-    ogs_info("add a new module, id:%d,sps num:%d.", b_module_no, g_pt_pkt_fwd_tbl->b_sps_num);
+    ogs_warn("add a new module, id:%d,sps num:%d.", b_module_no, g_pt_pkt_fwd_tbl->b_sps_num);
     return true;
 }
 
@@ -424,10 +424,13 @@ void udp_ini_hand_shake_check()
     for (i = 0; i < g_pt_pkt_fwd_tbl->b_sps_num; i++)
     {   
         g_pt_pkt_fwd_tbl->ta_sps_infos[i].lost_heart_beat_cnt++;
-        //ogs_info("icps hand shake check, acvite module num:%d, current module %d, lostcnt:%d.", 
-        //   g_pt_pkt_fwd_tbl->b_sps_num,g_pt_pkt_fwd_tbl->ta_sps_infos[i].module_no,g_pt_pkt_fwd_tbl->ta_sps_infos[i].lost_heart_beat_cnt);
-    
-        if (g_pt_pkt_fwd_tbl->ta_sps_infos[i].lost_heart_beat_cnt >= 3)
+        if (g_pt_pkt_fwd_tbl->ta_sps_infos[i].lost_heart_beat_cnt >= 2)
+        {
+            ogs_warn("icps hand shake check, acvite module num:%d, current module %d, lostcnt:%d.", 
+            g_pt_pkt_fwd_tbl->b_sps_num,g_pt_pkt_fwd_tbl->ta_sps_infos[i].module_no,g_pt_pkt_fwd_tbl->ta_sps_infos[i].lost_heart_beat_cnt);
+        }
+
+        if (g_pt_pkt_fwd_tbl->ta_sps_infos[i].lost_heart_beat_cnt > 3)
         {
             ogs_error("module hand shake check timeout, delete module %d.",g_pt_pkt_fwd_tbl->ta_sps_infos[i].module_no);
             delete_module_info(g_pt_pkt_fwd_tbl->ta_sps_infos[i].module_no);
@@ -479,7 +482,7 @@ void udp_ini_send_supi_ran_hash_remove_notify(amf_ue_t *amf_ue)
     
     memcpy(internel_msg.supi,amf_ue->supi,strlen(amf_ue->supi));
 
-    ogs_info("sps send supi notify to icps, supi:%s",internel_msg.supi);
+    ogs_info("sps send supi remove notify to icps, supi:%s",internel_msg.supi);
     udp_ini_sendto_icps(&internel_msg,sizeof(internel_msg));
 }
 /***************handle类函数***************/
@@ -779,16 +782,18 @@ void udp_ini_icps_handle_supi_hash_remove_notify(ogs_pkbuf_t *pkbuf)
     int rv;
     ran_ue_t *ran_ue_icps = NULL;
     amf_internel_msgbuf_t *msg = NULL;
-	
+	icps_ue_spsno_t *icps_ue = NULL;
     msg = (amf_internel_msgbuf_t*)pkbuf->data;  
 
     ogs_info("udp_ini_icps_handle_supi_hash_remove_notify,supi:%s.",msg->supi);	
-
+    icps_ue=icps_ue_find_by_supi(msg->supi);
+    if(icps_ue)icps_ue_remove(icps_ue);
     ran_ue_icps = ran_ue_find_by_supi(msg->supi);
     if (!ran_ue_icps){
-        ogs_error("No RAN UE hash : msg->supi:%s",
+        ogs_info("No RAN UE hash : msg->supi:%s",
                 msg->supi);
         return;
     }
-    ran_ue_remove_supi(ran_ue_icps,msg->supi);
+    ran_ue_remove_supi(ran_ue_icps,msg->supi);    
+    
 }

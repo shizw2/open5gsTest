@@ -67,7 +67,7 @@ static int check_signal(int signum)
         break;
     case SIGUSR1:
         fprintf(stderr,
-                "%*s test %-30s contains1 %6lu bytes in %3lu blocks (ref1 %d) %p\n",
+                "%*s%-30s contains %6lu bytes in %3lu blocks (ref %d) %p\n",
                 0, "", "core",
                 (unsigned long)talloc_total_size(__ogs_talloc_core),
                 (unsigned long)talloc_total_blocks(__ogs_talloc_core),

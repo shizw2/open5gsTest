@@ -24,7 +24,7 @@ int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
     ogs_debug("SPS rev INTERNEL_MSG_NGAP !!!!1111111pmsg->down_ngap_type=%d",pmsg->down_ngap_type);
     if((pmsg->down_ngap_type==AMF_REMOVE_S1_CONTEXT_BY_LO_CONNREFUSED )||
             (pmsg->down_ngap_type == AMF_REMOVE_S1_CONTEXT_BY_RESET_ALL)){
-            buf=(uint8_t *)malloc(OGS_MAX_SDU_LEN);
+            buf=(uint8_t *)ogs_malloc(OGS_MAX_SDU_LEN);
             memcpy(buf,pkbuf->data+sizeof(amf_internel_msg_header_t),pmsg->len); 
             //print_buf(pkbuf->data,sizeof(amf_internel_msg_header_t)+pmsg->len);
             amf_sbi_send_deactivate_all_ue_in_gnb_sps(buf, pmsg->len,pmsg->down_ngap_type); 
@@ -284,7 +284,7 @@ void ngap_handle_initial_ue_message_sps(ran_ue_t *ran_ue,ogs_ngap_message_t *mes
 				        ran_ue_old=ran_ue_find_by_amf_ue_ngap_id_sps(&(amf_ue->ran_ue->amf_ue_ngap_id));
                         if(ran_ue_old){
                             printf("SPS amf_ue_associate_ran_ue ran_ue_old ===  %d ran_ue_old->amf_ue_ngap_id= %lu \n",ran_ue_old->ran_ue_ngap_id,ran_ue_old->amf_ue_ngap_id);
-                            //ran_ue_remove_sps(ran_ue_old);
+                            //ran_ue_remove_sps(ran_ue_old);                         
                         }
                     }
                 else
@@ -2875,7 +2875,7 @@ void ngap_handle_uplink_nas_transport_sps(
 }
 void sps_check_icps_offline()
 {
-    if(send_heart_cnt>10){
+    if(send_heart_cnt>2){
         ogs_info("send_heart_cnt:%d",send_heart_cnt);
         ran_ue_remove_all();
         send_heart_cnt=0;

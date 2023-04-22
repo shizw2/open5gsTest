@@ -42,12 +42,11 @@ void ogs_mem_init(void)
 
 void ogs_mem_final(void)
 {
-    printf("ogs_mem_final \r\n");
     if (talloc_total_size(__ogs_talloc_core) != TALLOC_MEMSIZE)
         talloc_report_full(__ogs_talloc_core, stderr);
-    printf("ogs_mem_final 2\r\n");
+
     talloc_free(__ogs_talloc_core);
-    printf("ogs_mem_final 3\r\n");
+
     ogs_thread_mutex_destroy(&mutex);
 }
 

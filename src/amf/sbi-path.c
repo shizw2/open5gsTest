@@ -579,6 +579,6 @@ void amf_sbi_send_deactivate_all_ue_in_gnb_sps(uint8_t *buf,size_t len, int stat
             }
         }
         }
-   free(buf);
+   ogs_free(buf);
 }
         

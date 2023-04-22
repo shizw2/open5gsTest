@@ -41,7 +41,7 @@ extern int __gmm_log_domain;
 #define OGS_LOG_DOMAIN __amf_log_domain
 
 #define MAX_SPS_NUM         16
-#define MAX_UE_NUM_SINGLE_NG      512
+#define MAX_UE_NUM_SINGLE_NG      2048
 
 typedef struct ran_ue_s ran_ue_t;
 typedef struct amf_ue_s amf_ue_t;
@@ -98,6 +98,7 @@ typedef struct amf_context_s {
 
     ogs_list_t      gnb_list;       /* GNB NGAP Client List */
     ogs_list_t      amf_ue_list;
+    ogs_list_t      icps_ue_list;
 
     ogs_hash_t      *gnb_addr_hash; /* hash table for GNB Address */
     ogs_hash_t      *gnb_id_hash;   /* hash table for GNB-ID */
@@ -115,6 +116,7 @@ typedef struct amf_context_s {
     ogs_list_t      ngap_list6;     /* AMF NGAP IPv6 Server List */
     ogs_list_t      icps_list;      /* icps List */
     ogs_list_t      icps_list6;     /* icps List */
+    
 
     uint8_t         spsnum;
     uint8_t         active_spsnum;
@@ -126,6 +128,7 @@ typedef struct amf_context_s {
     ogs_timer_t     *t_hand_shake_check;      /* timer to check hand shake in icps node */
     ogs_hash_t      *supi_sps_hash;           /* hash table for supi to sps */
     ogs_hash_t      *amf_ue_ngap_id_hash;     /*通过ICPS的amf_ue_ngap_id寻找SPS RAN_UE*/
+    ogs_hash_t      *icps_ue_spsno_hash;
 } amf_context_t;
 
 typedef struct amf_gnb_s {
@@ -652,6 +655,11 @@ typedef struct amf_sess_s {
 #define MAX_INTERNEL_MESSAGE_LEN  (1024*20)  /* max message len 10K */
 #define MAX_SUPI_LENGTH            20
 #define MAX_NF_INSTANCE_ID         40
+typedef struct icps_ue_spsno_s {
+    ogs_lnode_t     lnode;
+    char *supi;
+    uint8_t sps_id;
+}icps_ue_spsno_t;
 
 typedef struct amf_internel_msg_header_s {
     uint8_t msg_type;
@@ -865,7 +873,11 @@ void ran_ue_remove_all(void);
 void ran_ue_remove_sps_self(ran_ue_t *ran_ue);
 void ran_ue_remove_supi(ran_ue_t *ran_ue, char *supi);
 
-
+void icps_ue_remove(icps_ue_spsno_t* icps_ue);
+icps_ue_spsno_t* icps_ue_add(char *supi);
+icps_ue_spsno_t* icps_ue_find_by_supi(char *supi);
+icps_ue_spsno_t *icps_ue_cycle(icps_ue_spsno_t *icps_ue);
+void icps_ue_remove_all();
 
 
 #ifdef __cplusplus

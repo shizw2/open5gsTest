@@ -85,6 +85,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
     uint8_t sps_id = 0;
     amf_internel_msg_header_t internel_msg;
     ssize_t sent;
+
+    
     
     amf_sm_debug(e);
 
@@ -178,11 +180,12 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                         {
                             //获取supi,找到sps模块
                             supi = sbi_message.h.resource.component[1];
-                            ran_ue = ran_ue_find_by_supi(sbi_message.h.resource.component[1]);
+                            
+                            /*
                             if (!ran_ue) {
                                 ogs_error("No UE context [%s]", supi);
                                 break;
-                            }
+                            }*/
                             /*
                             char *supi = sbi_message.h.resource.component[1];
                             sps_id = amf_sps_id_find_by_supi(supi);
@@ -195,7 +198,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                                 ogs_info("find sps id %d by supi %s.",sps_id,supi);
                             } 
                             */    
-                            sps_id = ran_ue->sps_no; 
+                            //sps_id = ran_ue->sps_no;
+                            sps_id=spsid_find_by_supi(sbi_message.h.resource.component[1]);
                             if (sps_id == 0 || sps_id > MAX_SPS_NUM){
                                 ogs_error("sps id %d is invalid.",sps_id);                                
                                 break;
@@ -251,12 +255,12 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             SWITCH(sbi_message.h.resource.component[1])
             CASE(OGS_SBI_RESOURCE_NAME_SM_CONTEXT_STATUS)
                 if (is_amf_icps()){
-                    ran_ue = ran_ue_find_by_supi(sbi_message.h.resource.component[0]);
-                    if (!ran_ue) {
-                        ogs_error("No UE context [%s]", sbi_message.h.resource.component[0]);
+                    sps_id=spsid_find_by_supi(sbi_message.h.resource.component[0]);
+                    if (sps_id == 0 || sps_id > MAX_SPS_NUM){
+                        ogs_error("sps id %d is invalid.",sps_id);                                
                         break;
-                    }
-                    udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,ran_ue->sps_no);
+                    }   
+                    udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,sps_id);
                 }else{
                     amf_namf_callback_handle_sm_context_status(
                         stream, &sbi_message);
@@ -265,12 +269,12 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
             CASE(OGS_SBI_RESOURCE_NAME_DEREG_NOTIFY)
                 if (is_amf_icps()){
-                    ran_ue = ran_ue_find_by_supi(sbi_message.h.resource.component[0]);
-                    if (!ran_ue) {
-                        ogs_error("No UE context [%s]", sbi_message.h.resource.component[0]);
+                    sps_id=spsid_find_by_supi(sbi_message.h.resource.component[0]);
+                    if (sps_id == 0 || sps_id > MAX_SPS_NUM){
+                        ogs_error("sps id %d is invalid.",sps_id);                                
                         break;
-                    }
-                    udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,ran_ue->sps_no);
+                    }                    
+                    udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,sps_id);
                 }else{
                     amf_namf_callback_handle_dereg_notify(stream, &sbi_message);
                 }

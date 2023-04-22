@@ -134,7 +134,6 @@ ogs_socknode_t *testngap_client_n(int family,int n)
 
     i = 0; snode = ogs_list_first(&test_self()->ngap_list);
 
-    ogs_copyaddrinfo(&addr, snode->addr);
     //printf("ngap addr:%s.\r\n",OGS_ADDR(addr, buf));
     while (snode&& n>0) {        
         if (i >= n)
@@ -142,8 +141,7 @@ ogs_socknode_t *testngap_client_n(int family,int n)
             break;
         }
 		i++;
-        snode = ogs_list_next(snode);
-        ogs_copyaddrinfo(&addr, snode->addr);
+        snode = ogs_list_next(snode);       
         //printf("ngap addr:%s.\r\n",OGS_ADDR(addr, buf));/
     }
  

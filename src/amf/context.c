@@ -23,6 +23,7 @@
 #include "udp-ini-path.h"
 
 static amf_context_t self;
+extern int g_sps_id;
 
 int __amf_log_domain;
 int __gmm_log_domain;
@@ -31,6 +32,7 @@ static OGS_POOL(amf_gnb_pool, amf_gnb_t);
 static OGS_POOL(amf_ue_pool, amf_ue_t);
 static OGS_POOL(ran_ue_pool, ran_ue_t);
 static OGS_POOL(amf_sess_pool, amf_sess_t);
+static OGS_POOL(icps_ue_pool, icps_ue_spsno_t);
 
 static int context_initialized = 0;
 
@@ -59,15 +61,23 @@ void amf_context_init(void)
     ogs_list_init(&self.ngap_list6);
 
     /* Allocate TWICE the pool to check if maximum number of gNBs is reached */
-    ogs_pool_init(&amf_gnb_pool, ogs_app()->max.peer*2);
-    ogs_pool_init(&amf_ue_pool, ogs_app()->max.ue);
+    //ogs_pool_init(&amf_gnb_pool, ogs_app()->max.peer*2);
+   // ogs_pool_init(&icps_ue_pool, ogs_app()->max.ue);
     ogs_pool_init(&ran_ue_pool, ogs_app()->max.ue);
+    if (g_sps_id != 0)
+        {
+        ogs_pool_init(&amf_ue_pool, ogs_app()->max.ue);
     ogs_pool_init(&amf_sess_pool, ogs_app()->pool.sess);
-    ogs_pool_init(&self.m_tmsi, ogs_app()->max.ue*2);
-
-    ogs_list_init(&self.gnb_list);
+        ogs_pool_init(&self.m_tmsi, ogs_app()->max.ue*2);        
     ogs_list_init(&self.amf_ue_list);
-
+        
+        }else{
+            ogs_pool_init(&amf_gnb_pool, ogs_app()->max.peer*2);
+            ogs_pool_init(&icps_ue_pool, ogs_app()->max.ue);
+            ogs_list_init(&self.icps_ue_list);            
+        }
+    
+    ogs_list_init(&self.gnb_list);
     self.gnb_addr_hash = ogs_hash_make();
     ogs_assert(self.gnb_addr_hash);
     self.gnb_id_hash = ogs_hash_make();
@@ -88,6 +98,9 @@ void amf_context_init(void)
     self.amf_ue_ngap_id_hash = ogs_hash_make();
     ogs_assert(self.amf_ue_ngap_id_hash);
 
+    self.icps_ue_spsno_hash = ogs_hash_make();
+    ogs_assert(self.icps_ue_spsno_hash);
+
     context_initialized = 1;
 }
 
@@ -95,8 +108,13 @@ void amf_context_final(void)
 {
     ogs_assert(context_initialized == 1);
 
-    amf_gnb_remove_all();
+    //amf_gnb_remove_all();
+    if (g_sps_id != 0){
     amf_ue_remove_all();
+        }else{
+            amf_gnb_remove_all();
+            icps_ue_remove_all();
+            }       
 
     ogs_assert(self.gnb_addr_hash);
     ogs_hash_destroy(self.gnb_addr_hash);
@@ -117,14 +135,21 @@ void amf_context_final(void)
     ogs_hash_destroy(self.supi_ran_hash);
     ogs_assert(self.amf_ue_ngap_id_hash);
     ogs_hash_destroy(self.amf_ue_ngap_id_hash);
-
     
+    ogs_assert(self.icps_ue_spsno_hash);
+    ogs_hash_destroy(self.icps_ue_spsno_hash);        
 
+    //ogs_pool_final(&ran_ue_pool);
+    if (g_sps_id != 0){
     ogs_pool_final(&self.m_tmsi);
     ogs_pool_final(&amf_sess_pool);
     ogs_pool_final(&amf_ue_pool);
-    ogs_pool_final(&ran_ue_pool);
+        }else{
     ogs_pool_final(&amf_gnb_pool);
+            ogs_pool_final(&icps_ue_pool);
+            }
+    ogs_pool_final(&ran_ue_pool);    
+    //ogs_pool_final(&amf_gnb_pool);
 
     context_initialized = 0;
 }
@@ -1300,20 +1325,26 @@ void ran_ue_remove(ran_ue_t *ran_ue)
         ogs_assert(ran_ue->gnb);
 
         ogs_list_remove(&ran_ue->gnb->ran_ue_list, ran_ue);
-
+      //如果删除，寻呼时,没有ran_ue,N1N2 SBI转发失败
+      
         if (ran_ue->supi) {
+            icps_ue_spsno_t* icps_ue;
+            icps_ue=icps_ue_find_by_supi(ran_ue->supi);
+            if(icps_ue){                
+                icps_ue->sps_id=ran_ue->sps_no;
+                }else{
+                icps_ue=icps_ue_add(ran_ue->supi);
+                icps_ue->sps_id=ran_ue->sps_no;
+                }            
             ogs_hash_set(self.supi_ran_hash, ran_ue->supi, strlen(ran_ue->supi), NULL);
             ogs_free(ran_ue->supi);
-            ran_ue->supi=NULL;
         }
+     
     }
-
+       
     ogs_assert(ran_ue->t_ng_holding);
-    ogs_timer_delete(ran_ue->t_ng_holding);
-	
-    //SPS释放如何通知ICPS，ICPS释放需要通知SPS，待处理
+    ogs_timer_delete(ran_ue->t_ng_holding); 
     ogs_pool_free(&ran_ue_pool, ran_ue);
-
     stats_remove_ran_ue();
 }
 
@@ -1369,10 +1400,12 @@ ran_ue_t *ran_ue_find_by_amf_ue_ngap_id_sps(uint64_t *amf_ue_ngap_id_icps)
 void ran_ue_set_amf_ue_ngap_id(ran_ue_t *ran_ue, uint64_t *amf_ue_ngap_id_icps)
 {
     ogs_assert(amf_ue_ngap_id_icps);
-
-    if (ran_ue->amf_ue_ngap_id_icps) {
-        ogs_hash_set(self.amf_ue_ngap_id_hash, ran_ue->amf_ue_ngap_id_icps, sizeof(uint64_t), NULL);
-        ogs_free(ran_ue->amf_ue_ngap_id_icps);
+    ran_ue_t *ran_ue_sps = NULL;
+    ran_ue_sps=ran_ue_find_by_amf_ue_ngap_id_sps(amf_ue_ngap_id_icps);
+    if (ran_ue_sps&&ran_ue_sps->amf_ue_ngap_id_icps) {
+        ogs_hash_set(self.amf_ue_ngap_id_hash, ran_ue_sps->amf_ue_ngap_id_icps, sizeof(uint64_t), NULL);
+        ogs_free(ran_ue_sps->amf_ue_ngap_id_icps);
+        ran_ue_sps->amf_ue_ngap_id_icps=NULL;
     }    
     ran_ue->amf_ue_ngap_id_icps=ogs_memdup(amf_ue_ngap_id_icps, sizeof(uint64_t));
     ogs_assert(ran_ue->amf_ue_ngap_id_icps);
@@ -1389,10 +1422,13 @@ ran_ue_t *ran_ue_find_by_supi(char *supi)
 void ran_ue_set_supi(ran_ue_t *ran_ue, char *supi)
 {
     ogs_assert(supi);
-
-    if (ran_ue->supi) {
-        ogs_hash_set(self.supi_ran_hash, ran_ue->supi, strlen(ran_ue->supi), NULL);
-        ogs_free(ran_ue->supi);
+    ran_ue_t *ran_ue_icps = NULL;
+    
+    ran_ue_icps = ran_ue_find_by_supi(supi);
+    if (ran_ue_icps&&ran_ue_icps->supi) {       
+        ogs_hash_set(self.supi_ran_hash, ran_ue_icps->supi, strlen(ran_ue_icps->supi), NULL);
+        ogs_free(ran_ue_icps->supi);
+        ran_ue_icps->supi=NULL;        
     }
     ran_ue->supi = ogs_strdup(supi);
     ogs_assert(ran_ue->supi);
@@ -2392,7 +2428,7 @@ int amf_m_tmsi_pool_generate()
 {
     int i, j;
     int index = 0;
-
+    if (g_sps_id == 0)return OGS_OK;
     ogs_trace("M-TMSI Pool try to generate...");
     for (i = 0; index < ogs_app()->max.ue*2; i++) {
         amf_m_tmsi_t *m_tmsi = NULL;
@@ -2924,5 +2960,62 @@ void amf_ue_ran_ue_icpstosps_sync(uint8_t sps_id,int ue_num,uint64_t *ue_id,int 
 	       udp_ini_sendto(buff, len, sps_id); 		   
 		}
 
+}
+icps_ue_spsno_t* icps_ue_add(char *supi)
+{
+    icps_ue_spsno_t* icps_ue = NULL;
+
+    ogs_assert(supi);
+
+    ogs_pool_alloc(&icps_ue_pool, &icps_ue);
+    if (icps_ue == NULL) {
+        ogs_error("Could not allocate icps_ue context from pool");
+        return NULL;
+    }
+   memset(icps_ue, 0, sizeof *icps_ue);   
+   icps_ue->supi = ogs_strdup(supi);  
+   ogs_hash_set(self.icps_ue_spsno_hash, icps_ue->supi, strlen(icps_ue->supi), icps_ue);
+   
+   ogs_list_add(&self.icps_ue_list, icps_ue);
+   ogs_info("icps_ue_add ok");
+   ogs_info("[Added] Number of icps-ues is now %d",
+            ogs_list_count(&self.icps_ue_list));
+   return icps_ue;
+}
+void icps_ue_remove(icps_ue_spsno_t *icps_ue)
+{
+    ogs_assert(icps_ue);
+    
+    ogs_list_remove(&self.icps_ue_list, icps_ue);
+
+    if(icps_ue->supi){
+        ogs_hash_set(self.icps_ue_spsno_hash, icps_ue->supi, strlen(icps_ue->supi), NULL);
+        ogs_free(icps_ue->supi);
+        }
+    
+    ogs_pool_free(&icps_ue_pool, icps_ue);
+    ogs_info("icps_ue_remove ok");
+    ogs_info("[Removed] Number of icps-ues is now %d",
+            ogs_list_count(&self.icps_ue_list));
+
+}
+icps_ue_spsno_t* icps_ue_find_by_supi(char *supi)
+{
+    ogs_assert(supi);
+    return (icps_ue_spsno_t *)ogs_hash_get(self.icps_ue_spsno_hash, supi, strlen(supi));
+}
+
+icps_ue_spsno_t *icps_ue_cycle(icps_ue_spsno_t *icps_ue)
+{
+    return ogs_pool_cycle(&icps_ue_pool, icps_ue);
+}
+void icps_ue_remove_all()
+{
+    icps_ue_spsno_t *icps_ue = NULL, *next = NULL;
+
+    ogs_list_for_each_safe(&self.icps_ue_list, next, icps_ue) {       
+        icps_ue=icps_ue_cycle(icps_ue);
+        if(icps_ue)icps_ue_remove(icps_ue);
+    }
 }
 
