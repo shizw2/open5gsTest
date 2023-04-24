@@ -16,7 +16,8 @@ fi
 
 ./build/src/nrf/open5gs-nrfd -e $level &
 ./build/src/amf/open5gs-amfd -e $level &
-
+./build/src/udm/open5gs-udmd -e $level -c ./install/etc/open5gs/udm.yaml &
+./build/src/udm/open5gs-udmd -e $level -c ./install/etc/open5gs/udm2.yaml &
 for ((i=1; i<=$spsno; i++))
 do
     ./build/src/amf/open5gs-amf-spsd -i ${i} -e $level -l ./install/var/log/open5gs/amf_sps${i}.log &
