@@ -5,8 +5,8 @@ subprojects/prometheus-client-c
 subprojects/usrsctp
 .vscode/
 *.pcap
-build/
-!build/config
+build/*
+!build/configs/
 test.log
 core.*
 core-*
