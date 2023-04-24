@@ -11,5 +11,6 @@ test.log
 core.*
 core-*
 open5gs.log
-install/
+install/*
+!install/etc/
 webui/.next
