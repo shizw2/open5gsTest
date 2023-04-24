@@ -6,6 +6,7 @@ subprojects/usrsctp
 .vscode/
 *.pcap
 build/
+!build/config
 test.log
 core.*
 core-*
