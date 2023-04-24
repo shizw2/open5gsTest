@@ -22,7 +22,7 @@ do
     ./build/src/amf/open5gs-amf-spsd -i ${i} -e $level -l ./install/var/log/open5gs/amf_sps${i}.log &
 done
 #echo "The sum is: $sum"
-
+./build/src/smf/open5gs-smfd -e $level -c ./install/etc/open5gs/smf2.yaml &
 #./build/src/amf/open5gs-amf-spsd -i 1 -e $level -l ./install/var/log/open5gs/amf_sps1.log &
 #./build/src/amf/open5gs-amf-spsd -i 2 -e $level -l ./install/var/log/open5gs/amf_sps2.log &
 #./build/src/amf/open5gs-amf-spsd -i 3 -e $level -l ./install/var/log/open5gs/amf_sps3.log &
