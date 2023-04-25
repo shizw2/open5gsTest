@@ -6,11 +6,11 @@ subprojects/usrsctp
 .vscode/
 *.pcap
 build/*
-!build/configs/
+#!build/configs/
 test.log
 core.*
 core-*
 open5gs.log
 install/*
-!install/etc/
+#!install/etc/
 webui/.next
