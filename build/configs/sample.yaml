@@ -9,7 +9,7 @@ parameter:
     no_smf: true
 #    no_upf: true
 #    no_ausf: true
-    no_udm: true
+#    no_udm: true
 #    no_pcf: true
 #    no_nssf: true
 #    no_bsf: true

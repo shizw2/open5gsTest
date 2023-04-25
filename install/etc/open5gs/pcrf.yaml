@@ -20,10 +20,10 @@ db_uri: mongodb://localhost/open5gs
 #    level: trace
 #    domain: core,fd,pcrf,event,mem,sock
 logger:
-    file: /home/git/open5gsTest/install/var/log/open5gs/pcrf.log
+    file: /home/test/install/var/log/open5gs/pcrf.log
 
 pcrf:
-    freeDiameter: /home/git/open5gsTest/install/etc/freeDiameter/pcrf.conf
+    freeDiameter: /home/test/install/etc/freeDiameter/pcrf.conf
 
 #
 # parameter:

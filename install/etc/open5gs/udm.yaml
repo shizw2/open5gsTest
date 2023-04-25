@@ -19,7 +19,7 @@
 #    domain: core,sbi,udm,event,tlv,mem,sock
 #
 logger:
-    file: /home/git/open5gsTest/install/var/log/open5gs/udm.log
+    file: /home/test/install/var/log/open5gs/udm.log
 
 #
 # udm:
@@ -192,11 +192,11 @@ udm:
 #    sbi:
 #      - addr: 127.0.1.10
 #        port: 7777
-
 nrf:
     sbi:
       - addr:
-          - 127.0.0.10        
+          - 127.0.0.10
+          - ::1
         port: 7777
 
 #

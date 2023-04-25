@@ -5,12 +5,10 @@ subprojects/prometheus-client-c
 subprojects/usrsctp
 .vscode/
 *.pcap
-build/*
-#!build/configs/
+build/
 test.log
 core.*
 core-*
 open5gs.log
-install/*
-#!install/etc/
+install/
 webui/.next

@@ -21,7 +21,7 @@ db_uri: mongodb://localhost/open5gs
 #    domain: core,sbi,bsf,event,tlv,mem,sock
 #
 logger:
-    file: /home/git/open5gsTest/install/var/log/open5gs/bsf.log
+    file: /home/test/install/var/log/open5gs/bsf.log
 
 #
 # bsf:

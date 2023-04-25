@@ -19,7 +19,7 @@
 #    domain: core,fd,pfcp,gtp,smf,event,tlv,mem,sock
 #
 logger:
-    file: /home/git/open5gsTest/install/var/log/open5gs/smf2.log
+    file: /home/test/install/var/log/open5gs/smf2.log
 
 #
 # smf:
@@ -481,16 +481,16 @@ smf:
     mtu: 1400
     ctf:
       enabled: auto
-    freeDiameter: /home/git/open5gsTest/install/etc/freeDiameter/smf2.conf
+    freeDiameter: /home/test/install/etc/freeDiameter/smf2.conf
     info:
       - s_nssai:
           - sst: 1
             dnn:
               - internet
         tai:
-#          - plmn_id:
-#              mcc: 999
-#              mnc: 70
+          - plmn_id:
+              mcc: 999
+              mnc: 70
             tac: 2
 #
 # scp:
@@ -533,7 +533,7 @@ smf:
 #
 #scp:
 #    sbi:
-#     - addr: 127.0.1.10
+#      - addr: 127.0.1.10
 #        port: 7777
 nrf:
     sbi:
@@ -541,6 +541,7 @@ nrf:
         - 127.0.0.10
         - ::1
         port: 7777
+
 #
 # nrf:
 #

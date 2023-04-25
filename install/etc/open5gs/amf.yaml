@@ -19,7 +19,7 @@
 #    domain: core,ngap,nas,gmm,sbi,amf,event,tlv,mem,sock
 #
 logger:
-    file: /home/git/open5gsTest/install/var/log/open5gs/amf.log
+    file: /home/test/install/var/log/open5gs/amf.log
 
 #
 # amf:
@@ -294,6 +294,7 @@ amf:
         port: 7777
     ngap:
       - addr: 127.0.0.5
+      - addr: 127.0.0.20
       - addr: 127.0.0.21
       - addr: 127.0.0.22
       - addr: 127.0.0.23
@@ -303,9 +304,10 @@ amf:
       - addr: 127.0.0.27
       - addr: 127.0.0.28
       - addr: 127.0.0.29
+      - addr: 127.0.0.30
     icps:
+      - addr: 127.0.128.5
         port: 9777
-        spsnum: 16
     metrics:
         addr: 127.0.0.5
         port: 9090
@@ -320,7 +322,7 @@ amf:
       - plmn_id:
           mcc: 999
           mnc: 70
-        tac: 1
+        tac: [1,2]
     plmn_support:
       - plmn_id:
           mcc: 999
@@ -375,12 +377,9 @@ amf:
 #
 #scp:
 #    sbi:
-#     - addr: 127.0.1.10
-#        port: 7777
-nrf:
-    sbi:
-      - addr: 127.0.0.10
-        port: 7777
+#      - addr: 127.0.1.10
+ #       port: 7777
+
 #
 # nrf:
 #
@@ -419,7 +418,12 @@ nrf:
 #          l_onoff: true
 #          l_linger: 10
 #
-
+nrf:
+    sbi:
+      - addr:
+          - 127.0.0.10
+#          - ::1
+        port: 7777
 
 #
 # parameter:

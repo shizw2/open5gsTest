@@ -19,7 +19,7 @@
 #    domain: core,sbi,nssf,event,tlv,mem,sock
 #
 logger:
-    file: /home/git/open5gsTest/install/var/log/open5gs/nssf.log
+    file: /home/test/install/var/log/open5gs/nssf.log
 
 #
 # nssf:

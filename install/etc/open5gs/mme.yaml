@@ -19,7 +19,7 @@
 #    domain: core,s1ap,nas,fd,gtp,mme,emm,esm,event,tlv,mem,sock
 #
 logger:
-    file: /home/git/open5gsTest/install/var/log/open5gs/mme.log
+    file: /home/test/install/var/log/open5gs/mme.log
 
 #
 # mme:
@@ -249,7 +249,7 @@ logger:
 #    relative_capacity: 100
 #
 mme:
-    freeDiameter: /home/git/open5gsTest/install/etc/freeDiameter/mme.conf
+    freeDiameter: /home/test/install/etc/freeDiameter/mme.conf
     s1ap:
       - addr: 127.0.0.2
     gtpc:

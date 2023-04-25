@@ -19,7 +19,7 @@
 #    domain: core,sbi,ausf,event,tlv,mem,sock
 #
 logger:
-    file: /home/git/open5gsTest/install/var/log/open5gs/ausf.log
+    file: /home/test/install/var/log/open5gs/ausf.log
 
 #
 # ausf:

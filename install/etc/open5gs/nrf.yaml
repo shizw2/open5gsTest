@@ -19,7 +19,7 @@
 #    domain: core,sbi,nrf,event,mem,sock
 #
 logger:
-    file: /home/git/open5gsTest/install/var/log/open5gs/nrf.log
+    file: /home/test/install/var/log/open5gs/nrf.log
 
 #
 # nrf:

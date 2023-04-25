@@ -19,7 +19,7 @@
 #    domain: core,pfcp,gtp,upf,event,tlv,mem,sock
 #
 logger:
-    file: /home/git/open5gsTest/install/var/log/open5gs/upf.log
+    file: /home/test/install/var/log/open5gs/upf.log
 
 #
 # upf:

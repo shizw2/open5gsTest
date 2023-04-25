@@ -21,7 +21,7 @@ db_uri: mongodb://localhost/open5gs
 #    domain: core,sbi,pcf,event,tlv,mem,sock
 #
 logger:
-    file: /home/git/open5gsTest/install/var/log/open5gs/pcf.log
+    file: /home/test/install/var/log/open5gs/pcf.log
 
 #
 # pcf:
@@ -161,14 +161,14 @@ pcf:
       listen_on: 127.0.0.9
       no_fwd: true
       load_extension:
-        - module: /home/git/open5gsTest/build/subprojects/freeDiameter/extensions/dbg_msg_dumps.fdx
+        - module: /home/test/build/subprojects/freeDiameter/extensions/dbg_msg_dumps.fdx
           conf: 0x8888
-        - module: /home/git/open5gsTest/build/subprojects/freeDiameter/extensions/dict_rfc5777.fdx
-        - module: /home/git/open5gsTest/build/subprojects/freeDiameter/extensions/dict_mip6i.fdx
-        - module: /home/git/open5gsTest/build/subprojects/freeDiameter/extensions/dict_nasreq.fdx
-        - module: /home/git/open5gsTest/build/subprojects/freeDiameter/extensions/dict_nas_mipv6.fdx
-        - module: /home/git/open5gsTest/build/subprojects/freeDiameter/extensions/dict_dcca.fdx
-        - module: /home/git/open5gsTest/build/subprojects/freeDiameter/extensions/dict_dcca_3gpp/dict_dcca_3gpp.fdx
+        - module: /home/test/build/subprojects/freeDiameter/extensions/dict_rfc5777.fdx
+        - module: /home/test/build/subprojects/freeDiameter/extensions/dict_mip6i.fdx
+        - module: /home/test/build/subprojects/freeDiameter/extensions/dict_nasreq.fdx
+        - module: /home/test/build/subprojects/freeDiameter/extensions/dict_nas_mipv6.fdx
+        - module: /home/test/build/subprojects/freeDiameter/extensions/dict_dcca.fdx
+        - module: /home/test/build/subprojects/freeDiameter/extensions/dict_dcca_3gpp/dict_dcca_3gpp.fdx
       connect:
         - identity: ims.localdomain
           addr: 127.0.0.1

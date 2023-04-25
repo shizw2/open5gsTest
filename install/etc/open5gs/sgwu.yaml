@@ -19,7 +19,7 @@
 #    domain: core,pfcp,gtp,sgwu,event,tlv,mem,sock
 #
 logger:
-    file: /home/git/open5gsTest/install/var/log/open5gs/sgwu.log
+    file: /home/test/install/var/log/open5gs/sgwu.log
 
 #
 # sgwu:
