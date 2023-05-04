@@ -330,7 +330,7 @@ bool add_module_info(uint8_t b_module_no)
     g_pt_pkt_fwd_tbl->ta_sps_infos[g_pt_pkt_fwd_tbl->b_sps_num].module_no           = b_module_no;
     g_pt_pkt_fwd_tbl->ta_sps_infos[g_pt_pkt_fwd_tbl->b_sps_num].lost_heart_beat_cnt = 0;
     g_pt_pkt_fwd_tbl->b_sps_num++;
-    ogs_warn("add a new module, id:%d,sps num:%d.", b_module_no, g_pt_pkt_fwd_tbl->b_sps_num);
+    ogs_info("add a new module, id:%d,sps num:%d.", b_module_no, g_pt_pkt_fwd_tbl->b_sps_num);
     return true;
 }
 

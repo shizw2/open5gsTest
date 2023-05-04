@@ -241,10 +241,10 @@ nssf:
 #          l_linger: 10
 #
 #
-scp:
-    sbi:
-      - addr: 127.0.1.10
-        port: 7777
+#scp:
+#    sbi:
+#      - addr: 127.0.1.10
+#        port: 7777
 
 #
 # nrf:
@@ -272,12 +272,12 @@ scp:
 #        - 127.0.0.10
 #        - fd69:f21d:873c:fa::1
 #
-#nrf:
-#    sbi:
-#      - addr:
-#          - 127.0.0.10
+nrf:
+    sbi:
+      - addr:
+          - 127.0.0.10
 #          - ::1
-#        port: 7777
+        port: 7777
 
 #
 # parameter:

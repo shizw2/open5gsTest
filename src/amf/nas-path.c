@@ -544,10 +544,7 @@ int nas_5gs_send_gmm_status(amf_ue_t *amf_ue, ogs_nas_5gmm_cause_t cause)
     ogs_assert(amf_ue);
 
     ogs_debug("[%s] 5GMM status", amf_ue->supi);
-#if 1
-	ogs_info("===========amf_ue->supi==========[%s] 5GMM status", amf_ue->supi);
-    cause=OGS_SBI_HTTP_STATUS_OK;
-#endif
+
     gmmbuf = gmm_build_status(amf_ue, cause);
 
     ogs_expect_or_return_val(gmmbuf, OGS_ERROR);

@@ -89,7 +89,7 @@ nrf:
     sbi:
       addr:
         - 127.0.0.10
-        - ::1
+#        - ::1
       port: 7777
 
 #
@@ -131,10 +131,10 @@ nrf:
 #          l_linger: 10
 #
 #
-scp:
-    sbi:
-      - addr: 127.0.1.10
-        port: 7777
+#scp:
+#    sbi:
+#      - addr: 127.0.1.10
+#        port: 7777
 
 #
 # parameter:

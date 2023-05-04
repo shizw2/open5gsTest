@@ -188,10 +188,10 @@ udr:
 #          l_linger: 10
 #
 #
-scp:
-    sbi:
-      - addr: 127.0.1.10
-        port: 7777
+#scp:
+#    sbi:
+#      - addr: 127.0.1.10
+#        port: 7777
 
 #
 # nrf:
@@ -231,12 +231,12 @@ scp:
 #          l_onoff: true
 #          l_linger: 10
 #
-#nrf:
-#    sbi:
-#      - addr:
-#          - 127.0.0.10
+nrf:
+    sbi:
+      - addr:
+          - 127.0.0.10
 #          - ::1
-#        port: 7777
+        port: 7777
 
 #
 # parameter:
