@@ -84,7 +84,7 @@ void amf_nnrf_handle_nf_discover(
                         AMF_NAS_BACKOFF_TIME));
             } else {
                 ogs_assert(OGS_OK ==
-                    ngap_send_error_indication2(amf_ue,
+                    ngap_send_error_indication2_sps(amf_ue,
                         NGAP_Cause_PR_transport,
                         NGAP_CauseTransport_transport_resource_unavailable));
             }

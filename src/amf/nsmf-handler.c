@@ -360,7 +360,7 @@ int amf_nsmf_pdusession_handle_update_sm_context(
                     ogs_error("[%s:%d] No N2 SM Content",
                             amf_ue->supi, sess->psi);
                     ogs_expect(OGS_OK ==
-                        ngap_send_error_indication2(amf_ue,
+                        ngap_send_error_indication2_sps(amf_ue,
                             NGAP_Cause_PR_protocol,
                             NGAP_CauseProtocol_semantic_error));
 
@@ -725,7 +725,7 @@ int amf_nsmf_pdusession_handle_update_sm_context(
             ogs_error("[%d:%d] No SmContextUpdateError [%d]",
                     sess->psi, sess->pti, recvmsg->res_status);
             ogs_expect(OGS_OK ==
-                ngap_send_error_indication2(amf_ue,
+                ngap_send_error_indication2_sps(amf_ue,
                     NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error));
 
             return OGS_ERROR;

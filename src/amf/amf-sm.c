@@ -713,7 +713,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                             AMF_NAS_BACKOFF_TIME));
                 } else {
                     ogs_expect(OGS_OK ==
-                        ngap_send_error_indication2(amf_ue,
+                        ngap_send_error_indication2_sps(amf_ue,
                             NGAP_Cause_PR_transport,
                             NGAP_CauseTransport_transport_resource_unavailable)
                     );

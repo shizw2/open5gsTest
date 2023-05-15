@@ -1117,7 +1117,7 @@ void ngap_handle_ue_context_release_request_sps(
                 if (!PDUSessionItem) {
                     ogs_error("No PDUSessionResourceSetupItemSURes");
                     ogs_assert(OGS_OK ==
-                        ngap_send_error_indication2(
+                        ngap_send_error_indication2_sps(
                             amf_ue, NGAP_Cause_PR_protocol,
                             NGAP_CauseProtocol_semantic_error));
                     return;
@@ -1127,7 +1127,7 @@ void ngap_handle_ue_context_release_request_sps(
                         OGS_NAS_PDU_SESSION_IDENTITY_UNASSIGNED) {
                     ogs_error("PDU Session Identity is unassigned");
                     ogs_assert(OGS_OK ==
-                        ngap_send_error_indication2(
+                        ngap_send_error_indication2_sps(
                             amf_ue, NGAP_Cause_PR_protocol,
                             NGAP_CauseProtocol_semantic_error));
                     return;
@@ -2526,7 +2526,7 @@ void ngap_handle_pdu_session_resource_modify_response_sps(
             ogs_error("Cannot find PDU Session ID [%d]",
                     (int)PDUSessionItem->pDUSessionID);
             ogs_assert(OGS_OK ==
-                ngap_send_error_indication2(amf_ue,
+                ngap_send_error_indication2_sps(amf_ue,
                     NGAP_Cause_PR_radioNetwork,
                     NGAP_CauseRadioNetwork_unknown_PDU_session_ID));
             return;
