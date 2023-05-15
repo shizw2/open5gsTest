@@ -23,6 +23,7 @@ abts_suite *test_epc_x2(abts_suite *suite);
 abts_suite *test_epc_s1(abts_suite *suite);
 abts_suite *test_5gc_xn(abts_suite *suite);
 abts_suite *test_5gc_n2(abts_suite *suite);
+extern int g_testcycleNum;
 
 const struct testlist {
     abts_suite *(*func)(abts_suite *suite);
@@ -59,14 +60,17 @@ static void initialize(const char *const argv[])
 
 int main(int argc, const char *const argv[])
 {
-    int i;
+    int i,j;
     abts_suite *suite = NULL;
 
     atexit(terminate);
     test_app_run(argc, argv, "sample.yaml", initialize);
+    for(j=0;j<g_testcycleNum;j++){
+        printf("\r\n");
+        printf(">>>>>>>>>>>>>>>>>g_testcycleNum:%d:%d \r\n",g_testcycleNum,j);
 
     for (i = 0; alltests[i].func; i++)
         suite = alltests[i].func(suite);
-
+        }
     return abts_report(suite);
 }

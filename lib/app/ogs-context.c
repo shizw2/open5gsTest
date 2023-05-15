@@ -184,7 +184,7 @@ static void app_context_prepare(void)
 
     /* <Heartbeat Checking Interval>
      *  Heartbeat Interval(e.g: 10 seconds) + No Heartbeat Margin(1 second) */
-    self.time.nf_instance.no_heartbeat_margin = 3;
+    self.time.nf_instance.no_heartbeat_margin = 1;
 
     /* 3600 seconds = 1 hour */
     self.time.nf_instance.validity_duration = 3600;

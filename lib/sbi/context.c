@@ -764,6 +764,7 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_add(void)
     memset(nf_instance, 0, sizeof(ogs_sbi_nf_instance_t));
 
     ogs_debug("ogs_sbi_nf_instance_add()");
+    ogs_warn("test:******ogs_sbi_nf_instance_add()");
 
     OGS_OBJECT_REF(nf_instance);
 
@@ -786,6 +787,8 @@ void ogs_sbi_nf_instance_set_id(ogs_sbi_nf_instance_t *nf_instance, char *id)
 
     nf_instance->id = ogs_strdup(id);
     ogs_assert(nf_instance->id);
+
+    ogs_warn("test:ogs_sbi_nf_instance_set_id:%s.",id);
 }
 
 void ogs_sbi_nf_instance_set_type(
@@ -795,6 +798,7 @@ void ogs_sbi_nf_instance_set_type(
     ogs_assert(nf_type);
 
     nf_instance->nf_type = nf_type;
+    ogs_warn("test:ogs_sbi_nf_instance_set_type:%d[%s], id:%s.",nf_type,OpenAPI_nf_type_ToString(nf_type),nf_instance->id);
 }
 
 void ogs_sbi_nf_instance_set_status(

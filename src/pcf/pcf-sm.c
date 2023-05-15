@@ -642,9 +642,10 @@ void pcf_state_operational(ogs_fsm_t *s, pcf_event_t *e)
         break;
 
     case PCF_EVENT_RX_CMD:
-        ogs_info("**************PCF_EVENT_RX_CMD****************");
+        ogs_info("**************PCF_EVENT_RX_CMD****************,cmd_code:%d.",e->rx_message->cmd_code);
         pcf_n7_send_rar(e->sess, e->app, e->rx_message);   
         ogs_ims_data_free(&e->rx_message->ims_data);
+        ogs_free(e->rx_message);
         break;
 
     default:

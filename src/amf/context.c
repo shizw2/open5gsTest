@@ -1321,6 +1321,8 @@ ran_ue_t *ran_ue_add_sps( uint32_t ran_ue_ngap_id,uint64_t amf_ue_ngap_id)
 void ran_ue_remove(ran_ue_t *ran_ue)
 {
     ogs_assert(ran_ue);
+    if(ran_ue->gnb)
+        ogs_info("ran_ue->gnb->gnb_id:[%d]",ran_ue->gnb->gnb_id);
     if(is_amf_icps()){
         ogs_assert(ran_ue->gnb);
 
@@ -1344,7 +1346,7 @@ void ran_ue_remove(ran_ue_t *ran_ue)
        
     ogs_assert(ran_ue->t_ng_holding);
     ogs_timer_delete(ran_ue->t_ng_holding); 
-    ogs_pool_free(&ran_ue_pool, ran_ue);
+    ogs_pool_free(&ran_ue_pool, ran_ue);    
     stats_remove_ran_ue();
 }
 

@@ -57,11 +57,11 @@ void test_thread_context_init(int threadID)
     do { 
         int i; 
         (p_test_bearer_pool)->name = "ddd"; 
-        (p_test_bearer_pool)->free = malloc(sizeof(*(p_test_bearer_pool)->free) * ogs_app()->pool.bearer/g_threadNum); 
+        (p_test_bearer_pool)->free = ogs_malloc(sizeof(*(p_test_bearer_pool)->free) * ogs_app()->pool.bearer/g_threadNum); 
         ogs_assert((p_test_bearer_pool)->free); 
-        (p_test_bearer_pool)->array = malloc(sizeof(*(p_test_bearer_pool)->array) * ogs_app()->pool.bearer/g_threadNum); 
+        (p_test_bearer_pool)->array = ogs_malloc(sizeof(*(p_test_bearer_pool)->array) * ogs_app()->pool.bearer/g_threadNum); 
         ogs_assert((p_test_bearer_pool)->array); 
-        (p_test_bearer_pool)->index = malloc(sizeof(*(p_test_bearer_pool)->index) * ogs_app()->pool.bearer/g_threadNum); 
+        (p_test_bearer_pool)->index = ogs_malloc(sizeof(*(p_test_bearer_pool)->index) * ogs_app()->pool.bearer/g_threadNum); 
         ogs_assert((p_test_bearer_pool)->index); 
         (p_test_bearer_pool)->size = (p_test_bearer_pool)->avail = ogs_app()->pool.bearer/g_threadNum; 
         (p_test_bearer_pool)->head = (p_test_bearer_pool)->tail = 0; 
@@ -79,7 +79,7 @@ void test_context_init(void)
     int rv;
     pthread_key_create ( & bearer_key ,  NULL);
     //pthread_setspecific(bearer_key,(void *)&test_bearer_pool_thread[0]);
-	test_thread_context_init(0);
+    test_thread_context_init(0);
     
     ogs_assert(context_initialized == 0);
 
@@ -132,7 +132,11 @@ void test_context_final(void)
 void test_context_final_ex(void)
 {
 	test_bearer_pool_t*p_test_bearer_pool = (test_bearer_pool_t*)pthread_getspecific(bearer_key);
-	ogs_pool_final(p_test_bearer_pool);
+	//ogs_pool_final(p_test_bearer_pool);
+	if((p_test_bearer_pool)->free)ogs_free((p_test_bearer_pool)->free);
+    if((p_test_bearer_pool)->array)ogs_free((p_test_bearer_pool)->array);
+    if((p_test_bearer_pool)->index)ogs_free((p_test_bearer_pool)->index);
+   
 }
 
 test_context_t *test_self(void)

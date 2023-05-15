@@ -630,7 +630,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
 
         ogs_nnrf_nfm_handle_nf_profile(nf_instance, NFProfile);
 
-        ogs_info("[%s] (NRF-notify) NF Profile updated", nf_instance->id);
+        ogs_info("[%s] (NRF-notify) NF Profile updated,nftype:%s", nf_instance->id, OpenAPI_nf_type_ToString(nf_instance->nf_type));
 
         ogs_sbi_client_associate(nf_instance);
 
@@ -723,12 +723,12 @@ void ogs_nnrf_disc_handle_nf_discover_search_result(
             ogs_sbi_nf_instance_set_id(nf_instance, NFProfile->nf_instance_id);
             ogs_sbi_nf_fsm_init(nf_instance);
 
-            ogs_info("[%s] (NF-discover) NF registered", nf_instance->id);
+            ogs_info("[%s] (NF-discover) NF registered,nf_instance_name:%s.", nf_instance->id,NFProfile->nf_instance_name);
         } else {
             ogs_sbi_nf_fsm_tran(nf_instance, ogs_sbi_nf_state_registered);
 
-            ogs_warn("[%s] (NF-discover) NF has already been added",
-                    NFProfile->nf_instance_id);
+            ogs_warn("[%s] (NF-discover) NF has already been added,nf_instance_name:%s.",
+                    NFProfile->nf_instance_id, NFProfile->nf_instance_name);
         }
 
         if (NF_INSTANCE_ID_IS_OTHERS(nf_instance->id)) {
@@ -750,7 +750,7 @@ void ogs_nnrf_disc_handle_nf_discover_search_result(
                 ogs_warn("[%s] NF Instance validity-time should not 0",
                         nf_instance->id);
 
-            ogs_info("[%s] (NF-discover) NF Profile updated", nf_instance->id);
+            ogs_info("[%s] (NF-discover) NF Profile updated, nf_type:%s.", nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type));
         }
     }
 }

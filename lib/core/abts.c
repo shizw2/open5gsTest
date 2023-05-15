@@ -42,6 +42,7 @@ static int list_tests = 0;
 
 int g_testNum = 1;
 int g_threadNum = 1;
+int g_testcycleNum = 1;
 
 const char **testlist = NULL;
 
@@ -522,7 +523,7 @@ int abts_main(int argc, const char *const argv[], const char **argv_out)
     memset(&optarg, 0, sizeof(optarg));
 
     ogs_getopt_init(&options, (char**)argv);
-    while ((opt = ogs_getopt(&options, "hvxlqc:e:m:n:T:dt")) != -1) {
+    while ((opt = ogs_getopt(&options, "hvxlqc:e:m:n:T:w:dt")) != -1) {
         switch (opt) {
         case 'h':
             show_help(argv[0]);
@@ -561,6 +562,9 @@ int abts_main(int argc, const char *const argv[], const char **argv_out)
 		case 'T':
             g_threadNum = atoi(options.optarg);
             printf("threadNum:%d\r\n",g_threadNum);
+            break;
+       case 'w':
+            g_testcycleNum=atoi(options.optarg);
             break;
         case '?':
             fprintf(stderr, "%s: %s\n", argv[0], options.errmsg);

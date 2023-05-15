@@ -229,41 +229,49 @@ static void test1_func(abts_case *tc, void *data)
             test_ue->ngap_procedure_code);
 
     /* Send GTP-U ICMP Packet */
+    ogs_info("Send GTP-U ICMP Packet");
     qos_flow = test_qos_flow_find_by_qfi(sess, 1);
     ogs_assert(qos_flow);
     rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Send PDUSessionResourceSetupResponse */
+    ogs_info("Send PDUSessionResourceSetupResponse");
     sendbuf = testngap_sess_build_pdu_session_resource_setup_response(sess);
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Receive GTP-U ICMP Packet */
+    ogs_info("Receive GTP-U ICMP Packet");
     recvbuf = testgnb_gtpu_read(gtpu);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     ogs_pkbuf_free(recvbuf);
 
     /* Send GTP-U ICMP Packet */
+    ogs_info("Send GTP-U ICMP Packet2");
     rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Receive GTP-U ICMP Packet */
+    ogs_info("Receive GTP-U ICMP Packet");
     recvbuf = testgnb_gtpu_read(gtpu);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     ogs_pkbuf_free(recvbuf);
 
     /* Send GTP-U Router Solicitation */
+    ogs_info("Send GTP-U Router Solicitation");
     rv = test_gtpu_send_slacc_rs(gtpu, qos_flow);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Receive GTP-U Router Advertisement */
+    ogs_info("Receive GTP-U Router Advertisement");
     recvbuf = test_gtpu_read(gtpu);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     testgtpu_recv(test_ue, recvbuf);
 
     /* Send PDU session establishment request */
+    ogs_info("Send PDU session establishment request, ims");
     sess = test_sess_add_by_dnn_and_psi(test_ue, "ims", 6);
     ogs_assert(sess);
 

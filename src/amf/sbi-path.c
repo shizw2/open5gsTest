@@ -392,11 +392,15 @@ void amf_sbi_send_deactivate_all_ue_in_gnb(amf_gnb_t *gnb, int state)
     int i=0,j=0,k=0,num[MAX_SPS_NUM+1];
     uint64_t ue[MAX_SPS_NUM+1][MAX_UE_NUM_SINGLE_NG];
     uint8_t sps_id;
+    char buf[OGS_ADDRSTRLEN];
+    ogs_info("gNB IP-address [%s],gnb_id:[%d]!!!",
+                    OGS_ADDR((gnb->sctp).addr, buf),gnb->gnb_id);
     for(i=0;i<MAX_SPS_NUM+1;i++){
         num[i]=0;
         }
     ogs_list_for_each_safe(&gnb->ran_ue_list, ran_ue_next, ran_ue) {
-        sps_id=spsid_find_by_amf_ue_ngap_id(ran_ue->amf_ue_ngap_id);
+        //sps_id=spsid_find_by_amf_ue_ngap_id(ran_ue->amf_ue_ngap_id);
+        sps_id=ran_ue->sps_no;
         k=num[sps_id];
         ue[sps_id][k]=ran_ue->amf_ue_ngap_id;
         num[sps_id]=num[sps_id]+1;
@@ -441,16 +445,17 @@ void amf_sbi_send_deactivate_all_ue_in_gnb(amf_gnb_t *gnb, int state)
             }
         }
 #endif
+        }
        for(j=1;j<MAX_SPS_NUM+1;j++)
         {
         if(num[j]>0)
             {
-                ogs_info("UE NUM============%d",num[j]);
+                ogs_info("SPS_NO:%d,UE NUM============%d",j,num[j]);
                 amf_ue_ran_ue_icpstosps_sync(j,num[j],ue[j],state);
     }
         }
         
-    }
+    
     
 }
 
@@ -540,7 +545,7 @@ void amf_sbi_send_deactivate_all_ue_in_gnb_sps(uint8_t *buf,size_t len, int stat
     int i=0,old_xact_count = 0, new_xact_count = 0;
     uint64_t ue[MAX_UE_NUM_SINGLE_NG];
     print_buf(buf,len);
-    for(i=0;i<len;i++){   
+    for(i=0;len>=sizeof(uint64_t);i++){   
        ue[i]=(uint64_t)buf[i*sizeof(uint64_t)];
        ogs_info("amf_sbi_send_deactivate_all_ue_in_gnb_sps,%ld,len=%lu",ue[i],len);
        len=len-sizeof(uint64_t);        
@@ -558,14 +563,15 @@ void amf_sbi_send_deactivate_all_ue_in_gnb_sps(uint8_t *buf,size_t len, int stat
                 NGAP_CauseRadioNetwork_failure_in_radio_interface_procedure);
 
             new_xact_count = amf_sess_xact_count(amf_ue);
+            ogs_info("old_xact_count=[%d],new_xact_count=[%d]",old_xact_count,new_xact_count);
 
             if (old_xact_count == new_xact_count) {
                 ran_ue_remove(ran_ue);
                 amf_ue_deassociate(amf_ue);
             }
         } else {
-            ogs_warn("amf_sbi_send_deactivate_all_ue_in_gnb()");
-            ogs_warn("    RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld] State[%d]",
+            ogs_info("amf_sbi_send_deactivate_all_ue_in_gnb()");
+            ogs_info("    RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld] State[%d]",
                 ran_ue->ran_ue_ngap_id, (long long)ran_ue->amf_ue_ngap_id,
                 state);
 

@@ -107,7 +107,7 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
     struct sess_state *sess_data = NULL;
     size_t sidlen;
 
-    ogs_diam_rx_message_t rx_message;
+    ogs_diam_rx_message_t *rx_message = NULL;
     ogs_media_component_t *media_component = NULL;
     ogs_media_sub_component_t *sub = NULL;
     ogs_flow_t *flow = NULL;
@@ -138,8 +138,9 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
     ogs_info("[PCF] AA-Requestt,rx_sid:%s.",sess_data->rx_sid);
 
     /* Initialize Message */
-    memset(&rx_message, 0, sizeof(ogs_diam_rx_message_t));
-    rx_message.cmd_code = OGS_DIAM_RX_CMD_CODE_AA;
+    rx_message = ogs_malloc(sizeof(ogs_diam_rx_message_t));
+    memset(rx_message, 0, sizeof(ogs_diam_rx_message_t));
+    rx_message->cmd_code = OGS_DIAM_RX_CMD_CODE_AA;
 
     /* Create answer header */
     qry = *msg;
@@ -253,8 +254,8 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
             break;
         /* Gwt Media-Component-Description */
         case OGS_DIAM_RX_AVP_CODE_MEDIA_COMPONENT_DESCRIPTION:
-            media_component = &rx_message.ims_data.
-                    media_component[rx_message.ims_data.num_of_media_component];
+            media_component = &rx_message->ims_data.
+                    media_component[rx_message->ims_data.num_of_media_component];
 
             ret = fd_msg_browse(avpch1, MSG_BRW_FIRST_CHILD, &avpch2, NULL);
             ogs_assert(ret == 0);
@@ -351,7 +352,7 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
                 fd_msg_browse(avpch2, MSG_BRW_NEXT, &avpch2, NULL);
             }
 
-            rx_message.ims_data.num_of_media_component++;
+            rx_message->ims_data.num_of_media_component++;
             break;
         default:
             ogs_warn("Not supported(%d)", hdr->avp_code);
@@ -361,9 +362,9 @@ static int pcf_rx_aar_cb( struct msg **msg, struct avp *avp,
     }
 
     /* Send Re-Auth Request */
-    rv = pcf_n7_send_rar_to_main_thread(pcf_sess,app_session, &rx_message);
+    rv = pcf_n7_send_rar_to_main_thread(pcf_sess,app_session, rx_message);
     if (rv != OGS_OK) {        
-        result_code = rx_message.result_code;
+        result_code = rx_message->result_code;
         if (result_code != ER_DIAMETER_SUCCESS) {
             ogs_error("pcrf_gx_send_rar() failed");
             goto out;
@@ -447,8 +448,8 @@ out:
     ogs_assert(ret == 0);
 
     state_cleanup(sess_data, NULL, NULL);
-    //ogs_ims_data_free(&rx_message.ims_data);
-
+    ogs_ims_data_free(&rx_message->ims_data);
+    ogs_free(rx_message);
     return 0;
 }
 
@@ -652,7 +653,7 @@ static int pcf_rx_str_cb( struct msg **msg, struct avp *avp,
     union avp_value val;
     struct sess_state *sess_data = NULL;
 
-    ogs_diam_rx_message_t rx_message;
+    ogs_diam_rx_message_t *rx_message;
 
     uint32_t result_code = OGS_DIAM_RX_DIAMETER_IP_CAN_SESSION_NOT_AVAILABLE;
     pcf_app_t *app_session = NULL;
@@ -681,8 +682,9 @@ static int pcf_rx_str_cb( struct msg **msg, struct avp *avp,
     //ogs_assert(sess_data->gx_sid);
 
     /* Initialize Message */
-    memset(&rx_message, 0, sizeof(ogs_diam_rx_message_t));
-    rx_message.cmd_code = OGS_DIAM_RX_CMD_CODE_SESSION_TERMINATION;
+    rx_message = ogs_malloc(sizeof(ogs_diam_rx_message_t));
+    memset(rx_message, 0, sizeof(ogs_diam_rx_message_t));
+    rx_message->cmd_code = OGS_DIAM_RX_CMD_CODE_SESSION_TERMINATION;
 
     /* Create answer header */
     qry = *msg;
@@ -731,15 +733,16 @@ static int pcf_rx_str_cb( struct msg **msg, struct avp *avp,
         if (sess_data->app_session_id == NULL) {
             ogs_error("sess_data->app_session_id is null,rx_sid:%s.",sess_data->rx_sid);
             state_cleanup(sess_data, NULL, NULL);
-            ogs_ims_data_free(&rx_message.ims_data);
+            ogs_ims_data_free(&rx_message->ims_data);
+            ogs_free(rx_message);
             return 0;
         }
         app_session = pcf_app_find_by_app_session_id(sess_data->app_session_id); 
         ogs_assert(app_session);
         /* Send Re-Auth Request if Abort-Session-Request is not initaited */
-        rv = pcf_n7_send_rar_to_main_thread(sess_data->pcf_sess,app_session, &rx_message); 
+        rv = pcf_n7_send_rar_to_main_thread(sess_data->pcf_sess,app_session, rx_message); 
         if (rv != OGS_OK) {
-            result_code = rx_message.result_code;
+            result_code = rx_message->result_code;
             if (result_code != ER_DIAMETER_SUCCESS) {
                 ogs_error("pcrf_gx_send_rar() failed");
                 goto out;
@@ -763,7 +766,7 @@ static int pcf_rx_str_cb( struct msg **msg, struct avp *avp,
     ogs_assert(pthread_mutex_unlock(&ogs_diam_logger_self()->stats_lock) == 0);
 
     state_cleanup(sess_data, NULL, NULL);
-    ogs_ims_data_free(&rx_message.ims_data);
+    //ogs_ims_data_free(&rx_message.ims_data);//发送成功,在接收处释放
     
     return 0;
 
@@ -791,7 +794,8 @@ out:
     ogs_debug("[PCF] Session-Termination-Answer");
 
     state_cleanup(sess_data, NULL, NULL);
-    ogs_ims_data_free(&rx_message.ims_data);
+    ogs_ims_data_free(&rx_message->ims_data);
+    ogs_free(rx_message);
 
     return 0;
 }
