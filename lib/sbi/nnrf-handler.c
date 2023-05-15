@@ -723,12 +723,12 @@ void ogs_nnrf_disc_handle_nf_discover_search_result(
             ogs_sbi_nf_instance_set_id(nf_instance, NFProfile->nf_instance_id);
             ogs_sbi_nf_fsm_init(nf_instance);
 
-            ogs_info("[%s] (NF-discover) NF registered,nf_instance_name:%s.", nf_instance->id,NFProfile->nf_instance_name);
+            ogs_info("[%s] (NF-discover) NF registered,nf_instance_name:%s.", nf_instance->id,OpenAPI_nf_type_ToString(NFProfile->nf_type));
         } else {
             ogs_sbi_nf_fsm_tran(nf_instance, ogs_sbi_nf_state_registered);
 
             ogs_warn("[%s] (NF-discover) NF has already been added,nf_instance_name:%s.",
-                    NFProfile->nf_instance_id, NFProfile->nf_instance_name);
+                    NFProfile->nf_instance_id, OpenAPI_nf_type_ToString(NFProfile->nf_type));
         }
 
         if (NF_INSTANCE_ID_IS_OTHERS(nf_instance->id)) {

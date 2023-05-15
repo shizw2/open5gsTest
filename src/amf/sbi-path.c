@@ -273,6 +273,7 @@ static int client_discover_cb(
         goto cleanup;
     }
 
+    ogs_debug("amf client_discover_cb.");
     ogs_nnrf_disc_handle_nf_discover_search_result(message.SearchResult);
 
     amf_sbi_select_nf(&sess->sbi,
