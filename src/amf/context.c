@@ -2238,11 +2238,31 @@ void amf_sbi_select_nf(
 
     switch(sbi_object->type) {
     case OGS_SBI_OBJ_UE_TYPE:
-        nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
-                        target_nf_type, requester_nf_type, discovery_option);
+        /*nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
+                        target_nf_type, requester_nf_type, discovery_option);               
         if (nf_instance)
             OGS_SBI_SETUP_NF_INSTANCE(
+                    sbi_object->service_type_array[service_type], nf_instance);*/
+        ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
+            if (ogs_sbi_discovery_param_is_matched(
+                    nf_instance,
+                    target_nf_type, requester_nf_type, discovery_option) ==
+                        false)
+                continue;
+            
+            if (nf_instance->nf_type == OpenAPI_nf_type_UDM){
+                //if (nf_instance->time.heartbeat_interval != ogs_sbi_self()->nf_instance->time.heartbeat_interval){
+                if (g_sps_id%2 != nf_instance->time.heartbeat_interval%2){
+                    continue;
+                }else{
+                    ogs_warn("g_sps_id:%d, get nf_instance id:%s, nf_instance_name:%s.",g_sps_id,nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type));
+                }
+            }
+
+            OGS_SBI_SETUP_NF_INSTANCE(
                     sbi_object->service_type_array[service_type], nf_instance);
+            break;
+        }
         break;
     case OGS_SBI_OBJ_SESS_TYPE:
         sess = (amf_sess_t *)sbi_object;
@@ -2261,6 +2281,16 @@ void amf_sbi_select_nf(
                 if (nf_instance->nf_type == OpenAPI_nf_type_SMF &&
                     check_smf_info(nf_info, sess) == false)
                     continue;
+            }
+            
+            if (nf_instance->nf_type == OpenAPI_nf_type_UDM){
+                //if (nf_instance->time.heartbeat_interval != ogs_sbi_self()->nf_instance->time.heartbeat_interval){
+                ogs_warn("g_sps_id:%d, nf_instance id:%s, nf_instance_name:%s.",g_sps_id,nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type));
+                if (g_sps_id%2 != nf_instance->time.heartbeat_interval%2){
+                    continue;
+                }else{
+                    ogs_warn("g_sps_id:%d, get nf_instance id:%s, nf_instance_name:%s.",g_sps_id,nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type));
+                }
             }
 
             OGS_SBI_SETUP_NF_INSTANCE(

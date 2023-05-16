@@ -779,7 +779,7 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_add(void)
 
     ogs_sbi_nf_instance_t *tmp_nf_instance = NULL;
     ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, tmp_nf_instance) {
-        ogs_debug("ogs_list_for_each,nf_instance id:%s, nf_instance_name:%s.",tmp_nf_instance->id, OpenAPI_nf_type_ToString(tmp_nf_instance->nf_type));
+        ogs_debug("ogs_list_for_each,nf_instance id:%s, nf_instance_name:%s,heartbeat:%d.",tmp_nf_instance->id, OpenAPI_nf_type_ToString(tmp_nf_instance->nf_type),tmp_nf_instance->time.heartbeat_interval);
     }
 
     return nf_instance;
