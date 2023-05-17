@@ -205,15 +205,37 @@ bool ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
     /* Target NF-Instance */
     nf_instance = sbi_object->service_type_array[service_type].nf_instance;
     if (!nf_instance) {
-        nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
-                        target_nf_type, requester_nf_type, discovery_option);
-        if (nf_instance)
-            OGS_SBI_SETUP_NF_INSTANCE(
-                    sbi_object->service_type_array[service_type], nf_instance);
+        if (target_nf_type == OpenAPI_nf_type_UDM){
+            ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
+                if (ogs_sbi_discovery_param_is_matched(
+                        nf_instance,
+                        target_nf_type, requester_nf_type, discovery_option) ==
+                            false)
+                    continue;                   
+                
+                //if (nf_instance->time.heartbeat_interval != ogs_sbi_self()->nf_instance->time.heartbeat_interval){
+                if (xact->select_key%2 != nf_instance->time.heartbeat_interval%2){
+                    continue;
+                }else{
+                    ogs_warn("ogs_sbi_discover_and_send,select_key:%d, get nf_instance id:%s, nf_instance_name:%s,service_type:%d,target_nf_type:%d.",xact->select_key,nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type),service_type,target_nf_type);
+                }
+                
+
+                OGS_SBI_SETUP_NF_INSTANCE(
+                        sbi_object->service_type_array[service_type], nf_instance);
+                break;
+            }
+        }else{
+            nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
+                            target_nf_type, requester_nf_type, discovery_option);
+            if (nf_instance)
+                OGS_SBI_SETUP_NF_INSTANCE(
+                        sbi_object->service_type_array[service_type], nf_instance);
+        }
     }
 
     if (nf_instance){
-        ogs_info("test:ogs_sbi_discover_and_send,request->h.uri:%s, nf_instance id:%s",request->h.uri,nf_instance->id);
+        ogs_info("test:ogs_sbi_discover_and_send,request->h.uri:%s, nf_instance id:%s,service_type:%d,target_nf_type:%d.",request->h.uri,nf_instance->id,service_type,target_nf_type);
     }
     /* Target Client */
     if (request->h.uri == NULL) {

@@ -170,6 +170,8 @@ typedef struct ogs_sbi_xact_s {
     int state;
 
     ogs_sbi_object_t *sbi_object;
+    
+    int select_key;
 } ogs_sbi_xact_t;
 
 typedef struct ogs_sbi_nf_service_s {

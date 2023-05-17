@@ -2255,7 +2255,7 @@ void amf_sbi_select_nf(
                 if (g_sps_id%2 != nf_instance->time.heartbeat_interval%2){
                     continue;
                 }else{
-                    ogs_warn("g_sps_id:%d, get nf_instance id:%s, nf_instance_name:%s.",g_sps_id,nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type));
+                    ogs_warn("g_sps_id:%d, get nf_instance id:%s, nf_instance_name:%s,service_type:%d,target_nf_type:%d.",g_sps_id,nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type),service_type,target_nf_type);
                 }
             }
 

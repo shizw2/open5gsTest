@@ -21,7 +21,7 @@ fi
 ./build/src/udm/open5gs-udmd -e $level &
 ./build/src/udm/open5gs-udmd -e $level -c ./install/etc/open5gs/udm2.yaml &
 ./build/src/pcf/open5gs-pcfd -e $level &
-./build/src/pcf/open5gs-pcfd -e $level -c ./install/etc/open5gs/pcf2.yaml &
+#./build/src/pcf/open5gs-pcfd -e $level -c ./install/etc/open5gs/pcf2.yaml &
 ./build/src/nssf/open5gs-nssfd -e $level &
 ./build/src/bsf/open5gs-bsfd -e $level &
 ./build/src/udr/open5gs-udrd -e $level &
