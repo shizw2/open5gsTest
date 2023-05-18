@@ -121,7 +121,7 @@ bool smf_sbi_discover_and_send(
 
     xact->state = state;
     xact->assoc_stream = stream;
-    xact->select_key = g_sps_id;
+    xact->select_key = ogs_sbi_self()->nf_instance->time.heartbeat_interval;
     
     if (ogs_sbi_discover_and_send(xact) != true) {
         ogs_error("smf_sbi_discover_and_send() failed");
