@@ -66,25 +66,14 @@ void smf_nnrf_handle_nf_discover(
             sbi_object->service_type_array[service_type], nf_instance);
 */
 
-    if (target_nf_type == OpenAPI_nf_type_UDM){
-        ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
-            if (ogs_sbi_discovery_param_is_matched(
-                    nf_instance,
-                    target_nf_type, requester_nf_type, discovery_option) ==
-                        false)
-                continue;                   
-            
-            if (nf_instance->time.heartbeat_interval != ogs_sbi_self()->nf_instance->time.heartbeat_interval){
-            //if (xact->select_key%2 != nf_instance->time.heartbeat_interval%2){
-                continue;
-            }else{
-                ogs_warn("ogs_sbi_discover_and_send,select_key:%d, get nf_instance id:%s, nf_instance_name:%s,service_type:%d,target_nf_type:%d.",xact->select_key,nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type),service_type,target_nf_type);
-            }
-            
-
-            OGS_SBI_SETUP_NF_INSTANCE(
-                    sbi_object->service_type_array[service_type], nf_instance);
-            break;
+    if (target_nf_type == OpenAPI_nf_type_UDM || target_nf_type == OpenAPI_nf_type_PCF){
+        nf_instance = ogs_sbi_nf_instance_find_by_select_key(
+                        target_nf_type, requester_nf_type, discovery_option);
+        if (!nf_instance) {
+            ogs_error("(NF discover) No [%s:%s]",
+                        ogs_sbi_service_type_to_name(service_type),
+                        OpenAPI_nf_type_ToString(requester_nf_type));
+            return;
         }
     }else{        
         nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
@@ -94,10 +83,11 @@ void smf_nnrf_handle_nf_discover(
                         ogs_sbi_service_type_to_name(service_type),
                         OpenAPI_nf_type_ToString(requester_nf_type));
             return;
-        }
-
-        OGS_SBI_SETUP_NF_INSTANCE(
-                sbi_object->service_type_array[service_type], nf_instance);        
+        }              
     }
+    
+    OGS_SBI_SETUP_NF_INSTANCE(
+                sbi_object->service_type_array[service_type], nf_instance);  
+                
     ogs_expect(true == smf_sbi_send_request(nf_instance, xact));
 }

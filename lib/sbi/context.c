@@ -951,6 +951,35 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_discovery_param(
     return NULL;
 }
 
+ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_select_key(
+        OpenAPI_nf_type_e target_nf_type,
+        OpenAPI_nf_type_e requester_nf_type,
+        ogs_sbi_discovery_option_t *discovery_option)
+{
+    ogs_sbi_nf_instance_t *nf_instance = NULL;
+
+    ogs_assert(target_nf_type);
+    ogs_assert(requester_nf_type);
+
+    ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
+        if (ogs_sbi_discovery_param_is_matched(
+                nf_instance,
+                target_nf_type, requester_nf_type, discovery_option) ==
+                    false)
+            continue;                   
+        
+        if (nf_instance->time.heartbeat_interval != ogs_sbi_self()->nf_instance->time.heartbeat_interval){
+            ogs_warn("ogs_sbi_nf_instance_find_by_select_key,target heartbeat_interval:%d, self heartbeat_interval:%d",nf_instance->time.heartbeat_interval, ogs_sbi_self()->nf_instance->time.heartbeat_interval);
+            continue;
+        }else{
+            ogs_warn("ogs_sbi_nf_instance_find_by_select_key,select_key:%d, get nf_instance id:%s, nf_instance_name:%s,target_nf_type:%d.",nf_instance->time.heartbeat_interval,nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type),target_nf_type);
+            return nf_instance;
+        }        
+    }
+
+    return NULL;
+}
+
 ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_service_type(
         ogs_sbi_service_type_e service_type,
         OpenAPI_nf_type_e requester_nf_type)

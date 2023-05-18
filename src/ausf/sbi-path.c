@@ -73,6 +73,7 @@ bool ausf_sbi_send_request(
     return ogs_sbi_send_request_to_nf_instance(nf_instance, xact);
 }
 
+extern int g_sps_id;
 bool ausf_sbi_discover_and_send(
         ogs_sbi_service_type_e service_type,
         ogs_sbi_discovery_option_t *discovery_option,
@@ -99,7 +100,8 @@ bool ausf_sbi_discover_and_send(
     }
 
     xact->assoc_stream = stream;
-
+    xact->select_key = g_sps_id;
+    
     if (ogs_sbi_discover_and_send(xact) != true) {
         ogs_error("ausf_sbi_discover_and_send() failed");
         ogs_sbi_xact_remove(xact);
