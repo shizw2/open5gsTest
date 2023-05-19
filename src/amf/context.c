@@ -24,6 +24,7 @@
 
 static amf_context_t self;
 extern int g_sps_id;
+extern int g_select_key;
 
 int __amf_log_domain;
 int __gmm_log_domain;
@@ -102,6 +103,8 @@ void amf_context_init(void)
     ogs_assert(self.icps_ue_spsno_hash);
 
     context_initialized = 1;
+
+    ogs_info("sps id:%d, select key:%d.",g_sps_id,g_select_key);
 }
 
 void amf_context_final(void)
@@ -2237,32 +2240,18 @@ void amf_sbi_select_nf(
     ogs_assert(requester_nf_type);
 
     switch(sbi_object->type) {
-    case OGS_SBI_OBJ_UE_TYPE:
-        /*nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
-                        target_nf_type, requester_nf_type, discovery_option);               
+    case OGS_SBI_OBJ_UE_TYPE:        
+        if (target_nf_type == OpenAPI_nf_type_UDM || target_nf_type == OpenAPI_nf_type_PCF || target_nf_type == OpenAPI_nf_type_AUSF){            
+            nf_instance = ogs_sbi_nf_instance_find_by_select_key(
+                        target_nf_type, requester_nf_type, discovery_option,g_select_key); 
+        }else{
+            nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
+                        target_nf_type, requester_nf_type, discovery_option); 
+        }
+
         if (nf_instance)
             OGS_SBI_SETUP_NF_INSTANCE(
-                    sbi_object->service_type_array[service_type], nf_instance);*/
-        ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
-            if (ogs_sbi_discovery_param_is_matched(
-                    nf_instance,
-                    target_nf_type, requester_nf_type, discovery_option) ==
-                        false)
-                continue;
-            
-            if (nf_instance->nf_type == OpenAPI_nf_type_UDM|| target_nf_type == OpenAPI_nf_type_PCF){
-                //if (nf_instance->time.heartbeat_interval != ogs_sbi_self()->nf_instance->time.heartbeat_interval){
-                if (g_sps_id%2 != nf_instance->time.heartbeat_interval%2){
-                    continue;
-                }else{
-                    ogs_warn("UE_TYPE,g_sps_id:%d, get nf_instance id:%s, nf_instance_name:%s,service_type:%d,target_nf_type:%d.",g_sps_id,nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type),service_type,target_nf_type);
-                }
-            }
-
-            OGS_SBI_SETUP_NF_INSTANCE(
                     sbi_object->service_type_array[service_type], nf_instance);
-            break;
-        }
         break;
     case OGS_SBI_OBJ_SESS_TYPE:
         sess = (amf_sess_t *)sbi_object;
@@ -2283,13 +2272,12 @@ void amf_sbi_select_nf(
                     continue;
             }
             
-            if (nf_instance->nf_type == OpenAPI_nf_type_UDM|| target_nf_type == OpenAPI_nf_type_PCF){
-                //if (nf_instance->time.heartbeat_interval != ogs_sbi_self()->nf_instance->time.heartbeat_interval){
-                ogs_warn("g_sps_id:%d, nf_instance id:%s, nf_instance_name:%s.",g_sps_id,nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type));
-                if (g_sps_id%2 != nf_instance->time.heartbeat_interval%2){
+            if (target_nf_type == OpenAPI_nf_type_UDM|| target_nf_type == OpenAPI_nf_type_PCF){
+                if (nf_instance->time.heartbeat_interval != g_select_key){
+                    ogs_warn("SESS_TYPE,select_key:%d, nf_instance id:%s, nf_instance_name:%s.",g_select_key,nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type));
                     continue;
                 }else{
-                    ogs_warn("SESS_TYPE,g_sps_id:%d, get nf_instance id:%s, nf_instance_name:%s.",g_sps_id,nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type));
+                    ogs_warn("SESS_TYPE,select_key:%d, get nf_instance id:%s, nf_instance_name:%s.",g_select_key,nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type));
                 }
             }
 

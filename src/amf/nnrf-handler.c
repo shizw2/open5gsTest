@@ -50,7 +50,6 @@ void amf_nnrf_handle_nf_discover(
         return;
     }
 
-    ogs_debug("amf_nnrf_handle_nf_discover.");
     ogs_nnrf_disc_handle_nf_discover_search_result(SearchResult);
 
     amf_sbi_select_nf(sbi_object,

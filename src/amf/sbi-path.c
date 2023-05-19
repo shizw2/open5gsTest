@@ -123,7 +123,7 @@ bool amf_sbi_send_request(
     return ogs_sbi_send_request_to_nf_instance(nf_instance, xact);
 }
 
-extern int g_sps_id;
+extern int g_select_key;
 bool amf_ue_sbi_discover_and_send(
         ogs_sbi_service_type_e service_type,
         ogs_sbi_discovery_option_t *discovery_option,
@@ -147,7 +147,7 @@ bool amf_ue_sbi_discover_and_send(
         return false;
     }
     
-    xact->select_key = g_sps_id;
+    xact->select_key = g_select_key;
 
     if (ogs_sbi_discover_and_send(xact) != true) {
         ogs_error("amf_ue_sbi_discover_and_send() failed");

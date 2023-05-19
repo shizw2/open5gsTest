@@ -214,7 +214,7 @@ bool ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
                     continue;                   
                 
                 //if (nf_instance->time.heartbeat_interval != ogs_sbi_self()->nf_instance->time.heartbeat_interval){
-                if (xact->select_key%2 != nf_instance->time.heartbeat_interval%2){
+                if (xact->select_key != nf_instance->time.heartbeat_interval){
                     continue;
                 }else{
                     ogs_warn("ogs_sbi_discover_and_send,select_key:%d, get nf_instance id:%s, nf_instance_name:%s,service_type:%d,target_nf_type:%d.",xact->select_key,nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type),service_type,target_nf_type);

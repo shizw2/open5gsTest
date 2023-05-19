@@ -764,7 +764,6 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_add(void)
     memset(nf_instance, 0, sizeof(ogs_sbi_nf_instance_t));
 
     ogs_debug("ogs_sbi_nf_instance_add()");
-    ogs_warn("test:******ogs_sbi_nf_instance_add()");
 
     OGS_OBJECT_REF(nf_instance);
 
@@ -792,8 +791,6 @@ void ogs_sbi_nf_instance_set_id(ogs_sbi_nf_instance_t *nf_instance, char *id)
 
     nf_instance->id = ogs_strdup(id);
     ogs_assert(nf_instance->id);
-
-    ogs_warn("test:ogs_sbi_nf_instance_set_id:%s.",id);
 }
 
 void ogs_sbi_nf_instance_set_type(
@@ -954,7 +951,7 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_discovery_param(
 ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_select_key(
         OpenAPI_nf_type_e target_nf_type,
         OpenAPI_nf_type_e requester_nf_type,
-        ogs_sbi_discovery_option_t *discovery_option)
+        ogs_sbi_discovery_option_t *discovery_option, int select_key)
 {
     ogs_sbi_nf_instance_t *nf_instance = NULL;
 
@@ -968,8 +965,8 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_select_key(
                     false)
             continue;                   
         
-        if (nf_instance->time.heartbeat_interval != ogs_sbi_self()->nf_instance->time.heartbeat_interval){
-            ogs_warn("ogs_sbi_nf_instance_find_by_select_key,target heartbeat_interval:%d, self heartbeat_interval:%d",nf_instance->time.heartbeat_interval, ogs_sbi_self()->nf_instance->time.heartbeat_interval);
+        if (nf_instance->time.heartbeat_interval != select_key){
+            ogs_warn("ogs_sbi_nf_instance_find_by_select_key,target heartbeat_interval:%d, select_key:%d",nf_instance->time.heartbeat_interval, select_key);
             continue;
         }else{
             ogs_warn("ogs_sbi_nf_instance_find_by_select_key,select_key:%d, get nf_instance id:%s, nf_instance_name:%s,target_nf_type:%d.",nf_instance->time.heartbeat_interval,nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type),target_nf_type);

@@ -68,7 +68,7 @@ void smf_nnrf_handle_nf_discover(
 
     if (target_nf_type == OpenAPI_nf_type_UDM || target_nf_type == OpenAPI_nf_type_PCF){
         nf_instance = ogs_sbi_nf_instance_find_by_select_key(
-                        target_nf_type, requester_nf_type, discovery_option);
+                        target_nf_type, requester_nf_type, discovery_option, ogs_sbi_self()->nf_instance->time.heartbeat_interval);
         if (!nf_instance) {
             ogs_error("(NF discover) No [%s:%s]",
                         ogs_sbi_service_type_to_name(service_type),
