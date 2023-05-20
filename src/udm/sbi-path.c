@@ -119,7 +119,8 @@ bool udm_sbi_discover_and_send(
     }
 
     xact->assoc_stream = stream;
-
+    xact->select_key = ogs_sbi_self()->nf_instance->time.heartbeat_interval;
+    
     if (ogs_sbi_discover_and_send(xact) != true) {
         ogs_error("udm_sbi_discover_and_send() failed");
         ogs_sbi_xact_remove(xact);

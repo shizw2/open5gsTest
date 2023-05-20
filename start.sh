@@ -26,6 +26,7 @@ key=0
 ./build/src/nssf/open5gs-nssfd -e $level &
 ./build/src/bsf/open5gs-bsfd -e $level &
 ./build/src/udr/open5gs-udrd -e $level &
+./build/src/udr/open5gs-udrd -e $level -c ./install/etc/open5gs/udr2.yaml &
 ./build/src/upf/open5gs-upfd -e $level &
 ./build/src/upf/open5gs-upfd -e $level -c ./install/etc/open5gs/upf2.yaml &
 for ((i=1; i<=$spsno; i++))

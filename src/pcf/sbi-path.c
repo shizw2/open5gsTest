@@ -142,7 +142,8 @@ static bool pcf_sbi_discover_and_send(
     ogs_expect_or_return_val(xact, false);
 
     xact->assoc_stream = stream;
-
+    xact->select_key = ogs_sbi_self()->nf_instance->time.heartbeat_interval;
+    
     if (ogs_sbi_discover_and_send(xact) != true) {
         ogs_error("ogs_sbi_discover_and_send() failed");
         ogs_sbi_xact_remove(xact);
