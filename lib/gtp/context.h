@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-#define MAX_THREAD 20
+#define MAX_THREAD 100
 #define MAX_UE   10000
 
 
