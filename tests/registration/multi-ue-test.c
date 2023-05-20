@@ -57,10 +57,14 @@ static void muti_ue_threads(abts_case *tc, void *data)
 	test_sess_t *sess = NULL;
 	
 	iPthreadSize = g_threadNum;
-	if  (g_threadNum > 20)
+	if  (g_threadNum > 100)
 	{
-		iPthreadSize = 20;
+		iPthreadSize = 100;
 	}
+
+    if (g_testNum > 1000){
+        g_testNum = 1000;//每个线程最多1000个用户， 最多支持20个线程。因为scheme_output只有5位。高2位为线程号，低3位为序号
+    }
 	
 	struct timeval start_time, stop_time;
     gettimeofday(&start_time, NULL);
