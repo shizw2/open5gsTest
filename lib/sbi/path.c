@@ -205,7 +205,7 @@ bool ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
     /* Target NF-Instance */
     nf_instance = sbi_object->service_type_array[service_type].nf_instance;
     if (!nf_instance) {
-        if (target_nf_type == OpenAPI_nf_type_UDM || target_nf_type == OpenAPI_nf_type_PCF || target_nf_type == OpenAPI_nf_type_AUSF){
+        if (target_nf_type == OpenAPI_nf_type_UDM || target_nf_type == OpenAPI_nf_type_PCF || target_nf_type == OpenAPI_nf_type_AUSF || target_nf_type == OpenAPI_nf_type_UDR){
             ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
                 if (ogs_sbi_discovery_param_is_matched(
                         nf_instance,

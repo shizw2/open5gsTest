@@ -213,6 +213,8 @@ static void app_context_prepare(void)
     /* Size of internal metrics pool (amount of ogs_metrics_spec_t) */
     self.metrics.max_specs = 512;
 
+    self.time.nf_instance.heartbeat_interval = 10;//默认值
+
     regenerate_all_timer_duration();
 }
 

@@ -2241,7 +2241,7 @@ void amf_sbi_select_nf(
 
     switch(sbi_object->type) {
     case OGS_SBI_OBJ_UE_TYPE:        
-        if (target_nf_type == OpenAPI_nf_type_UDM || target_nf_type == OpenAPI_nf_type_PCF || target_nf_type == OpenAPI_nf_type_AUSF){            
+        if (target_nf_type == OpenAPI_nf_type_UDM || target_nf_type == OpenAPI_nf_type_PCF || target_nf_type == OpenAPI_nf_type_AUSF || target_nf_type == OpenAPI_nf_type_UDR){            
             nf_instance = ogs_sbi_nf_instance_find_by_select_key(
                         target_nf_type, requester_nf_type, discovery_option,g_select_key); 
         }else{
