@@ -87,7 +87,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
 			mobile_identity_suci.scheme_output[3] = 0x31;
 			mobile_identity_suci.scheme_output[4] = 0x90;
 
-			imsi_index = iTmp*10000+ i + 1;
+			imsi_index = iTmp*1000+ i + 1;
 			//printf("imsi:%lu.\r\n",imsi_index);
 			//ogs_uint64_to_buffer(imsi_index, 5, mobile_identity_suci.scheme_output);
 			mobile_identity_suci.scheme_output[0] = imsi_index/10000%10;
@@ -98,6 +98,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
 
             
 			test_ues[iTmp][i] = test_ue_add_by_suci(&mobile_identity_suci, 13);
+            
 			ogs_assert(test_ues[iTmp][i]);
 
 			test_ues[iTmp][i]->nr_cgi.cell_id = 0x40001;
