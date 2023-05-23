@@ -325,7 +325,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
         test_ue[i]->registration_request_param.requested_nssai = 1;
         test_ue[i]->registration_request_param.last_visited_registered_tai = 1;
         test_ue[i]->registration_request_param.ue_usage_setting = 1;
-        //test_ue[i]->nr_tai.tac.v=i%2+1;
+        test_ue[i]->nr_tai.tac.v=i%2+1;
         nasbuf = testgmm_build_registration_request(test_ue[i], NULL, false, false);
         ABTS_PTR_NOTNULL(tc, nasbuf);
 
@@ -718,7 +718,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
     test_ue[i]->registration_request_param.requested_nssai = 1;
     test_ue[i]->registration_request_param.last_visited_registered_tai = 1;
     test_ue[i]->registration_request_param.ue_usage_setting = 1;
-    //test_ue[i]->nr_tai.tac.v=i%2+1;
+    test_ue[i]->nr_tai.tac.v=i%2+1;
     nasbuf = testgmm_build_registration_request(test_ue[i], NULL, false, false);
     ABTS_PTR_NOTNULL(tc, nasbuf);
 

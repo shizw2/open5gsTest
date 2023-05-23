@@ -4501,16 +4501,9 @@ uint8_t spsid_find_by_amf_ue_ngap_id(uint64_t amf_ue_ngap_id)
      //printf("=== spsid_find_by_amf_ue_ngap_id! amf_ue_ngap_id==%lu,g_pkt_fwd_tbl.b_sps_num=%d\n",amf_ue_ngap_id,g_pkt_fwd_tbl.b_sps_num);
      if(g_pkt_fwd_tbl.b_sps_num==0)
 	 	return 0;
-	 sps_no=(amf_ue_ngap_id)%g_pkt_fwd_tbl.b_sps_num+1;
-	 while(!find_module_info(sps_no)){	 	
-	   if(sps_no>(g_pkt_fwd_tbl.b_sps_num))
-	   	sps_no=1;
-	   else
-	   	sps_no=sps_no+1;
-	   i++;
-	   if(i>g_pkt_fwd_tbl.b_sps_num)
-	   	return 1;
-	 }
+     i=(amf_ue_ngap_id)%g_pkt_fwd_tbl.b_sps_num;     
+     sps_no= g_pkt_fwd_tbl.ta_sps_infos[i].module_no;
+     ogs_info("SPS active num g_pkt_fwd_tbl.b_sps_num:[%d],sps_no:[%d]",g_pkt_fwd_tbl.b_sps_num,sps_no);
 	 return sps_no;
 	 //根据工作态的SPS节点数来计算
 }

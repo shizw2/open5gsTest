@@ -536,6 +536,9 @@ void smf_5gc_n4_handle_session_modification_response(
                 NULL, OpenAPI_n2_sm_info_type_HANDOVER_CMD, n2smbuf);
 
         } else if (flags & OGS_PFCP_MODIFY_NETWORK_REQUESTED) {
+             /*& ogs_list_count(&sess->qos_flow_to_modify_list) is add 0516*/
+            ogs_info("the count of sess->qos_flow_to_modify_list is [%d]",ogs_list_count(&sess->qos_flow_to_modify_list));
+             if(ogs_list_count(&sess->qos_flow_to_modify_list)){
             smf_n1_n2_message_transfer_param_t param;
 
             ogs_assert(flags & OGS_PFCP_MODIFY_SESSION);
@@ -566,6 +569,7 @@ void smf_5gc_n4_handle_session_modification_response(
             ogs_assert(param.n2smbuf);
 
             smf_namf_comm_send_n1_n2_message_transfer(sess, &param);
+                }
 
         } else {
             ogs_fatal("Unknown flags [0x%llx]", (long long)flags);
