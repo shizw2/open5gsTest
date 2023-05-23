@@ -1856,11 +1856,15 @@ void ogs_sbi_subscription_data_remove(
     if (subscription_data->notification_uri)
         ogs_free(subscription_data->notification_uri);
 
-    if (subscription_data->req_nf_instance_id)
+    if (subscription_data->req_nf_instance_id){
         ogs_free(subscription_data->req_nf_instance_id);
+        subscription_data->req_nf_instance_id = NULL;//临时修改，后续跟主版本对齐
+    }
 
-    if (subscription_data->subscr_cond.service_name)
+    if (subscription_data->subscr_cond.service_name){
         ogs_free(subscription_data->subscr_cond.service_name);
+        subscription_data->subscr_cond.service_name = NULL;//临时修改，后续跟主版本对齐
+    }
 
     if (subscription_data->t_validity)
         ogs_timer_delete(subscription_data->t_validity);

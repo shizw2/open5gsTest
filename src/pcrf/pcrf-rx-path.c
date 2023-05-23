@@ -38,7 +38,7 @@ struct sess_state {
 static OGS_POOL(sess_state_pool, struct sess_state);
 static ogs_thread_mutex_t sess_state_mutex;
 
-static struct session_handler *pcf_rx_reg = NULL;
+static struct session_handler *pcrf_rx_reg = NULL;
 static struct disp_hdl *hdl_rx_fb = NULL; 
 static struct disp_hdl *hdl_rx_aar = NULL; 
 static struct disp_hdl *hdl_rx_str = NULL; 
@@ -114,7 +114,7 @@ static int pcrf_rx_aar_cb( struct msg **msg, struct avp *avp,
     ogs_assert(msg);
     ogs_assert(sess);
 
-    ret = fd_sess_state_retrieve(pcf_rx_reg, sess, &sess_data);
+    ret = fd_sess_state_retrieve(pcrf_rx_reg, sess, &sess_data);
     ogs_assert(ret == 0);
     if (!sess_data) {
         os0_t sid = NULL;
@@ -364,7 +364,7 @@ static int pcrf_rx_aar_cb( struct msg **msg, struct avp *avp,
     ogs_assert(ret == 0);
 
     /* Store this value in the session */
-    ret = fd_sess_state_store(pcf_rx_reg, sess, &sess_data);
+    ret = fd_sess_state_store(pcrf_rx_reg, sess, &sess_data);
     ogs_assert(ret == 0);
     ogs_assert(sess_data == NULL);
 
@@ -450,7 +450,7 @@ int pcrf_rx_send_asr(uint8_t *rx_sid, uint32_t abort_cause)
     ret = fd_msg_sess_set(req, session);
 
     /* Retrieve session state in this session */
-    ret = fd_sess_state_retrieve(pcf_rx_reg, session, &sess_data);
+    ret = fd_sess_state_retrieve(pcrf_rx_reg, session, &sess_data);
     ogs_assert(sess_data);
 
     /* Update State */
@@ -504,7 +504,7 @@ int pcrf_rx_send_asr(uint8_t *rx_sid, uint32_t abort_cause)
     svg = sess_data;
     
     /* Store this value in the session */
-    ret = fd_sess_state_store(pcf_rx_reg, session, &sess_data);
+    ret = fd_sess_state_store(pcrf_rx_reg, session, &sess_data);
     ogs_assert(ret == 0);
     ogs_assert(sess_data == NULL);
     
@@ -618,7 +618,7 @@ static int pcrf_rx_str_cb( struct msg **msg, struct avp *avp,
     ogs_assert(msg);
     ogs_assert(sess);
 
-    ret = fd_sess_state_retrieve(pcf_rx_reg, sess, &sess_data);
+    ret = fd_sess_state_retrieve(pcrf_rx_reg, sess, &sess_data);
     ogs_assert(ret == 0);
     ogs_assert(sess_data);
     ogs_assert(sess_data->rx_sid);
@@ -746,7 +746,7 @@ int pcrf_rx_init(void)
     ogs_assert(ret == 0);
 
     /* Create handler for sessions */
-    ret = fd_sess_handler_create(&pcf_rx_reg, state_cleanup, NULL, NULL);
+    ret = fd_sess_handler_create(&pcrf_rx_reg, state_cleanup, NULL, NULL);
     ogs_assert(ret == 0);
 
     /* Fallback CB if command != unexpected message received */
@@ -780,7 +780,7 @@ void pcrf_rx_final(void)
 {
     int ret;
 
-    ret = fd_sess_handler_destroy(&pcf_rx_reg, NULL);
+    ret = fd_sess_handler_destroy(&pcrf_rx_reg, NULL);
     ogs_assert(ret == 0);
 
     if (hdl_rx_fb)
