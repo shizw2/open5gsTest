@@ -30,6 +30,7 @@ abts_suite *test_gmm_status(abts_suite *suite);
 abts_suite *test_ue_context(abts_suite *suite);
 abts_suite *test_reset(abts_suite *suite);
 abts_suite *test_multi_ue(abts_suite *suite);
+abts_suite *test_multi_ue_cycle(abts_suite *suite);
 abts_suite *single_ue_multi_test(abts_suite *suite);
 abts_suite *test_multi_ue_multi_test(abts_suite *suite);
 abts_suite *test_multi_ue_multi_test2(abts_suite *suite);
@@ -53,9 +54,10 @@ const struct testlist {
 #endif
 #if 1
     {test_multi_ue},
+    {test_multi_ue_cycle},
    // {single_ue_multi_test},
 
-   // {test_multi_ue_multi_test},
+    //{test_multi_ue_multi_test},
    // {test_multi_ue_multi_test2},
 #endif
 #if 0 /* Since there is error LOG, we disabled the following test */

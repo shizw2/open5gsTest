@@ -28,6 +28,7 @@ double __get_us(struct timeval t) {
 
 extern int g_testNum;
 extern int g_threadNum;
+extern int g_testcycleNum;
 
 #define NUM_OF_TEST_UE 100
 
@@ -181,6 +182,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
 
     /* Clear Test UE Context */
     test_ue_remove_all();
+
 #endif
 
 #if 0
@@ -201,7 +203,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
     ogs_ngap_message_t message;
     int i;
     printf("wait for app init.\r\n");
-    ogs_msleep(6000);//wait for app init
+    ogs_msleep(1000);//wait for app init
     struct timeval start_time, stop_time;
     gettimeofday(&start_time, NULL);
 
@@ -973,6 +975,28 @@ abts_suite *test_multi_ue(abts_suite *suite)
     suite = ADD_SUITE(suite);
 
     abts_run_test(suite, muti_ue_threads, NULL);
+
+	gettimeofday(&stop_time, NULL);
+	printf("ue num per thread:%d,Time use %f ms\n",g_testNum, (__get_us(stop_time) - __get_us(start_time)) / 1000 - 300);
+
+    return suite;
+}
+
+abts_suite *test_multi_ue_cycle(abts_suite *suite)
+{
+	struct timeval start_time, stop_time;
+	gettimeofday(&start_time, NULL);
+    time_t curtime;
+    time(&curtime);
+    
+    suite = ADD_SUITE(suite);
+
+    int i;
+    for(i=0; i< g_testcycleNum;i++){
+        printf("\r\n");
+        printf(">>>>>>>>>>>>>>>>>g_testcycleNum:%d:%d Time:%s\r\n",g_testcycleNum,i,ctime(&curtime));
+        abts_run_test(suite, muti_ue_threads, NULL);
+    }
 
 	gettimeofday(&stop_time, NULL);
 	printf("ue num per thread:%d,Time use %f ms\n",g_testNum, (__get_us(stop_time) - __get_us(start_time)) / 1000 - 300);

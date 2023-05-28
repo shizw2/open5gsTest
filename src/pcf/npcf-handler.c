@@ -1693,11 +1693,13 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
             PccRule = ogs_sbi_build_pcc_rule(pcc_rule, flow_presence);
             ogs_assert(PccRule->pcc_rule_id);
 
+            ogs_warn("pcc_rule->id %s,%p.",pcc_rule->id,pcc_rule->id);
+
             PccRuleMap = OpenAPI_map_create(PccRule->pcc_rule_id, PccRule);
             ogs_assert(PccRuleMap);
 
             OpenAPI_list_add(PccRuleList, PccRuleMap);
-
+            ogs_info("OpenAPI_list_add PccRuleList");
             QosData = ogs_sbi_build_qos_data(pcc_rule);
             ogs_assert(QosData);
             ogs_assert(QosData->qos_id);
@@ -1706,6 +1708,8 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
             ogs_assert(QosDecisionMap);
 
             OpenAPI_list_add(QosDecisionList, QosDecisionMap);
+
+            ogs_info("OpenAPI_list_add QosDecisionList");
         }
 #if 0
         if (charging_rule == 1) {
@@ -1749,6 +1753,7 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
             ogs_assert(QosDecisionMap);
 
             OpenAPI_list_add(QosDecisionList, QosDecisionMap);
+            
         }
 #if 0
         if (charging_rule == 1) {
@@ -1780,7 +1785,7 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
         if (rx_message->cmd_code == OGS_DIAM_RX_CMD_CODE_AA) {
             ogs_assert(true == pcf_sbi_send_smpolicycontrol_update_notify(
                                     sess, &SmPolicyDecision)); 
-			ogs_session_data_free(&session_data);
+			//ogs_session_data_free(&session_data);
         }else if(rx_message->cmd_code ==
             OGS_DIAM_RX_CMD_CODE_SESSION_TERMINATION) {
             ogs_assert(true == pcf_sbi_send_smpolicycontrol_delete_notify(
@@ -1816,6 +1821,7 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
         }
     }
     OpenAPI_list_free(QosDecisionList);
+    ogs_session_data_free(&session_data);
     return OGS_OK;
 
 #if 0
@@ -1883,7 +1889,7 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
         ogs_assert(true == pcf_sbi_send_smpolicycontrol_update_notify(
                             sess, &SmPolicyDecision));
     }
-#endif 
+
     /* Increment the counter */
     ogs_assert(pthread_mutex_lock(&ogs_diam_logger_self()->stats_lock) == 0);
     ogs_diam_logger_self()->stats.nb_sent++;
@@ -1895,13 +1901,34 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
     //ogs_session_data_free(&gx_message.session_data);
 
     return OGS_OK;
-
+#endif 
 out:
     /* Store this value in the session */
     //ret = fd_sess_state_store(pcrf_gx_reg, session, &sess_data);
     //ogs_assert(sess_data == NULL);
 
-    //ogs_session_data_free(&gx_message.session_data);
+    OpenAPI_list_for_each(PccRuleList, node) {
+        PccRuleMap = node->data;
+        if (PccRuleMap) {
+            PccRule = PccRuleMap->value;
+            if (PccRule)
+                ogs_sbi_free_pcc_rule(PccRule);
+            ogs_free(PccRuleMap);
+        }
+    }
+    OpenAPI_list_free(PccRuleList);
+
+    OpenAPI_list_for_each(QosDecisionList, node) {
+        QosDecisionMap = node->data;
+        if (QosDecisionMap) {
+            QosData = QosDecisionMap->value;
+            if (QosData)
+                ogs_sbi_free_qos_data(QosData);
+            ogs_free(QosDecisionMap);
+        }
+    }
+    OpenAPI_list_free(QosDecisionList);
+    ogs_session_data_free(&session_data);
     
     return OGS_ERROR;
 }

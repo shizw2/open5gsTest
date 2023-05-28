@@ -748,6 +748,9 @@ static int pcf_rx_str_cb( struct msg **msg, struct avp *avp,
                 goto out;
             }
         }
+    }else{
+        ogs_ims_data_free(&rx_message->ims_data);
+        ogs_free(rx_message);
     }
 
     /* Set the Origin-Host, Origin-Realm, andResult-Code AVPs */

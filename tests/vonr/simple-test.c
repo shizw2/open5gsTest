@@ -1369,13 +1369,15 @@ static void test3_func(abts_case *tc, void *data)
     ogs_pkbuf_free(recvbuf);
 
     //模拟一个control类型的aar
+
     uint8_t *rx_sid2 = NULL;
     test_rx_send_aar_ctrl(&rx_sid2, sess,
             OGS_DIAM_RX_SUBSCRIPTION_ID_TYPE_END_USER_SIP_URI);
-
+#if 0
     uint8_t *rx_sid3 = NULL;
     test_rx_send_aar_ctrl(&rx_sid3, sess,
             OGS_DIAM_RX_SUBSCRIPTION_ID_TYPE_END_USER_SIP_URI);
+#endif
     /* Waiting for creating dedicated QoS flow in PFCP protocol */
     ogs_msleep(100);
 
@@ -2591,9 +2593,9 @@ abts_suite *test_simple(abts_suite *suite)
 {       
     suite = ADD_SUITE(suite)
 
-    abts_run_test(suite, test1_func, NULL); //正常例子
+    //abts_run_test(suite, test1_func, NULL); //正常例子
     //abts_run_test(suite, test2_func, NULL);
-    //abts_run_test(suite, test3_func, NULL); //asr
+    abts_run_test(suite, test3_func, NULL); //asr
     //abts_run_test(suite, test4_func, NULL);
     //abts_run_test(suite, test5_func, NULL);
     return suite;

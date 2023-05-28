@@ -64,6 +64,7 @@ void *ogs_talloc_size(const void *ctx, size_t size, const char *name)
     ptr = talloc_named_const(ctx, size, name);
     ogs_expect(ptr);
 
+    //ogs_info("ogs_talloc_size:%p\r\n",ptr);
     ogs_thread_mutex_unlock(&mutex);
 
     return ptr;
@@ -103,6 +104,16 @@ int ogs_talloc_free(void *ptr, const char *location)
     int ret;
 
     ogs_thread_mutex_lock(&mutex);
+
+#if 1
+    if (ptr != NULL && strlen(ptr)< 8){
+        //ogs_info("ogs_talloc_size:%s\r\n",(char*)ptr);
+        if (strcmp(ptr,"ims-n2")== 0 || strcmp(ptr,"ims-g2")== 0){
+            ogs_info("ogs_talloc_free:%s,%p\r\n",(char*)ptr,ptr);
+            //ogs_assert(0);
+        }
+    }
+ #endif   
 
     ret = _talloc_free(ptr, location);
 

@@ -156,6 +156,8 @@ char *ogs_talloc_strdup(const void *t, const char *p)
     ptr = talloc_strdup(t, p);
     ogs_expect(ptr);
 
+    //printf("ogs_talloc_strdup:%s\r\n",p);
+
     ogs_thread_mutex_unlock(ogs_mem_get_mutex());
 
     return ptr;
@@ -169,7 +171,7 @@ char *ogs_talloc_strndup(const void *t, const char *p, size_t n)
 
     ptr = talloc_strndup(t, p, n);
     ogs_expect(ptr);
-
+    //printf("ogs_talloc_strndup:%s\r\n",p);
     ogs_thread_mutex_unlock(ogs_mem_get_mutex());
 
     return ptr;
@@ -183,6 +185,8 @@ void *ogs_talloc_memdup(const void *t, const void *p, size_t size)
 
     ptr = talloc_memdup(t, p, size);
     ogs_expect(ptr);
+
+    //printf("ogs_talloc_memdup:%p\r\n",ptr);
 
     ogs_thread_mutex_unlock(ogs_mem_get_mutex());
 
