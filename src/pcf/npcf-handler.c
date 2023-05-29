@@ -1753,7 +1753,6 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
             ogs_assert(QosDecisionMap);
 
             OpenAPI_list_add(QosDecisionList, QosDecisionMap);
-            
         }
 #if 0
         if (charging_rule == 1) {
