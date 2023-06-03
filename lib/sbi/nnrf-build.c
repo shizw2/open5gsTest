@@ -24,8 +24,10 @@ static OpenAPI_nf_service_t *build_nf_service(
 static void free_nf_service(OpenAPI_nf_service_t *NFService);
 static OpenAPI_smf_info_t *build_smf_info(ogs_sbi_nf_info_t *nf_info);
 static OpenAPI_amf_info_t *build_amf_info(ogs_sbi_nf_info_t *nf_info);
+static OpenAPI_udm_info_t *build_udm_info(ogs_sbi_nf_info_t *nf_info);
 static void free_smf_info(OpenAPI_smf_info_t *SmfInfo);
 static void free_amf_info(OpenAPI_amf_info_t *AmfInfo);
+static void free_udm_info(OpenAPI_udm_info_t *UdmInfo);
 
 ogs_sbi_request_t *ogs_nnrf_nfm_build_register(void)
 {
@@ -96,6 +98,7 @@ OpenAPI_nf_profile_t *ogs_nnrf_nfm_build_nf_profile(
     OpenAPI_lnode_t *node = NULL;
 
     OpenAPI_amf_info_t *AmfInfo = NULL;
+    OpenAPI_udm_info_t *UdmInfo = NULL;
 
     int i = 0;
     char *ipstr = NULL;
@@ -302,7 +305,17 @@ OpenAPI_nf_profile_t *ogs_nnrf_nfm_build_nf_profile(
 
             OpenAPI_list_add(InfoList, InfoMap);
 
-        } else {
+        } else if (nf_info->nf_type == OpenAPI_nf_type_UDM) {
+            UdmInfo = build_udm_info(nf_info);
+            ogs_assert(UdmInfo);
+
+            InfoMap = OpenAPI_map_create(
+                    ogs_msprintf("%d", ++InfoMapKey), UdmInfo);
+            ogs_assert(InfoMap);
+
+            OpenAPI_list_add(InfoList, InfoMap);
+
+        }else {
             ogs_fatal("Not implemented NF-type[%s]",
                     OpenAPI_nf_type_ToString(nf_info->nf_type));
             ogs_assert_if_reached();
@@ -313,6 +326,8 @@ OpenAPI_nf_profile_t *ogs_nnrf_nfm_build_nf_profile(
             NFProfile->smf_info = SmfInfo;
         } else if (nf_instance->nf_type == OpenAPI_nf_type_AMF) {
             NFProfile->amf_info = AmfInfo;
+        } else if (nf_instance->nf_type == OpenAPI_nf_type_UDM) {
+            NFProfile->udm_info = UdmInfo;
         } else {
             ogs_fatal("Not implemented NF-type[%s]",
                     OpenAPI_nf_type_ToString(nf_instance->nf_type));
@@ -1046,6 +1061,59 @@ static OpenAPI_amf_info_t *build_amf_info(ogs_sbi_nf_info_t *nf_info)
     return AmfInfo;
 }
 
+static OpenAPI_udm_info_t *build_udm_info(ogs_sbi_nf_info_t *nf_info)
+{
+    int i;
+    OpenAPI_udm_info_t *UdmInfo = NULL;
+
+    OpenAPI_list_t *SupiRangeList = NULL;
+    OpenAPI_supi_range_t *SupiRangeItem = NULL;
+
+    OpenAPI_list_t *TacRangeList = NULL;
+    OpenAPI_tac_range_t *TacRangeItem = NULL;
+
+    ogs_assert(nf_info);
+
+    UdmInfo = ogs_calloc(1, sizeof(*UdmInfo));
+    if (!UdmInfo) {
+        ogs_error("No UdmInfo");
+        return NULL;
+    }
+
+    SupiRangeList = OpenAPI_list_create();
+    if (!SupiRangeList) {
+        ogs_error("No SupiRangeList");
+        free_udm_info(UdmInfo);
+        OpenAPI_list_free(SupiRangeList);
+        return NULL;
+    }
+
+    for (i = 0;
+            i < nf_info->udm.num_of_supi_range;
+            i++) {
+        SupiRangeItem = ogs_calloc(1, sizeof(*SupiRangeItem));
+        ogs_assert(SupiRangeItem);
+
+        SupiRangeItem->start = ogs_uint24_to_0string(
+                nf_info->udm.start[i]);
+        ogs_assert(SupiRangeItem->start);
+        SupiRangeItem->end =
+            ogs_uint24_to_0string(
+                    nf_info->udm.end[i]);
+        ogs_assert(SupiRangeItem->end);
+
+        OpenAPI_list_add(SupiRangeList, SupiRangeItem);
+    }  
+
+    if (SupiRangeList->count)
+        UdmInfo->supi_ranges = SupiRangeList;
+    else
+        OpenAPI_list_free(SupiRangeList);
+
+    return UdmInfo;
+}
+
+
 static void free_smf_info(OpenAPI_smf_info_t *SmfInfo)
 {
     OpenAPI_list_t *sNssaiSmfInfoList = NULL;
@@ -1207,6 +1275,32 @@ static void free_amf_info(OpenAPI_amf_info_t *AmfInfo)
     OpenAPI_list_free(TaiRangeList);
 
     ogs_free(AmfInfo);
+}
+
+static void free_udm_info(OpenAPI_udm_info_t *UdmInfo)
+{
+    
+    OpenAPI_list_t *SupiRangeList = NULL;
+    OpenAPI_supi_range_t *SupiRangeItem = NULL;
+
+    OpenAPI_lnode_t *node = NULL;
+
+    ogs_assert(UdmInfo);
+
+    SupiRangeList = UdmInfo->supi_ranges;
+    OpenAPI_list_for_each(SupiRangeList, node) {
+        SupiRangeItem = node->data;
+        ogs_assert(SupiRangeItem);
+        if (SupiRangeItem->start)
+            ogs_free(SupiRangeItem->start);
+        if (SupiRangeItem->end)
+            ogs_free(SupiRangeItem->end);
+
+        ogs_free(SupiRangeItem);
+    }
+    OpenAPI_list_free(SupiRangeList);
+
+    ogs_free(UdmInfo);
 }
 
 ogs_sbi_request_t *ogs_nnrf_nfm_build_update(void)

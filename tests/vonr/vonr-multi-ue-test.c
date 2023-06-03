@@ -60,7 +60,7 @@ const struct testcaselist3 {
     void *(*func)(void *data);
 } casetests3[] = {
     {muti_ue_func31},
-    {muti_ue_func35},
+    {muti_ue_func32},
     {muti_ue_func33},
     {muti_ue_func34},
     {muti_ue_func35},

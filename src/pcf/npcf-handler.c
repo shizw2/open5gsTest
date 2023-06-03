@@ -1469,7 +1469,8 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
     }
 #endif
 
-
+    memset(&session_data, 0, sizeof(ogs_session_data_t));
+     
     /* Find RX session state */    
     if (rx_message->cmd_code == OGS_DIAM_RX_CMD_CODE_AA) {
     #if 0
@@ -1505,8 +1506,7 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
         }
 #endif
 
-/*add begin*/
-        memset(&session_data, 0, sizeof(ogs_session_data_t));
+/*add begin*/        
         rv = ogs_dbi_session_data(
                 pcf_ue->supi, &sess->s_nssai, sess->dnn, &session_data);
         if (rv != OGS_OK) {

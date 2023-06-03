@@ -1265,6 +1265,9 @@ void ogs_sbi_nf_info_remove(ogs_list_t *list, ogs_sbi_nf_info_t *nf_info)
     case OpenAPI_nf_type_SMF:
         smf_info_free(&nf_info->smf);
         break;
+    case OpenAPI_nf_type_UDM:
+        smf_info_free(&nf_info->udm);
+        break;
     default:
         ogs_fatal("Not implemented NF-type[%s]",
                 OpenAPI_nf_type_ToString(nf_info->nf_type));

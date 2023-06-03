@@ -106,6 +106,150 @@ int udm_context_parse_config(void)
                     /* handle config in sbi library */
                 } else if (!strcmp(udm_key, "discovery")) {
                     /* handle config in sbi library */
+                } else if (!strcmp(udm_key, "info")) {
+                    ogs_sbi_nf_instance_t *nf_instance = NULL;
+
+                    ogs_yaml_iter_t info_array, info_iter;
+                    ogs_yaml_iter_recurse(&udm_iter, &info_array);
+
+                    nf_instance = ogs_sbi_self()->nf_instance;
+                    ogs_assert(nf_instance);
+
+                    do {
+                        ogs_sbi_nf_info_t *nf_info = NULL;
+                        ogs_sbi_udm_info_t *udm_info = NULL;
+
+                        if (ogs_yaml_iter_type(&info_array) ==
+                                YAML_MAPPING_NODE) {
+                            memcpy(&info_iter, &info_array,
+                                    sizeof(ogs_yaml_iter_t));
+                        } else if (ogs_yaml_iter_type(&info_array) ==
+                                    YAML_SEQUENCE_NODE) {
+                            if (!ogs_yaml_iter_next(&info_array))
+                                break;
+                            ogs_yaml_iter_recurse(&info_array, &info_iter);
+                        } else if (ogs_yaml_iter_type(&info_array) ==
+                                    YAML_SCALAR_NODE) {
+                            break;
+                        } else
+                            ogs_assert_if_reached();
+
+                        nf_info = ogs_sbi_nf_info_add(
+                                    &nf_instance->nf_info_list,
+                                        OpenAPI_nf_type_UDM);
+                        ogs_assert(nf_info);
+
+                        udm_info = &nf_info->udm;
+                        ogs_assert(udm_info);
+
+                        while (ogs_yaml_iter_next(&info_iter)) {
+                            const char *info_key =
+                                ogs_yaml_iter_key(&info_iter);
+                            ogs_assert(info_key);
+                            if (!strcmp(info_key, "supi")) {
+                                
+                                ogs_yaml_iter_t tai_array, tai_iter;
+                                ogs_yaml_iter_recurse(&info_iter, &tai_array);
+                                do {
+                                    int num_of_range = 0;
+                                    ogs_uint24_t start[OGS_MAX_NUM_OF_SUPI];
+                                    ogs_uint24_t end[OGS_MAX_NUM_OF_SUPI];
+
+                                    if (ogs_yaml_iter_type(&tai_array) ==
+                                            YAML_MAPPING_NODE) {
+                                        memcpy(&tai_iter, &tai_array,
+                                                sizeof(ogs_yaml_iter_t));
+                                    } else if (ogs_yaml_iter_type(&tai_array) ==
+                                            YAML_SEQUENCE_NODE) {
+                                        if (!ogs_yaml_iter_next(&tai_array))
+                                            break;
+                                        ogs_yaml_iter_recurse(&tai_array,
+                                                &tai_iter);
+                                    } else if (ogs_yaml_iter_type(&tai_array) ==
+                                            YAML_SCALAR_NODE) {
+                                        break;
+                                    } else
+                                        ogs_assert_if_reached();
+
+                                    while (ogs_yaml_iter_next(&tai_iter)) {
+                                        const char *tai_key =
+                                            ogs_yaml_iter_key(&tai_iter);
+                                        ogs_assert(tai_key);
+                                        if (!strcmp(tai_key, "range")) {
+                                            ogs_yaml_iter_t range_iter;
+                                            ogs_yaml_iter_recurse(
+                                                    &tai_iter, &range_iter);
+                                            ogs_assert(ogs_yaml_iter_type(
+                                                        &range_iter) !=
+                                                        YAML_MAPPING_NODE);
+                                            do {
+                                                char *v = NULL;
+                                                char *low = NULL, *high = NULL;
+
+                                                if (ogs_yaml_iter_type(
+                                                        &range_iter) ==
+                                                        YAML_SEQUENCE_NODE) {
+                                                    if (!ogs_yaml_iter_next(
+                                                                &range_iter))
+                                                        break;
+                                                }
+
+                                                v = (char *)ogs_yaml_iter_value(
+                                                            &range_iter);
+                                                if (v) {
+                                                    low = strsep(&v, "~");
+                                                    if (low && strlen(low) == 0)
+                                                        low = NULL;
+
+                                                    high = v;
+                                                    if (high &&
+                                                            strlen(high) == 0)
+                                                        high = NULL;
+
+                                                    if (low && high) {
+                                                        ogs_assert(
+                                                            num_of_range <
+                                                            OGS_MAX_NUM_OF_SUPI);
+                                                        start[num_of_range].v =
+                                                            atoi(low);
+                                                        end[num_of_range].v =
+                                                            atoi(high);
+                                                        num_of_range++;
+                                                    }
+                                                }
+                                            } while (
+                                                ogs_yaml_iter_type(
+                                                    &range_iter) ==
+                                                    YAML_SEQUENCE_NODE);
+
+                                        } else
+                                            ogs_warn("unknown key `%s`",
+                                                    tai_key);
+                                    }
+
+                                    if (num_of_range) {
+                                        int i;
+                              
+                                        for (i = 0; i < num_of_range; i++) {
+                                            udm_info->start[i].v = start[i].v;
+                                            udm_info->end[i].v = end[i].v;
+                                        }
+                                        udm_info->num_of_supi_range =
+                                                    num_of_range;
+                                    } else {
+                                        ogs_warn("No supi range info");
+                                    }
+                                    
+                                } while (ogs_yaml_iter_type(&tai_array) ==
+                                        YAML_SEQUENCE_NODE);
+
+                            } else
+                                ogs_warn("unknown key `%s`", info_key);
+                        }
+
+                    } while (ogs_yaml_iter_type(&info_array) ==
+                            YAML_SEQUENCE_NODE);
+
                 } else
                     ogs_warn("unknown key `%s`", udm_key);
             }
