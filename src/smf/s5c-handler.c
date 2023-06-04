@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -347,8 +347,13 @@ uint8_t smf_s5c_handle_create_session_request(
         sess->session.ambr.uplink = be32toh(ambr->uplink) * 1000;
     }
 
+    /* ePCO */
+    if (req->extended_protocol_configuration_options.presence) {
+        OGS_TLV_STORE_DATA(&sess->gtp.ue_epco,
+                &req->extended_protocol_configuration_options);
+
     /* PCO */
-    if (req->protocol_configuration_options.presence) {
+    } else if (req->protocol_configuration_options.presence) {
         OGS_TLV_STORE_DATA(&sess->gtp.ue_pco,
                 &req->protocol_configuration_options);
     }
@@ -420,11 +425,22 @@ uint8_t smf_s5c_handle_delete_session_request(
         OGS_TLV_STORE_DATA(&sess->gtp.ue_pco,
                 &req->protocol_configuration_options);
     } else {
-        /* 
+        /*
          * Clear contents to reflect whether PCO IE was included or not as part
          * of session deletion procedure
          */
         OGS_TLV_CLEAR_DATA(&sess->gtp.ue_pco);
+    }
+
+    if (req->extended_protocol_configuration_options.presence) {
+        OGS_TLV_STORE_DATA(&sess->gtp.ue_epco,
+                &req->extended_protocol_configuration_options);
+    } else {
+        /*
+         * Clear contents to reflect whether PCO IE was included or not as part
+         * of session deletion procedure
+         */
+        OGS_TLV_CLEAR_DATA(&sess->gtp.ue_epco);
     }
 
     ogs_debug("    SGW_S5C_TEID[0x%x] SMF_N4_TEID[0x%x]",
@@ -739,7 +755,10 @@ void smf_s5c_handle_create_bearer_response(
     /* Find the Bearer by PGW-S5U-TEID */
     ogs_assert(pgw_s5u_teid);
     bearer = smf_bearer_find_by_pgw_s5u_teid(sess, be32toh(pgw_s5u_teid->teid));
-    ogs_expect_or_return(bearer);
+    if (!bearer) {
+        ogs_error("smf_bearer_find_by_pgw_s5u_teid() failed");
+        return;
+    }
 
     /* Set EBI */
     bearer->ebi = rsp->bearer_contexts.eps_bearer_id.u8;
@@ -1380,10 +1399,16 @@ void smf_s5c_handle_bearer_resource_command(
         pkbuf = smf_s5c_build_update_bearer_request(
                 h.type, bearer, cmd->procedure_transaction_id.u8,
                 tft_update ? &tft : NULL, qos_update);
-        ogs_expect_or_return(pkbuf);
+        if (!pkbuf) {
+            ogs_error("smf_s5c_build_update_bearer_request() failed");
+            return;
+        }
 
         rv = ogs_gtp_xact_update_tx(xact, &h, pkbuf);
-        ogs_expect_or_return(rv == OGS_OK);
+        if (rv != OGS_OK) {
+            ogs_error("ogs_gtp_xact_update_tx() failed");
+            return;
+        }
 
         if (tft_update)
             xact->update_flags |= OGS_GTP_MODIFY_TFT_UPDATE;

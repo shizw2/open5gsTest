@@ -24,8 +24,16 @@
 int smf_sbi_open(void)
 {
     ogs_sbi_nf_instance_t *nf_instance = NULL;
-    ogs_sbi_nf_instance_t *nrf_instance = NULL, *scp_instance = NULL;
     ogs_sbi_nf_service_t *service = NULL;
+
+    /*
+     * SMF can only run to support 4G EPC mode.
+     *
+     * If the SMF is only running in 4G EPC mode,
+     * it should not send NFRegister/NFStatusSubscribe messages to the NRF.
+     */
+    if (ogs_list_count(&ogs_sbi_self()->server_list) == 0)
+        return OGS_OK;
 
     /* Initialize SELF NF instance */
     nf_instance = ogs_sbi_self()->nf_instance;
@@ -33,7 +41,7 @@ int smf_sbi_open(void)
     ogs_sbi_nf_fsm_init(nf_instance);
 
     /* Build NF instance information. It will be transmitted to NRF. */
-    ogs_sbi_nf_instance_build_default(nf_instance, OpenAPI_nf_type_SMF);
+    ogs_sbi_nf_instance_build_default(nf_instance);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_AMF);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_SCP);
 
@@ -47,30 +55,18 @@ int smf_sbi_open(void)
         ogs_sbi_nf_service_add_allowed_nf_type(service, OpenAPI_nf_type_AMF);
     }
 
-    /*
-     * SMF can only run to support 4G EPC mode.
-     *
-     * If the SMF is only running in 4G EPC mode,
-     * it should not send NFRegister/NFStatusSubscribe messages to the NRF.
-     */
-    nrf_instance = ogs_sbi_self()->nrf_instance;
-    scp_instance = ogs_sbi_self()->scp_instance;
+    /* Initialize NRF NF Instance */
+    nf_instance = ogs_sbi_self()->nrf_instance;
+    if (nf_instance)
+        ogs_sbi_nf_fsm_init(nf_instance);
 
-    if (NF_INSTANCE_CLIENT(nrf_instance) || NF_INSTANCE_CLIENT(scp_instance)) {
-
-        /* Initialize NRF NF Instance */
-        nf_instance = ogs_sbi_self()->nrf_instance;
-        if (nf_instance)
-            ogs_sbi_nf_fsm_init(nf_instance);
-
-        /* Build Subscription-Data */
-        ogs_sbi_subscription_data_build_default(
-                OpenAPI_nf_type_AMF, OGS_SBI_SERVICE_NAME_NAMF_COMM);
-        ogs_sbi_subscription_data_build_default(
-                OpenAPI_nf_type_PCF, OGS_SBI_SERVICE_NAME_NPCF_SMPOLICYCONTROL);
-        ogs_sbi_subscription_data_build_default(
-                OpenAPI_nf_type_UDM, OGS_SBI_SERVICE_NAME_NUDM_SDM);
-    }
+    /* Setup Subscription-Data */
+    ogs_sbi_subscription_spec_add(
+            OpenAPI_nf_type_AMF, OGS_SBI_SERVICE_NAME_NAMF_COMM);
+    ogs_sbi_subscription_spec_add(
+            OpenAPI_nf_type_PCF, OGS_SBI_SERVICE_NAME_NPCF_SMPOLICYCONTROL);
+    ogs_sbi_subscription_spec_add(
+            OpenAPI_nf_type_UDM, OGS_SBI_SERVICE_NAME_NUDM_SDM);
 
     if (ogs_sbi_server_start_all(ogs_sbi_server_handler) != OGS_OK)
         return OGS_ERROR;
@@ -92,7 +88,7 @@ bool smf_sbi_send_request(
     return ogs_sbi_send_request_to_nf_instance(nf_instance, xact);
 }
 extern int g_sps_id;
-bool smf_sbi_discover_and_send(
+int smf_sbi_discover_and_send(
         ogs_sbi_service_type_e service_type,
         ogs_sbi_discovery_option_t *discovery_option,
         ogs_sbi_request_t *(*build)(smf_sess_t *sess, void *data),
@@ -100,6 +96,7 @@ bool smf_sbi_discover_and_send(
 {
     smf_ue_t *smf_ue = NULL;
     ogs_sbi_xact_t *xact = NULL;
+    int r;
 
     ogs_assert(service_type);
     ogs_assert(sess);
@@ -116,14 +113,15 @@ bool smf_sbi_discover_and_send(
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_GATEWAY_TIMEOUT, NULL,
                 "Cannot discover", smf_ue->supi));
-        return false;
+        return OGS_ERROR;
     }
 
     xact->state = state;
     xact->assoc_stream = stream;
     xact->select_key = ogs_sbi_self()->nf_instance->time.heartbeat_interval;
-    
-    if (ogs_sbi_discover_and_send(xact) != true) {
+
+    r = ogs_sbi_discover_and_send(xact);
+    if (r != OGS_OK) {
         ogs_error("smf_sbi_discover_and_send() failed");
         ogs_sbi_xact_remove(xact);
 
@@ -132,10 +130,10 @@ bool smf_sbi_discover_and_send(
                 ogs_sbi_server_send_error(stream,
                     OGS_SBI_HTTP_STATUS_GATEWAY_TIMEOUT, NULL,
                     "Cannot discover", smf_ue->supi));
-        return false;
+        return r;
     }
 
-    return true;
+    return OGS_OK;
 }
 
 void smf_namf_comm_send_n1_n2_message_transfer(
@@ -144,6 +142,7 @@ void smf_namf_comm_send_n1_n2_message_transfer(
     smf_ue_t *smf_ue = NULL;
     ogs_sbi_xact_t *xact = NULL;
     ogs_sbi_discovery_option_t *discovery_option = NULL;
+    int r;
 
     ogs_assert(sess);
     smf_ue = sess->smf_ue;
@@ -170,9 +169,11 @@ void smf_namf_comm_send_n1_n2_message_transfer(
 
     xact->state = param->state;
 
-    if (ogs_sbi_discover_and_send(xact) != true) {
+    r = ogs_sbi_discover_and_send(xact);
+    if (r != OGS_OK) {
         ogs_error("smf_namf_comm_send_n1_n2_message_transfer() failed");
         ogs_sbi_xact_remove(xact);
+        ogs_assert(r != OGS_ERROR);
     }
 }
 
@@ -216,6 +217,9 @@ void smf_sbi_send_sm_context_create_error(
     response = ogs_sbi_build_response(&sendmsg, problem.status);
     ogs_assert(response);
     ogs_assert(true == ogs_sbi_server_send_response(stream, response));
+
+    smf_metrics_inst_by_cause_add(problem.status,
+            SMF_METR_CTR_SM_PDUSESSIONCREATIONFAIL, 1);
 
     if (n1smbuf)
         ogs_pkbuf_free(n1smbuf);
@@ -398,7 +402,10 @@ bool smf_sbi_send_sm_context_status_notify(smf_sess_t *sess)
     ogs_assert(client);
 
     request = smf_namf_callback_build_sm_context_status(sess, NULL);
-    ogs_expect_or_return_val(request, false);
+    if (!request) {
+        ogs_error("smf_namf_callback_build_sm_context_status() failed");
+        return false;
+    }
 
     rc = ogs_sbi_send_request_to_client(
             client, client_notify_cb, request, NULL);

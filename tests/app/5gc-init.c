@@ -79,11 +79,11 @@ int app_initialize(const char *const argv[])
     if (ogs_app()->parameter.no_udr == 0)
         udr_thread = test_child_create("udr", argv_out);
 
-	if (ogs_app()->parameter.no_amf == 0){
-		argv_out[i++] = "-i";
-		argv_out[i++] = "1";
-		argv_out[i] = NULL;
-		amf_sps1_thread = test_child_create("amf-sps", argv_out);
+    if (ogs_app()->parameter.no_amf == 0){
+        argv_out[i++] = "-i";
+        argv_out[i++] = "1";
+        argv_out[i] = NULL;
+        amf_sps1_thread = test_child_create("amf-sps", argv_out);
     }
 
     /*
@@ -99,8 +99,8 @@ int app_initialize(const char *const argv[])
 void app_terminate(void)
 {
     if (amf_thread) ogs_thread_destroy(amf_thread);
-	
-	if (amf_sps1_thread) ogs_thread_destroy(amf_sps1_thread);
+
+    if (amf_sps1_thread) ogs_thread_destroy(amf_sps1_thread);
 
     if (smf_thread) ogs_thread_destroy(smf_thread);
     if (upf_thread) ogs_thread_destroy(upf_thread);
@@ -124,6 +124,7 @@ void test_5gc_init(void)
     ogs_log_install_domain(&__ogs_dbi_domain, "dbi", OGS_LOG_ERROR);
     ogs_log_install_domain(&__ogs_nas_domain, "nas", OGS_LOG_ERROR);
     ogs_log_install_domain(&__ogs_gtp_domain, "gtp", OGS_LOG_ERROR);
+    ogs_log_install_domain(&__ogs_sbi_domain, "sbi", OGS_LOG_ERROR);
 
     ogs_sctp_init(ogs_app()->usrsctp.udp_port);
     ogs_assert(ogs_dbi_init(ogs_app()->db_uri) == OGS_OK);

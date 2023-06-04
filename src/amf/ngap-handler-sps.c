@@ -2876,8 +2876,10 @@ void ngap_handle_uplink_nas_transport_sps(
 void sps_check_icps_offline()
 {
     if(send_heart_cnt>2){
-        ogs_info("send_heart_cnt:%d",send_heart_cnt);
-        ran_ue_remove_all();
-        send_heart_cnt=0;
-    }        
+        ogs_warn("send_heart_cnt:%d",send_heart_cnt);
+        if(send_heart_cnt>4){
+            ran_ue_remove_all();
+            send_heart_cnt=0;
+        }
+    }
 }

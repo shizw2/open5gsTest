@@ -1,6 +1,7 @@
 ---
 layout: page
 title: Documentation
+subject: Documentation
 permalink: /docs/
 head_inline: "<style> ul { padding-bottom: 1em; } </style>"
 ---
@@ -11,12 +12,12 @@ head_inline: "<style> ul { padding-bottom: 1em; } </style>"
 
 - Tutorials
   - [Your First LTE](tutorial/01-your-first-lte)
+  - [5G SA COTS UE](https://docs.srsran.com/en/latest/app_notes/source/5g_sa_COTS/source/index.html) from [SRS](https://srs.io)
+  - [Metrics with Prometheus](tutorial/04-metrics-prometheus)
   - [VoLTE Setup with Kamailio IMS and Open5GS](tutorial/02-VoLTE-setup)
   - [Dockerized VoLTE Setup](tutorial/03-VoLTE-dockerized)
-  - [Metrics with Prometheus](tutorial/04-metrics-prometheus)
 
 - Inside Source Code
-  - [Detailed Architecture of Open5GS](https://chowdera.com/2022/151/202205312246348316.html)
   - [UPF Code Explanation](https://medium.com/@aditya.koranga/open5gs-upf-code-explanation-with-flow-c-79c50f253dd1)
   - [SMF Code Explanation](https://medium.com/@aditya.koranga/open5gs-smf-code-explanation-with-flow-charts-a3b3cd38c991)
 
@@ -39,6 +40,8 @@ head_inline: "<style> ul { padding-bottom: 1em; } </style>"
 - @infinitydon
   - [Open5GS on Amazon Elastic Kubernetes Service](https://aws.amazon.com/blogs/opensource/open-source-mobile-core-network-implementation-on-amazon-elastic-kubernetes-service/)
   - [Kubernetes Open5GS Deployment](https://dev.to/infinitydon/virtual-4g-simulation-using-kubernetes-and-gns3-3b7k?fbclid=IwAR1p99h13a-mCfejanbBQe0H0-jp5grXkn5mWf1WrTHf47UtegB2-UHGGZQ)
+  - [5G Core SBI mTLS Using External Certificate PKI](https://futuredon.medium.com/5g-core-sbi-mtls-using-external-certificate-pki-4ffc02ac7728)
+  - [5G Frame Routing](https://futuredon.medium.com/5g-frame-routing-6e34d8587123)
 
 - @nickvsnetworking
   - [My first 5G Core : Open5GS and UERANSIM](http://nickvsnetworking.com/my-first-5g-core-open5gs-and-ueransim/)
@@ -55,6 +58,8 @@ head_inline: "<style> ul { padding-bottom: 1em; } </style>"
   - [Open5GS 5GC & UERANSIM UE/RAN Sample Configuration](https://github.com/s5uishida/open5gs_5gc_ueransim_sample_config)
   - [Open5GS & UERANSIM - Select nearby UPF according to the connected gNodeB](https://github.com/s5uishida/open5gs_5gc_ueransim_nearby_upf_sample_config)
   - [VoLTE and SMS Configuration for docker_open5gs](https://github.com/s5uishida/docker_open5gs_volte_sms_config)
+  - [Select nearby UPF(PGW-U) according to the connected eNodeB](https://github.com/s5uishida/open5gs_epc_srsran_nearby_upf_sample_config)
   - [Select UPF based on S-NSSAI](https://github.com/s5uishida/open5gs_5gc_ueransim_snssai_upf_sample_config)
   - [SCP Indirect communication Model C](https://github.com/s5uishida/open5gs_5gc_ueransim_scp_model_c_sample_config)
   - [Monitoring Metrics with Prometheus](https://github.com/s5uishida/open5gs_5gc_ueransim_metrics_sample_config)
+  - [Frame Routing](https://github.com/s5uishida/open5gs_5gc_ueransim_framed_routing_sample_config)

@@ -69,8 +69,8 @@ int main(int argc, const char *const argv[])
         printf("\r\n");
         printf(">>>>>>>>>>>>>>>>>g_testcycleNum:%d:%d \r\n",g_testcycleNum,j);
 
-    for (i = 0; alltests[i].func; i++)
-        suite = alltests[i].func(suite);
-        }
+        for (i = 0; alltests[i].func; i++)
+            suite = alltests[i].func(suite);
+    }
     return abts_report(suite);
 }

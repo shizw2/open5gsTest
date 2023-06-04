@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019,2020 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -670,7 +670,7 @@ ogs_pkbuf_t *testngap_build_ue_radio_capability_info_indication(
     NGAP_RAN_UE_NGAP_ID_t *RAN_UE_NGAP_ID = NULL;
     NGAP_UERadioCapability_t *UERadioCapability = NULL;
 
-    uint8_t tmp[OGS_MAX_SDU_LEN];
+    uint8_t tmp[OGS_HUGE_LEN];
     char *_capability_captured = "040ca1080f"
         "de1a00000074e5a0 31e000380a03c126 0c80038d80818804 804c0203018022a3"
         "6146b040d0d00012 0098087ad8202020 e1de38720c380020 64f1f570000f001c"
@@ -736,7 +736,7 @@ ogs_pkbuf_t *testngap_build_ue_radio_capability_info_indication(
     asn_uint642INTEGER(AMF_UE_NGAP_ID, test_ue->amf_ue_ngap_id);
     *RAN_UE_NGAP_ID = test_ue->ran_ue_ngap_id;
 
-    OGS_HEX(_capability_captured, strlen(_capability_captured), tmp),
+    ogs_hex_from_string(_capability_captured, tmp, sizeof(tmp));
 
     UERadioCapability->size = 407;
     UERadioCapability->buf = CALLOC(UERadioCapability->size, sizeof(uint8_t));
@@ -1740,7 +1740,7 @@ ogs_pkbuf_t *testngap_build_handover_required(
     NGAP_SourceToTarget_TransparentContainer_t
         *SourceToTarget_TransparentContainer = NULL;
 
-    uint8_t tmp[OGS_MAX_SDU_LEN];
+    uint8_t tmp[OGS_HUGE_LEN];
     char *_container =
         "40"
         "0300001100000a00 010002f839000102 0120000002f83900 0000001000000a";
@@ -1876,7 +1876,7 @@ ogs_pkbuf_t *testngap_build_handover_required(
     SourceToTarget_TransparentContainer =
         &ie->value.choice.SourceToTarget_TransparentContainer;
 
-    OGS_HEX(_container, strlen(_container), tmp),
+    ogs_hex_from_string(_container, tmp, sizeof(tmp));
 
     SourceToTarget_TransparentContainer->size = 32;
     SourceToTarget_TransparentContainer->buf =
@@ -1903,7 +1903,7 @@ ogs_pkbuf_t *testngap_build_handover_request_ack(test_ue_t *test_ue)
     NGAP_TargetToSource_TransparentContainer_t
         *TargetToSource_TransparentContainer = NULL;
 
-    uint8_t tmp[OGS_MAX_SDU_LEN];
+    uint8_t tmp[OGS_HUGE_LEN];
     char *_container =
         "00010000";
 
@@ -1992,7 +1992,7 @@ ogs_pkbuf_t *testngap_build_handover_request_ack(test_ue_t *test_ue)
     TargetToSource_TransparentContainer =
         &ie->value.choice.TargetToSource_TransparentContainer;
 
-    OGS_HEX(_container, strlen(_container), tmp),
+    ogs_hex_from_string(_container, tmp, sizeof(tmp));
 
     TargetToSource_TransparentContainer->size = 4;
     TargetToSource_TransparentContainer->buf =
@@ -2594,4 +2594,46 @@ static ogs_pkbuf_t *testngap_build_handover_request_ack_transfer(
 
     return ogs_asn_encode(
             &asn_DEF_NGAP_HandoverRequestAcknowledgeTransfer, &message);
+}
+
+#define TEST_NGAP_MAX_MESSAGE 64
+
+ogs_pkbuf_t *test_ngap_build_amf_configuration_ack(int i)
+{
+    ogs_pkbuf_t *pkbuf = NULL;
+    const char *payload[TEST_NGAP_MAX_MESSAGE] = {
+        "2000 000f000002000a40 0200010055400200 01",
+        "",
+        "",
+
+        "",
+        "",
+        "",
+
+        "",
+        "",
+        "",
+
+    };
+    uint16_t len[TEST_NGAP_MAX_MESSAGE] = {
+        19,
+        0,
+        0,
+
+        0,
+        0,
+        0,
+
+        0,
+        0,
+        0,
+    };
+    char hexbuf[OGS_HUGE_LEN];
+
+    pkbuf = ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
+    ogs_assert(pkbuf);
+    ogs_pkbuf_put_data(pkbuf,
+        ogs_hex_from_string(payload[i], hexbuf, sizeof(hexbuf)), len[i]);
+
+    return pkbuf;
 }

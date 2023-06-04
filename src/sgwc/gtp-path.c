@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -185,10 +185,16 @@ int sgwc_gtp_send_create_session_response(
     h.teid = sgwc_ue->mme_s11_teid;
 
     pkbuf = sgwc_s11_build_create_session_response(h.type, sess);
-    ogs_expect_or_return_val(pkbuf, OGS_ERROR);
+    if (!pkbuf) {
+        ogs_error("sgwc_s11_build_create_session_response() failed");
+        return OGS_ERROR;
+    }
 
     rv = ogs_gtp_xact_update_tx(xact, &h, pkbuf);
-    ogs_expect_or_return_val(rv == OGS_OK, OGS_ERROR);
+    if (rv != OGS_OK) {
+        ogs_error("ogs_gtp_xact_update_tx() failed");
+        return OGS_ERROR;
+    }
 
     rv = ogs_gtp_xact_commit(xact);
     ogs_expect(rv == OGS_OK);
@@ -226,11 +232,17 @@ int sgwc_gtp_send_downlink_data_notification(
     h.teid = sgwc_ue->mme_s11_teid;
 
     pkbuf = sgwc_s11_build_downlink_data_notification(cause_value, bearer);
-    ogs_expect_or_return_val(pkbuf, OGS_ERROR);
+    if (!pkbuf) {
+        ogs_error("sgwc_s11_build_downlink_data_notification() failed");
+        return OGS_ERROR;
+    }
 
     gtp_xact = ogs_gtp_xact_local_create(
             sgwc_ue->gnode, &h, pkbuf, bearer_timeout, bearer);
-    ogs_expect_or_return_val(gtp_xact, OGS_ERROR);
+    if (!gtp_xact) {
+        ogs_error("ogs_gtp_xact_local_create() failed");
+        return OGS_ERROR;
+    }
     gtp_xact->local_teid = sgwc_ue->sgw_s11_teid;
 
     rv = ogs_gtp_xact_commit(gtp_xact);

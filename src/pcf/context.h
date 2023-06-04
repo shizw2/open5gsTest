@@ -28,6 +28,7 @@
 #include "ogs-diameter-rx.h"
 
 #include "pcf-sm.h"
+#include "metrics.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -75,7 +76,6 @@ struct pcf_ue_s {
     OpenAPI_ambr_t *subscribed_ue_ambr;
 
     ogs_list_t sess_list;
-
 };
 
 struct pcf_sess_s {
@@ -100,6 +100,9 @@ struct pcf_sess_s {
 
     char *ipv4addr_string;
     char *ipv6prefix_string;
+
+    OpenAPI_list_t *ipv4_frame_route_list;
+    OpenAPI_list_t *ipv6_frame_route_list;
 
     uint32_t ipv4addr;
     struct {
@@ -128,7 +131,7 @@ typedef struct pcf_app_s {
 
     char *app_session_id;
     os0_t rx_sid;//add at 20221215 for rx 
-    
+ 
     char *notif_uri;
     struct {
         ogs_sbi_client_t *client;
@@ -178,9 +181,9 @@ int pcf_app_remove(pcf_app_t *app);
 void pcf_app_remove_all(pcf_sess_t *sess);
 pcf_app_t *pcf_app_find(uint32_t index);
 pcf_app_t *pcf_app_find_by_app_session_id(char *app_session_id);
+int get_pcf_load(void);
 
-int pcf_db_qos_data(
-        char *imsi_bcd, char *apn, ogs_session_data_t *session_data);
+int pcf_db_qos_data(char *imsi_bcd, char *apn, ogs_session_data_t *session_data);
 #ifdef __cplusplus
 }
 #endif

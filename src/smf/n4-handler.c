@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -148,8 +148,6 @@ uint8_t smf_5gc_n4_handle_session_establishment_response(
 {
     int i;
 
-    ogs_sbi_stream_t *stream = NULL;
-
     uint8_t cause_value = OGS_PFCP_CAUSE_REQUEST_ACCEPTED;
     uint8_t offending_ie_value = 0;
 
@@ -164,9 +162,6 @@ uint8_t smf_5gc_n4_handle_session_establishment_response(
 
     ogs_debug("Session Establishment Response [5gc]");
 
-    stream = xact->assoc_stream;
-    ogs_assert(stream);
-
     ogs_pfcp_xact_commit(xact);
 
     if (rsp->up_f_seid.presence == 0) {
@@ -178,6 +173,8 @@ uint8_t smf_5gc_n4_handle_session_establishment_response(
         if (rsp->cause.u8 != OGS_PFCP_CAUSE_REQUEST_ACCEPTED) {
             ogs_error("PFCP Cause [%d] : Not Accepted", rsp->cause.u8);
             cause_value = rsp->cause.u8;
+            smf_metrics_inst_by_cause_add(cause_value,
+                    SMF_METR_CTR_SM_N4SESSIONESTABFAIL, 1);
         }
     } else {
         ogs_error("No Cause");
@@ -399,8 +396,6 @@ void smf_5gc_n4_handle_session_modification_response(
                     sess, stream, OpenAPI_ho_state_COMPLETED);
 
         } else {
-            sess->paging.ue_requested_pdu_session_establishment_done = true;
-
             if (sess->up_cnx_state == OpenAPI_up_cnx_state_ACTIVATING) {
                 sess->up_cnx_state = OpenAPI_up_cnx_state_ACTIVATED;
                 smf_sbi_send_sm_context_updated_data_up_cnx_state(
@@ -493,8 +488,14 @@ void smf_5gc_n4_handle_session_modification_response(
             smf_namf_comm_send_n1_n2_message_transfer(sess, &param);
 
             ogs_list_for_each_entry_safe(&sess->qos_flow_to_modify_list,
-                    next, qos_flow, to_modify_node)
+                    next, qos_flow, to_modify_node) {
+                smf_metrics_inst_by_5qi_add(
+                        &qos_flow->sess->plmn_id,
+                        &qos_flow->sess->s_nssai,
+                        qos_flow->sess->session.qos.index,
+                        SMF_METR_GAUGE_SM_QOSFLOWNBR, -1);
                 smf_bearer_remove(qos_flow);
+            }
 
         } else if (flags & OGS_PFCP_MODIFY_UE_REQUESTED) {
             ogs_pkbuf_t *n1smbuf = NULL, *n2smbuf = NULL;
@@ -519,8 +520,14 @@ void smf_5gc_n4_handle_session_modification_response(
                         OpenAPI_n2_sm_info_type_PDU_RES_MOD_REQ, n2smbuf);
 
             ogs_list_for_each_entry_safe(&sess->qos_flow_to_modify_list,
-                    next, qos_flow, to_modify_node)
+                    next, qos_flow, to_modify_node) {
+                smf_metrics_inst_by_5qi_add(
+                        &qos_flow->sess->plmn_id,
+                        &qos_flow->sess->s_nssai,
+                        qos_flow->sess->session.qos.index,
+                        SMF_METR_GAUGE_SM_QOSFLOWNBR, -1);
                 smf_bearer_remove(qos_flow);
+            }
 
         } else {
             ogs_fatal("Unknown flags [0x%llx]", (long long)flags);
@@ -538,39 +545,38 @@ void smf_5gc_n4_handle_session_modification_response(
         } else if (flags & OGS_PFCP_MODIFY_NETWORK_REQUESTED) {
              /*& ogs_list_count(&sess->qos_flow_to_modify_list) is add 0516*/
             ogs_info("the count of sess->qos_flow_to_modify_list is [%d]",ogs_list_count(&sess->qos_flow_to_modify_list));
-             if(ogs_list_count(&sess->qos_flow_to_modify_list)){
-            smf_n1_n2_message_transfer_param_t param;
+            if(ogs_list_count(&sess->qos_flow_to_modify_list)){
+                smf_n1_n2_message_transfer_param_t param;
 
-            ogs_assert(flags & OGS_PFCP_MODIFY_SESSION);
+                ogs_assert(flags & OGS_PFCP_MODIFY_SESSION);
 
-            /*
-             * TS24.501
-             * 6.2 General on elementary 5GSM procedures
-             * 6.2.1 Principles of PTI handling for 5GSM procedures
-             *
-             * If a command message is not sent as result of
-             * a received request message, the sending entity shall
-             * include in the command message the PTI value set to
-             * "no procedure transaction identity assigned"
-             * (see examples in figure 6.2.1.4).
-             */
-            sess->pti = OGS_NAS_PROCEDURE_TRANSACTION_IDENTITY_UNASSIGNED;
+                /*
+                 * TS24.501
+                 * 6.2 General on elementary 5GSM procedures
+                 * 6.2.1 Principles of PTI handling for 5GSM procedures
+                 *
+                 * If a command message is not sent as result of
+                 * a received request message, the sending entity shall
+                 * include in the command message the PTI value set to
+                 * "no procedure transaction identity assigned"
+                 * (see examples in figure 6.2.1.4).
+                 */
+                sess->pti = OGS_NAS_PROCEDURE_TRANSACTION_IDENTITY_UNASSIGNED;
 
-            memset(&param, 0, sizeof(param));
-            param.state = SMF_NETWORK_REQUESTED_QOS_FLOW_MODIFICATION;
-            param.n1smbuf = gsm_build_pdu_session_modification_command(
-                    sess,
-                    OGS_NAS_QOS_CODE_CREATE_NEW_QOS_RULE,
-                    OGS_NAS_CREATE_NEW_QOS_FLOW_DESCRIPTION);
-            ogs_assert(param.n1smbuf);
-            param.n2smbuf =
-                ngap_build_pdu_session_resource_modify_request_transfer(
-                        sess, true);
-            ogs_assert(param.n2smbuf);
+                memset(&param, 0, sizeof(param));
+                param.state = SMF_NETWORK_REQUESTED_QOS_FLOW_MODIFICATION;
+                param.n1smbuf = gsm_build_pdu_session_modification_command(
+                        sess,
+                        OGS_NAS_QOS_CODE_CREATE_NEW_QOS_RULE,
+                        OGS_NAS_CREATE_NEW_QOS_FLOW_DESCRIPTION);
+                ogs_assert(param.n1smbuf);
+                param.n2smbuf =
+                    ngap_build_pdu_session_resource_modify_request_transfer(
+                            sess, true);
+                ogs_assert(param.n2smbuf);
 
-            smf_namf_comm_send_n1_n2_message_transfer(sess, &param);
-                }
-
+                smf_namf_comm_send_n1_n2_message_transfer(sess, &param);
+            }
         } else {
             ogs_fatal("Unknown flags [0x%llx]", (long long)flags);
             ogs_assert_if_reached();
@@ -722,7 +728,6 @@ uint8_t smf_epc_n4_handle_session_establishment_response(
     uint8_t cause_value = OGS_PFCP_CAUSE_REQUEST_ACCEPTED;
 
     smf_bearer_t *bearer = NULL;
-    ogs_gtp_xact_t *gtp_xact = NULL;
 
     ogs_pfcp_f_seid_t *up_f_seid = NULL;
 
@@ -731,9 +736,6 @@ uint8_t smf_epc_n4_handle_session_establishment_response(
     ogs_assert(rsp);
 
     ogs_debug("Session Establishment Response [epc]");
-
-    gtp_xact = xact->assoc_xact;
-    ogs_assert(gtp_xact);
 
     ogs_pfcp_xact_commit(xact);
 
@@ -971,10 +973,16 @@ void smf_epc_n4_handle_session_modification_response(
 
             pkbuf = smf_s5c_build_delete_bearer_request(
                     h.type, bearer, gtp_pti, gtp_cause);
-            ogs_expect_or_return(pkbuf);
+            if (!pkbuf) {
+                ogs_error("smf_s5c_build_delete_bearer_request() failed");
+                return;
+            }
 
             rv = ogs_gtp_xact_update_tx(gtp_xact, &h, pkbuf);
-            ogs_expect_or_return(rv == OGS_OK);
+            if (rv != OGS_OK) {
+                ogs_error("ogs_gtp_xact_update_tx() failed");
+                return;
+            }
 
         /* IMPORTANT:
          *
@@ -1141,14 +1149,18 @@ void smf_n4_handle_session_report_request(
         smf_sess_t *sess, ogs_pfcp_xact_t *pfcp_xact,
         ogs_pfcp_session_report_request_t *pfcp_req)
 {
+    smf_ue_t *smf_ue = NULL;
     smf_bearer_t *qos_flow = NULL;
     smf_bearer_t *bearer = NULL;
     ogs_pfcp_pdr_t *pdr = NULL;
+    ogs_pfcp_far_t *far = NULL;
 
     ogs_pfcp_report_type_t report_type;
     uint8_t cause_value = 0;
     uint16_t pdr_id = 0;
     unsigned int i;
+
+    smf_metrics_inst_global_inc(SMF_METR_GLOB_CTR_SM_N4SESSIONREPORT);
 
     ogs_assert(pfcp_xact);
     ogs_assert(pfcp_req);
@@ -1175,12 +1187,16 @@ void smf_n4_handle_session_report_request(
     }
 
     ogs_assert(sess);
+    smf_ue = sess->smf_ue;
+    ogs_assert(smf_ue);
+
     report_type.value = pfcp_req->report_type.u8;
 
     if (report_type.downlink_data_report) {
         ogs_pfcp_downlink_data_service_information_t *info = NULL;
         uint8_t paging_policy_indication_value = 0;
         uint8_t qfi = 0;
+        smf_n1_n2_message_transfer_param_t param;
 
         if (pfcp_req->downlink_data_report.presence) {
             if (pfcp_req->downlink_data_report.
@@ -1245,9 +1261,21 @@ void smf_n4_handle_session_report_request(
             return;
         }
 
-        if (sess->paging.ue_requested_pdu_session_establishment_done == true) {
-            smf_n1_n2_message_transfer_param_t param;
-
+        switch (sess->up_cnx_state) {
+        case OpenAPI_up_cnx_state_NULL:
+            /* UE Requested PDU Session is NOT established */
+            break;
+        case OpenAPI_up_cnx_state_ACTIVATED:
+            ogs_error("[%s:%s] PDU Session had already been ACTIVATED",
+                smf_ue->imsi_bcd, sess->session.name);
+            break;
+        case OpenAPI_up_cnx_state_ACTIVATING:
+#if OGS_SBI_DISABLE_NETWORK_SERVICE_REQUEST_WHILE_ACTIVATING == 1
+            ogs_warn("[%s:%s] UE is being triggering Service Request",
+                smf_ue->imsi_bcd, sess->session.name);
+            break;
+#endif
+        case OpenAPI_up_cnx_state_DEACTIVATED:
             memset(&param, 0, sizeof(param));
             param.state = SMF_NETWORK_TRIGGERED_SERVICE_REQUEST;
             param.n2smbuf =
@@ -1257,25 +1285,22 @@ void smf_n4_handle_session_report_request(
             param.n1n2_failure_txf_notif_uri = true;
 
             smf_namf_comm_send_n1_n2_message_transfer(sess, &param);
+            break;
+        case OpenAPI_up_cnx_state_SUSPENDED:
+            ogs_error("[%s:%s] PDU Session had been SUSPENDED",
+                smf_ue->imsi_bcd, sess->session.name);
+            break;
+        default:
+            ogs_error("Invalid UpCnxState[%d]", sess->up_cnx_state);
+            break;
         }
     }
 
     if (report_type.error_indication_report) {
-        smf_ue_t *smf_ue = sess->smf_ue;
-        smf_sess_t *error_indication_session = NULL;
-        ogs_assert(smf_ue);
-
-        error_indication_session = smf_sess_find_by_error_indication_report(
-                smf_ue, &pfcp_req->error_indication_report);
-
-        if (error_indication_session) {
-            ogs_assert(OGS_OK ==
-                smf_5gc_pfcp_send_all_pdr_modification_request(
-                    error_indication_session, NULL,
-                    OGS_PFCP_MODIFY_DL_ONLY|OGS_PFCP_MODIFY_DEACTIVATE|
-                    OGS_PFCP_MODIFY_ERROR_INDICATION,
-                    0));
-        }
+        far = ogs_pfcp_far_find_by_pfcp_session_report(
+                &sess->pfcp, &pfcp_req->error_indication_report);
+        if (!far)
+            ogs_error("Cannot find Session in Error Indication");
     }
 
     if (report_type.usage_report) {
@@ -1325,10 +1350,31 @@ void smf_n4_handle_session_report_request(
         ogs_assert(OGS_OK ==
             smf_pfcp_send_session_report_response(
                 pfcp_xact, sess, OGS_PFCP_CAUSE_REQUEST_ACCEPTED));
+        smf_metrics_inst_global_inc(SMF_METR_GLOB_CTR_SM_N4SESSIONREPORTSUCC);
     } else {
         ogs_error("Not supported Report Type[%d]", report_type.value);
         ogs_assert(OGS_OK ==
             smf_pfcp_send_session_report_response(
                 pfcp_xact, sess, OGS_PFCP_CAUSE_SYSTEM_FAILURE));
+    }
+
+    /* Error Indication is handled last */
+    if (report_type.error_indication_report && far) {
+        if (sess->epc == true) {
+            ogs_error("[%s:%s] Error Indication from SGW-C",
+                smf_ue->imsi_bcd, sess->session.name);
+            ogs_assert(OGS_OK ==
+                smf_epc_pfcp_send_session_deletion_request(
+                    sess, NULL));
+        } else {
+            ogs_warn("[%s:%s] Error Indication from gNB",
+                smf_ue->supi, sess->session.name);
+            ogs_assert(OGS_OK ==
+                smf_5gc_pfcp_send_all_pdr_modification_request(
+                    sess, NULL,
+                    OGS_PFCP_MODIFY_DL_ONLY|OGS_PFCP_MODIFY_DEACTIVATE|
+                    OGS_PFCP_MODIFY_ERROR_INDICATION,
+                    0));
+        }
     }
 }

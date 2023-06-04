@@ -28,7 +28,6 @@ double __get_us(struct timeval t) {
 
 extern int g_testNum;
 extern int g_threadNum;
-extern int g_testcycleNum;
 
 #define NUM_OF_TEST_UE 100
 
@@ -182,7 +181,6 @@ static void muti_ue_threads(abts_case *tc, void *data)
 
     /* Clear Test UE Context */
     test_ue_remove_all();
-
 #endif
 
 #if 0
@@ -203,7 +201,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
     ogs_ngap_message_t message;
     int i;
     printf("wait for app init.\r\n");
-    ogs_msleep(1000);//wait for app init
+    ogs_msleep(6000);//wait for app init
     struct timeval start_time, stop_time;
     gettimeofday(&start_time, NULL);
 
@@ -279,7 +277,6 @@ static void muti_ue_threads(abts_case *tc, void *data)
         test_ue[i]->registration_request_param.requested_nssai = 1;
         test_ue[i]->registration_request_param.last_visited_registered_tai = 1;
         test_ue[i]->registration_request_param.ue_usage_setting = 1;
-        //test_ue[i]->nr_tai.tac.v = i%2+1;
         nasbuf = testgmm_build_registration_request(test_ue[i], NULL, false, false);
         ABTS_PTR_NOTNULL(tc, nasbuf);
 
@@ -598,9 +595,18 @@ static void test1_func(abts_case *tc, void *data)
     /* Receive NG-Setup Response */
     recvbuf = testgnb_ngap_read(ngap);
     ABTS_PTR_NOTNULL(tc, recvbuf);
+    ogs_pkbuf_free(recvbuf);
 
     for (i = 0; i < g_testNum; i++) {
         uint64_t imsi_index;
+        const char *scheme_output[] = {
+            "0000000001",
+            "0000000002",
+            "0000000003",
+            "0000000004",
+            "0000000005",
+        };
+
 
         /* Setup Test UE & Session Context */
         memset(&mobile_identity_suci, 0, sizeof(mobile_identity_suci));
@@ -611,13 +617,8 @@ static void test1_func(abts_case *tc, void *data)
         mobile_identity_suci.routing_indicator2 = 0xf;
         mobile_identity_suci.routing_indicator3 = 0xf;
         mobile_identity_suci.routing_indicator4 = 0xf;
-        mobile_identity_suci.protection_scheme_id = OGS_NAS_5GS_NULL_SCHEME;
+        mobile_identity_suci.protection_scheme_id = OGS_PROTECTION_SCHEME_NULL;
         mobile_identity_suci.home_network_pki_value = 0;
-        mobile_identity_suci.scheme_output[0] = 0;
-        mobile_identity_suci.scheme_output[1] = 0;
-        mobile_identity_suci.scheme_output[2] = 0x20;
-        mobile_identity_suci.scheme_output[3] = 0x31;
-        mobile_identity_suci.scheme_output[4] = 0x90;
 
         imsi_index = i + 1;
         //ogs_uint64_to_buffer(imsi_index, 5, mobile_identity_suci.scheme_output);
@@ -627,7 +628,8 @@ static void test1_func(abts_case *tc, void *data)
         mobile_identity_suci.scheme_output[3] = imsi_index/10%10;
         mobile_identity_suci.scheme_output[4] = imsi_index%10;
 
-        test_ue[i] = test_ue_add_by_suci(&mobile_identity_suci, 13);
+        test_ue[i] = test_ue_add_by_suci(
+                &mobile_identity_suci, scheme_output[i]);
         ogs_assert(test_ue[i]);
 
         test_ue[i]->nr_cgi.cell_id = 0x40001;
@@ -642,14 +644,14 @@ static void test1_func(abts_case *tc, void *data)
     }
 
 
-	//插入数据库单独统计
+    //插入数据库单独统计
     for (i = 0; i < g_testNum; i++) {
 
         /********** Insert Subscriber in Database */
         doc = test_db_new_simple(test_ue[i]);
         ABTS_PTR_NOTNULL(tc, doc);
         ABTS_INT_EQUAL(tc, OGS_OK, test_db_insert_ue(test_ue[i], doc));
-	}
+    }
 
     //printf("\r\n");
 
@@ -812,8 +814,8 @@ static void test1_func(abts_case *tc, void *data)
         sess = test_sess_find_by_psi(test_ue[i], 5);
         ogs_assert(sess);
 		
-		sess->ul_nas_transport_param.request_type =
-        OGS_NAS_5GS_REQUEST_TYPE_INITIAL;
+        sess->ul_nas_transport_param.request_type =
+            OGS_NAS_5GS_REQUEST_TYPE_INITIAL;
         sess->ul_nas_transport_param.dnn = 1;
         sess->ul_nas_transport_param.s_nssai = 0;
 
@@ -829,7 +831,8 @@ static void test1_func(abts_case *tc, void *data)
         ABTS_PTR_NOTNULL(tc, sendbuf);
         rv = testgnb_ngap_send(ngap, sendbuf);
         ABTS_INT_EQUAL(tc, OGS_OK, rv);
-	        /* Receive PDUSessionResourceSetupRequest +
+
+        /* Receive PDUSessionResourceSetupRequest +
          * DL NAS transport +
          * PDU session establishment accept */
         recvbuf = testgnb_ngap_read(ngap);
@@ -844,7 +847,7 @@ static void test1_func(abts_case *tc, void *data)
         ABTS_PTR_NOTNULL(tc, sendbuf);
         rv = testgnb_ngap_send(ngap, sendbuf);
         ABTS_INT_EQUAL(tc, OGS_OK, rv);
-	}
+    }
 #endif	
 	gettimeofday(&stop_time, NULL);
 	printf("session establishment,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
@@ -911,9 +914,9 @@ static void test1_func(abts_case *tc, void *data)
     }
 
 
-	gettimeofday(&stop_time, NULL);
-	printf("session release,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
-	gettimeofday(&start_time, NULL);
+    gettimeofday(&stop_time, NULL);
+    printf("session release,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
+    gettimeofday(&start_time, NULL);
 
     for (i = 0; i < g_testNum; i++) {
         /* Send De-registration request */
@@ -940,20 +943,20 @@ static void test1_func(abts_case *tc, void *data)
     }
 
 	
-	gettimeofday(&stop_time, NULL);
-	printf("D-register,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
+    gettimeofday(&stop_time, NULL);
+    printf("D-register,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
 	
 
     ogs_msleep(300);
 
-	gettimeofday(&start_time, NULL);
+    gettimeofday(&start_time, NULL);
     for (i = 0; i < g_testNum; i++) {
         /********** Remove Subscriber in Database */
         ABTS_INT_EQUAL(tc, OGS_OK, test_db_remove_ue(test_ue[i]));
     }
 
-	gettimeofday(&stop_time, NULL);
-	printf("Remove Subscriber in Database,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
+    gettimeofday(&stop_time, NULL);
+    printf("Remove Subscriber in Database,Time use %f ms\n",(__get_us(stop_time) - __get_us(start_time)) / 1000);
 
 
     /* gNB disonncect from UPF */
@@ -964,42 +967,19 @@ static void test1_func(abts_case *tc, void *data)
 
     /* Clear Test UE Context */
     test_ue_remove_all();
-
 }
 
 abts_suite *test_multi_ue(abts_suite *suite)
 {
-	struct timeval start_time, stop_time;
-	gettimeofday(&start_time, NULL);
+    struct timeval start_time, stop_time;
+    gettimeofday(&start_time, NULL);
 
     suite = ADD_SUITE(suite);
 
     abts_run_test(suite, muti_ue_threads, NULL);
 
-	gettimeofday(&stop_time, NULL);
-	printf("ue num per thread:%d,Time use %f ms\n",g_testNum, (__get_us(stop_time) - __get_us(start_time)) / 1000 - 300);
-
-    return suite;
-}
-
-abts_suite *test_multi_ue_cycle(abts_suite *suite)
-{
-	struct timeval start_time, stop_time;
-	gettimeofday(&start_time, NULL);
-    time_t curtime;
-    time(&curtime);
-    
-    suite = ADD_SUITE(suite);
-
-    int i;
-    for(i=0; i< g_testcycleNum;i++){
-        printf("\r\n");
-        printf(">>>>>>>>>>>>>>>>>g_testcycleNum:%d:%d Time:%s\r\n",g_testcycleNum,i,ctime(&curtime));
-        abts_run_test(suite, muti_ue_threads, NULL);
-    }
-
-	gettimeofday(&stop_time, NULL);
-	printf("ue num per thread:%d,Time use %f ms\n",g_testNum, (__get_us(stop_time) - __get_us(start_time)) / 1000 - 300);
+    gettimeofday(&stop_time, NULL);
+    printf("ue num per thread:%d,Time use %f ms\n",g_testNum, (__get_us(stop_time) - __get_us(start_time)) / 1000 - 300);
 
     return suite;
 }

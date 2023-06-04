@@ -22,6 +22,7 @@
 abts_suite *test_simple(abts_suite *suite);
 abts_suite *test_guti(abts_suite *suite);
 abts_suite *test_auth(abts_suite *suite);
+abts_suite *test_ecc(abts_suite *suite);
 abts_suite *test_idle(abts_suite *suite);
 abts_suite *test_dereg(abts_suite *suite);
 abts_suite *test_paging(abts_suite *suite);
@@ -30,7 +31,6 @@ abts_suite *test_gmm_status(abts_suite *suite);
 abts_suite *test_ue_context(abts_suite *suite);
 abts_suite *test_reset(abts_suite *suite);
 abts_suite *test_multi_ue(abts_suite *suite);
-abts_suite *test_multi_ue_cycle(abts_suite *suite);
 abts_suite *single_ue_multi_test(abts_suite *suite);
 abts_suite *test_multi_ue_multi_test(abts_suite *suite);
 abts_suite *test_multi_ue_multi_test2(abts_suite *suite);
@@ -40,10 +40,11 @@ abts_suite *test_crash(abts_suite *suite);
 const struct testlist {
     abts_suite *(*func)(abts_suite *suite);
 } alltests[] = {
-#if 0
     {test_simple},
+#if 0
     {test_guti},
     {test_auth},
+    {test_ecc},
     {test_idle},
     {test_dereg},
     {test_paging},
@@ -52,17 +53,18 @@ const struct testlist {
     {test_ue_context},
     {test_reset},
 #endif
-#if 1
-    //{test_multi_ue},
-    {test_multi_ue_cycle},
+#if 0
+    {test_multi_ue},
+#endif
+
    // {single_ue_multi_test},
 
-    //{test_multi_ue_multi_test},
-   // {test_multi_ue_multi_test2},
-#endif
-#if 0 /* Since there is error LOG, we disabled the following test */
-    {test_crash},
-#endif
+   // {test_multi_ue_multi_test},
+    {test_multi_ue_multi_test2},
+
+/* Since there is error LOG, we disabled the following test */
+    //{test_crash},
+
     {NULL},
 };
 
@@ -74,7 +76,45 @@ static void terminate(void)
     app_terminate();
 
     test_5gc_final();
+
     ogs_app_terminate();
+}
+
+static int test_udm_context_parse_config(void)
+{
+    int rv;
+    yaml_document_t *document = NULL;
+    ogs_yaml_iter_t root_iter;
+
+    document = ogs_app()->document;
+    ogs_assert(document);
+
+    ogs_yaml_iter_init(&root_iter, document);
+    while (ogs_yaml_iter_next(&root_iter)) {
+        const char *root_key = ogs_yaml_iter_key(&root_iter);
+        ogs_assert(root_key);
+        if (!strcmp(root_key, "udm")) {
+            ogs_yaml_iter_t udm_iter;
+            ogs_yaml_iter_recurse(&root_iter, &udm_iter);
+            while (ogs_yaml_iter_next(&udm_iter)) {
+                const char *udm_key = ogs_yaml_iter_key(&udm_iter);
+                ogs_assert(udm_key);
+                if (!strcmp(udm_key, "sbi")) {
+                    /* handle config in sbi library */
+                } else if (!strcmp(udm_key, "service_name")) {
+                    /* handle config in sbi library */
+                } else if (!strcmp(udm_key, "discovery")) {
+                    /* handle config in sbi library */
+                } else if (!strcmp(udm_key, "hnet")) {
+                    rv = ogs_sbi_context_parse_hnet_config(&udm_iter);
+                    if (rv != OGS_OK) return rv;
+                } else
+                    ogs_warn("unknown key `%s`", udm_key);
+            }
+        }
+    }
+
+    return OGS_OK;
 }
 
 static void initialize(const char *const argv[])
@@ -83,7 +123,10 @@ static void initialize(const char *const argv[])
 
     rv = ogs_app_initialize(NULL, NULL, argv);
     ogs_assert(rv == OGS_OK);
+
     test_5gc_init();
+
+    ogs_assert(OGS_OK == test_udm_context_parse_config());
 
     rv = app_initialize(argv);
     ogs_assert(rv == OGS_OK);

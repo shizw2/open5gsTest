@@ -30,7 +30,7 @@ int ausf_sbi_open(void)
     ogs_sbi_nf_fsm_init(nf_instance);
 
     /* Build NF instance information. It will be transmitted to NRF. */
-    ogs_sbi_nf_instance_build_default(nf_instance, OpenAPI_nf_type_AUSF);
+    ogs_sbi_nf_instance_build_default(nf_instance);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_AMF);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_SCP);
 
@@ -49,8 +49,8 @@ int ausf_sbi_open(void)
     if (nf_instance)
         ogs_sbi_nf_fsm_init(nf_instance);
 
-    /* Build Subscription-Data */
-    ogs_sbi_subscription_data_build_default(
+    /* Setup Subscription-Data */
+    ogs_sbi_subscription_spec_add(
             OpenAPI_nf_type_UDM, OGS_SBI_SERVICE_NAME_NUDM_UEAU);
 
     if (ogs_sbi_server_start_all(ogs_sbi_server_handler) != OGS_OK)
@@ -74,13 +74,14 @@ bool ausf_sbi_send_request(
 }
 
 extern int g_select_key;
-bool ausf_sbi_discover_and_send(
+int ausf_sbi_discover_and_send(
         ogs_sbi_service_type_e service_type,
         ogs_sbi_discovery_option_t *discovery_option,
         ogs_sbi_request_t *(*build)(ausf_ue_t *ausf_ue, void *data),
         ausf_ue_t *ausf_ue, ogs_sbi_stream_t *stream, void *data)
 {
     ogs_sbi_xact_t *xact = NULL;
+    int r;
 
     ogs_assert(service_type);
     ogs_assert(ausf_ue);
@@ -96,21 +97,22 @@ bool ausf_sbi_discover_and_send(
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_GATEWAY_TIMEOUT, NULL,
                 "Cannot discover", ausf_ue->suci));
-        return false;
+        return OGS_ERROR;
     }
 
     xact->assoc_stream = stream;
     xact->select_key = ogs_sbi_self()->nf_instance->time.heartbeat_interval;
-    
-    if (ogs_sbi_discover_and_send(xact) != true) {
+
+    r = ogs_sbi_discover_and_send(xact);
+    if (r != OGS_OK) {
         ogs_error("ausf_sbi_discover_and_send() failed");
         ogs_sbi_xact_remove(xact);
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_GATEWAY_TIMEOUT, NULL,
                 "Cannot discover", ausf_ue->suci));
-        return false;
+        return r;
     }
     
-    return true;
+    return OGS_OK;
 }

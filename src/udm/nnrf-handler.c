@@ -53,24 +53,13 @@ void udm_nnrf_handle_nf_discover(
 
     ogs_nnrf_disc_handle_nf_discover_search_result(SearchResult);
 
-    if (target_nf_type == OpenAPI_nf_type_UDR){
-        nf_instance = ogs_sbi_nf_instance_find_by_select_key(
-                        target_nf_type, requester_nf_type, discovery_option, ogs_sbi_self()->nf_instance->time.heartbeat_interval);
-        if (!nf_instance) {
-            ogs_error("(NF discover) No [%s:%s]",
-                        ogs_sbi_service_type_to_name(service_type),
-                        OpenAPI_nf_type_ToString(requester_nf_type));
-            return;
-        }
-    }else{
-        nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
-                        target_nf_type, requester_nf_type, discovery_option);
-        if (!nf_instance) {
-            ogs_error("(NF discover) No [%s:%s]",
-                        ogs_sbi_service_type_to_name(service_type),
-                        OpenAPI_nf_type_ToString(requester_nf_type));
-            return;
-        }
+    nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
+                    target_nf_type, requester_nf_type, discovery_option);
+    if (!nf_instance) {
+        ogs_error("(NF discover) No [%s:%s]",
+                    ogs_sbi_service_type_to_name(service_type),
+                    OpenAPI_nf_type_ToString(requester_nf_type));
+        return;
     }
 
     OGS_SBI_SETUP_NF_INSTANCE(

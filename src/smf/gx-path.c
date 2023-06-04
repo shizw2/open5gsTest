@@ -28,7 +28,7 @@ struct sess_state {
 
     os0_t       peer_host;          /* Peer Host */
 
-#define MAX_CC_REQUEST_NUMBER 32
+#define MAX_CC_REQUEST_NUMBER 64
     smf_sess_t *sess;
     ogs_gtp_xact_t *xact[MAX_CC_REQUEST_NUMBER];
 
@@ -51,12 +51,22 @@ static __inline__ struct sess_state *new_state(os0_t sid)
 
     ogs_thread_mutex_lock(&sess_state_mutex);
     ogs_pool_alloc(&sess_state_pool, &new);
-    ogs_expect_or_return_val(new, NULL);
+    if (!new) {
+        ogs_error("ogs_pool_alloc() failed");
+        ogs_thread_mutex_unlock(&sess_state_mutex);
+        return NULL;
+    }
     memset(new, 0, sizeof(*new));
-    ogs_thread_mutex_unlock(&sess_state_mutex);
 
     new->gx_sid = (os0_t)ogs_strdup((char *)sid);
-    ogs_expect_or_return_val(new->gx_sid, NULL);
+    if (!new->gx_sid) {
+        ogs_error("ogs_strdup() failed");
+        ogs_pool_free(&sess_state_pool, new);
+        ogs_thread_mutex_unlock(&sess_state_mutex);
+        return NULL;
+    }
+
+    ogs_thread_mutex_unlock(&sess_state_mutex);
 
     return new;
 }
@@ -489,7 +499,7 @@ void smf_gx_send_ccr(smf_sess_t *sess, ogs_gtp_xact_t *xact,
         ogs_assert(ret == 0);
 
         /* 3GPP-User-Location-Info, 3GPP TS 29.061 16.4.7.2 22 */
-        smf_fd_msg_avp_add_3gpp_uli(sess, avpch1);
+        smf_fd_msg_avp_add_3gpp_uli(sess, req);
 
         /* Set 3GPP-MS-Timezone */
         if (sess->gtp.ue_timezone.presence &&

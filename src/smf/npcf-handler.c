@@ -445,8 +445,9 @@ bool smf_npcf_smpolicycontrol_handle_create(
     /* Check if selected UPF is associated with SMF */
     ogs_assert(sess->pfcp_node);
     if (!OGS_FSM_CHECK(&sess->pfcp_node->sm, smf_pfcp_state_associated)) {
-        ogs_error("[%s] No associated UPF", smf_ue->supi);
-        return false;
+        strerror = ogs_msprintf("[%s:%d] No associated UPF",
+                smf_ue->supi, sess->psi);
+        goto cleanup;
     }
 
     /* Remove all previous QoS flow */
@@ -491,6 +492,38 @@ bool smf_npcf_smpolicycontrol_handle_create(
     ogs_assert(OGS_OK ==
         ogs_pfcp_paa_to_ue_ip_addr(&sess->session.paa,
             &ul_pdr->ue_ip_addr, &ul_pdr->ue_ip_addr_len));
+
+    if (sess->session.ipv4_framed_routes &&
+        sess->pfcp_node->up_function_features.frrt) {
+        int i = 0;
+        for (i = 0; i < OGS_MAX_NUM_OF_FRAMED_ROUTES_IN_PDI; i++) {
+            const char *route = sess->session.ipv4_framed_routes[i];
+            if (!route) break;
+            if (!dl_pdr->ipv4_framed_routes) {
+                dl_pdr->ipv4_framed_routes =
+                    ogs_calloc(OGS_MAX_NUM_OF_FRAMED_ROUTES_IN_PDI,
+                               sizeof(dl_pdr->ipv4_framed_routes[0]));
+                ogs_assert(dl_pdr->ipv4_framed_routes);
+            }
+            dl_pdr->ipv4_framed_routes[i] = ogs_strdup(route);
+        }
+    }
+
+    if (sess->session.ipv6_framed_routes &&
+        sess->pfcp_node->up_function_features.frrt) {
+        int i = 0;
+        for (i = 0; i < OGS_MAX_NUM_OF_FRAMED_ROUTES_IN_PDI; i++) {
+            const char *route = sess->session.ipv6_framed_routes[i];
+            if (!route) break;
+            if (!dl_pdr->ipv6_framed_routes) {
+                dl_pdr->ipv6_framed_routes =
+                    ogs_calloc(OGS_MAX_NUM_OF_FRAMED_ROUTES_IN_PDI,
+                               sizeof(dl_pdr->ipv6_framed_routes[0]));
+                ogs_assert(dl_pdr->ipv6_framed_routes);
+            }
+            dl_pdr->ipv6_framed_routes[i] = ogs_strdup(route);
+        }
+    }
 
     ogs_info("UE SUPI[%s] DNN[%s] IPv4[%s] IPv6[%s]",
         smf_ue->supi, sess->session.name,
@@ -552,10 +585,10 @@ bool smf_npcf_smpolicycontrol_handle_create(
                 &sess->upf_n3_addr, &sess->upf_n3_addr6);
             if (resource->info.teidri)
                 sess->upf_n3_teid = OGS_PFCP_GTPU_INDEX_TO_TEID(
-                        ul_pdr->index, resource->info.teidri,
+                        ul_pdr->teid, resource->info.teidri,
                         resource->info.teid_range);
             else
-                sess->upf_n3_teid = ul_pdr->index;
+                sess->upf_n3_teid = ul_pdr->teid;
         } else {
             if (sess->pfcp_node->addr.ogs_sa_family == AF_INET)
                 ogs_assert(OGS_OK ==
@@ -568,7 +601,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
             else
                 ogs_assert_if_reached();
 
-            sess->upf_n3_teid = ul_pdr->index;
+            sess->upf_n3_teid = ul_pdr->teid;
         }
 
         ogs_assert(OGS_OK ==
@@ -581,7 +614,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
             ogs_pfcp_sockaddr_to_f_teid(
                 sess->upf_n3_addr, sess->upf_n3_addr6,
                 &cp2up_pdr->f_teid, &cp2up_pdr->f_teid_len));
-        cp2up_pdr->f_teid.teid = cp2up_pdr->index;
+        cp2up_pdr->f_teid.teid = cp2up_pdr->teid;
 
         ogs_assert(OGS_OK ==
             ogs_pfcp_sockaddr_to_f_teid(
@@ -597,7 +630,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
     up2cp_pdr->precedence = OGS_PFCP_UP2CP_PDR_PRECEDENCE;
 
     ogs_assert(OGS_OK ==
-        smf_5gc_pfcp_send_session_establishment_request(sess, stream));
+            smf_5gc_pfcp_send_session_establishment_request(sess, 0));
 
     return true;
 
@@ -669,6 +702,7 @@ bool smf_npcf_smpolicycontrol_handle_terminate_notify(
 {
     smf_ue_t *smf_ue = NULL;
     smf_npcf_smpolicycontrol_param_t param;
+    int r;
 
     ogs_assert(sess);
     ogs_assert(stream);
@@ -680,11 +714,12 @@ bool smf_npcf_smpolicycontrol_handle_terminate_notify(
     ogs_assert(true == ogs_sbi_send_http_status_no_content(stream));
 
     memset(&param, 0, sizeof(param));
-    ogs_assert(true ==
-        smf_sbi_discover_and_send(
+    r = smf_sbi_discover_and_send(
             OGS_SBI_SERVICE_TYPE_NPCF_SMPOLICYCONTROL, NULL,
             smf_npcf_smpolicycontrol_build_delete,
-            sess, NULL, OGS_PFCP_DELETE_TRIGGER_PCF_INITIATED, &param));
+            sess, NULL, OGS_PFCP_DELETE_TRIGGER_PCF_INITIATED, &param);
+    ogs_expect(r == OGS_OK);
+    ogs_assert(r != OGS_ERROR);
 
     return true;
 }

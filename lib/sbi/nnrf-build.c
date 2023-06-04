@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -24,10 +24,10 @@ static OpenAPI_nf_service_t *build_nf_service(
 static void free_nf_service(OpenAPI_nf_service_t *NFService);
 static OpenAPI_smf_info_t *build_smf_info(ogs_sbi_nf_info_t *nf_info);
 static OpenAPI_amf_info_t *build_amf_info(ogs_sbi_nf_info_t *nf_info);
-static OpenAPI_udm_info_t *build_udm_info(ogs_sbi_nf_info_t *nf_info);
+static OpenAPI_scp_info_t *build_scp_info(ogs_sbi_nf_info_t *nf_info);
 static void free_smf_info(OpenAPI_smf_info_t *SmfInfo);
 static void free_amf_info(OpenAPI_amf_info_t *AmfInfo);
-static void free_udm_info(OpenAPI_udm_info_t *UdmInfo);
+static void free_scp_info(OpenAPI_scp_info_t *ScpInfo);
 
 ogs_sbi_request_t *ogs_nnrf_nfm_build_register(void)
 {
@@ -37,7 +37,6 @@ ogs_sbi_request_t *ogs_nnrf_nfm_build_register(void)
     ogs_sbi_request_t *request = NULL;
 
     OpenAPI_nf_profile_t *NFProfile = NULL;
-    uint64_t supported_features = 0;
 
     nf_instance = ogs_sbi_self()->nf_instance;
     ogs_assert(nf_instance);
@@ -53,10 +52,8 @@ ogs_sbi_request_t *ogs_nnrf_nfm_build_register(void)
 
     message.http.content_encoding = (char*)ogs_sbi_self()->content_encoding;
 
-    OGS_SBI_FEATURES_SET(supported_features, OGS_SBI_NNRF_NFM_SERVICE_MAP);
     NFProfile = ogs_nnrf_nfm_build_nf_profile(
-                    ogs_sbi_self()->nf_instance,
-                    NULL, NULL, supported_features);
+                    ogs_sbi_self()->nf_instance, NULL, NULL, true);
     if (!NFProfile) {
         ogs_error("No NFProfile");
         goto end;
@@ -79,7 +76,7 @@ OpenAPI_nf_profile_t *ogs_nnrf_nfm_build_nf_profile(
         ogs_sbi_nf_instance_t *nf_instance,
         const char *service_name,
         ogs_sbi_discovery_option_t *discovery_option,
-        uint64_t supported_features)
+        bool service_map)
 {
     ogs_sbi_nf_service_t *nf_service = NULL;
     ogs_sbi_nf_info_t *nf_info = NULL;
@@ -92,13 +89,12 @@ OpenAPI_nf_profile_t *ogs_nnrf_nfm_build_nf_profile(
     OpenAPI_map_t *NFServiceMap = NULL;
     OpenAPI_list_t *InfoList = NULL;
     OpenAPI_map_t *InfoMap = NULL;
-    OpenAPI_smf_info_t *SmfInfo = NULL;
     int InfoMapKey;
 
     OpenAPI_lnode_t *node = NULL;
 
+    OpenAPI_smf_info_t *SmfInfo = NULL;
     OpenAPI_amf_info_t *AmfInfo = NULL;
-    OpenAPI_udm_info_t *UdmInfo = NULL;
 
     int i = 0;
     char *ipstr = NULL;
@@ -223,8 +219,7 @@ OpenAPI_nf_profile_t *ogs_nnrf_nfm_build_nf_profile(
         return NULL;
     }
 
-    if (OGS_SBI_FEATURES_IS_SET(
-        supported_features, OGS_SBI_NNRF_NFM_SERVICE_MAP)) {
+    if (service_map == true) {
         NFProfile->nf_service_list = NFServiceList;
     } else {
         NFProfile->nf_services = NFServiceList;
@@ -258,8 +253,7 @@ OpenAPI_nf_profile_t *ogs_nnrf_nfm_build_nf_profile(
             return NULL;
         }
 
-        if (OGS_SBI_FEATURES_IS_SET(
-            supported_features, OGS_SBI_NNRF_NFM_SERVICE_MAP)) {
+        if (service_map == true) {
             NFServiceMap = OpenAPI_map_create(nf_service->id, NFService);
             if (!NFServiceMap) {
                 ogs_error("No NFServiceMap");
@@ -305,17 +299,15 @@ OpenAPI_nf_profile_t *ogs_nnrf_nfm_build_nf_profile(
 
             OpenAPI_list_add(InfoList, InfoMap);
 
-        } else if (nf_info->nf_type == OpenAPI_nf_type_UDM) {
-            UdmInfo = build_udm_info(nf_info);
-            ogs_assert(UdmInfo);
+        } else if (nf_info->nf_type == OpenAPI_nf_type_SCP) {
 
-            InfoMap = OpenAPI_map_create(
-                    ogs_msprintf("%d", ++InfoMapKey), UdmInfo);
-            ogs_assert(InfoMap);
+            /* SCP info will be skipped here first and dealt with below. */
 
-            OpenAPI_list_add(InfoList, InfoMap);
+        } else if (nf_info->nf_type == OpenAPI_nf_type_SEPP) {
 
-        }else {
+            /* SEPP info will be skipped here first and dealt with below. */
+
+        } else {
             ogs_fatal("Not implemented NF-type[%s]",
                     OpenAPI_nf_type_ToString(nf_info->nf_type));
             ogs_assert_if_reached();
@@ -326,8 +318,6 @@ OpenAPI_nf_profile_t *ogs_nnrf_nfm_build_nf_profile(
             NFProfile->smf_info = SmfInfo;
         } else if (nf_instance->nf_type == OpenAPI_nf_type_AMF) {
             NFProfile->amf_info = AmfInfo;
-        } else if (nf_instance->nf_type == OpenAPI_nf_type_UDM) {
-            NFProfile->udm_info = UdmInfo;
         } else {
             ogs_fatal("Not implemented NF-type[%s]",
                     OpenAPI_nf_type_ToString(nf_instance->nf_type));
@@ -354,6 +344,14 @@ OpenAPI_nf_profile_t *ogs_nnrf_nfm_build_nf_profile(
         }
     } else
         OpenAPI_list_free(InfoList);
+
+    /* There can only be one SCP info, not multiple. */
+    nf_info = ogs_sbi_nf_info_find(
+            &nf_instance->nf_info_list, OpenAPI_nf_type_SCP);
+    if (nf_info) {
+        NFProfile->scp_info = build_scp_info(nf_info);
+        ogs_assert(NFProfile->scp_info);
+    }
 
     return NFProfile;
 }
@@ -431,6 +429,9 @@ void ogs_nnrf_nfm_free_nf_profile(OpenAPI_nf_profile_t *NFProfile)
 
     if (NFProfile->amf_info)
         free_amf_info(NFProfile->amf_info);
+
+    if (NFProfile->scp_info)
+        free_scp_info(NFProfile->scp_info);
 
     ogs_free(NFProfile);
 }
@@ -589,7 +590,7 @@ static OpenAPI_nf_service_t *build_nf_service(
                     return NULL;
                 }
             }
-            IpEndPoint->is_port = true;
+            IpEndPoint->is_port = nf_service->addr[i].is_port;
             IpEndPoint->port = nf_service->addr[i].port;
             OpenAPI_list_add(IpEndPointList, IpEndPoint);
         }
@@ -673,7 +674,7 @@ static OpenAPI_smf_info_t *build_smf_info(ogs_sbi_nf_info_t *nf_info)
 
     OpenAPI_list_t *sNssaiSmfInfoList = NULL;
     OpenAPI_snssai_smf_info_item_t *sNssaiSmfInfoItem = NULL;
-    OpenAPI_snssai_t *sNssai = NULL;
+    OpenAPI_ext_snssai_t *sNssai = NULL;
     OpenAPI_list_t *DnnSmfInfoList = NULL;
     OpenAPI_dnn_smf_info_item_t *DnnSmfInfoItem = NULL;
 
@@ -1061,64 +1062,135 @@ static OpenAPI_amf_info_t *build_amf_info(ogs_sbi_nf_info_t *nf_info)
     return AmfInfo;
 }
 
-static OpenAPI_udm_info_t *build_udm_info(ogs_sbi_nf_info_t *nf_info)
+static OpenAPI_scp_info_t *build_scp_info(ogs_sbi_nf_info_t *nf_info)
 {
     int i;
-    OpenAPI_udm_info_t *UdmInfo = NULL;
+    OpenAPI_scp_info_t *ScpInfo = NULL;
+    OpenAPI_list_t *PortList = NULL;
+    OpenAPI_map_t *PortMap = NULL;
 
-    OpenAPI_list_t *SupiRangeList = NULL;
-    OpenAPI_supi_range_t *SupiRangeItem = NULL;
-
-    OpenAPI_list_t *TacRangeList = NULL;
-    OpenAPI_tac_range_t *TacRangeItem = NULL;
+    OpenAPI_list_t *DomainInfoList = NULL;
+    OpenAPI_map_t *DomainInfoMap = NULL;
+    OpenAPI_scp_domain_info_t *DomainInfo = NULL;
 
     ogs_assert(nf_info);
 
-    UdmInfo = ogs_calloc(1, sizeof(*UdmInfo));
-    if (!UdmInfo) {
-        ogs_error("No UdmInfo");
+    ScpInfo = ogs_calloc(1, sizeof(*ScpInfo));
+    if (!ScpInfo) {
+        ogs_error("No ScpInfo");
         return NULL;
     }
 
-    SupiRangeList = OpenAPI_list_create();
-    if (!SupiRangeList) {
-        ogs_error("No SupiRangeList");
-        free_udm_info(UdmInfo);
-        OpenAPI_list_free(SupiRangeList);
+    PortList = OpenAPI_list_create();
+    if (!PortList) {
+        ogs_error("No PortList");
+        free_scp_info(ScpInfo);
         return NULL;
     }
 
-    for (i = 0;
-            i < nf_info->udm.num_of_supi_range;
-            i++) {
-        SupiRangeItem = ogs_calloc(1, sizeof(*SupiRangeItem));
-        ogs_assert(SupiRangeItem);
+    if (nf_info->scp.http.presence) {
+        PortMap = OpenAPI_map_create(
+                    (char *)"http", ogs_alloc_double(nf_info->scp.http.port));
+        if (!PortMap) {
+            ogs_error("No PortMap");
+            free_scp_info(ScpInfo);
+            return NULL;
+        }
+        OpenAPI_list_add(PortList, PortMap);
+    }
+    if (nf_info->scp.https.presence) {
+        PortMap = OpenAPI_map_create(
+                    (char *)"https", ogs_alloc_double(nf_info->scp.https.port));
+        if (!PortMap) {
+            ogs_error("No PortMap");
+            free_scp_info(ScpInfo);
+            return NULL;
+        }
+        OpenAPI_list_add(PortList, PortMap);
+    }
 
-        SupiRangeItem->start = ogs_uint24_to_0string(
-                nf_info->udm.start[i]);
-        ogs_assert(SupiRangeItem->start);
-        SupiRangeItem->end =
-            ogs_uint24_to_0string(
-                    nf_info->udm.end[i]);
-        ogs_assert(SupiRangeItem->end);
-
-        OpenAPI_list_add(SupiRangeList, SupiRangeItem);
-    }  
-
-    if (SupiRangeList->count)
-        UdmInfo->supi_ranges = SupiRangeList;
+    if (PortList->count)
+        ScpInfo->scp_ports = PortList;
     else
-        OpenAPI_list_free(SupiRangeList);
+        OpenAPI_list_free(PortList);
 
-    return UdmInfo;
+    DomainInfoList = OpenAPI_list_create();
+    if (!DomainInfoList) {
+        ogs_error("No DomainInfoList");
+        free_scp_info(ScpInfo);
+        return NULL;
+    }
+    for (i = 0; i < nf_info->scp.num_of_domain; i++) {
+        ogs_assert(nf_info->scp.domain[i].name);
+
+        DomainInfo = ogs_calloc(1, sizeof(*DomainInfo));
+        if (!DomainInfo) {
+            ogs_error("No DomainInfo");
+            free_scp_info(ScpInfo);
+            return NULL;
+        }
+
+        DomainInfo->scp_fqdn = nf_info->scp.domain[i].fqdn;
+
+        PortList = OpenAPI_list_create();
+        if (!PortList) {
+            ogs_error("No PortList");
+            free_scp_info(ScpInfo);
+            return NULL;
+        }
+
+        if (nf_info->scp.domain[i].http.presence) {
+            PortMap = OpenAPI_map_create(
+                        (char *)"http",
+                        ogs_alloc_double(nf_info->scp.domain[i].http.port));
+            if (!PortMap) {
+                ogs_error("No PortMap");
+                free_scp_info(ScpInfo);
+                return NULL;
+            }
+            OpenAPI_list_add(PortList, PortMap);
+        }
+        if (nf_info->scp.domain[i].https.presence) {
+            PortMap = OpenAPI_map_create(
+                        (char *)"https",
+                        ogs_alloc_double(nf_info->scp.domain[i].https.port));
+            if (!PortMap) {
+                ogs_error("No PortMap");
+                free_scp_info(ScpInfo);
+                return NULL;
+            }
+            OpenAPI_list_add(PortList, PortMap);
+        }
+
+        if (PortList->count)
+            DomainInfo->scp_ports = PortList;
+        else
+            OpenAPI_list_free(PortList);
+
+        DomainInfoMap = OpenAPI_map_create(
+                    nf_info->scp.domain[i].name, DomainInfo);
+        if (!DomainInfoMap) {
+            ogs_error("No PortMap");
+            free_scp_info(ScpInfo);
+            return NULL;
+        }
+
+        OpenAPI_list_add(DomainInfoList, DomainInfoMap);
+    }
+
+    if (DomainInfoList->count)
+        ScpInfo->scp_domain_info_list = DomainInfoList;
+    else
+        OpenAPI_list_free(DomainInfoList);
+
+    return ScpInfo;
 }
-
 
 static void free_smf_info(OpenAPI_smf_info_t *SmfInfo)
 {
     OpenAPI_list_t *sNssaiSmfInfoList = NULL;
     OpenAPI_snssai_smf_info_item_t *sNssaiSmfInfoItem = NULL;
-    OpenAPI_snssai_t *sNssai = NULL;
+    OpenAPI_ext_snssai_t *sNssai = NULL;
     OpenAPI_list_t *DnnSmfInfoList = NULL;
     OpenAPI_dnn_smf_info_item_t *DnnSmfInfoItem = NULL;
 
@@ -1277,30 +1349,46 @@ static void free_amf_info(OpenAPI_amf_info_t *AmfInfo)
     ogs_free(AmfInfo);
 }
 
-static void free_udm_info(OpenAPI_udm_info_t *UdmInfo)
+static void free_scp_info(OpenAPI_scp_info_t *ScpInfo)
 {
-    
-    OpenAPI_list_t *SupiRangeList = NULL;
-    OpenAPI_supi_range_t *SupiRangeItem = NULL;
+    OpenAPI_map_t *PortMap = NULL;
+    OpenAPI_lnode_t *node = NULL, *node2 = NULL;
 
-    OpenAPI_lnode_t *node = NULL;
+    OpenAPI_map_t *DomainInfoMap = NULL;
+    OpenAPI_scp_domain_info_t *DomainInfo = NULL;
 
-    ogs_assert(UdmInfo);
+    ogs_assert(ScpInfo);
 
-    SupiRangeList = UdmInfo->supi_ranges;
-    OpenAPI_list_for_each(SupiRangeList, node) {
-        SupiRangeItem = node->data;
-        ogs_assert(SupiRangeItem);
-        if (SupiRangeItem->start)
-            ogs_free(SupiRangeItem->start);
-        if (SupiRangeItem->end)
-            ogs_free(SupiRangeItem->end);
-
-        ogs_free(SupiRangeItem);
+    OpenAPI_list_for_each(ScpInfo->scp_ports, node) {
+        PortMap = node->data;
+        if (PortMap) {
+            ogs_free(PortMap->value);
+            OpenAPI_map_free(PortMap);
+        }
     }
-    OpenAPI_list_free(SupiRangeList);
+    OpenAPI_list_free(ScpInfo->scp_ports);
 
-    ogs_free(UdmInfo);
+    OpenAPI_list_for_each(ScpInfo->scp_domain_info_list, node) {
+        DomainInfoMap = node->data;
+        if (DomainInfoMap) {
+            DomainInfo = DomainInfoMap->value;
+            if (DomainInfo) {
+                OpenAPI_list_for_each(DomainInfo->scp_ports, node2) {
+                    PortMap = node2->data;
+                    if (PortMap) {
+                        ogs_free(PortMap->value);
+                        OpenAPI_map_free(PortMap);
+                    }
+                }
+                OpenAPI_list_free(DomainInfo->scp_ports);
+                ogs_free(DomainInfo);
+            }
+            OpenAPI_map_free(DomainInfoMap);
+        }
+    }
+    OpenAPI_list_free(ScpInfo->scp_domain_info_list);
+
+    ogs_free(ScpInfo);
 }
 
 ogs_sbi_request_t *ogs_nnrf_nfm_build_update(void)
@@ -1310,12 +1398,16 @@ ogs_sbi_request_t *ogs_nnrf_nfm_build_update(void)
     ogs_sbi_message_t message;
     ogs_sbi_request_t *request = NULL;
 
-    OpenAPI_list_t *PatchItemList;
-    OpenAPI_patch_item_t item;
+    OpenAPI_list_t *PatchItemList = NULL;
+    OpenAPI_patch_item_t StatusItem;
+    OpenAPI_patch_item_t LoadItem;
 
     nf_instance = ogs_sbi_self()->nf_instance;
     ogs_assert(nf_instance);
     ogs_assert(nf_instance->id);
+
+    memset(&StatusItem, 0, sizeof(StatusItem));
+    memset(&LoadItem, 0, sizeof(LoadItem));
 
     memset(&message, 0, sizeof(message));
     message.h.method = (char *)OGS_SBI_HTTP_METHOD_PATCH;
@@ -1333,17 +1425,26 @@ ogs_sbi_request_t *ogs_nnrf_nfm_build_update(void)
         goto end;
     }
 
-    memset(&item, 0, sizeof(item));
-    item.op = OpenAPI_patch_operation_replace;
-    item.path = (char *)"/nfStatus";
-    item.value = OpenAPI_any_type_create_string(
+    StatusItem.op = OpenAPI_patch_operation_replace;
+    StatusItem.path = (char *)OGS_SBI_PATCH_PATH_NF_STATUS;
+    StatusItem.value = OpenAPI_any_type_create_string(
         OpenAPI_nf_status_ToString(OpenAPI_nf_status_REGISTERED));
-    if (!item.value) {
-        ogs_error("No item.value");
+    if (!StatusItem.value) {
+        ogs_error("No status item.value");
         goto end;
     }
 
-    OpenAPI_list_add(PatchItemList, &item);
+    OpenAPI_list_add(PatchItemList, &StatusItem);
+
+    LoadItem.op = OpenAPI_patch_operation_replace;
+    LoadItem.path = (char *)OGS_SBI_PATCH_PATH_LOAD;
+    LoadItem.value = OpenAPI_any_type_create_number(nf_instance->load);
+    if (!LoadItem.value) {
+        ogs_error("No load item.value");
+        goto end;
+    }
+
+    OpenAPI_list_add(PatchItemList, &LoadItem);
 
     message.PatchItemList = PatchItemList;
 
@@ -1351,8 +1452,12 @@ ogs_sbi_request_t *ogs_nnrf_nfm_build_update(void)
     ogs_expect(request);
 
 end:
-    OpenAPI_list_free(PatchItemList);
-    OpenAPI_any_type_free(item.value);
+    if (LoadItem.value)
+        OpenAPI_any_type_free(LoadItem.value);
+    if (StatusItem.value)
+        OpenAPI_any_type_free(StatusItem.value);
+    if (PatchItemList)
+        OpenAPI_list_free(PatchItemList);
 
     return request;
 }
@@ -1391,7 +1496,7 @@ ogs_sbi_request_t *ogs_nnrf_nfm_build_status_subscribe(
     ogs_sbi_server_t *server = NULL;
 
     OpenAPI_subscription_data_t *SubscriptionData = NULL;
-    OpenAPI_subscription_data_subscr_cond_t SubscrCond;
+    OpenAPI_subscr_cond_t SubscrCond;
 
     ogs_assert(subscription_data);
     ogs_assert(subscription_data->req_nf_type);
@@ -1466,6 +1571,71 @@ end:
             ogs_free(SubscriptionData->requester_features);
         ogs_free(SubscriptionData);
     }
+
+    return request;
+}
+
+ogs_sbi_request_t *ogs_nnrf_nfm_build_status_update(
+        ogs_sbi_subscription_data_t *subscription_data)
+{
+    ogs_sbi_message_t message;
+    ogs_sbi_request_t *request = NULL;
+
+    OpenAPI_list_t *PatchItemList = NULL;
+    OpenAPI_patch_item_t ValidityItem;
+    char *validity_time = NULL;
+
+    ogs_assert(subscription_data);
+    ogs_assert(subscription_data->id);
+
+    memset(&ValidityItem, 0, sizeof(ValidityItem));
+
+    memset(&message, 0, sizeof(message));
+    message.h.method = (char *)OGS_SBI_HTTP_METHOD_PATCH;
+    message.h.service.name = (char *)OGS_SBI_SERVICE_NAME_NNRF_NFM;
+    message.h.api.version = (char *)OGS_SBI_API_V1;
+    message.h.resource.component[0] =
+        (char *)OGS_SBI_RESOURCE_NAME_SUBSCRIPTIONS;
+    message.h.resource.component[1] = subscription_data->id;
+
+    message.http.content_type = (char *)OGS_SBI_CONTENT_PATCH_TYPE;
+
+    PatchItemList = OpenAPI_list_create();
+    if (!PatchItemList) {
+        ogs_error("No PatchItemList");
+        goto end;
+    }
+
+    ogs_assert(subscription_data->time.validity_duration);
+    validity_time = ogs_sbi_localtime_string(
+            ogs_time_now() +
+            ogs_time_from_sec(subscription_data->time.validity_duration));
+    ogs_assert(validity_time);
+
+    ValidityItem.op = OpenAPI_patch_operation_replace;
+    ValidityItem.path = (char *)OGS_SBI_PATCH_PATH_VALIDITY_TIME;
+    ValidityItem.value = OpenAPI_any_type_create_string(validity_time);
+
+    if (!ValidityItem.value) {
+        ogs_error("No status item.value");
+        goto end;
+    }
+
+    OpenAPI_list_add(PatchItemList, &ValidityItem);
+
+    message.PatchItemList = PatchItemList;
+
+    request = ogs_sbi_build_request(&message);
+    ogs_expect(request);
+
+end:
+    if (ValidityItem.value)
+        OpenAPI_any_type_free(ValidityItem.value);
+    if (validity_time)
+        ogs_free(validity_time);
+
+    if (PatchItemList)
+        OpenAPI_list_free(PatchItemList);
 
     return request;
 }

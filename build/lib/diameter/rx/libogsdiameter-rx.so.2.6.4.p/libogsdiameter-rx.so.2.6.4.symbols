@@ -1,0 +1,40 @@
+ 0x000000000000000e (SONAME)             Library soname: [libogsdiameter-rx.so.2]
+__bss_start B
+_edata D
+_end B
+_fini T
+_init T
+ogs_diam_rx_abort_cause B 0000000000000008
+ogs_diam_rx_af_application_identifier B 0000000000000008
+ogs_diam_rx_application B 0000000000000008
+ogs_diam_rx_cmd_aaa B 0000000000000008
+ogs_diam_rx_cmd_aar B 0000000000000008
+ogs_diam_rx_cmd_asa B 0000000000000008
+ogs_diam_rx_cmd_asr B 0000000000000008
+ogs_diam_rx_cmd_sta B 0000000000000008
+ogs_diam_rx_cmd_str B 0000000000000008
+ogs_diam_rx_codec_data B 0000000000000008
+ogs_diam_rx_flow_description B 0000000000000008
+ogs_diam_rx_flow_number B 0000000000000008
+ogs_diam_rx_flow_status B 0000000000000008
+ogs_diam_rx_flow_usage B 0000000000000008
+ogs_diam_rx_framed_ip_address B 0000000000000008
+ogs_diam_rx_framed_ipv6_prefix B 0000000000000008
+ogs_diam_rx_init T
+ogs_diam_rx_ip_can_type B 0000000000000008
+ogs_diam_rx_max_requested_bandwidth_dl B 0000000000000008
+ogs_diam_rx_max_requested_bandwidth_ul B 0000000000000008
+ogs_diam_rx_media_component_description B 0000000000000008
+ogs_diam_rx_media_component_number B 0000000000000008
+ogs_diam_rx_media_sub_component B 0000000000000008
+ogs_diam_rx_media_type B 0000000000000008
+ogs_diam_rx_min_requested_bandwidth_dl B 0000000000000008
+ogs_diam_rx_min_requested_bandwidth_ul B 0000000000000008
+ogs_diam_rx_reservation_priority B 0000000000000008
+ogs_diam_rx_rr_bandwidth B 0000000000000008
+ogs_diam_rx_rs_bandwidth B 0000000000000008
+ogs_diam_rx_specific_action B 0000000000000008
+ogs_diam_rx_subscription_id B 0000000000000008
+ogs_diam_rx_subscription_id_data B 0000000000000008
+ogs_diam_rx_subscription_id_type B 0000000000000008
+ogs_dict_rx_entry T

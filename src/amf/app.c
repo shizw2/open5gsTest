@@ -31,7 +31,7 @@ int app_initialize(const char *const argv[])
     printf("arg:%s.\r\n",FileName);    
     if (ogs_strcasecmp(FileName, "open5gs-amfd") == 0){
         printf("amf init.\r\n");
-        rv = amf_initialize();
+    rv = amf_initialize();
     }else{
         printf("amf sps init.\r\n");
         rv = amf_sps_initialize();

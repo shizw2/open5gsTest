@@ -64,7 +64,6 @@ void *ogs_talloc_size(const void *ctx, size_t size, const char *name)
     ptr = talloc_named_const(ctx, size, name);
     ogs_expect(ptr);
 
-    //ogs_info("ogs_talloc_size:%p\r\n",ptr);
     ogs_thread_mutex_unlock(&mutex);
 
     return ptr;
@@ -105,16 +104,6 @@ int ogs_talloc_free(void *ptr, const char *location)
 
     ogs_thread_mutex_lock(&mutex);
 
-#if 1
-    if (ptr != NULL && strlen(ptr)< 8){
-        //ogs_info("ogs_talloc_size:%s\r\n",(char*)ptr);
-        if (strcmp(ptr,"ims-n2")== 0 || strcmp(ptr,"ims-g2")== 0){
-            ogs_info("ogs_talloc_free:%s,%p\r\n",(char*)ptr,ptr);
-            //ogs_assert(0);
-        }
-    }
- #endif   
-
     ret = _talloc_free(ptr, location);
 
     ogs_thread_mutex_unlock(&mutex);
@@ -135,7 +124,11 @@ void *ogs_malloc_debug(size_t size, const char *file_line)
 
     headroom = sizeof(ogs_pkbuf_t *);
     pkbuf = ogs_pkbuf_alloc_debug(NULL, headroom + size, file_line);
-    ogs_expect_or_return_val(pkbuf, NULL);
+    if (!pkbuf) {
+        ogs_error("ogs_pkbuf_alloc_debug[headroom:%d, size:%d] failed",
+                (int)headroom, (int)size);
+        return NULL;
+    }
 
     ogs_pkbuf_reserve(pkbuf, headroom);
     memcpy(pkbuf->head, &pkbuf, headroom);
@@ -166,7 +159,11 @@ void *ogs_calloc_debug(size_t nmemb, size_t size, const char *file_line)
     void *ptr = NULL;
 
     ptr = ogs_malloc_debug(nmemb * size, file_line);
-    ogs_expect_or_return_val(ptr, NULL);
+    if (!ptr) {
+        ogs_error("ogs_malloc_debug[nmemb:%d, size:%d] failed",
+                (int)nmemb, (int)size);
+        return NULL;
+    }
 
     memset(ptr, 0, nmemb * size);
     return ptr;
@@ -185,10 +182,17 @@ void *ogs_realloc_debug(void *ptr, size_t size, const char *file_line)
 
     memcpy(&pkbuf, (unsigned char*)ptr - headroom, headroom);
 
-    ogs_expect_or_return_val(pkbuf, NULL);
+    if (!pkbuf) {
+        ogs_error("Cannot get pkbuf from ptr[%p], headroom[%d]",
+                ptr, (int)headroom);
+        return NULL;
+    }
 
     cluster = pkbuf->cluster;
-    ogs_expect_or_return_val(cluster, NULL);
+    if (!cluster) {
+        ogs_error("No cluster");
+        return NULL;
+    }
 
     if (!size) {
         ogs_pkbuf_free(pkbuf);
@@ -199,7 +203,10 @@ void *ogs_realloc_debug(void *ptr, size_t size, const char *file_line)
         void *new = NULL;
 
         new = ogs_malloc_debug(size, file_line);
-        ogs_expect_or_return_val(new, NULL);
+        if (!new) {
+            ogs_error("ogs_malloc_debug[%d] failed", (int)size);
+            return NULL;
+        }
 
         memcpy(new, ptr, pkbuf->len);
 

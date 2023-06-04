@@ -17,6 +17,7 @@
 
 libpcf_sources = files('''
     context.c
+    metrics.c
     event.c
 
     nnrf-handler.c
@@ -38,8 +39,8 @@ libpcf_sources = files('''
     sbi-path.c
     pcf-sm.c
 	
-	pcf-rx-path.c
-	pcf-fd-path.c
+    pcf-rx-path.c
+    pcf-fd-path.c
 	
     init.c
 '''.split())
@@ -47,6 +48,7 @@ libpcf_sources = files('''
 libpcf = static_library('pcf',
     sources : libpcf_sources,
     dependencies : [libdbi_dep,
+                    libmetrics_dep,
                     libsbi_dep,
                     libdiameter_rx_dep,
                     libdiameter_gx_dep],
@@ -55,6 +57,7 @@ libpcf = static_library('pcf',
 libpcf_dep = declare_dependency(
     link_with : libpcf,
     dependencies : [libdbi_dep,
+                    libmetrics_dep,
                     libsbi_dep,
                     libdiameter_rx_dep,
                     libdiameter_gx_dep])

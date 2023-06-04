@@ -19,7 +19,7 @@ test5gc_vonr_sources = files('''
     test-fd-path.h
     test-fd-path.c
     diameter-rx-path.c
-	diameter-cx-path.c
+    diameter-cx-path.c
 	
     abts-main.c
     qos-flow-test.c
@@ -33,7 +33,7 @@ test5gc_vonr_sources = files('''
 test5gc_vonr_exe = executable('vonr',
     sources : test5gc_vonr_sources,
     c_args : [testunit_core_cc_flags,
-        '-DFD_EXT_DIR="@0@"'.format(freediameter_extensions_builddir)],
+        '-DFD_EXT_DIR="@0@"'.format(build_subprojects_freeDiameter_extensions_dir)],
     dependencies : libtest5gc_dep)
 
 test('vonr',

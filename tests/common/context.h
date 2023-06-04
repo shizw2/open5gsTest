@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019,2020 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -79,6 +79,7 @@ typedef struct test_context_s {
     uint8_t num_of_e_served_tai;
     struct {
         ogs_eps_tai0_list_t list0;
+        ogs_eps_tai1_list_t list1;
         ogs_eps_tai2_list_t list2;
     } e_served_tai[OGS_MAX_NUM_OF_SERVED_TAI];
 
@@ -88,6 +89,7 @@ typedef struct test_context_s {
     uint8_t num_of_nr_served_tai;
     struct {
         ogs_5gs_tai0_list_t list0;
+        ogs_5gs_tai1_list_t list1;
         ogs_5gs_tai2_list_t list2;
     } nr_served_tai[OGS_MAX_NUM_OF_SERVED_TAI];
 
@@ -258,10 +260,11 @@ typedef struct test_pdu_session_establishment_param_s {
 typedef struct test_pdn_connectivity_param_s {
     union {
         struct {
-        ED6(uint8_t eit:1;,
+        ED7(uint8_t eit:1;,
             uint8_t eit_no_required:1;,
             uint8_t apn:1;,
             uint8_t pco:1;,
+            uint8_t epco:1;,
             uint8_t spare:1;,
             uint8_t request_type:3;)
         };
@@ -273,7 +276,7 @@ typedef struct test_esm_information_param_s {
     union {
         struct {
         ED8(uint8_t pco:1;,
-            uint8_t spare1:1;,
+            uint8_t epco:1;,
             uint8_t spare2:1;,
             uint8_t spare3:1;,
             uint8_t spare4:1;,
@@ -300,7 +303,7 @@ typedef struct test_ue_s {
     uint8_t imsi_buf[OGS_MAX_IMSI_LEN];
     int imsi_len;
 
-    ogs_nas_5gs_mobile_identity_suci_t mobile_identity_suci;
+    ogs_nas_5gs_mobile_identity_t mobile_identity;
     ogs_nas_mobile_identity_imeisv_t mobile_identity_imeisv;
     bool mobile_identity_imeisv_presence;
     uint16_t mobile_identity_suci_length;
@@ -497,16 +500,11 @@ void test_context_init(void);
 void test_context_final(void);
 test_context_t *test_self(void);
 
-
 int test_context_parse_config(void);
-
-void test_ue_set_mobile_identity_suci(test_ue_t *test_ue,
-    ogs_nas_5gs_mobile_identity_suci_t *mobile_identity_suci,
-    uint16_t mobile_identity_suci_length);
 
 test_ue_t *test_ue_add_by_suci(
     ogs_nas_5gs_mobile_identity_suci_t *mobile_identity_suci,
-    uint16_t mobile_identity_suci_length);
+    const char *scheme_output);
 void test_ue_remove(test_ue_t *test_ue);
 void test_ue_remove_all(void);
 

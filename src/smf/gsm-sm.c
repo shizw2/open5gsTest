@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -452,7 +452,7 @@ test_can_proceed:
             OGS_FSM_TRAN(s, &smf_gsm_state_wait_pfcp_establishment);
             ogs_assert(OGS_OK ==
                 smf_epc_pfcp_send_session_establishment_request(
-                    sess, e->gtp_xact));
+                    sess, e->gtp_xact, 0));
         } else {
             /* FIXME: tear down Gx/Gy session
              * if its sm_data.*init_err == ER_DIAMETER_SUCCESS */
@@ -671,21 +671,28 @@ void smf_gsm_state_wait_pfcp_establishment(ogs_fsm_t *s, smf_event_t *e)
                     send_gtp_create_err_msg(sess, e->gtp_xact, gtp_cause);
                     return;
                 }
-                switch (gtp_xact->gtp_version) {
-                case 1:
-                    rv = smf_gtp1_send_create_pdp_context_response(sess, gtp_xact);
-                    break;
-                case 2:
-                    rv = smf_gtp2_send_create_session_response(sess, gtp_xact);
-                    break;
-                default:
-                    rv = OGS_ERROR;
-                    break;
-                }
-                /* If no CreatePDPCtxResp can be sent, then tear down the session: */
-                if (rv != OGS_OK) {
-                    OGS_FSM_TRAN(s, &smf_gsm_state_wait_pfcp_deletion);
-                    return;
+
+                gtp_xact = pfcp_xact->assoc_xact;
+                if (gtp_xact) {
+                    switch (gtp_xact->gtp_version) {
+                    case 1:
+                        rv = smf_gtp1_send_create_pdp_context_response(
+                                sess, gtp_xact);
+                        break;
+                    case 2:
+                        rv = smf_gtp2_send_create_session_response(
+                                sess, gtp_xact);
+                        break;
+                    default:
+                        rv = OGS_ERROR;
+                        break;
+                    }
+                    /* If no CreatePDPCtxResp can be sent,
+                     * then tear down the session: */
+                    if (rv != OGS_OK) {
+                        OGS_FSM_TRAN(s, &smf_gsm_state_wait_pfcp_deletion);
+                        return;
+                    }
                 }
 
                 if (sess->gtp_rat_type == OGS_GTP2_RAT_TYPE_WLAN) {
@@ -739,6 +746,9 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
     smf_sess_t *sess = NULL;
     ogs_pkbuf_t *pkbuf = NULL;
 
+    ogs_pfcp_xact_t *pfcp_xact = NULL;
+    ogs_pfcp_message_t *pfcp_message = NULL;
+
     ogs_nas_5gs_message_t *nas_message = NULL;
 
     ogs_sbi_stream_t *stream = NULL;
@@ -748,6 +758,9 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
     ogs_gtp2_message_t *gtp2_message = NULL;
     uint8_t gtp1_cause, gtp2_cause;
     bool release;
+    int r;
+
+    int state = 0;
 
     ogs_assert(s);
     ogs_assert(e);
@@ -812,6 +825,43 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
         }
         break;
 
+    case SMF_EVT_N4_MESSAGE:
+        pfcp_xact = e->pfcp_xact;
+        ogs_assert(pfcp_xact);
+        pfcp_message = e->pfcp_message;
+        ogs_assert(pfcp_message);
+
+        switch (pfcp_message->h.type) {
+        case OGS_PFCP_SESSION_ESTABLISHMENT_RESPONSE_TYPE:
+            if ((pfcp_xact->create_flags &
+                        OGS_PFCP_CREATE_RESTORATION_INDICATION)) {
+                ogs_pfcp_session_establishment_response_t *rsp = NULL;
+                ogs_pfcp_f_seid_t *up_f_seid = NULL;
+
+                rsp = &pfcp_message->pfcp_session_establishment_response;
+                if (rsp->up_f_seid.presence == 0) {
+                    ogs_error("No UP F-SEID");
+                    break;
+                }
+                up_f_seid = rsp->up_f_seid.data;
+                ogs_assert(up_f_seid);
+                sess->upf_n4_seid = be64toh(up_f_seid->seid);
+            } else {
+                ogs_error("cannot handle PFCP Session Establishment Response");
+            }
+            break;
+
+        case OGS_PFCP_SESSION_DELETION_RESPONSE_TYPE:
+            ogs_error("Session Released by Error Indication");
+            OGS_FSM_TRAN(s, smf_gsm_state_session_will_release);
+            break;
+
+        default:
+            ogs_error("cannot handle PFCP message type[%d]",
+                    pfcp_message->h.type);
+        }
+        break;
+
     case OGS_EVENT_SBI_SERVER:
         sbi_message = e->h.sbi.message;
         ogs_assert(sbi_message);
@@ -861,6 +911,7 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
         SWITCH(sbi_message->h.service.name)
         CASE(OGS_SBI_SERVICE_NAME_NPCF_SMPOLICYCONTROL)
             stream = e->h.sbi.data;
+            state = e->h.sbi.state;
 
             SWITCH(sbi_message->h.resource.component[0])
             CASE(OGS_SBI_RESOURCE_NAME_SM_POLICIES)
@@ -902,8 +953,31 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
                             break;
                         }
 
-                        OGS_FSM_TRAN(&sess->sm,
-                                &smf_gsm_state_wait_pfcp_deletion);
+                        if (state == OGS_PFCP_DELETE_TRIGGER_SMF_INITIATED) {
+                            OGS_FSM_TRAN(&sess->sm, smf_gsm_state_wait_5gc_n1_n2_release);
+
+                            smf_n1_n2_message_transfer_param_t param;
+
+                            memset(&param, 0, sizeof(param));
+                            param.state = SMF_NETWORK_REQUESTED_PDU_SESSION_RELEASE;
+                            sess->pti = OGS_NAS_PROCEDURE_TRANSACTION_IDENTITY_UNASSIGNED;
+                            param.n1smbuf = gsm_build_pdu_session_release_command(
+                                sess, OGS_5GSM_CAUSE_REACTIVATION_REQUESTED);
+                            ogs_assert(param.n1smbuf);
+
+                            param.n2smbuf =
+                                ngap_build_pdu_session_resource_release_command_transfer(
+                                    sess, SMF_NGAP_STATE_DELETE_TRIGGER_SMF_INITIATED,
+                                    NGAP_Cause_PR_nas, NGAP_CauseNas_normal_release);
+                            ogs_assert(param.n2smbuf);
+
+                            param.skip_ind = true;
+
+                            smf_namf_comm_send_n1_n2_message_transfer(sess, &param);
+                        } else {
+                            OGS_FSM_TRAN(&sess->sm,
+                                    &smf_gsm_state_wait_pfcp_deletion);
+                        }
                         break;
 
                     DEFAULT
@@ -1000,12 +1074,13 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
                 param.ran_nas_release.ngap_cause.value =
                     NGAP_CauseNas_normal_release;
 
-                ogs_assert(true ==
-                    smf_sbi_discover_and_send(
+                r = smf_sbi_discover_and_send(
                         OGS_SBI_SERVICE_TYPE_NPCF_SMPOLICYCONTROL, NULL,
                         smf_npcf_smpolicycontrol_build_delete,
                         sess, stream,
-                        OGS_PFCP_DELETE_TRIGGER_UE_REQUESTED, &param));
+                        OGS_PFCP_DELETE_TRIGGER_UE_REQUESTED, &param);
+                ogs_expect(r == OGS_OK);
+                ogs_assert(r != OGS_ERROR);
             } else {
                 ogs_error("[%s:%d] No PolicyAssociationId",
                         smf_ue->supi, sess->psi);
@@ -1522,7 +1597,8 @@ void smf_gsm_state_wait_5gc_n1_n2_release(ogs_fsm_t *s, smf_event_t *e)
 
             } else if (
                 ngap_state == SMF_NGAP_STATE_DELETE_TRIGGER_UE_REQUESTED ||
-                ngap_state == SMF_NGAP_STATE_DELETE_TRIGGER_PCF_INITIATED) {
+                ngap_state == SMF_NGAP_STATE_DELETE_TRIGGER_PCF_INITIATED ||
+                ngap_state == SMF_NGAP_STATE_DELETE_TRIGGER_SMF_INITIATED) {
 
                 ogs_assert(true == ogs_sbi_send_http_status_no_content(stream));
 
@@ -1590,6 +1666,8 @@ void smf_gsm_state_session_will_release(ogs_fsm_t *s, smf_event_t *e)
 
     switch (e->h.id) {
     case OGS_FSM_ENTRY_SIG:
+        smf_metrics_inst_by_slice_add(&sess->plmn_id, &sess->s_nssai,
+                SMF_METR_GAUGE_SM_SESSIONNBR, -1);
         SMF_SESS_CLEAR(sess);
         break;
 
@@ -1620,6 +1698,8 @@ void smf_gsm_state_exception(ogs_fsm_t *s, smf_event_t *e)
     switch (e->h.id) {
     case OGS_FSM_ENTRY_SIG:
         ogs_error("[%s:%d] State machine exception", smf_ue->supi, sess->psi);
+        smf_metrics_inst_by_slice_add(&sess->plmn_id, &sess->s_nssai,
+                SMF_METR_GAUGE_SM_SESSIONNBR, -1);
         SMF_SESS_CLEAR(sess);
         break;
 

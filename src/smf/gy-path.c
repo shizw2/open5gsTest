@@ -29,7 +29,7 @@ struct sess_state {
 
     os0_t       peer_host;          /* Peer Host */
 
-#define MAX_CC_REQUEST_NUMBER 32
+#define MAX_CC_REQUEST_NUMBER 64
     smf_sess_t *sess;
     struct {
         bool pfcp;
@@ -54,12 +54,22 @@ static __inline__ struct sess_state *new_state(os0_t sid)
 
     ogs_thread_mutex_lock(&sess_state_mutex);
     ogs_pool_alloc(&sess_state_pool, &new);
-    ogs_expect_or_return_val(new, NULL);
+    if (!new) {
+        ogs_error("ogs_pool_alloc() failed");
+        ogs_thread_mutex_unlock(&sess_state_mutex);
+        return NULL;
+    }
     memset(new, 0, sizeof(*new));
-    ogs_thread_mutex_unlock(&sess_state_mutex);
 
     new->gy_sid = (os0_t)ogs_strdup((char *)sid);
-    ogs_expect_or_return_val(new->gy_sid, NULL);
+    if (!new->gy_sid) {
+        ogs_error("ogs_strdup() failed");
+        ogs_pool_free(&sess_state_pool, new);
+        ogs_thread_mutex_unlock(&sess_state_mutex);
+        return NULL;
+    }
+
+    ogs_thread_mutex_unlock(&sess_state_mutex);
 
     return new;
 }
@@ -502,7 +512,7 @@ static void fill_service_information_ccr(smf_sess_t *sess,
     }
 
     /* 3GPP-User-Location-Info, 3GPP TS 29.061 16.4.7.2 22 */
-    smf_fd_msg_avp_add_3gpp_uli(sess, avpch1);
+    smf_fd_msg_avp_add_3gpp_uli(sess, req);
 
     if (sess->smf_ue->imeisv_len > 0) {
         /* User-Equipment-Info, 3GPP TS 32.299 7.1.17 */
@@ -556,7 +566,7 @@ void smf_gy_send_ccr(smf_sess_t *sess, void *xact,
     struct sess_state *sess_data = NULL, *svg;
     struct session *session = NULL;
     int new;
-    const char *service_context_id = "open5gs-smfd@open5gs.org";
+    const char *service_context_id = "32251@3gpp.org";
     uint32_t timestamp;
 
     ogs_assert(xact);

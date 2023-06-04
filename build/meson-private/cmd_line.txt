@@ -1,0 +1,6 @@
+[options]
+prefix = /home/git/open5gs-main-2.6.4.1/install
+backend = ninja
+
+[properties]
+
