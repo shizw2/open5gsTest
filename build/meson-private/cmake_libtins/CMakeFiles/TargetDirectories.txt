@@ -1,2 +1,0 @@
-/home/git/open5gs-main-2.6.4.1/build/meson-private/cmake_libtins/CMakeFiles/edit_cache.dir
-/home/git/open5gs-main-2.6.4.1/build/meson-private/cmake_libtins/CMakeFiles/rebuild_cache.dir
