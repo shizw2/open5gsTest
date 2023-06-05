@@ -68,7 +68,7 @@ void amf_context_init(void)
     {
         ogs_pool_init(&amf_ue_pool, ogs_app()->max.ue);
         ogs_pool_init(&amf_sess_pool, ogs_app()->pool.sess);
-        //ogs_pool_init(&self.m_tmsi, ogs_app()->max.ue*2);        
+        ogs_pool_init(&m_tmsi_pool, ogs_app()->max.ue*2);        
         ogs_list_init(&self.amf_ue_list);
     }else{
         ogs_pool_init(&amf_gnb_pool, ogs_app()->max.peer*2);
@@ -159,7 +159,6 @@ amf_context_t *amf_self(void)
     return &self;
 }
 
-extern int g_sps_id;
 static int amf_context_prepare(void)
 {
     self.relative_capacity = 0xff;
@@ -2753,6 +2752,8 @@ amf_m_tmsi_t *amf_m_tmsi_alloc(void)
 
     *m_tmsi = ((*m_tmsi & 0xffff) | ((*m_tmsi & 0x003f0000) << 8));
     *m_tmsi |= 0xc0000000;
+    *m_tmsi &= 0xff0fffff;
+    *m_tmsi |=(g_sps_id<<20);
 
     return m_tmsi;
 }

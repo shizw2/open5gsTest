@@ -681,7 +681,7 @@ int ngap_send_paging_icps(ogs_5gs_tai_t *nr_tai,ogs_pkbuf_t *pkbuf)
                     gnb->supported_ta_list[i].tac.v == nr_tai->tac.v) {                    
                     pkbuftmp=ogs_pkbuf_copy(pkbuf);
                     rv = ngap_send_to_gnb(gnb, pkbuftmp, NGAP_NON_UE_SIGNALLING);
-                    //ogs_expect_or_return_val(rv == OGS_OK, rv);
+                    ogs_expect_or_return_val(rv == OGS_OK, rv);
                 }
             }
         }
@@ -694,8 +694,8 @@ int ngap_send_paging_icps(ogs_5gs_tai_t *nr_tai,ogs_pkbuf_t *pkbuf)
 int ngap_send_paging_sps(amf_ue_t *amf_ue)
 {
     ogs_pkbuf_t *ngapbuf = NULL;
-    amf_gnb_t *gnb = NULL;
-    int i, j;
+    //amf_gnb_t *gnb = NULL;
+    //int i, j;
     int rv;
 
    if (amf_ue->t3513.pkbuf) {

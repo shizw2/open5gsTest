@@ -75,6 +75,7 @@
         "queue": "c",
         "stack": "c",
         "cinttypes": "c",
-        "cstdbool": "c"
+        "cstdbool": "c",
+        "ssl.h": "c"
     }
 }

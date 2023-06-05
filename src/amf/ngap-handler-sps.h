@@ -73,7 +73,7 @@ void ngap_handle_initial_context_setup_response_sps(
 void ngap_handle_ng_reset_sps(ogs_ngap_message_t *message);
 void ngap_handle_uplink_nas_transport_sps(
         ran_ue_t *ran_ue,ogs_ngap_message_t *message);
- void sps_check_icps_offline();
+ void sps_check_icps_offline(void);
 
 
 

@@ -217,7 +217,7 @@ ED3(uint8_t type:4;,
 
 /* 9.11.3.4 5GS mobile identity
  * M LV-E 6-n */
-#define OGS_NAS_MAX_SCHEME_OUTPUT_LEN 64  //编译需要先恢复
+#define OGS_NAS_MAX_SCHEME_OUTPUT_LEN 64  //TODO:编译需要先恢复
 typedef struct ogs_nas_5gs_mobile_identity_header_s {
 #define OGS_NAS_5GS_SUPI_FORMAT_IMSI 0
 #define OGS_NAS_5GS_SUPI_FORMAT_NETWORK_SPECIFIC_IDENTIFIER 1

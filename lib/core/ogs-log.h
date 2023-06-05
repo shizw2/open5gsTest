@@ -125,6 +125,7 @@ void ogs_log_hexdump_func(ogs_log_level_e level, int domain_id,
         } \
     } while (0)
 
+//新版本已经没有这个宏，编译需要先添加上
 #define ogs_expect_or_return_val(expr, val) \
     do { \
         if (ogs_likely(expr)) ; \

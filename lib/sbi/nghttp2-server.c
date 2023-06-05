@@ -23,7 +23,6 @@
 #include <netinet/tcp.h>
 #include <nghttp2/nghttp2.h>
 
-
 #define USE_SEND_DATA_WITH_NO_COPY 1
 
 static void server_init(int num_of_session_pool, int num_of_stream_pool);
@@ -196,7 +195,7 @@ static SSL_CTX *create_ssl_ctx(const char *key_file, const char *cert_file)
 
     ogs_assert(key_file);
     ogs_assert(cert_file);
-#if 0
+#if 0 //TODO:centos下，需要升级openssl才行。先注释掉
     ssl_ctx = SSL_CTX_new(TLS_server_method());
     if (!ssl_ctx) {
         ogs_error("Could not create SSL/TLS context: %s", ERR_error_string(ERR_get_error(), NULL));

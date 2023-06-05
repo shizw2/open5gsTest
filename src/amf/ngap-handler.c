@@ -599,7 +599,8 @@ void ngap_handle_initial_ue_message(amf_gnb_t *gnb, ogs_ngap_message_t *message,
 #if 0
     ogs_expect(OGS_OK == ngap_send_to_nas(
                 ran_ue, NGAP_ProcedureCode_id_InitialUEMessage, NAS_PDU));
-#endif/modify 20230202 by O3
+#endif
+    //modify 20230202 by O3
     ngap_icps_send_to_sps_pkg2(ran_ue,NGAP_ProcedureCode_id_InitialUEMessage,pkbuf);
 }
 

@@ -522,7 +522,7 @@ void udp_ini_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
 	ogs_info("sps recv sbi msg, msg_len:%d,msg_head_len:%ld,udp_head_len:%ld.", pkbuf->len,sizeof(amf_internel_msg_header_t),sizeof(ogs_sbi_udp_header_t));					
 	if (pkbuf->len > sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)){
 		//根据header解析content
-        request.http.content = pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t);
+        request.http.content = (char*)(pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t));
         request.http.content_length = pkbuf->len - sizeof(amf_internel_msg_header_t)-sizeof(ogs_sbi_udp_header_t);
       
         p_udp_header = (ogs_sbi_udp_header_t*)(char*)(pkbuf->data+sizeof(amf_internel_msg_header_t));
@@ -726,7 +726,7 @@ void udp_ini_icps_handle_sbi_msg(ogs_pkbuf_t *pkbuf)
         response = ogs_sbi_response_new();
         response->http.content_length = pkbuf->len - sizeof(amf_internel_msg_header_t)-sizeof(ogs_sbi_udp_header_t);
         //这里必须要拷贝一份，底层有释放操作
-        response->http.content = ogs_strndup(pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t), response->http.content_length);
+        response->http.content = ogs_strndup((char*)(pkbuf->data+sizeof(amf_internel_msg_header_t)+sizeof(ogs_sbi_udp_header_t)), response->http.content_length);
         ogs_sbi_update_response(p_udp_header,response);        
         
         stream = (ogs_sbi_stream_t *)p_udp_header->stream_pointer;

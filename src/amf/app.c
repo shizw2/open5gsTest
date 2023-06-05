@@ -26,7 +26,7 @@ int app_initialize(const char *const argv[])
 
     ogs_sctp_init(ogs_app()->usrsctp.udp_port);
 
-    char *FileDP = argv[0];
+    char *FileDP = (char *)argv[0];
     char *FileName = strrchr(FileDP, '/') +1 ;
     printf("arg:%s.\r\n",FileName);    
     if (ogs_strcasecmp(FileName, "open5gs-amfd") == 0){

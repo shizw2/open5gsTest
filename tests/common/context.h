@@ -303,6 +303,7 @@ typedef struct test_ue_s {
     uint8_t imsi_buf[OGS_MAX_IMSI_LEN];
     int imsi_len;
 
+    ogs_nas_5gs_mobile_identity_suci_t mobile_identity_suci; //TODO:老版本编译需要，先恢复
     ogs_nas_5gs_mobile_identity_t mobile_identity;
     ogs_nas_mobile_identity_imeisv_t mobile_identity_imeisv;
     bool mobile_identity_imeisv_presence;

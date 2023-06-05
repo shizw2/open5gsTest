@@ -422,7 +422,7 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
     if (is_amf_sps())
     {
         //发送时,content编码好发送； header先发送原始字段，到icps再编码
-        sendmsg.udp_h.stream_pointer = stream;
+        sendmsg.udp_h.stream_pointer = (uint64_t)stream;
         udp_ini_msg_sendto_icps(INTERNEL_MSG_SBI, &sendmsg.udp_h, response->http.content,response->http.content_length);
         ogs_sbi_response_free(response);
     }
@@ -537,7 +537,7 @@ cleanup:
     ogs_assert(response);
     if (is_amf_sps())
     {
-        sendmsg.udp_h.stream_pointer = stream;
+        sendmsg.udp_h.stream_pointer = (uint64_t)stream;
         udp_ini_msg_sendto_icps(INTERNEL_MSG_SBI, &sendmsg.udp_h, response->http.content,response->http.content_length);
         ogs_sbi_response_free(response);
     }
@@ -666,7 +666,7 @@ cleanup:
     ogs_assert(response);
     if (is_amf_sps())
     {
-        sendmsg.udp_h.stream_pointer = stream;
+        sendmsg.udp_h.stream_pointer = (uint64_t)stream;
         udp_ini_msg_sendto_icps(INTERNEL_MSG_SBI, &sendmsg.udp_h, response->http.content,response->http.content_length);
         ogs_sbi_response_free(response);
     }
@@ -1022,7 +1022,7 @@ cleanup:
     ogs_assert(response);
     if (is_amf_sps())
     {
-        sendmsg.udp_h.stream_pointer = stream;
+        sendmsg.udp_h.stream_pointer = (uint64_t)stream;
         udp_ini_msg_sendto_icps(INTERNEL_MSG_SBI, &sendmsg.udp_h, response->http.content,response->http.content_length);
         ogs_sbi_response_free(response);
     }

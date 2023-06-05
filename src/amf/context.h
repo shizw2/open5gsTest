@@ -923,7 +923,7 @@ void icps_ue_remove(icps_ue_spsno_t* icps_ue);
 icps_ue_spsno_t* icps_ue_add(char *supi);
 icps_ue_spsno_t* icps_ue_find_by_supi(char *supi);
 icps_ue_spsno_t *icps_ue_cycle(icps_ue_spsno_t *icps_ue);
-void icps_ue_remove_all();
+void icps_ue_remove_all(void);
 
 #ifdef __cplusplus
 }

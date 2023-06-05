@@ -98,6 +98,12 @@ if cc.get_id() == 'gcc' or cc.get_id() == 'clang'
         '-fstack-protector',
         '-fstack-protector-strong',
         '--param=ssp-buffer-size=4',
+        #以下是centos下添加。后续可以通过修改代码解决
+        '-Wno-expansion-to-defined',
+        '-Wno-unused-variable',
+        '-Wno-unused-but-set-variable',
+        '-Wno-int-conversion',
+        '-Wno-implicit-function-declaration',
     ]
 
     if cc.get_id() == 'clang'

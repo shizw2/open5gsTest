@@ -6,12 +6,11 @@
 #include "ngap-handler.h"
 #include "udp-ini-path.h"
 
-extern int send_heart_cnt;
 
 int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
 { 
     uint8_t *buf=NULL;
-    int rev;
+    int rev = OGS_OK;
     ran_ue_t * ran_ue=NULL;
     amf_ue_t *amf_ue = NULL;
     ogs_assert(pmsg);
@@ -175,8 +174,8 @@ int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
             break;
     }
 
-    if(&message)
-        ogs_ngap_free(&message);
+    //if(&message)  //the address of ‘message’ will always evaluate as ‘true’ [-Werror=address]
+    ogs_ngap_free(&message);
     return rev;
 }
 
@@ -442,7 +441,7 @@ void ngap_handle_initial_context_setup_response_sps(
     amf_ue_t *amf_ue = NULL;
     //ran_ue_t *ran_ue = NULL;
     amf_sess_t *sess = NULL;
-    uint64_t amf_ue_ngap_id;
+    uint64_t amf_ue_ngap_id = 0;
     amf_nsmf_pdusession_sm_context_param_t param;
 
     NGAP_SuccessfulOutcome_t *successfulOutcome = NULL;
@@ -1044,7 +1043,7 @@ void ngap_handle_ue_context_release_request_sps(
 {
     int i;
     char buf[OGS_ADDRSTRLEN];
-    uint64_t amf_ue_ngap_id;
+    uint64_t amf_ue_ngap_id = 0;
 
     //ran_ue_t *ran_ue = NULL;
     amf_ue_t *amf_ue = NULL;
@@ -2873,7 +2872,7 @@ void ngap_handle_uplink_nas_transport_sps(
 
     ngap_send_to_nas(ran_ue, NGAP_ProcedureCode_id_UplinkNASTransport, NAS_PDU);
 }
-void sps_check_icps_offline()
+void sps_check_icps_offline(void)
 {
     if(send_heart_cnt>2){
         ogs_warn("send_heart_cnt:%d",send_heart_cnt);
