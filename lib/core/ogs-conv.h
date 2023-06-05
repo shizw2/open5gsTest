@@ -27,7 +27,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#define OGS_HEX(I, I_LEN, O) ogs_ascii_to_hex((char*)I, I_LEN, O, sizeof(O)) //编译需要临时添加
 int ogs_ascii_to_hex(char *in, int in_len, void *out, int out_len);
 static ogs_inline void *ogs_hex_from_string(
         const char *str, void *out, int out_len)

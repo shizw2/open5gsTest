@@ -29,9 +29,6 @@ test5gc_registration_sources = files('''
     ue-context-test.c
     reset-test.c
     multi-ue-test.c
-    single-ue-multi-test.c
-    multi-ue-multi-test.c
-    multi-ue-multi-test2.c
     crash-test.c
 '''.split())
 

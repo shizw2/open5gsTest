@@ -68,7 +68,7 @@ void amf_context_init(void)
     {
         ogs_pool_init(&amf_ue_pool, ogs_app()->max.ue);
         ogs_pool_init(&amf_sess_pool, ogs_app()->pool.sess);
-        ogs_pool_init(&self.m_tmsi, ogs_app()->max.ue*2);        
+        //ogs_pool_init(&self.m_tmsi, ogs_app()->max.ue*2);        
         ogs_list_init(&self.amf_ue_list);
     }else{
         ogs_pool_init(&amf_gnb_pool, ogs_app()->max.peer*2);
@@ -1989,12 +1989,12 @@ amf_ue_t *amf_ue_find_by_guti(ogs_nas_5gs_guti_t *guti)
     return (amf_ue_t *)ogs_hash_get(
             self.guti_ue_hash, guti, sizeof(ogs_nas_5gs_guti_t));
 }
-
+#if 0
 amf_ue_t *amf_ue_find_by_teid(uint32_t teid)
 {
     return ogs_pool_find(&amf_ue_pool, teid);
 }
-
+#endif
 amf_ue_t *amf_ue_find_by_suci(char *suci)
 {
     ogs_assert(suci);

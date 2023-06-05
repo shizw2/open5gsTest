@@ -237,13 +237,13 @@ static void test_cx_uaa_cb(void *data, struct msg **msg)
 
     /* Search the session, retrieve its data */
     ret = fd_msg_sess_get(fd_g_config->cnf_dict, *msg, &session, &new);
-    ogs_expect_or_return(ret == 0);
-    ogs_expect_or_return(new == 0);
+    ogs_expect(ret == 0);
+    ogs_expect(new == 0);
 
     ret = fd_sess_state_retrieve(test_cx_reg, session, &sess_data);
-    ogs_expect_or_return(ret == 0);
-    ogs_expect_or_return(sess_data);
-    ogs_expect_or_return((void *)sess_data == data);
+    ogs_expect(ret == 0);
+    ogs_expect(sess_data);
+    ogs_expect((void *)sess_data == data);
 
     test_ue = sess_data->test_ue;
     ogs_assert(test_ue);
@@ -541,13 +541,13 @@ static void test_cx_maa_cb(void *data, struct msg **msg)
 
     /* Search the session, retrieve its data */
     ret = fd_msg_sess_get(fd_g_config->cnf_dict, *msg, &session, &new);
-    ogs_expect_or_return(ret == 0);
-    ogs_expect_or_return(new == 0);
+    ogs_expect(ret == 0);
+    ogs_expect(new == 0);
 
     ret = fd_sess_state_retrieve(test_cx_reg, session, &sess_data);
-    ogs_expect_or_return(ret == 0);
-    ogs_expect_or_return(sess_data);
-    ogs_expect_or_return((void *)sess_data == data);
+    ogs_expect(ret == 0);
+    ogs_expect(sess_data);
+    ogs_expect((void *)sess_data == data);
 
     test_ue = sess_data->test_ue;
     ogs_assert(test_ue);
@@ -809,13 +809,13 @@ static void test_cx_saa_cb(void *data, struct msg **msg)
 
     /* Search the session, retrieve its data */
     ret = fd_msg_sess_get(fd_g_config->cnf_dict, *msg, &session, &new);
-    ogs_expect_or_return(ret == 0);
-    ogs_expect_or_return(new == 0);
+    ogs_expect(ret == 0);
+    ogs_expect(new == 0);
 
     ret = fd_sess_state_retrieve(test_cx_reg, session, &sess_data);
-    ogs_expect_or_return(ret == 0);
-    ogs_expect_or_return(sess_data);
-    ogs_expect_or_return((void *)sess_data == data);
+    ogs_expect(ret == 0);
+    ogs_expect(sess_data);
+    ogs_expect((void *)sess_data == data);
 
     test_ue = sess_data->test_ue;
     ogs_assert(test_ue);
@@ -1038,13 +1038,13 @@ static void test_cx_lia_cb(void *data, struct msg **msg)
 
     /* Search the session, retrieve its data */
     ret = fd_msg_sess_get(fd_g_config->cnf_dict, *msg, &session, &new);
-    ogs_expect_or_return(ret == 0);
-    ogs_expect_or_return(new == 0);
+    ogs_expect(ret == 0);
+    ogs_expect(new == 0);
 
     ret = fd_sess_state_retrieve(test_cx_reg, session, &sess_data);
-    ogs_expect_or_return(ret == 0);
-    ogs_expect_or_return(sess_data);
-    ogs_expect_or_return((void *)sess_data == data);
+    ogs_expect(ret == 0);
+    ogs_expect(sess_data);
+    ogs_expect((void *)sess_data == data);
 
     test_ue = sess_data->test_ue;
     ogs_assert(test_ue);

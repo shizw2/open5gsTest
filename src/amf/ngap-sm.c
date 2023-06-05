@@ -111,7 +111,7 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
 #if 0
                 pkbuf = e->pkbuf;
                 ogs_assert(pkbuf);
-
+#endif
                 ngap_handle_uplink_ran_configuration_transfer(gnb, pdu, pkbuf);
                 break;
             case NGAP_ProcedureCode_id_HandoverPreparation:

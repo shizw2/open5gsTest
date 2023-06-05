@@ -912,7 +912,7 @@ void ngap_handle_ue_radio_capability_info_indication(
 }
 
 void ngap_handle_initial_context_setup_response(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message)
+        amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf)
 {
     char buf[OGS_ADDRSTRLEN];
     int i, r;
@@ -2336,7 +2336,7 @@ void ngap_handle_pdu_session_resource_setup_response(
 }
 
 void ngap_handle_pdu_session_resource_modify_response(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message)
+        amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf)
 {
     char buf[OGS_ADDRSTRLEN];
     int i, r;
@@ -2623,7 +2623,7 @@ void ngap_handle_pdu_session_resource_release_response(
 
     ogs_debug("    RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld]",
             ran_ue->ran_ue_ngap_id, (long long)ran_ue->amf_ue_ngap_id);
-
+#if 0
     amf_ue = ran_ue->amf_ue;
     if (!amf_ue) {
         ogs_error("Cannot find AMF-UE Context [%lld]",
@@ -3373,10 +3373,10 @@ void ngap_handle_handover_required(
     globalGNB_ID = globalRANNodeID->choice.globalGNB_ID;
     if (!globalGNB_ID) {
         ogs_error("No globalGNB_ID");
-        r = ngap_send_error_indication2(amf_ue,
+        /*r = ngap_send_error_indication2(amf_ue,
                 NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
         ogs_expect(r == OGS_OK);
-        ogs_assert(r != OGS_ERROR);
+        ogs_assert(r != OGS_ERROR);*/
         return;
     }
 
