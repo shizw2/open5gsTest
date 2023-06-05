@@ -683,7 +683,7 @@ int amf_nsmf_pdusession_handle_update_sm_context(
                             r = ngap_send_ng_reset_ack(gnb, NULL);
                             ogs_expect(r == OGS_OK);
                             ogs_assert(r != OGS_ERROR);*/
-                        }
+                        //}
 
                     } else {
                         ogs_warn("[%s] RAN-NG Context has already been removed",
