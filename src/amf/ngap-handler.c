@@ -4916,7 +4916,7 @@ uint8_t spsid_find_by_tmsi(ran_ue_t *ran_ue,uint32_t *m_tmsi)
      ogs_assert(ran_ue);  
 	 ogs_assert(m_tmsi);
      uint8_t sps_id;
-     sps_id=(((*m_tmsi) & 0x00FF0000)>>16)%256;
+     sps_id=(((*m_tmsi) & 0x00F00000)>>20)%16;
      ogs_info("spsid_find_by_tmsi sps_id:%d,*m_tmsi=:0x%x",sps_id,*m_tmsi);
      if(find_module_info(sps_id)){
         

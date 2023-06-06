@@ -599,14 +599,6 @@ static void test1_func(abts_case *tc, void *data)
 
     for (i = 0; i < g_testNum; i++) {
         uint64_t imsi_index;
-        const char *scheme_output[] = {
-            "0000000001",
-            "0000000002",
-            "0000000003",
-            "0000000004",
-            "0000000005",
-        };
-
 
         /* Setup Test UE & Session Context */
         memset(&mobile_identity_suci, 0, sizeof(mobile_identity_suci));
@@ -621,15 +613,11 @@ static void test1_func(abts_case *tc, void *data)
         mobile_identity_suci.home_network_pki_value = 0;
 
         imsi_index = i + 1;
-        //ogs_uint64_to_buffer(imsi_index, 5, mobile_identity_suci.scheme_output);
-        mobile_identity_suci.scheme_output[0] = imsi_index/10000%10;
-        mobile_identity_suci.scheme_output[1] = imsi_index/1000%10;
-        mobile_identity_suci.scheme_output[2] = imsi_index/100%10;
-        mobile_identity_suci.scheme_output[3] = imsi_index/10%10;
-        mobile_identity_suci.scheme_output[4] = imsi_index%10;
+        char scheme_output[10]={0};
+        ogs_snprintf(scheme_output,sizeof(imsi_index),"%lu",imsi_index);
 
         test_ue[i] = test_ue_add_by_suci(
-                &mobile_identity_suci, scheme_output[i]);
+                &mobile_identity_suci, scheme_output);
         ogs_assert(test_ue[i]);
 
         test_ue[i]->nr_cgi.cell_id = 0x40001;
