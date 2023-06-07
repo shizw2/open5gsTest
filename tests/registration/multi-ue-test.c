@@ -100,8 +100,10 @@ static void muti_ue_threads(abts_case *tc, void *data)
 			mobile_identity_suci.scheme_output[3] = imsi_index/10%10;
 			mobile_identity_suci.scheme_output[4] = imsi_index%10;
 
-            
-			test_ues[iTmp][i] = test_ue_add_by_suci(&mobile_identity_suci, 13);
+            imsi_index = i + 1;
+            char scheme_output[11]={0};
+            ogs_snprintf(scheme_output,sizeof(scheme_output),"%010lu",imsi_index);
+			test_ues[iTmp][i] = test_ue_add_by_suci(&mobile_identity_suci, scheme_output);
             
 			ogs_assert(test_ues[iTmp][i]);
 
@@ -613,8 +615,8 @@ static void test1_func(abts_case *tc, void *data)
         mobile_identity_suci.home_network_pki_value = 0;
 
         imsi_index = i + 1;
-        char scheme_output[10]={0};
-        ogs_snprintf(scheme_output,sizeof(imsi_index),"%lu",imsi_index);
+        char scheme_output[11]={0};
+        ogs_snprintf(scheme_output,sizeof(scheme_output),"%010lu",imsi_index);
 
         test_ue[i] = test_ue_add_by_suci(
                 &mobile_identity_suci, scheme_output);

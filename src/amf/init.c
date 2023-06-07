@@ -76,7 +76,7 @@ int amf_sps_initialize()
 {
     int rv;
     //setAffinity(6);
-    ogs_metrics_context_init();
+    //amf_metrics_init();
     ogs_sbi_context_init(OpenAPI_nf_type_AMF);
 
     amf_context_init();    
