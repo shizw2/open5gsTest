@@ -5091,8 +5091,7 @@ uint8_t pre_nas_5gs_decode_service_request(ogs_nas_5gs_message_t *message, ogs_p
     ogs_nas_5gs_mobile_identity_t *mobile_identity = NULL;
     ogs_nas_5gs_mobile_identity_guti_t *mobile_identity_guti = NULL;
     ogs_nas_5gs_mobile_identity_s_tmsi_t *mobile_identity_s_tmsi = NULL;
-    ogs_nas_5gs_guti_t nas_guti;
-    memset(&nas_guti, 0, sizeof(ogs_nas_5gs_guti_t));
+    uint32_t m_tmsi;
     
     ogs_trace("[NAS] Decode SERVICE_REQUEST\n");
 
@@ -5116,11 +5115,11 @@ uint8_t pre_nas_5gs_decode_service_request(ogs_nas_5gs_message_t *message, ogs_p
     ogs_assert(mobile_identity_guti);
     mobile_identity_s_tmsi =
                 (ogs_nas_5gs_mobile_identity_s_tmsi_t *)mobile_identity->buffer;
-    nas_guti.m_tmsi = be32toh(mobile_identity_s_tmsi->m_tmsi);    
+    m_tmsi = be32toh(mobile_identity_s_tmsi->m_tmsi);    
     
-    ogs_info("pre_nas_5gs_decode_service_request nas_guti.m_tmsi 0x%x",nas_guti.m_tmsi);   
+    ogs_info("pre_nas_5gs_decode_service_request nas_guti.m_tmsi 0x%x",m_tmsi);   
     //return (((nas_guti.m_tmsi) & 0x00F00000)>>20)%16;
-    return tmsi_to_spsid(&nas_guti.m_tmsi);
+    return tmsi_to_spsid(&m_tmsi);//解决ubuntu下error: taking address of packed member of ‘struct ogs_nas_5gs_guti_s’ may result in an unaligned pointer value [-Werror=address-of-packed-member]
    
 }
 uint8_t pre_nas_5gs_decode_registration_request(ogs_nas_5gs_message_t *message, ogs_pkbuf_t *pkbuf)
@@ -5129,9 +5128,8 @@ uint8_t pre_nas_5gs_decode_registration_request(ogs_nas_5gs_message_t *message, 
     int decoded = 0;
     int size = 0;
     uint8_t sps_no;
-    ogs_nas_5gs_mobile_identity_guti_t *mobile_identity_guti = NULL;
-    ogs_nas_5gs_guti_t nas_guti;
-    memset(&nas_guti, 0, sizeof(ogs_nas_5gs_guti_t));
+    ogs_nas_5gs_mobile_identity_guti_t *mobile_identity_guti = NULL;   
+    uint32_t m_tmsi;
 
     ogs_trace("[NAS] Decode REGISTRATION_REQUEST\n");
 
@@ -5153,8 +5151,8 @@ uint8_t pre_nas_5gs_decode_registration_request(ogs_nas_5gs_message_t *message, 
                 (ogs_nas_5gs_mobile_identity_guti_t *)registration_request->mobile_identity.buffer;
     ogs_assert(mobile_identity_guti);
 
-    ogs_nas_5gs_mobile_identity_guti_to_nas_guti(mobile_identity_guti, &nas_guti); 
-    sps_no=tmsi_to_spsid(&nas_guti.m_tmsi);
+    m_tmsi = be32toh(mobile_identity_guti->m_tmsi);
+    sps_no=tmsi_to_spsid(&m_tmsi);
     //free(mobile_identity_guti);
     //free(registration_request);    
     return sps_no;
@@ -5171,10 +5169,9 @@ uint8_t pre_nas_5gs_decode_deregistration_request_from_ue(ogs_nas_5gs_message_t 
     uint8_t sps_no;
 
     ogs_trace("[NAS] Decode DEREGISTRATION_REQUEST_FROM_UE\n");
-    ogs_nas_5gs_mobile_identity_guti_t *mobile_identity_guti = NULL;
-    ogs_nas_5gs_guti_t nas_guti;
-    memset(&nas_guti, 0, sizeof(ogs_nas_5gs_guti_t));
-
+    ogs_nas_5gs_mobile_identity_guti_t *mobile_identity_guti = NULL;   
+    uint32_t m_tmsi;
+    
     size = ogs_nas_5gs_decode_de_registration_type(&deregistration_request_from_ue->de_registration_type, pkbuf);
     if (size < 0) {
         ogs_error("ogs_nas_5gs_decode_de_registration_type() failed");
@@ -5193,8 +5190,9 @@ uint8_t pre_nas_5gs_decode_deregistration_request_from_ue(ogs_nas_5gs_message_t 
     mobile_identity_guti =
                 (ogs_nas_5gs_mobile_identity_guti_t *)deregistration_request_from_ue->mobile_identity.buffer;
     ogs_assert(mobile_identity_guti);
-    ogs_nas_5gs_mobile_identity_guti_to_nas_guti(mobile_identity_guti, &nas_guti); 
-    sps_no=tmsi_to_spsid(&nas_guti.m_tmsi);
+    
+    m_tmsi = be32toh(mobile_identity_guti->m_tmsi);
+    sps_no=tmsi_to_spsid(&m_tmsi);
 
     return sps_no;
 }
