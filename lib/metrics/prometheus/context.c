@@ -279,7 +279,7 @@ static int ogs_metrics_context_server_start(ogs_metrics_server_t *server)
                 MHD_OPTION_ARRAY, mhd_ops,
                 MHD_OPTION_END);
     if (!server->mhd) {
-        ogs_error("Cannot start Prometheus HTTP server");
+        ogs_error("Cannot start Prometheus HTTP server:[http://%s]:%d",OGS_ADDR(addr, buf), OGS_PORT(addr));
         return OGS_ERROR;
     }
 
