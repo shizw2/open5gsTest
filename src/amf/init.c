@@ -52,7 +52,7 @@ int amf_initialize(void)
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
 
-    ogs_metrics_context_open(ogs_metrics_self());
+    //ogs_metrics_context_open(ogs_metrics_self());
 
     rv = amf_sbi_open();
     if (rv != OGS_OK) return rv;
@@ -96,8 +96,7 @@ int amf_sps_initialize()
     //rv = amf_m_tmsi_pool_generate();
     //if (rv != OGS_OK) return rv;
 
-    //amf_metrics_init();
-    //if (rv != 0) return OGS_ERROR;
+    ogs_metrics_context_open(ogs_metrics_self());
 
     rv = ogs_log_config_domain(
             ogs_app()->logger.domain, ogs_app()->logger.level);

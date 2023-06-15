@@ -10,13 +10,13 @@ scrape_configs:
       - targets: ["10.7.4.45:9091"]
   - job_name: open5gs-smfd1
     static_configs:
-      - targets: ["10.7.4.45:9092"]
+      - targets: ["10.7.4.45:9094"]
   - job_name: open5gs-smfd2
     static_configs:
-      - targets: ["10.7.4.45:9093"]
+      - targets: ["10.7.4.45:9095"]
   - job_name: open5gs-upfd1
     static_configs:
-      - targets: ["10.7.4.45:9094"]
+      - targets: ["10.7.4.45:9096"]
   - job_name: open5gs-upfd2
     static_configs:
-      - targets: ["10.7.4.45:9095"]
+      - targets: ["10.7.4.45:9097"]
