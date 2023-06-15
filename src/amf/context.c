@@ -2747,14 +2747,17 @@ amf_m_tmsi_t *amf_m_tmsi_alloc(void)
      * according to clauses 9.1.1, 9.4.1, 10.2.1, or 10.5.1
      * of 3GPP TS.33.401 [89] , as appropriate, for RAU/Attach procedures
      */
+    *m_tmsi=ogs_pool_index(&m_tmsi_pool, m_tmsi);//临时修改
+    //ogs_error("m_tmsi::%u %0x ",*m_tmsi,*m_tmsi);
 
     ogs_assert(*m_tmsi <= 0x003fffff);
 
     *m_tmsi = ((*m_tmsi & 0xffff) | ((*m_tmsi & 0x003f0000) << 8));
     *m_tmsi |= 0xc0000000;
     *m_tmsi &= 0xff0fffff;
+    //ogs_error("m_tmsi::%u %0x ",*m_tmsi,*m_tmsi);
     *m_tmsi |=(g_sps_id<<20);
-
+    //ogs_error("m_tmsi::%u %0x ",*m_tmsi,*m_tmsi);
     return m_tmsi;
 }
 

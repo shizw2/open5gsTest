@@ -681,7 +681,10 @@ int ngap_send_paging_icps(ogs_5gs_tai_t *nr_tai,ogs_pkbuf_t *pkbuf)
                     gnb->supported_ta_list[i].tac.v == nr_tai->tac.v) {                    
                     pkbuftmp=ogs_pkbuf_copy(pkbuf);
                     rv = ngap_send_to_gnb(gnb, pkbuftmp, NGAP_NON_UE_SIGNALLING);
-                    ogs_expect_or_return_val(rv == OGS_OK, rv);
+                    if (rv != OGS_OK) {
+                        ogs_error("ngap_send_paging_icps() failed");
+                        return rv;
+                    }
                 }
             }
         }
@@ -698,16 +701,29 @@ int ngap_send_paging_sps(amf_ue_t *amf_ue)
     //int i, j;
     int rv;
 
-   if (amf_ue->t3513.pkbuf) {
+    if (amf_ue->t3513.pkbuf) {
         ngapbuf = amf_ue->t3513.pkbuf;
-   } else {
-            ngapbuf = ngap_build_paging(amf_ue);
-            ogs_expect_or_return_val(ngapbuf, OGS_ERROR);
-           }
-           amf_ue->t3513.pkbuf = ogs_pkbuf_copy(ngapbuf);
-           ogs_expect_or_return_val(amf_ue->t3513.pkbuf, OGS_ERROR);
-           rv = ngap_send_to_gnb_sps_page(&(amf_ue->nr_tai),ngapbuf);
-           ogs_expect_or_return_val(rv == OGS_OK, rv);
+    } else {
+        ngapbuf = ngap_build_paging(amf_ue);
+        if (!ngapbuf) {
+            ogs_error("ngap_send_paging_sps() failed");
+            return OGS_ERROR;
+        }
+    }
+
+    amf_ue->t3513.pkbuf = ogs_pkbuf_copy(ngapbuf);
+
+    if (!amf_ue->t3513.pkbuf) {
+        ogs_error("ogs_pkbuf_copy() failed");
+        ogs_pkbuf_free(ngapbuf);
+        return OGS_ERROR;
+    }
+
+    rv = ngap_send_to_gnb_sps_page(&(amf_ue->nr_tai),ngapbuf);
+    if (rv != OGS_OK) {
+        ogs_error("ngap_send_to_gnb_sps_page() failed");
+        return rv;
+    }
 
     /* Start T3513 */
     ogs_timer_start(amf_ue->t3513.timer, 
@@ -951,7 +967,10 @@ int ngap_send_error_indication_sps(
     ogs_assert(ran_ue);
 
     ngapbuf = ogs_ngap_build_error_indication(&ran_ue->ran_ue_ngap_id, &ran_ue->amf_ue_ngap_id, group, cause);
-    ogs_expect_or_return_val(ngapbuf, OGS_ERROR);
+    if (!ngapbuf) {
+        ogs_error("ngap_send_error_indication_sps() failed");
+        return OGS_ERROR;
+    }
 
     rv = ngap_send_to_gnb_sps(ran_ue, ngapbuf);
     ogs_expect(rv == OGS_OK);
@@ -992,7 +1011,10 @@ int ngap_send_error_indication2_sps(amf_ue_t *amf_ue, NGAP_Cause_PR group, long 
 
     ogs_assert(amf_ue);
     ran_ue = ran_ue_cycle(amf_ue->ran_ue);
-    ogs_expect_or_return_val(ran_ue, OGS_ERROR); 
+    if (!ran_ue) {
+        ogs_error("NG context has already been removed");
+        return OGS_NOTFOUND;
+    }
     rv = ngap_send_error_indication_sps(ran_ue, group, cause);
     ogs_expect(rv == OGS_OK);
 

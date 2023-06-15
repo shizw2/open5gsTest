@@ -217,7 +217,6 @@ ED3(uint8_t type:4;,
 
 /* 9.11.3.4 5GS mobile identity
  * M LV-E 6-n */
-#define OGS_NAS_MAX_SCHEME_OUTPUT_LEN 64  //TODO:编译需要先恢复
 typedef struct ogs_nas_5gs_mobile_identity_header_s {
 #define OGS_NAS_5GS_SUPI_FORMAT_IMSI 0
 #define OGS_NAS_5GS_SUPI_FORMAT_NETWORK_SPECIFIC_IDENTIFIER 1
@@ -234,10 +233,8 @@ typedef struct ogs_nas_5gs_mobile_identity_suci_s {
     ED2(uint8_t routing_indicator4:4;,
         uint8_t routing_indicator3:4;)
 ED2(uint8_t spare3:4;,
-#define OGS_NAS_5GS_NULL_SCHEME 0   //编译需要先恢复
     uint8_t protection_scheme_id:4;)
     uint8_t home_network_pki_value;
-    uint8_t scheme_output[OGS_NAS_MAX_SCHEME_OUTPUT_LEN];//编译需要先恢复
 } __attribute__ ((packed)) ogs_nas_5gs_mobile_identity_suci_t;
 typedef struct ogs_nas_5gs_mobile_identity_guti_s {
     ogs_nas_5gs_mobile_identity_header_t h;

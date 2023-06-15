@@ -42,9 +42,8 @@ void ogs_metrics_context_init(void)
 }
 
 void ogs_metrics_context_open(ogs_metrics_context_t *ctx)
-{    
+{
     ogs_metrics_server_open(ctx);
-    printf("ogs_metrics_context_open\r\n");
 }
 void ogs_metrics_context_close(ogs_metrics_context_t *ctx)
 {

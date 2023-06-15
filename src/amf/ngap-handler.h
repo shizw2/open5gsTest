@@ -64,9 +64,9 @@ void ngap_handle_pdu_session_resource_release_response(
         amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf);
 
 void ngap_handle_ue_context_modification_response(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message);
+        amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf);
 void ngap_handle_ue_context_modification_failure(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message);
+        amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf);
 
 void ngap_handle_ue_context_release_request(
         amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf);
@@ -101,6 +101,7 @@ void ngap_handle_ng_reset(
 void ngap_handle_error_indication(
         amf_gnb_t *gnb, ogs_ngap_message_t *message);
 uint8_t spsid_find_by_tmsi(ran_ue_t           *ran_ue, uint32_t *m_tmsi);//O3
+uint8_t tmsi_to_spsid(uint32_t *m_tmsi);
 uint8_t spsid_find_by_amf_ue_ngap_id(uint64_t amf_ue_ngap_id);//O3
 uint8_t spsid_find_by_supi(char *supi);
 void ngap_icps_send_to_sps(uint8_t spsid,ran_ue_t *ran_ue, NGAP_icps_send_code_t *message);//O3
@@ -113,6 +114,8 @@ void get_spsno_form_nasguti(ran_ue_t *ran_ue, NGAP_NAS_PDU_t *nasPdu);
 uint8_t pre_ogs_nas_5gmm_decode(ogs_nas_5gs_message_t *message, ogs_pkbuf_t *pkbuf);
 uint8_t pre_nas_5gs_decode_service_request(ogs_nas_5gs_message_t *message, ogs_pkbuf_t *pkbuf);
 uint8_t pre_nas_5gs_decode_registration_request(ogs_nas_5gs_message_t *message, ogs_pkbuf_t *pkbuf);
+uint8_t pre_nas_5gs_decode_deregistration_request_from_ue(ogs_nas_5gs_message_t *message, ogs_pkbuf_t *pkbuf);
+
 
 
 

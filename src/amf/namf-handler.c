@@ -209,7 +209,7 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
                  * sm-context-ref is created in [1-CLIENT].
                  * So, the PDU session establishment accpet can be transmitted.
                  */
-                    r = ngap_send_to_ran_ue(ran_ue, ngapbuf);
+                    r = ngap_send_to_ran_ue_sps(ran_ue, ngapbuf);
                     ogs_expect(r == OGS_OK);
                     ogs_assert(r != OGS_ERROR);
                 } else {
