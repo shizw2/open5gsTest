@@ -93,24 +93,15 @@ static void muti_ue_threads(abts_case *tc, void *data)
 			mobile_identity_suci.routing_indicator2 = 0xf;
 			mobile_identity_suci.routing_indicator3 = 0xf;
 			mobile_identity_suci.routing_indicator4 = 0xf;
-			mobile_identity_suci.protection_scheme_id = OGS_NAS_5GS_NULL_SCHEME;
+			mobile_identity_suci.protection_scheme_id = OGS_PROTECTION_SCHEME_NULL;
 			mobile_identity_suci.home_network_pki_value = 0;
-			mobile_identity_suci.scheme_output[0] = 0;
-			mobile_identity_suci.scheme_output[1] = 0;
-			mobile_identity_suci.scheme_output[2] = 0x20;
-			mobile_identity_suci.scheme_output[3] = 0x31;
-			mobile_identity_suci.scheme_output[4] = 0x90;
 
-			imsi_index = iTmp*10000+ i + 1;
-			//printf("imsi:%lu.\r\n",imsi_index);
-			//ogs_uint64_to_buffer(imsi_index, 5, mobile_identity_suci.scheme_output);
-			mobile_identity_suci.scheme_output[0] = imsi_index/10000%10;
-			mobile_identity_suci.scheme_output[1] = imsi_index/1000%10;
-			mobile_identity_suci.scheme_output[2] = imsi_index/100%10;
-			mobile_identity_suci.scheme_output[3] = imsi_index/10%10;
-			mobile_identity_suci.scheme_output[4] = imsi_index%10;
 
-			test_ues2[iTmp][i] = test_ue_add_by_suci(&mobile_identity_suci, 13);
+			imsi_index = iTmp*10000+ i + 1;	
+			char scheme_output[11]={0};
+			ogs_snprintf(scheme_output,sizeof(scheme_output),"%010lu",imsi_index);
+
+			test_ues2[iTmp][i] = test_ue_add_by_suci(&mobile_identity_suci, scheme_output);
 			ogs_assert(test_ues2[iTmp][i]);
 
 			test_ues2[iTmp][i]->nr_cgi.cell_id = 0x40001;

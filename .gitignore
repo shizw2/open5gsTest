@@ -4,5 +4,6 @@ subprojects/libtins
 subprojects/prometheus-client-c
 subprojects/usrsctp
 build/
+version/
 install/
 webui/.next

@@ -440,27 +440,9 @@ void ngap_handle_initial_ue_message(amf_gnb_t *gnb, ogs_ngap_message_t *message,
 		  ogs_asn_OCTET_STRING_to_uint32(&FiveG_S_TMSI->fiveG_TMSI, &m_tmsi);
           ran_ue->sps_no=spsid_find_by_tmsi(ran_ue,&m_tmsi);
           ogs_info("FiveG_S_TMSI is TRUE,ngap_handle_initial_ue_message ran_ue->sps_no:%d",ran_ue->sps_no);
-#if 0
-		  sps_id=ran_ue->sps_no;
-		  if(sps_id<1||sps_id>MAX_SPS_NUM)
-	 	  		sps_id=spsid_find_by_tmsi(ran_ue,&m_tmsi);
-	 	  //ngap_icps_send_to_sps(sps_id,ran_ue, send_code);
-#endif
-	 	}
-#if 0
-          else{
-			//dis by amf_ue_ngap_id
-			printf("=== IGPS InitialUEMessage! ran_ue->amf_ue_ngap_id=%lu \n",ran_ue->amf_ue_ngap_id);
-			//sps_id=spsid_find_by_amf_ue_ngap_id(ran_ue->amf_ue_ngap_id);
-			sps_id=ran_ue->sps_no;
-			if(sps_id<1||sps_id>MAX_SPS_NUM)
-				sps_id=spsid_find_by_amf_ue_ngap_id(ran_ue->amf_ue_ngap_id);
-			printf("=== IGPS InitialUEMessage! spsid==%d \n",sps_id);
-			
-			
+
 	 		}
 
-#endif
 	 
 #if 0 
         if (FiveG_S_TMSI) {
@@ -596,11 +578,7 @@ void ngap_handle_initial_ue_message(amf_gnb_t *gnb, ogs_ngap_message_t *message,
             //send_code->h.UEContextRequest=NGAP_UEContextRequest_requested;
         }
     }
-#if 0
-    ogs_expect(OGS_OK == ngap_send_to_nas(
-                ran_ue, NGAP_ProcedureCode_id_InitialUEMessage, NAS_PDU));
-#endif
-    //modify 20230202 by O3
+
     ngap_icps_send_to_sps_pkg2(ran_ue,NGAP_ProcedureCode_id_InitialUEMessage,pkbuf);
 }
 
@@ -624,13 +602,7 @@ void ngap_handle_uplink_nas_transport(
     NGAP_NAS_PDU_t *NAS_PDU = NULL;
     NGAP_UserLocationInformation_t *UserLocationInformation = NULL;
     NGAP_UserLocationInformationNR_t *UserLocationInformationNR = NULL;
-#if 0
-    //add 
-	NGAP_icps_send_code_t *send_code=NULL;
-	send_code=(NGAP_icps_send_code_t *)malloc(sizeof(NGAP_icps_send_code_t));
-	send_code->buf=(uint8_t*)malloc(OGS_MAX_SDU_LEN);
-    //add end
-#endif 
+
 
     ogs_assert(gnb);
     ogs_assert(gnb->sctp.sock);
@@ -697,22 +669,7 @@ void ngap_handle_uplink_nas_transport(
         ogs_assert(r != OGS_ERROR);
         return;
     }
-//需要在SPS考虑
-#if 0 
 
-    amf_ue = ran_ue->amf_ue;
-    if (!amf_ue) {
-        ogs_error("Cannot find AMF-UE Context [%lld]",
-                (long long)amf_ue_ngap_id);
-        r = ngap_send_error_indication(
-                gnb, &ran_ue->ran_ue_ngap_id, &ran_ue->amf_ue_ngap_id,
-                NGAP_Cause_PR_radioNetwork,
-                NGAP_CauseRadioNetwork_unknown_local_UE_NGAP_ID);
-        ogs_expect(r == OGS_OK);
-        ogs_assert(r != OGS_ERROR);
-        return;
-    }
-#endif 
 
     if (!UserLocationInformation) {
         ogs_error("No UserLocationInformation");
@@ -743,15 +700,7 @@ void ngap_handle_uplink_nas_transport(
         ogs_assert(r != OGS_ERROR);
         return;
     }
-#if 0
-	// add
-	send_code->h.ProcedureCode=NGAP_ProcedureCode_id_UplinkNASTransport;
-	send_code->h.size=NAS_PDU->size;
-	send_code->buf=NAS_PDU->buf;
-		//send_code->sizebuf=NAS_PDU->size;
-	printf("!!!!!!!!!!!!!!!!!! ProcedureCode=%lu size=%lu,NAS_PDU->buf:%02x%02x%02x\n", send_code->h.ProcedureCode, NAS_PDU->size,*(NAS_PDU->buf),*(NAS_PDU->buf+1),*(NAS_PDU->buf+2));  
-	//add end	
-#endif
+
     UserLocationInformationNR =
         UserLocationInformation->choice.userLocationInformationNR;
     ogs_assert(UserLocationInformationNR);
@@ -765,23 +714,8 @@ void ngap_handle_uplink_nas_transport(
         ran_ue->ran_ue_ngap_id, (long long)ran_ue->amf_ue_ngap_id,
         ran_ue->saved.nr_tai.tac.v, (long long)ran_ue->saved.nr_cgi.cell_id);
 
-    /* Copy NR-TAI/NR-CGI from ran_ue */
-    //memcpy(&amf_ue->nr_tai, &ran_ue->saved.nr_tai, sizeof(ogs_5gs_tai_t));
-    //memcpy(&amf_ue->nr_cgi, &ran_ue->saved.nr_cgi, sizeof(ogs_nr_cgi_t));
-
-    //add
-#if 0
-    sps_id=ran_ue->sps_no;
-    printf(" =================sps_id:%d========ran_ue->amf_ue_ngap_id:%lu\n",sps_id,amf_ue_ngap_id);
-    ngap_icps_send_to_sps(sps_id,ran_ue, send_code);
-	
-    if(send_code)free(send_code);
-    ogs_expect(OGS_OK == ngap_send_to_nas(
-                ran_ue, NGAP_ProcedureCode_id_UplinkNASTransport, NAS_PDU));
-#endif
-    //add end
     ngap_icps_send_to_sps_pkg2(ran_ue, NGAP_ProcedureCode_id_UplinkNASTransport,pkbuf);
-    //ngap_send_to_nas(ran_ue, NGAP_ProcedureCode_id_UplinkNASTransport, NAS_PDU);
+ 
 }
 
 void ngap_handle_ue_radio_capability_info_indication(
@@ -801,14 +735,7 @@ void ngap_handle_ue_radio_capability_info_indication(
     NGAP_RAN_UE_NGAP_ID_t *RAN_UE_NGAP_ID = NULL;
     NGAP_AMF_UE_NGAP_ID_t *AMF_UE_NGAP_ID = NULL;
     NGAP_UERadioCapability_t *UERadioCapability = NULL;
-#if 0    
-    //add 
-    uint8_t sps_id;
-    NGAP_icps_send_code_t *send_code=NULL;
-    send_code=(NGAP_icps_send_code_t *)malloc(sizeof(NGAP_icps_send_code_t));
-    send_code->buf=(uint8_t*)malloc(OGS_MAX_SDU_LEN);
-    //add end
-#endif
+
     ogs_assert(gnb);
     ogs_assert(gnb->sctp.sock);
 
@@ -886,29 +813,7 @@ void ngap_handle_ue_radio_capability_info_indication(
         ogs_assert(r != OGS_ERROR);
         return;
     }
-#if 0
-    if (ran_ue->amf_ue)
-        OGS_ASN_STORE_DATA(&ran_ue->amf_ue->ueRadioCapability,
-                UERadioCapability);
-    //add
-    if(UERadioCapability)
-    {
-        ogs_info("UERadioCapability->size:%lu sizeof(size_t)=%lu",UERadioCapability->size,sizeof(size_t));
-        ogs_info("UERadioCapability->buf::%2x%2x%2x%2x ",*(UERadioCapability->buf),*(UERadioCapability->buf+1),*(UERadioCapability->buf+2),*(UERadioCapability->buf+3));
-        send_code->h.ProcedureCode=NGAP_ProcedureCode_id_UERadioCapabilityInfoIndication;	
-        send_code->h.size=UERadioCapability->size+sizeof(size_t);
-        memcpy(send_code->buf,&(UERadioCapability->size),sizeof(size_t));
-        memcpy(send_code->buf+sizeof(size_t),UERadioCapability->buf,UERadioCapability->size);
-        sps_id=ran_ue->sps_no;
-        ogs_info(" =====NGAP_ProcedureCode_id_UERadioCapabilityInfoIndication=========sps_id:%d========ran_ue->amf_ue_ngap_id:%lu",sps_id,ran_ue->amf_ue_ngap_id);
-        ngap_icps_send_to_sps(sps_id,ran_ue, send_code);
 
-    }
-
-    if(send_code)
-        free(send_code);
-    //add end
-#endif
     ngap_icps_send_to_sps_pkg2(ran_ue,NGAP_ProcedureCode_id_UERadioCapabilityInfoIndication,pkbuf);
 }
 
@@ -934,14 +839,7 @@ void ngap_handle_initial_context_setup_response(
     NGAP_PDUSessionResourceSetupListCxtRes_t *PDUSessionList = NULL;
     NGAP_PDUSessionResourceSetupItemCxtRes_t *PDUSessionItem = NULL;
     OCTET_STRING_t *transfer = NULL;
-#if 0
-    //add 
-    NGAP_icps_send_code_t *send_code=NULL;
-    send_code=(NGAP_icps_send_code_t *)malloc(sizeof(NGAP_icps_send_code_t));
-    send_code->buf=(uint8_t*)malloc(OGS_MAX_SDU_LEN);	
-    int len0=0;
-    //add end
-#endif    
+  
     ogs_assert(gnb);
     ogs_assert(gnb->sctp.sock);
 
@@ -1116,32 +1014,13 @@ void ngap_handle_initial_context_setup_response(
 
         ogs_pkbuf_free(param.n2smbuf);
 
-        //add
-		
-        //Sessionstructlist.pDUSessionID=PDUSessionItem->pDUSessionID;
-        memcpy(send_code->buf+len0,&(PDUSessionItem->pDUSessionID),sizeof(NGAP_PDUSessionID_t));
-        len0 =len0+sizeof(NGAP_PDUSessionID_t);
-        //Sessionstructlist.pDUSessionResourceSetupResponseTransfer[i].size=transfer->size;
-        memcpy(send_code->buf+len0,&(transfer->size),sizeof(transfer->size));
-        len0=len0+sizeof(transfer->size);
-        //Sessionstructlist.pDUSessionResourceSetupResponseTransfer[i].buf=transfer->buf;
-        memcpy(send_code->buf+len0,&transfer->buf,transfer->size);
-        len0=len0+transfer->size;
-        // add end
+
  
     }
 
-    // add
-    send_code->h.ProcedureCode=NGAP_ProcedureCode_id_InitialContextSetup;
-	
-    send_code->h.size=len0;	
-    sps_id=ran_ue->sps_no;
-    ogs_info(" =====ngap_handle_initial_context_setup_response============sps_id:%d========ran_ue->amf_ue_ngap_id:%lu",sps_id,ran_ue->amf_ue_ngap_id);
-    ngap_icps_send_to_sps(sps_id,ran_ue, send_code);
 
-    if(send_code)free(send_code);
 #endif		  
-//add end	
+
 #if 0
 
     /*
@@ -1374,7 +1253,7 @@ void ngap_handle_initial_context_setup_failure(
 }
 
 void ngap_handle_ue_context_modification_response(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message)
+        amf_gnb_t *gnb, ogs_ngap_message_t *message,ogs_pkbuf_t *pkbuf)
 {
     int i;
     char buf[OGS_ADDRSTRLEN];
@@ -1448,7 +1327,7 @@ void ngap_handle_ue_context_modification_response(
 }
 
 void ngap_handle_ue_context_modification_failure(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message)
+        amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf)
 {
     int i;
     char buf[OGS_ADDRSTRLEN];
@@ -1728,13 +1607,7 @@ void ngap_handle_ue_context_release_complete(
     NGAP_UEContextReleaseComplete_IEs_t *ie = NULL;
     NGAP_RAN_UE_NGAP_ID_t *RAN_UE_NGAP_ID = NULL;
     NGAP_AMF_UE_NGAP_ID_t *AMF_UE_NGAP_ID = NULL;
-#if 0
-    //add 
-    uint8_t sps_id;
-    NGAP_icps_send_head_t *send_code_head=NULL;
-    send_code_head=(NGAP_icps_send_head_t *)malloc(sizeof(NGAP_icps_send_head_t));  
-    //add end
-#endif
+
     ogs_assert(gnb);
     ogs_assert(gnb->sctp.sock);
 
@@ -1795,18 +1668,7 @@ void ngap_handle_ue_context_release_complete(
         ogs_assert(r != OGS_ERROR);
         return;
     }
-#if 0
-    ngap_handle_ue_context_release_action(ran_ue);
-   
-    //add
-    send_code_head->ProcedureCode=NGAP_ProcedureCode_id_UEContextRelease;	
-    send_code_head->size=pkbuf->len;	
-    sps_id=ran_ue->sps_no;
-    //ogs_info(" =====ngap_handle_ue_context_release_complete============sps_id:%d========ran_ue->amf_ue_ngap_id:%lu",sps_id,ran_ue->amf_ue_ngap_id);
-    ngap_icps_send_to_sps_pkg(sps_id,ran_ue, send_code_head,pkbuf->data);	
-    if(send_code_head)free(send_code_head);
-    //add end
- #endif 
+
     ngap_icps_send_to_sps_pkg2(ran_ue,NGAP_ProcedureCode_id_UEContextRelease,pkbuf);
 }
 
@@ -1954,21 +1816,6 @@ void ngap_handle_pdu_session_resource_setup_response(
     NGAP_PDUSessionResourceSetupResponseIEs_t *ie = NULL;
     NGAP_RAN_UE_NGAP_ID_t *RAN_UE_NGAP_ID = NULL;
     NGAP_AMF_UE_NGAP_ID_t *AMF_UE_NGAP_ID = NULL;
-#if 0
-    NGAP_PDUSessionResourceSetupListSURes_t *PDUSessionList = NULL;
-    NGAP_PDUSessionResourceSetupItemSURes_t *PDUSessionItem = NULL;
-    NGAP_PDUSessionResourceFailedToSetupListSURes_t
-        *PDUSessionFailedList = NULL;
-    NGAP_PDUSessionResourceFailedToSetupItemSURes_t
-        *PDUSessionFailedItem = NULL;
-    OCTET_STRING_t *transfer = NULL;
-
-    //add 
-    uint8_t sps_id;
-    NGAP_icps_send_head_t *send_code_head=NULL;
-    send_code_head=(NGAP_icps_send_head_t *)malloc(sizeof(NGAP_icps_send_head_t));	
-    //add end
-#endif
 
     ogs_assert(gnb);
     ogs_assert(gnb->sctp.sock);
@@ -2166,14 +2013,7 @@ void ngap_handle_pdu_session_resource_setup_response(
 
             ogs_pkbuf_free(param.n2smbuf);
 
-            //add		
-            memcpy(send_code->buf+len0,&(PDUSessionItem->pDUSessionID),sizeof(NGAP_PDUSessionID_t));
-            len0 =len0+sizeof(NGAP_PDUSessionID_t);
-            memcpy(send_code->buf+len0,&(transfer->size),sizeof(transfer->size));
-            len0=len0+sizeof(transfer->size);		
-            memcpy(send_code->buf+len0,&transfer->buf,transfer->size);
-            len0=len0+transfer->size;
-            // add end
+
         }
     } else if (PDUSessionFailedList) {
         for (i = 0; i < PDUSessionFailedList->list.count; i++) {
@@ -2181,11 +2021,7 @@ void ngap_handle_pdu_session_resource_setup_response(
             PDUSessionFailedItem =
                 (NGAP_PDUSessionResourceFailedToSetupItemSURes_t *)
                 PDUSessionFailedList->list.array[i];
-///////add
-            if(PDUSessionFailedItem)return;
-            transfer = &PDUSessionFailedItem->pDUSessionResourceSetupUnsuccessfulTransfer;
-            if(transfer)return;
-//////add end
+
             if (!PDUSessionFailedItem) {
                 ogs_error("No PDUSessionResourceFailedToSetupItemSURes");
                 r = ngap_send_error_indication2(
@@ -2305,14 +2141,7 @@ void ngap_handle_pdu_session_resource_setup_response(
 
             ogs_pkbuf_free(param.n2smbuf);
 
-            //add		
-            memcpy(send_code->buf+len0,&(PDUSessionFailedItem->pDUSessionID),sizeof(NGAP_PDUSessionID_t));
-            len0 =len0+sizeof(NGAP_PDUSessionID_t);
-            memcpy(send_code->buf+len0,&(transfer->size),sizeof(transfer->size));
-            len0=len0+sizeof(transfer->size);		
-            memcpy(send_code->buf+len0,&transfer->buf,transfer->size);
-            len0=len0+transfer->size;
-            // add end
+
         }
     } else {
         ogs_error("No PDUSessionResourceList");
@@ -2321,17 +2150,7 @@ void ngap_handle_pdu_session_resource_setup_response(
         ogs_expect(r == OGS_OK);
         ogs_assert(r != OGS_ERROR);
     }
-    // add
-
-    send_code_head->ProcedureCode=NGAP_ProcedureCode_id_PDUSessionResourceSetup;
-
-    send_code_head->size=pkbuf->len;
-    ogs_info(" =====ngap_handle_pdu_session_resource_setup_response====pkbuf->len:%d==",pkbuf->len);
-    sps_id=ran_ue->sps_no;
-    ogs_info(" =====ngap_handle_pdu_session_resource_setup_response============sps_id:%d========ran_ue->amf_ue_ngap_id:%lu",sps_id,ran_ue->amf_ue_ngap_id);
-    ngap_icps_send_to_sps_pkg(sps_id,ran_ue, send_code_head,pkbuf->data);
-    //ogs_pkbuf_free(pkbuf);
-    if(send_code_head)free(send_code_head);
+  
 #endif	
     ngap_icps_send_to_sps_pkg2(ran_ue,NGAP_ProcedureCode_id_PDUSessionResourceSetup,pkbuf);
 }
@@ -2547,13 +2366,7 @@ void ngap_handle_pdu_session_resource_release_response(
     //NGAP_PDUSessionResourceReleasedListRelRes_t *PDUSessionList = NULL;
     //NGAP_PDUSessionResourceReleasedItemRelRes_t *PDUSessionItem = NULL;
     //OCTET_STRING_t *transfer = NULL;
-#if 0
-    //add 
-    uint8_t sps_id;
-    NGAP_icps_send_head_t *send_code_head=NULL;
-    send_code_head=(NGAP_icps_send_head_t *)malloc(sizeof(NGAP_icps_send_head_t));	
-    //add end
-#endif
+
     ogs_assert(gnb);
     ogs_assert(gnb->sctp.sock);
 
@@ -2720,15 +2533,7 @@ void ngap_handle_pdu_session_resource_release_response(
         ogs_pkbuf_free(param.n2smbuf);
     }
 
-   //add
-    send_code_head->ProcedureCode=NGAP_ProcedureCode_id_PDUSessionResourceRelease;	
-    send_code_head->size=pkbuf->len;	
-    sps_id=ran_ue->sps_no;
-    //ogs_info(" =====ngap_handle_pdu_session_resource_setup_response============sps_id:%d========ran_ue->amf_ue_ngap_id:%lu",sps_id,ran_ue->amf_ue_ngap_id);
-    ngap_icps_send_to_sps_pkg(sps_id,ran_ue, send_code_head,pkbuf->data);
-    //ogs_pkbuf_free(pkbuf);
-    if(send_code_head)free(send_code_head);
-    //add end
+
  #endif
     ngap_icps_send_to_sps_pkg2(ran_ue, NGAP_ProcedureCode_id_PDUSessionResourceRelease,pkbuf);
 }
@@ -4750,7 +4555,7 @@ void ngap_handle_ng_reset(
                             (int)*item->rAN_UE_NGAP_ID);
                     continue;
                 }
-                amf_ue_ran_ue_icpstosps_sync(ran_ue->sps_no,1,ran_ue->amf_ue_ngap_id,AMF_REMOVE_S1_CONTEXT_BY_RESET_ALL);//temp
+                amf_ue_ran_ue_icpstosps_sync(ran_ue->sps_no,1,&(ran_ue->amf_ue_ngap_id),AMF_REMOVE_S1_CONTEXT_BY_RESET_ALL);//temp
                 
             } else {
                 ogs_error("No UE NGAP ID");
@@ -4916,7 +4721,8 @@ uint8_t spsid_find_by_tmsi(ran_ue_t *ran_ue,uint32_t *m_tmsi)
      ogs_assert(ran_ue);  
 	 ogs_assert(m_tmsi);
      uint8_t sps_id;
-     sps_id=(((*m_tmsi) & 0x00F00000)>>20)%16;
+     //sps_id=(((*m_tmsi) & 0x00F00000)>>20)%16;
+     sps_id=tmsi_to_spsid(m_tmsi);
      ogs_info("spsid_find_by_tmsi sps_id:%d,*m_tmsi=:0x%x",sps_id,*m_tmsi);
      if(find_module_info(sps_id)){
         
@@ -4926,6 +4732,12 @@ uint8_t spsid_find_by_tmsi(ran_ue_t *ran_ue,uint32_t *m_tmsi)
             }
      
 }
+uint8_t tmsi_to_spsid(uint32_t *m_tmsi)
+{
+    ogs_assert(m_tmsi);
+    return (((*m_tmsi) & 0x00F00000)>>20)%16;
+}
+
 uint8_t spsid_find_by_supi(char *supi)
 {
     ogs_assert(supi); 
@@ -5256,7 +5068,9 @@ uint8_t pre_ogs_nas_5gmm_decode(ogs_nas_5gs_message_t *message, ogs_pkbuf_t *pkb
        
         //decoded += size;
         break;
-    
+    case OGS_NAS_5GS_DEREGISTRATION_REQUEST_FROM_UE:
+        sps_no = pre_nas_5gs_decode_deregistration_request_from_ue(message, pkbuf);
+        break;
     default:
         ogs_error("Unknown message type (0x%x) or not implemented", 
                 message->gmm.h.message_type);
@@ -5274,6 +5088,12 @@ uint8_t pre_nas_5gs_decode_service_request(ogs_nas_5gs_message_t *message, ogs_p
     int decoded = 0;
     int size = 0;
     uint8_t buff[64],*ptr;//add
+    ogs_nas_5gs_mobile_identity_t *mobile_identity = NULL;
+    ogs_nas_5gs_mobile_identity_guti_t *mobile_identity_guti = NULL;
+    ogs_nas_5gs_mobile_identity_s_tmsi_t *mobile_identity_s_tmsi = NULL;
+    ogs_nas_5gs_guti_t nas_guti;
+    memset(&nas_guti, 0, sizeof(ogs_nas_5gs_guti_t));
+    
     ogs_trace("[NAS] Decode SERVICE_REQUEST\n");
 
     size = ogs_nas_5gs_decode_key_set_identifier(&service_request->ngksi, pkbuf);
@@ -5289,10 +5109,18 @@ uint8_t pre_nas_5gs_decode_service_request(ogs_nas_5gs_message_t *message, ogs_p
         ogs_error("ogs_nas_5gs_decode_5gs_mobile_identity() failed");
         return size;
     }
-    ptr=(uint8_t*)service_request->s_tmsi.buffer;
-    //memcpy(buff,service_request->s_tmsi.buffer,service_request->s_tmsi.length);    
-    //return buff[4]%16;
-    return *(ptr+4);
+    mobile_identity = &service_request->s_tmsi;
+    ogs_assert(mobile_identity);
+    mobile_identity_guti =
+    (ogs_nas_5gs_mobile_identity_guti_t *)mobile_identity->buffer;
+    ogs_assert(mobile_identity_guti);
+    mobile_identity_s_tmsi =
+                (ogs_nas_5gs_mobile_identity_s_tmsi_t *)mobile_identity->buffer;
+    nas_guti.m_tmsi = be32toh(mobile_identity_s_tmsi->m_tmsi);    
+    
+    ogs_info("pre_nas_5gs_decode_service_request nas_guti.m_tmsi 0x%x",nas_guti.m_tmsi);   
+    //return (((nas_guti.m_tmsi) & 0x00F00000)>>20)%16;
+    return tmsi_to_spsid(&nas_guti.m_tmsi);
    
 }
 uint8_t pre_nas_5gs_decode_registration_request(ogs_nas_5gs_message_t *message, ogs_pkbuf_t *pkbuf)
@@ -5326,7 +5154,7 @@ uint8_t pre_nas_5gs_decode_registration_request(ogs_nas_5gs_message_t *message, 
     ogs_assert(mobile_identity_guti);
 
     ogs_nas_5gs_mobile_identity_guti_to_nas_guti(mobile_identity_guti, &nas_guti); 
-    sps_no=(((nas_guti.m_tmsi) & 0x00FF0000)>>16)%256;
+    sps_no=tmsi_to_spsid(&nas_guti.m_tmsi);
     //free(mobile_identity_guti);
     //free(registration_request);    
     return sps_no;
@@ -5335,6 +5163,41 @@ uint8_t pre_nas_5gs_decode_registration_request(ogs_nas_5gs_message_t *message, 
 }
 
 
+uint8_t pre_nas_5gs_decode_deregistration_request_from_ue(ogs_nas_5gs_message_t *message, ogs_pkbuf_t *pkbuf)
+{
+    ogs_nas_5gs_deregistration_request_from_ue_t *deregistration_request_from_ue = &message->gmm.deregistration_request_from_ue;
+    int decoded = 0;
+    int size = 0;
+    uint8_t sps_no;
+
+    ogs_trace("[NAS] Decode DEREGISTRATION_REQUEST_FROM_UE\n");
+    ogs_nas_5gs_mobile_identity_guti_t *mobile_identity_guti = NULL;
+    ogs_nas_5gs_guti_t nas_guti;
+    memset(&nas_guti, 0, sizeof(ogs_nas_5gs_guti_t));
+
+    size = ogs_nas_5gs_decode_de_registration_type(&deregistration_request_from_ue->de_registration_type, pkbuf);
+    if (size < 0) {
+        ogs_error("ogs_nas_5gs_decode_de_registration_type() failed");
+        return size;
+    }
+
+    decoded += size;
+
+    size = ogs_nas_5gs_decode_5gs_mobile_identity(&deregistration_request_from_ue->mobile_identity, pkbuf);
+    if (size < 0) {
+        ogs_error("ogs_nas_5gs_decode_5gs_mobile_identity() failed");
+        return size;
+    }
+
+    decoded += size;
+    mobile_identity_guti =
+                (ogs_nas_5gs_mobile_identity_guti_t *)deregistration_request_from_ue->mobile_identity.buffer;
+    ogs_assert(mobile_identity_guti);
+    ogs_nas_5gs_mobile_identity_guti_to_nas_guti(mobile_identity_guti, &nas_guti); 
+    sps_no=tmsi_to_spsid(&nas_guti.m_tmsi);
+
+    return sps_no;
+}
 
 
 

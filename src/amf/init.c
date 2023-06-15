@@ -76,7 +76,7 @@ int amf_sps_initialize()
 {
     int rv;
     //setAffinity(6);
-    //amf_metrics_init();
+    amf_metrics_init();
     ogs_sbi_context_init(OpenAPI_nf_type_AMF);
 
     amf_context_init();    
@@ -96,7 +96,7 @@ int amf_sps_initialize()
     //rv = amf_m_tmsi_pool_generate();
     //if (rv != OGS_OK) return rv;
 
-    amf_metrics_init();
+    //amf_metrics_init();
     //if (rv != 0) return OGS_ERROR;
 
     rv = ogs_log_config_domain(

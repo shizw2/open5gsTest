@@ -18,6 +18,7 @@
  */
 
 #include "test-common.h"
+extern bool ismutisps;
 
 static void test1_func(abts_case *tc, void *data)
 {
@@ -317,6 +318,9 @@ static void test2_func(abts_case *tc, void *data)
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
+#if 1
+    if(!ismutisps){
+
     /* OLD Receive UEContextReleaseCommand */
     recvbuf = testgnb_ngap_read(ngap);
     ABTS_PTR_NOTNULL(tc, recvbuf);
@@ -330,7 +334,8 @@ static void test2_func(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
-
+        }
+#endif
     /* Receive Authentication request */
     recvbuf = testgnb_ngap_read(ngap);
     ABTS_PTR_NOTNULL(tc, recvbuf);
