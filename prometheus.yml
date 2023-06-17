@@ -4,16 +4,19 @@ global:
 scrape_configs:
   - job_name: open5gs-amfd
     static_configs:
-      - targets: ["10.7.4.45:9090"]
+      - targets: ["10.7.4.45:9080"]
+  - job_name: open5gs-amfsps1d
+    static_configs:
+      - targets: ["10.7.4.45:9081"]
+  - job_name: open5gs-amfsps2d
+    static_configs:
+      - targets: ["10.7.4.45:9082"]
   - job_name: open5gs-pcfd
     static_configs:
       - targets: ["10.7.4.45:9091"]
   - job_name: open5gs-smfd1
     static_configs:
       - targets: ["10.7.4.45:9094"]
-  - job_name: open5gs-smfd2
-    static_configs:
-      - targets: ["10.7.4.45:9095"]
   - job_name: open5gs-upfd1
     static_configs:
       - targets: ["10.7.4.45:9096"]
