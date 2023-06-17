@@ -53,7 +53,7 @@ int amf_initialize(void)
     if (rv != OGS_OK) return rv;
 
     //sps和icps的metrics端口冲突，先把icps的关闭
-    //ogs_metrics_context_open(ogs_metrics_self());
+    ogs_metrics_context_open(ogs_metrics_self());
 
     rv = amf_sbi_open();
     if (rv != OGS_OK) return rv;
