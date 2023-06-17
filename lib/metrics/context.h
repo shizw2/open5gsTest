@@ -41,6 +41,7 @@ typedef struct ogs_metrics_context_s {
     ogs_list_t  spec_list;
 
     uint16_t    metrics_port;
+    uint16_t    id;//sps的端口为metrics_port+id
 } ogs_metrics_context_t;
 
 typedef enum ogs_metrics_histogram_bucket_type_s  {
@@ -111,6 +112,8 @@ static inline void ogs_metrics_inst_dec(ogs_metrics_inst_t *inst)
 {
     ogs_metrics_inst_add(inst, -1);
 }
+
+void ogs_metrics_set_port_id(uint16_t id);
 
 #ifdef __cplusplus
 }
