@@ -52,7 +52,6 @@ int amf_initialize(void)
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
 
-    //sps和icps的metrics端口冲突，先把icps的关闭
     ogs_metrics_context_open(ogs_metrics_self());
 
     rv = amf_sbi_open();

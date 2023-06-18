@@ -45,13 +45,13 @@ void test_thread_context_init(int threadID)
     
     test_bearer_pool_t* p_test_bearer_pool;
 
-    printf("thread %d init.\r\n",threadID);
+    //printf("thread %d init.\r\n",threadID);
     
 	pthread_setspecific(bearer_key,(void *)&test_bearer_pool_thread[threadID]);
 	
 	p_test_bearer_pool = (test_bearer_pool_t*)pthread_getspecific(bearer_key);
 
-    printf("thread %p bear pool num %lu.\r\n",p_test_bearer_pool,ogs_app()->pool.bearer/g_threadNum+1);
+    //printf("thread %p bear pool num %lu.\r\n",p_test_bearer_pool,ogs_app()->pool.bearer/g_threadNum+1);
 
     //ogs_pool_init(p_test_bearer_pool, ogs_app()->pool.bearer/g_threadNum+1);
     do { 

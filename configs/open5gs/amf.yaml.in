@@ -474,7 +474,7 @@ amf:
       - addr: 127.0.0.5
         port: 7777
     ngap:
-      - addr: 127.0.0.5下·下·
+      - addr: 127.0.0.5
     icps:
         spsnum: 3
         port: 9777

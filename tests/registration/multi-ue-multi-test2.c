@@ -301,7 +301,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
         //doc = test_db_new_simple(test_ue[i]);
         //ABTS_PTR_NOTNULL(tc, doc);
         //ABTS_INT_EQUAL(tc, OGS_OK, test_db_insert_ue(test_ue[i], doc));
-		printf("threadInfo->clientIdx[%d]:test_ue[%d]\n",threadInfo->clientIdx,i);
+		//printf("threadInfo->clientIdx[%d]:test_ue[%d]\n",threadInfo->clientIdx,i);
         sess = test_sess_find_by_psi(test_ue[i], 5);
         ogs_assert(sess);
 	
@@ -697,7 +697,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
          sess = test_sess_find_by_psi(test_ue[i], 5);
          ogs_assert(sess);
      
-    printf("threadInfo->clientIdx[%d]:test_ue[%d]\n",threadInfo->clientIdx,i);
+    //printf("threadInfo->clientIdx[%d]:test_ue[%d]\n",threadInfo->clientIdx,i);
     /* Send Registration request */
     test_ue[i]->registration_request_param.guti = 1;
     gmmbuf = testgmm_build_registration_request(test_ue[i], NULL, false, false);
@@ -1179,7 +1179,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
           sess = test_sess_find_by_psi(test_ue[i], 5);
           ogs_assert(sess);        
          
-          printf("threadInfo->clientIdx[%d]:test_ue[%d]\n",threadInfo->clientIdx,i);
+          //printf("threadInfo->clientIdx[%d]:test_ue[%d]\n",threadInfo->clientIdx,i);
 
           
           /* Send Registration request */
@@ -1378,7 +1378,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
              test_ue[i]->ran_ue_ngap_id = 0;
          sess = test_sess_find_by_psi(test_ue[i], 5);
          ogs_assert(sess);
-         printf("threadInfo->clientIdx[%d]:test_ue[%d]\n",threadInfo->clientIdx,i);
+         //printf("threadInfo->clientIdx[%d]:test_ue[%d]\n",threadInfo->clientIdx,i);
             /* Two gNB connects to AMF */
             
 #if 0
@@ -1750,6 +1750,8 @@ abts_suite *test_multi_ue_multi_test2(abts_suite *suite)
         printf("\r\n");
         printf(">>>>>>>>>>>>>>>>>g_testcycleNum:%d:%d Time:%s\r\n",g_testcycleNum,i,ctime(&curtime));
         abts_run_test(suite, muti_ue_threads, NULL);
-        }
+        time(&curtime);
+        ogs_msleep(180000);
+    }
     return suite;
 }

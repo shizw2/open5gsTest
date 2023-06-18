@@ -524,7 +524,7 @@ int abts_main(int argc, const char *const argv[], const char **argv_out)
     memset(&optarg, 0, sizeof(optarg));
 
     ogs_getopt_init(&options, (char**)argv);
-    while ((opt = ogs_getopt(&options, "hvxlqc:e:m:n:T:w::s:dt")) != -1) {
+    while ((opt = ogs_getopt(&options, "hvxlqc:e:m:n:T:w:s:dt")) != -1) {
         switch (opt) {
         case 'h':
             show_help(argv[0]);
@@ -565,6 +565,7 @@ int abts_main(int argc, const char *const argv[], const char **argv_out)
             printf("threadNum:%d\r\n",g_threadNum);
             break;
         case 'w':
+            printf("g_testcycleNum.\r\n");
             g_testcycleNum=atoi(options.optarg);
             break;
         case 's':

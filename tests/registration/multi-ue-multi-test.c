@@ -1110,8 +1110,12 @@ abts_suite *test_multi_ue_multi_test(abts_suite *suite)
     int i;
     for(i=0;i<g_testcycleNum;i++){
         printf("\r\n");
+        time(&curtime);
+       
         printf(">>>>>>>>>>>>>>>>>g_testcycleNum:%d:%d Time:%s\r\n",g_testcycleNum,i,ctime(&curtime));
         abts_run_test(suite, muti_ue_threads, NULL);
+        ogs_msleep(5000);
+        
         }
     return suite;
 }
