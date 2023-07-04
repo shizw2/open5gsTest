@@ -395,11 +395,13 @@ static connection_t *connection_add(
                 ogs_app()->sbi.client.cert);
 
         if (ogs_app()->sbi.client.no_verify == false) {
+            ogs_error("ogs_app()->sbi.client.no_verify is false");
             if (ogs_app()->sbi.client.cacert) {
                 curl_easy_setopt(conn->easy, CURLOPT_CAINFO,
                         ogs_app()->sbi.client.cacert);
             }
         } else {
+            ogs_error("ogs_app()->sbi.client.no_verify is true");
             curl_easy_setopt(conn->easy, CURLOPT_SSL_VERIFYPEER, 0);
             curl_easy_setopt(conn->easy, CURLOPT_SSL_VERIFYHOST, 0);
         }
@@ -454,10 +456,30 @@ static connection_t *connection_add(
     curl_easy_setopt(conn->easy, CURLOPT_HEADERFUNCTION, header_cb);
     curl_easy_setopt(conn->easy, CURLOPT_HEADERDATA, conn);
     curl_easy_setopt(conn->easy, CURLOPT_ERRORBUFFER, conn->error);
-
+    curl_easy_setopt(conn->easy, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_3);
     ogs_assert(client->multi);
     rc = curl_multi_add_handle(client->multi, conn->easy);
     mcode_or_die("connection_add: curl_multi_add_handle", rc);
+
+
+    curl_version_info_data *curl_info = curl_version_info(CURLVERSION_NOW);
+    
+    // 检查是否启用了 SSL 支持
+    if (curl_info->features & CURL_VERSION_SSL) {
+        ogs_error("curl SSL support: enabled\n");
+        
+        // 获取 SSL 版本信息
+        const char* ssl_version = curl_info->ssl_version;
+        ogs_error("curl SSL version: %s\n", ssl_version);
+
+        const char *version;
+        curl_easy_getinfo(conn->easy, CURLOPT_SSLVERSION, &version);
+        
+        ogs_error("TLS version: %s\n", version);
+
+    } else {
+        ogs_error("curl SSL support: disabled\n");
+    }
 
     return conn;
 }

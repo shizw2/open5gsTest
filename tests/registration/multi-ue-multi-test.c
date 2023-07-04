@@ -574,7 +574,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
     //test_ue_remove_all();
 
     test_context_final_ex();
-
+    printf("test2 end\n");
 
 
 }
@@ -973,6 +973,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
     ogs_pkbuf_free(recvbuf);
     printf(" GTP-U ICMP Packet1\n");
 #endif
+#if OGS_SBI_DISABLE_NETWORK_SERVICE_REQUEST_WHILE_ACTIVATING == 0
 
     /* Receive PDUSessionResourceSetupRequest */
     recvbuf = testgnb_ngap_read(ngap);
@@ -988,6 +989,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
     printf(" Send PDUSessionResourceSetupResponse\n");
+#endif
 #if 1
 
     /* Send GTP-U ICMP Packet */
@@ -1094,7 +1096,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
      //test_ue_remove_all();
  
       test_context_final_ex();
- 
+      printf("test1 end\n");
  
  }
  

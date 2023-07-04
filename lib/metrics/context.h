@@ -41,7 +41,7 @@ typedef struct ogs_metrics_context_s {
     ogs_list_t  spec_list;
 
     uint16_t    metrics_port;
-    uint16_t    id;//sps的端口为metrics_port+id
+    uint16_t    port_id;//sps的端口为metrics_port+port_id
 } ogs_metrics_context_t;
 
 typedef enum ogs_metrics_histogram_bucket_type_s  {

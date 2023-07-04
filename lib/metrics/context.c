@@ -74,7 +74,7 @@ static int ogs_metrics_context_prepare(void)
 
 void ogs_metrics_set_port_id(uint16_t id)
 {
-   self.id = id;
+   self.port_id = id;
 }
 
 int ogs_metrics_context_parse_config(const char *local)
@@ -110,7 +110,7 @@ int ogs_metrics_context_parse_config(const char *local)
                         int num = 0;
                         const char *hostname[OGS_MAX_NUM_OF_HOSTNAME];
 
-                        uint16_t port = self.metrics_port + self.id;
+                        uint16_t port = self.metrics_port + self.port_id;
                         const char *dev = NULL;
                         ogs_sockaddr_t *addr = NULL;
 
@@ -175,7 +175,7 @@ int ogs_metrics_context_parse_config(const char *local)
                                 const char *v = ogs_yaml_iter_value(
                                         &metrics_iter);
                                 if (v){
-                                    port = atoi(v) + self.id;
+                                    port = atoi(v) + self.port_id;
                                 }
                             } else if (!strcmp(metrics_key, "dev")) {
                                 dev = ogs_yaml_iter_value(&metrics_iter);

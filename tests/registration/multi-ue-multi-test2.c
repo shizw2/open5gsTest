@@ -619,6 +619,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
 
     test_context_final_ex();
 
+    printf("test2  end \n");
 
 
 }
@@ -1017,6 +1018,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, recvbuf);
     ogs_pkbuf_free(recvbuf);
 #endif
+#if OGS_SBI_DISABLE_NETWORK_SERVICE_REQUEST_WHILE_ACTIVATING == 0
 
     /* Receive PDUSessionResourceSetupRequest */
     recvbuf = testgnb_ngap_read(ngap);
@@ -1031,6 +1033,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
+ #endif
 #if 1
 
     /* Send GTP-U ICMP Packet */
@@ -1136,7 +1139,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
      //test_ue_remove_all();
  
       test_context_final_ex();
- 
+     printf("test3  end \n");
  
  }
  /*  test_gmm_status*/
@@ -1325,6 +1328,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
         }
       ogs_msleep(100);
       test_context_final_ex();
+      printf("test1  end \n");
     }  
  void muti_ue_func34(void *data)
   {
@@ -1736,6 +1740,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
             ogs_msleep(300);
         }
       test_context_final_ex();
+      printf("test4  end \n");
     }  
 
 abts_suite *test_multi_ue_multi_test2(abts_suite *suite)
@@ -1748,10 +1753,10 @@ abts_suite *test_multi_ue_multi_test2(abts_suite *suite)
     int i;
     for(i=0;i<g_testcycleNum;i++){
         printf("\r\n");
+        time(&curtime);
         printf(">>>>>>>>>>>>>>>>>g_testcycleNum:%d:%d Time:%s\r\n",g_testcycleNum,i,ctime(&curtime));
         abts_run_test(suite, muti_ue_threads, NULL);
-        time(&curtime);
-        ogs_msleep(180000);
+        ogs_msleep(10000);
     }
     return suite;
 }

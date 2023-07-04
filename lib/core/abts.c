@@ -565,7 +565,6 @@ int abts_main(int argc, const char *const argv[], const char **argv_out)
             printf("threadNum:%d\r\n",g_threadNum);
             break;
         case 'w':
-            printf("g_testcycleNum.\r\n");
             g_testcycleNum=atoi(options.optarg);
             break;
         case 's':

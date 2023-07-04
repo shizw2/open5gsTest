@@ -353,7 +353,8 @@ void amf_metrics_init(void)
 {
     ogs_metrics_context_t *ctx = ogs_metrics_self();
     ogs_metrics_context_init();
-
+    ogs_metrics_set_port_id(g_sps_id);
+   
     amf_metrics_init_spec(ctx, amf_metrics_spec_global, amf_metrics_spec_def_global,
             _AMF_METR_GLOB_MAX);
 
@@ -366,8 +367,6 @@ void amf_metrics_init(void)
 
     amf_metrics_init_by_slice();
     amf_metrics_init_by_cause();
-
-    ogs_metrics_set_port_id(g_sps_id);
 }
 
 void amf_metrics_final(void)

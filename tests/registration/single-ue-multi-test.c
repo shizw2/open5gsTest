@@ -1478,7 +1478,7 @@ static void gmm_status_test1_func(abts_case *tc, void *data)
     mobile_identity_suci.protection_scheme_id = OGS_PROTECTION_SCHEME_NULL;
     mobile_identity_suci.home_network_pki_value = 0;
    
-    test_ue = test_ue_add_by_suci(&mobile_identity_suci, 13);
+    test_ue = test_ue_add_by_suci(&mobile_identity_suci, "0000203190");
     ogs_assert(test_ue);
 
     test_ue->nr_cgi.cell_id = 0x40001;
@@ -3035,7 +3035,8 @@ static void identity_test1_func(abts_case *tc, void *data)
 
     /* INVALID SUCI */
     //test_ue->mobile_identity_suci.scheme_output[0] = 0x99;
-    test_ue = test_ue_add_by_suci(&mobile_identity_suci, "990000000000");
+   // test_ue = test_ue_add_by_suci(&mobile_identity_suci, "990000000000");
+    ((uint8_t *)(test_ue->mobile_identity.buffer))[9] = 0x99;
 
     /* Send Identity response */
     gmmbuf = testgmm_build_identity_response(test_ue);
@@ -5841,7 +5842,7 @@ static void cm_connected_paging_func(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
-
+#if 0
     /* Receive PDUSessionResourceSetupRequest +
      * DL NAS transport +
      * PDU session establishment accept */
@@ -5865,6 +5866,36 @@ static void cm_connected_paging_func(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
+    #endif
+#if OGS_SBI_DISABLE_NETWORK_SERVICE_REQUEST_WHILE_ACTIVATING == 0
+    /* Receive PDUSessionResourceSetupRequest +
+     * DL NAS transport +
+     * PDU session establishment accept */
+    recvbuf = testgnb_ngap_read(ngap);
+    ABTS_PTR_NOTNULL(tc, recvbuf);
+    testngap_recv(test_ue, recvbuf);
+    ABTS_INT_EQUAL(tc,
+            NGAP_ProcedureCode_id_PDUSessionResourceSetup,
+            test_ue->ngap_procedure_code);
+#endif
+
+    /* Receive GTP-U ICMP Packet */
+    recvbuf = testgnb_gtpu_read(gtpu);
+    ABTS_PTR_NOTNULL(tc, recvbuf);
+    ogs_pkbuf_free(recvbuf);
+
+
+    
+#if OGS_SBI_DISABLE_NETWORK_SERVICE_REQUEST_WHILE_ACTIVATING == 0
+    /* Send PDUSessionResourceSetupResponse(Unsuccessful) */
+    sendbuf = testngap_sess_build_pdu_session_resource_failed_to_setup(
+            sess,
+            NGAP_Cause_PR_radioNetwork,
+            NGAP_CauseRadioNetwork_multiple_PDU_session_ID_instances);
+    ABTS_PTR_NOTNULL(tc, sendbuf);
+    rv = testgnb_ngap_send(ngap, sendbuf);
+    ABTS_INT_EQUAL(tc, OGS_OK, rv);
+#endif
 
     /* Send GTP-U ICMP Packet */
     rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
@@ -5874,6 +5905,15 @@ static void cm_connected_paging_func(abts_case *tc, void *data)
     recvbuf = testgnb_gtpu_read(gtpu);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     ogs_pkbuf_free(recvbuf);
+#if OGS_SBI_DISABLE_NETWORK_SERVICE_REQUEST_WHILE_ACTIVATING == 1
+        /* Send UEContextReleaseRequest */
+        sendbuf = testngap_build_ue_context_release_request(test_ue,
+                NGAP_Cause_PR_radioNetwork, NGAP_CauseRadioNetwork_user_inactivity,
+                true);
+        ABTS_PTR_NOTNULL(tc, sendbuf);
+        rv = testgnb_ngap_send(ngap, sendbuf);
+        ABTS_INT_EQUAL(tc, OGS_OK, rv);
+#endif
 
     /* Receive UEContextReleaseCommand */
     recvbuf = testgnb_ngap_read(ngap);
@@ -6768,6 +6808,8 @@ static void vonr_qos_flow_test1_func(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, recvbuf);
     ogs_pkbuf_free(recvbuf);
 
+
+#if OGS_SBI_DISABLE_NETWORK_SERVICE_REQUEST_WHILE_ACTIVATING == 0
     /* Receive PDUSessionResourceSetupRequest */
     recvbuf = testgnb_ngap_read(ngap);
     ABTS_PTR_NOTNULL(tc, recvbuf);
@@ -6775,12 +6817,13 @@ static void vonr_qos_flow_test1_func(abts_case *tc, void *data)
     ABTS_INT_EQUAL(tc,
             NGAP_ProcedureCode_id_PDUSessionResourceSetup,
             test_ue->ngap_procedure_code);
-
+    
     /* Send PDUSessionResourceSetupResponse */
     sendbuf = testngap_sess_build_pdu_session_resource_setup_response(sess);
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
+#endif
 
     /* Send GTP-U ICMP Packet */
     rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
@@ -7177,7 +7220,7 @@ static void vonr_session_test2_func(abts_case *tc, void *data)
     recvbuf = testgnb_gtpu_read(gtpu);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     ogs_pkbuf_free(recvbuf);
-
+#if OGS_SBI_DISABLE_NETWORK_SERVICE_REQUEST_WHILE_ACTIVATING == 0
     /* Receive PDUSessionResourceSetupRequest */
     recvbuf = testgnb_ngap_read(ngap);
     ABTS_PTR_NOTNULL(tc, recvbuf);
@@ -7185,12 +7228,13 @@ static void vonr_session_test2_func(abts_case *tc, void *data)
     ABTS_INT_EQUAL(tc,
             NGAP_ProcedureCode_id_PDUSessionResourceSetup,
             test_ue->ngap_procedure_code);
-
+    
     /* Send PDUSessionResourceSetupResponse */
     sendbuf = testngap_sess_build_pdu_session_resource_setup_response(sess);
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
+#endif
 
     /* Send GTP-U ICMP Packet */
     rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
@@ -7585,7 +7629,7 @@ static void registration_ue_context_test4_func(abts_case *tc, void *data)
     /* Send GTP-U ICMP Packet */
     rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
-
+#if OGS_SBI_DISABLE_NETWORK_SERVICE_REQUEST_WHILE_ACTIVATING == 0
     /* Receive PDUSessionResourceSetupRequest */
     recvbuf = testgnb_ngap_read(ngap);
     ABTS_PTR_NOTNULL(tc, recvbuf);
@@ -7593,18 +7637,21 @@ static void registration_ue_context_test4_func(abts_case *tc, void *data)
     ABTS_INT_EQUAL(tc,
             NGAP_ProcedureCode_id_PDUSessionResourceSetup,
             test_ue->ngap_procedure_code);
-
+#endif
+    
     /* Send InitialContextSetupResponse */
     sendbuf = testngap_build_initial_context_setup_response(test_ue, true);
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
-
+    
+#if OGS_SBI_DISABLE_NETWORK_SERVICE_REQUEST_WHILE_ACTIVATING == 0
     /* Send PDUSessionResourceSetupResponse */
     sendbuf = testngap_ue_build_pdu_session_resource_setup_response(test_ue);
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
+#endif
 
     /* Receive GTP-U ICMP Packet */
     recvbuf = testgnb_gtpu_read(gtpu);
@@ -7986,7 +8033,7 @@ static void registration_idle_test1_func(abts_case *tc, void *data)
     /* Send GTP-U ICMP Packet */
     rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
-
+#if OGS_SBI_DISABLE_NETWORK_SERVICE_REQUEST_WHILE_ACTIVATING == 0
     /* Receive PDUSessionResourceSetupRequest */
     recvbuf = testgnb_ngap_read(ngap);
     ABTS_PTR_NOTNULL(tc, recvbuf);
@@ -7994,18 +8041,22 @@ static void registration_idle_test1_func(abts_case *tc, void *data)
     ABTS_INT_EQUAL(tc,
             NGAP_ProcedureCode_id_PDUSessionResourceSetup,
             test_ue->ngap_procedure_code);
-
+#endif
+    
     /* Send InitialContextSetupResponse */
     sendbuf = testngap_build_initial_context_setup_response(test_ue, true);
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
-
+    
+#if OGS_SBI_DISABLE_NETWORK_SERVICE_REQUEST_WHILE_ACTIVATING == 0
     /* Send PDUSessionResourceSetupResponse */
     sendbuf = testngap_sess_build_pdu_session_resource_setup_response(sess);
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
+#endif
+
 
     /* Receive GTP-U ICMP Packet */
     recvbuf = testgnb_gtpu_read(gtpu);

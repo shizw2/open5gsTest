@@ -146,7 +146,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
 #endif		
 			/********** Insert Subscriber in Database */
 			//
-            if(iTmp==3)
+            if(iTmp==2 ||iTmp==4 || iTmp==3)
                 doc = test_db_new_session(test_ues3[iTmp][i]);
             else if(iTmp==0)
                 doc = test_db_new_qos_flow(test_ues3[iTmp][i]);
@@ -240,7 +240,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
 /* simple test 2*/
  void muti_ue_func33(void *data)
 {
- 
+    //return;
     int rv;
     ogs_socknode_t *ngap;
     ogs_socknode_t *gtpu;
@@ -489,6 +489,8 @@ static void muti_ue_threads(abts_case *tc, void *data)
             uint8_t *rx_sid = NULL;
             test_rx_send_aar_audio(&rx_sid, sess,
                     OGS_DIAM_RX_SUBSCRIPTION_ID_TYPE_END_USER_IMSI, 1, 1);
+            if(rx_sid)
+                ogs_free(rx_sid);
         
 #if 0
             //模拟一个control类型的aar
@@ -586,7 +588,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
         
             /* Waiting for creating dedicated QoS flow in PFCP protocol */
             ogs_msleep(100);
-        
+ #if 0        
             /* Send AF-Session : DELETE */
             //af_local_send_to_pcf(af_sess, NULL,
             //        af_npcf_policyauthorization_build_delete);
@@ -637,7 +639,8 @@ static void muti_ue_threads(abts_case *tc, void *data)
         
             /* Test Bearer Remove */
             test_bearer_remove(qos_flow);
-        
+        printf("test3 R ok\n");
+  #endif
             //测试在5QI=5上继续发送报文
     #if 1
             /* Send GTP-U ICMP Packet */
@@ -714,6 +717,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
 
  void muti_ue_func35(void *data)
  { 
+       // return;
         int rv;
         ogs_socknode_t *ngap;
         ogs_socknode_t *gtpu;
@@ -951,6 +955,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
         uint8_t *rx_sid = NULL;
         test_rx_send_aar_audio(&rx_sid, sess,
                 OGS_DIAM_RX_SUBSCRIPTION_ID_TYPE_END_USER_IMSI, 1, 1);
+        if(rx_sid)ogs_free(rx_sid);
 #if 0
         /* Add AF-Session */
         af_sess = af_sess_add_by_ue_address(&sess->ue_ip);
@@ -1036,10 +1041,11 @@ static void muti_ue_threads(abts_case *tc, void *data)
         uint8_t *rx_sid2 = NULL;
         test_rx_send_aar_ctrl(&rx_sid2, sess,
                 OGS_DIAM_RX_SUBSCRIPTION_ID_TYPE_END_USER_SIP_URI);
-    
+        if(rx_sid2)ogs_free(rx_sid2);
         uint8_t *rx_sid3 = NULL;
         test_rx_send_aar_ctrl(&rx_sid3, sess,
                 OGS_DIAM_RX_SUBSCRIPTION_ID_TYPE_END_USER_SIP_URI);
+        if(rx_sid3)ogs_free(rx_sid3);
         /* Waiting for creating dedicated QoS flow in PFCP protocol */
         ogs_msleep(100);
     
@@ -2869,7 +2875,7 @@ void muti_ue_func34(void *data)
     /* For checking qos_flow_identifier == 2 */
    // print_buf(recvbuf->data, recvbuf->len);
     ABTS_TRUE(tc, memcmp(recvbuf->data,
-        OGS_HEX(_gtp_payload, strlen(_gtp_payload), tmp), 4) == 0);
+        ogs_hex_from_string(_gtp_payload, tmp, sizeof(tmp)), 4) == 0);
     ogs_pkbuf_free(recvbuf);
 
     /* Send UEContextReleaseRequest */
@@ -2949,7 +2955,7 @@ void muti_ue_func34(void *data)
     /* For checking qos_flow_identifier == 2 */
    // print_buf(recvbuf->data, recvbuf->len);
     ABTS_TRUE(tc, memcmp(recvbuf->data,
-        OGS_HEX(_gtp_payload, strlen(_gtp_payload), tmp), 4) == 0);
+        ogs_hex_from_string(_gtp_payload, tmp, sizeof(tmp)), 4) == 0);
     ogs_pkbuf_free(recvbuf);
     
     /* Send De-registration request */

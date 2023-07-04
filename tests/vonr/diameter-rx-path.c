@@ -564,6 +564,7 @@ void test_rx_send_aar_audio(uint8_t **rx_sid,
 
     /* Free string memory */
     ogs_free(sip_uri);
+    ogs_free(svg);
 }
 
 void test_rx_send_aar_video(uint8_t **rx_sid, test_sess_t *sess, int id_type)
@@ -1241,7 +1242,8 @@ void test_rx_send_aar_video(uint8_t **rx_sid, test_sess_t *sess, int id_type)
     ogs_assert(pthread_mutex_unlock(&ogs_diam_logger_self()->stats_lock) == 0);
 
     /* Free string memory */
-    ogs_free(sip_uri);
+    ogs_free(svg);
+    ogs_free(sip_uri);  
 }
 
 void test_rx_send_aar_ctrl(uint8_t **rx_sid, test_sess_t *sess, int id_type)
@@ -1648,7 +1650,8 @@ void test_rx_send_aar_ctrl(uint8_t **rx_sid, test_sess_t *sess, int id_type)
     ogs_assert(pthread_mutex_unlock(&ogs_diam_logger_self()->stats_lock) == 0);
 
     /* Free string memory */
-    ogs_free(sip_uri);
+    ogs_free(svg);
+    ogs_free(sip_uri);   
 }
 
 static void pcscf_rx_aaa_cb(void *data, struct msg **msg)
