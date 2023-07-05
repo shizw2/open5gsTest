@@ -461,8 +461,7 @@ static connection_t *connection_add(
     curl_easy_setopt(conn->easy, CURLOPT_ERRORBUFFER, conn->error);
     rc = curl_easy_setopt(conn->easy, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_3);
     if (rc != CURLE_OK) {
-      ogs_error("Failed to CURL_SSLVERSION_TLSv1_3: %s\n", curl_easy_strerror(rc));
-      ogs_error("Error details: %s\n", errorBuffer);
+      ogs_error("Failed to CURL_SSLVERSION_TLSv1_3: %s\n", curl_easy_strerror(rc));     
     }
     rc = curl_easy_setopt(conn->easy, CURLOPT_TLS13_CIPHERS, "TLS_AES_128_GCM_SHA256"); 
     if (rc != CURLE_OK) {
@@ -473,12 +472,21 @@ static connection_t *connection_add(
     rc = curl_multi_add_handle(client->multi, conn->easy);
     mcode_or_die("connection_add: curl_multi_add_handle", rc);
     if (rc != CURLE_OK) {
-      ogs_error("Failed to curl_multi_add_handle: %s\n", curl_easy_strerror(rc));
-      ogs_error("Error details: %s\n", errorBuffer);
+      ogs_error("Failed to curl_multi_add_handle: %s\n", curl_easy_strerror(rc));      
     }
 
     curl_version_info_data *curl_info = curl_version_info(CURLVERSION_NOW);
-    
+    ogs_error("libcurl version: %s\n", curl_info->version);
+    ogs_error("libcurl version number: %d\n", curl_info->version_num);
+    ogs_error("host: %s\n", curl_info->host);
+    ogs_error("features: %d\n", curl_info->features);
+    ogs_error("SSL/TLS library: %s\n", curl_info->ssl_version);
+    ogs_error("SSL/TLS library number: %ld\n", curl_info->ssl_version_num);
+    ogs_error("zlib version: %s\n", curl_info->libz_version);
+    ogs_error("ares version: %s\n", curl_info->ares);
+    ogs_error("ares version number: %d\n", curl_info->ares_num);
+    ogs_error("IDN string library: %s\n", curl_info->libidn);
+    ogs_error("iconv library version number: %d\n", curl_info->iconv_ver_num);
     // 检查是否启用了 SSL 支持
     if (curl_info->features & CURL_VERSION_SSL) {
         ogs_error("curl SSL support: enabled\n");
@@ -487,10 +495,10 @@ static connection_t *connection_add(
         const char* ssl_version = curl_info->ssl_version;
         ogs_error("curl SSL version: %s\n", ssl_version);
 
-        const char *version;
-        curl_easy_getinfo(conn->easy, CURLOPT_SSLVERSION, &version);
+        //const char *version;
+        //curl_easy_getinfo(conn->easy, CURLOPT_SSLVERSION, &version);
         
-        ogs_error("TLS version: %s\n", version);
+        //ogs_error("TLS version: %s\n", version);
 
     } else {
         ogs_error("curl SSL support: disabled\n");
