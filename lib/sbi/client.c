@@ -457,6 +457,7 @@ static connection_t *connection_add(
     curl_easy_setopt(conn->easy, CURLOPT_HEADERDATA, conn);
     curl_easy_setopt(conn->easy, CURLOPT_ERRORBUFFER, conn->error);
     curl_easy_setopt(conn->easy, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_3);
+    curl_easy_setopt(conn->easy, CURLOPT_TLS13_CIPHERS, "TLS_AES_128_GCM_SHA256"); 
     ogs_assert(client->multi);
     rc = curl_multi_add_handle(client->multi, conn->easy);
     mcode_or_die("connection_add: curl_multi_add_handle", rc);
