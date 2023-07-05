@@ -869,7 +869,13 @@ static void accept_handler(short when, ogs_socket_t fd, void *data)
             ogs_error("SSL_accept failed [%s]", ERR_error_string(ERR_get_error(), NULL));
             session_remove(sbi_sess);
             return;
+        }else {
+            // 打印TLS版本号
+            const char *version = SSL_get_version(sbi_sess->ssl);
+            ogs_error("Accepted connection with TLS version: %s\n", version);
+
         }
+
     }
 
     sbi_sess->poll.read = ogs_pollset_add(ogs_app()->pollset,
