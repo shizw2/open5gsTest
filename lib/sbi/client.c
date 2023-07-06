@@ -86,6 +86,28 @@ void ogs_sbi_client_init(int num_of_sockinfo_pool, int num_of_connection_pool)
     ogs_pool_init(&sockinfo_pool, num_of_sockinfo_pool);
     ogs_pool_init(&connection_pool, num_of_connection_pool);
 
+    curl_version_info_data *curl_info = curl_version_info(CURLVERSION_NOW);
+    ogs_info("libcurl version: %s", curl_info->version);
+    ogs_info("libcurl version number: %d", curl_info->version_num);
+    ogs_info("host: %s", curl_info->host);
+    ogs_info("features: %d", curl_info->features);
+    ogs_info("SSL/TLS library: %s", curl_info->ssl_version);
+    ogs_info("SSL/TLS library number: %ld", curl_info->ssl_version_num);
+    ogs_info("zlib version: %s", curl_info->libz_version);
+    ogs_info("ares version: %s", curl_info->ares);
+    ogs_info("ares version number: %d", curl_info->ares_num);
+    ogs_info("IDN string library: %s", curl_info->libidn);
+    ogs_info("iconv library version number: %d", curl_info->iconv_ver_num);
+    // 检查是否启用了 SSL 支持
+    if (curl_info->features & CURL_VERSION_SSL) {
+        ogs_info("curl SSL support: enabled");
+        
+        // 获取 SSL 版本信息
+        const char* ssl_version = curl_info->ssl_version;
+        ogs_info("curl SSL version: %s", ssl_version);
+    } else {
+        ogs_info("curl SSL support: disabled");
+    }
 }
 void ogs_sbi_client_final(void)
 {
@@ -395,13 +417,11 @@ static connection_t *connection_add(
                 ogs_app()->sbi.client.cert);
 
         if (ogs_app()->sbi.client.no_verify == false) {
-            ogs_error("ogs_app()->sbi.client.no_verify is false");
             if (ogs_app()->sbi.client.cacert) {
                 curl_easy_setopt(conn->easy, CURLOPT_CAINFO,
                         ogs_app()->sbi.client.cacert);
             }
         } else {
-            ogs_error("ogs_app()->sbi.client.no_verify is true");
             curl_easy_setopt(conn->easy, CURLOPT_SSL_VERIFYPEER, 0);
             curl_easy_setopt(conn->easy, CURLOPT_SSL_VERIFYHOST, 0);
         }
@@ -473,36 +493,7 @@ static connection_t *connection_add(
     mcode_or_die("connection_add: curl_multi_add_handle", rc);
     if (rc != CURLE_OK) {
       ogs_error("Failed to curl_multi_add_handle: %s\n", curl_easy_strerror(rc));      
-    }
-
-    curl_version_info_data *curl_info = curl_version_info(CURLVERSION_NOW);
-    ogs_error("libcurl version: %s\n", curl_info->version);
-    ogs_error("libcurl version number: %d\n", curl_info->version_num);
-    ogs_error("host: %s\n", curl_info->host);
-    ogs_error("features: %d\n", curl_info->features);
-    ogs_error("SSL/TLS library: %s\n", curl_info->ssl_version);
-    ogs_error("SSL/TLS library number: %ld\n", curl_info->ssl_version_num);
-    ogs_error("zlib version: %s\n", curl_info->libz_version);
-    ogs_error("ares version: %s\n", curl_info->ares);
-    ogs_error("ares version number: %d\n", curl_info->ares_num);
-    ogs_error("IDN string library: %s\n", curl_info->libidn);
-    ogs_error("iconv library version number: %d\n", curl_info->iconv_ver_num);
-    // 检查是否启用了 SSL 支持
-    if (curl_info->features & CURL_VERSION_SSL) {
-        ogs_error("curl SSL support: enabled\n");
-        
-        // 获取 SSL 版本信息
-        const char* ssl_version = curl_info->ssl_version;
-        ogs_error("curl SSL version: %s\n", ssl_version);
-
-        //const char *version;
-        //curl_easy_getinfo(conn->easy, CURLOPT_SSLVERSION, &version);
-        
-        //ogs_error("TLS version: %s\n", version);
-
-    } else {
-        ogs_error("curl SSL support: disabled\n");
-    }
+    }   
 
     return conn;
 }

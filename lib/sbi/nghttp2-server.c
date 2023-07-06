@@ -196,13 +196,11 @@ static SSL_CTX *create_ssl_ctx(const char *key_file, const char *cert_file)
     ogs_assert(key_file);
     ogs_assert(cert_file);
     //centos下，需要升级openssl才行。
-    ogs_error("SSL_CTX_new");
     ssl_ctx = SSL_CTX_new(TLS_server_method());
     if (!ssl_ctx) {
         ogs_error("Could not create SSL/TLS context: %s", ERR_error_string(ERR_get_error(), NULL));
         return NULL;
-    }
-    ogs_error("SSL_CTX_new sucess.");   
+    } 
     ssl_opts = (SSL_OP_ALL & ~SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS) |
                   SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION |
                   SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION |
@@ -282,6 +280,10 @@ static SSL_CTX *create_ssl_ctx(const char *key_file, const char *cert_file)
     SSL_CTX_set_alpn_select_cb(ssl_ctx, alpn_select_proto_cb, NULL);
 #endif /* OPENSSL_VERSION_NUMBER >= 0x10002000L */
 
+
+    const char* ssl_version = OpenSSL_version(OPENSSL_VERSION);
+    ogs_info("server OpenSSL_version OpenSSL Version: %s", ssl_version);
+
     return ssl_ctx;
 }
 
@@ -311,8 +313,6 @@ static int server_start(ogs_sbi_server_t *server,
 
     addr = server->node.addr;
     ogs_assert(addr);
-
-    ogs_error("server_start");
 
     /* Create SSL CTX */
     if (ogs_app()->sbi.server.no_tls == false) {
@@ -766,7 +766,7 @@ static ogs_sbi_session_t *session_add(
             ogs_pool_free(&session_pool, sbi_sess);
             ogs_free(sbi_sess->addr);
             return NULL;
-        }
+        }      
     }
 
     ogs_list_add(&server->session_list, sbi_sess);
@@ -853,13 +853,6 @@ static void accept_handler(short when, ogs_socket_t fd, void *data)
     sbi_sess = session_add(server, new);
     ogs_assert(sbi_sess);
 
-    const char* ssl_version = OpenSSL_version(OPENSSL_VERSION);
-    ogs_error("OpenSSL_version OpenSSL Version: %s\n", ssl_version);
-
-    // 检查 SSL/TLS 协议版本
-    const char* ssl_version2 = SSL_get_version(sbi_sess->ssl);
-    ogs_error("SSL_get_version SSL version: %s\n", ssl_version2);
-
     if (sbi_sess->ssl) {
         int err;
         SSL_set_fd(sbi_sess->ssl, new->fd);
@@ -869,13 +862,7 @@ static void accept_handler(short when, ogs_socket_t fd, void *data)
             ogs_error("SSL_accept failed [%s]", ERR_error_string(ERR_get_error(), NULL));
             session_remove(sbi_sess);
             return;
-        }else {
-            // 打印TLS版本号
-            const char *version = SSL_get_version(sbi_sess->ssl);
-            ogs_error("Accepted connection with TLS version: %s\n", version);
-
         }
-
     }
 
     sbi_sess->poll.read = ogs_pollset_add(ogs_app()->pollset,
