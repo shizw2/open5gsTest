@@ -200,7 +200,8 @@ static SSL_CTX *create_ssl_ctx(const char *key_file, const char *cert_file)
     if (!ssl_ctx) {
         ogs_error("Could not create SSL/TLS context: %s", ERR_error_string(ERR_get_error(), NULL));
         return NULL;
-    } 
+    }
+
     ssl_opts = (SSL_OP_ALL & ~SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS) |
                   SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION |
                   SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION |
@@ -766,7 +767,7 @@ static ogs_sbi_session_t *session_add(
             ogs_pool_free(&session_pool, sbi_sess);
             ogs_free(sbi_sess->addr);
             return NULL;
-        }      
+        }
     }
 
     ogs_list_add(&server->session_list, sbi_sess);

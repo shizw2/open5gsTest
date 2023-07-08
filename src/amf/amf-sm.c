@@ -31,7 +31,7 @@
 
 extern int g_sps_id;
 extern pkt_fwd_tbl_t *g_pt_pkt_fwd_tbl;
-
+extern int send_heart_cnt;
 
 void amf_state_initial(ogs_fsm_t *s, amf_event_t *e)
 {

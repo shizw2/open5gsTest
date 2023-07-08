@@ -1,4 +1,4 @@
-# Copyright (C) 2019 by Sukchan Lee <acetcom@gmail.com>
+# Copyright (C) 2019,2020 by Sukchan Lee <acetcom@gmail.com>
 
 # This file is part of Open5GS.
 
@@ -15,23 +15,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-testinc = include_directories('.')
+test5gc_reg_sources = files('''
+    abts-main.c
+    single-ue-multi-test.c
+    multi-ue-multi-test.c
+    multi-ue-multi-test2.c 
+'''.split())
 
-subdir('core')
-subdir('crypt')
-subdir('sctp')
-subdir('unit')
-subdir('af')
-subdir('common')
-subdir('app')
-subdir('registration')
-subdir('vonr')
-subdir('slice')
-subdir('attach')
-subdir('volte')
-subdir('csfb')
-subdir('310014')
-subdir('handover')
-subdir('non3gpp')
-subdir('regmutil')
+test5gc_regmutil_exe = executable('regmutil',
+    sources : test5gc_reg_sources,
+    c_args : testunit_core_cc_flags,
+    dependencies : libtest5gc_dep)
 
+test('regmutil',
+    test5gc_regmutil_exe,
+    is_parallel : false,
+    suite: '5gc')

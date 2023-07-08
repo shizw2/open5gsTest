@@ -116,7 +116,7 @@ int ogs_sbi_server_start_all(
         int (*cb)(ogs_sbi_request_t *request, void *data))
 {
     ogs_sbi_server_t *server = NULL, *next_server = NULL;
-   
+
     ogs_list_for_each_safe(&ogs_sbi_self()->server_list, next_server, server)
         if (ogs_sbi_server_actions.start(server, cb) != OGS_OK)
             return OGS_ERROR;

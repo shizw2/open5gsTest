@@ -553,7 +553,7 @@ int ogs_app_context_parse_config(void)
                                 ogs_yaml_iter_bool(&server_iter);
                         } else if (!strcmp(server_key, "no_verify")) {
                             self.sbi.server.no_verify =
-                                ogs_yaml_iter_bool(&server_iter);                           
+                                ogs_yaml_iter_bool(&server_iter);
                         } else if (!strcmp(server_key, "cacert")) {
                             self.sbi.server.cacert =
                                 ogs_yaml_iter_value(&server_iter);
@@ -566,7 +566,6 @@ int ogs_app_context_parse_config(void)
                         } else
                             ogs_warn("unknown key `%s`", server_key);
                     }
-                    self.sbi.server.no_verify = true;
                 } else if (!strcmp(tls_key, "client")) {
                     ogs_yaml_iter_t client_iter;
                     ogs_yaml_iter_recurse(&tls_iter, &client_iter);
@@ -580,7 +579,7 @@ int ogs_app_context_parse_config(void)
                                 ogs_yaml_iter_bool(&client_iter);
                         } else if (!strcmp(client_key, "no_verify")) {
                             self.sbi.client.no_verify =
-                                ogs_yaml_iter_bool(&client_iter);                            
+                                ogs_yaml_iter_bool(&client_iter);
                         } else if (!strcmp(client_key, "cacert")) {
                             self.sbi.client.cacert =
                                 ogs_yaml_iter_value(&client_iter);
@@ -593,7 +592,6 @@ int ogs_app_context_parse_config(void)
                         } else
                             ogs_warn("unknown key `%s`", client_key);
                     }
-                    self.sbi.client.no_verify = true;
                 } else
                     ogs_warn("unknown key `%s`", tls_key);
             }

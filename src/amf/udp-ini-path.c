@@ -3,7 +3,7 @@
 #include "sbi-path.h"
 
 extern int g_sps_id;
-
+int send_heart_cnt;//for sps check icps offline
 pkt_fwd_tbl_t g_pkt_fwd_tbl;//保存激活的模块信息,
 pkt_fwd_tbl_t *g_pt_pkt_fwd_tbl  = &g_pkt_fwd_tbl;
 

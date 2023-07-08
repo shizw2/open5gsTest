@@ -40,7 +40,7 @@ extern int __gmm_log_domain;
 #undef OGS_LOG_DOMAIN
 #define OGS_LOG_DOMAIN __amf_log_domain
 
-#define MAX_SPS_NUM             16
+#define MAX_SPS_NUM             15
 #define MAX_UE_NUM_SINGLE_NG    2048
 
 typedef struct ran_ue_s ran_ue_t;

@@ -466,9 +466,6 @@ static connection_t *connection_add(
             CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE);
 #endif
 
-    char errorBuffer[CURL_ERROR_SIZE];
-    curl_easy_setopt(conn->easy, CURLOPT_ERRORBUFFER, errorBuffer);
-
     ogs_list_add(&client->connection_list, conn);
 
     curl_easy_setopt(conn->easy, CURLOPT_URL, request->h.uri);
@@ -479,21 +476,10 @@ static connection_t *connection_add(
     curl_easy_setopt(conn->easy, CURLOPT_HEADERFUNCTION, header_cb);
     curl_easy_setopt(conn->easy, CURLOPT_HEADERDATA, conn);
     curl_easy_setopt(conn->easy, CURLOPT_ERRORBUFFER, conn->error);
-    rc = curl_easy_setopt(conn->easy, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_3);
-    if (rc != CURLE_OK) {
-      ogs_error("Failed to CURL_SSLVERSION_TLSv1_3: %s\n", curl_easy_strerror(rc));     
-    }
-    rc = curl_easy_setopt(conn->easy, CURLOPT_TLS13_CIPHERS, "TLS_AES_128_GCM_SHA256"); 
-    if (rc != CURLE_OK) {
-      //ogs_error("Failed to TLS_AES_128_GCM_SHA256: %s\n", curl_easy_strerror(rc));
-      //ogs_error("Error details: %s\n", errorBuffer);
-    }
+
     ogs_assert(client->multi);
     rc = curl_multi_add_handle(client->multi, conn->easy);
     mcode_or_die("connection_add: curl_multi_add_handle", rc);
-    if (rc != CURLE_OK) {
-      ogs_error("Failed to curl_multi_add_handle: %s\n", curl_easy_strerror(rc));      
-    }   
 
     return conn;
 }

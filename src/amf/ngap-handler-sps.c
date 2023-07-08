@@ -6,6 +6,7 @@
 #include "ngap-handler.h"
 #include "udp-ini-path.h"
 
+extern int send_heart_cnt;
 
 int sps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
 { 
