@@ -11,6 +11,7 @@ import Notification from 'containers/Notification';
 import * as Subscriber from 'containers/Subscriber';
 import * as Profile from 'containers/Profile';
 import * as Account from 'containers/Account';
+import * as NFConfig from 'containers/NFConfig';
 
 class App extends Component {
   static propTypes = {
@@ -52,6 +53,9 @@ class App extends Component {
         </Layout.Container>
         <Layout.Container visible={view === "account"}>
           <Account.Collection session={session}/>
+        </Layout.Container>
+        <Layout.Container visible={view === "config"}>
+          <NFConfig.Collection/>
         </Layout.Container>
         <Notification/>
       </Layout>

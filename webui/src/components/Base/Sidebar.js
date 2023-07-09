@@ -79,6 +79,7 @@ const defaultProps = {
   width: "16rem",
 }
 
+// Sidebar component using SubMenu and SubMenuItem
 const Sidebar = ({ isOpen, width, selectedView, onSelectView }) => (
   <Menu visible={isOpen} width={width}>
     <Item name="subscriber" selected={selectedView} onSelect={onSelectView}>
@@ -93,10 +94,16 @@ const Sidebar = ({ isOpen, width, selectedView, onSelectView }) => (
       <Icon><AccountIcon/></Icon>
       <Title>Account</Title>
     </Item>
+    <Item name="config" selected={selectedView} onSelect={onSelectView}>
+      <Icon><AccountIcon/></Icon>
+      <Title>Config</Title>
+    </Item>
   </Menu>
-)
+);
+
 
 Sidebar.propTypes = propTypes;
 Sidebar.defaultProps = defaultProps;
+
 
 export default Sidebar;
