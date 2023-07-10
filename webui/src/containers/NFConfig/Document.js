@@ -12,49 +12,10 @@ import * as Notification from 'modules/notification/actions';
 import { NFConfig } from 'components';
 
 import traverse from 'traverse';
+import crypto from 'crypto';
 
 const formData = {
-  "security": {
-    k: "465B5CE8 B199B49F AA5F0A2E E238A6BC",
-    amf: "8000",
-    op_value: "E8ED289D EBA952E4 283B54E8 8E6183CA",
-  },
-  "ambr": {
-    "downlink": {
-      "value": 1,
-      "unit": 3
-    },
-    "uplink": {
-      "value": 1,
-      "unit": 3
-    }
-  },
-  "slice": [{
-    "sst": 1,
-    "default_indicator": true,
-    "session": [{
-        "name": "internet",
-        "type": 3,
-        "ambr": {
-          "downlink": {
-            "value": 1,
-            "unit": 3
-          },
-          "uplink": {
-            "value": 1,
-            "unit": 3
-          }
-        },
-        "qos": {
-          "index": 9,
-          "arp": {
-            "priority_level": 8,
-            "pre_emption_capability": 1,
-            "pre_emption_vulnerability": 1
-          }
-        },
-    }]
-  }]
+  "roles": [ "user" ],
 }
 
 class Document extends Component {
@@ -85,31 +46,6 @@ class Document extends Component {
     }
 
     if (nfconfig.data) {
-      // Mongoose library has a problem for 64bit-long type
-      //
-      //   FETCH : the library returns 'Number' type for 64bit-long type
-      //   CREATE/UPDATE : the library returns 'String' type for 64bit-long type
-      //
-      // In this case, I cannot avoid json-schema validation function
-      // So, I've changed the type from 'String' to 'Number' if the key name is 'downlink' and 'uplink'
-      // 
-      //    The followings are changed from 'String' to 'Number' after DB CREATE or UPDATE
-      //     - ambr.downlink, ambr.uplink, qos.mbr.downlink, qos.mbr.uplink, qos.gbr.downlink, qos.gbr.uplink
-      // 
-      //traverse(nfconfig.data).forEach(function(x) {
-      //  if (this.key == 'downlink') this.update(Number(x));
-      //  if (this.key == 'uplink') this.update(Number(x));
-      //})
-
-      if (nfconfig.data.security) {
-        if (nfconfig.data.security.opc) {
-          nfconfig.data.security.op_type = 0;
-          nfconfig.data.security.op_value = nfconfig.data.security.opc;
-        } else {
-          nfconfig.data.security.op_type = 1;
-          nfconfig.data.security.op_value = nfconfig.data.security.op;
-        }
-      }
       this.setState({ formData: nfconfig.data })
     } else {
       this.setState({ formData });
@@ -122,8 +58,7 @@ class Document extends Component {
       });
       NProgress.done(true);
 
-//      const message = action === 'create' ? "New nfconfig created" : `${status.id} nfconfig updated`;
-      const message = action === 'create' ? "New nfconfig created" : `This nfconfig updated`;
+      const message = action === 'create' ? "New nfconfig created" : `${status.id} nfconfig updated`;
 
       dispatch(Notification.success({
         title: 'NFConfig',
@@ -168,81 +103,52 @@ class Document extends Component {
 
   validate = (formData, errors) => {
     const { nfconfigs, action, status } = this.props;
+    const { username, password1, password2 } = formData;
 
-//    In Editing-mode, this is not working!
-//    More study is needed.
-//
-//    if (formData.msisdn) {
-//      formData.msisdn.map(msisdn => {
-//        if (subscribers.data.filter(subscriber => subscriber.msisdn.includes(msisdn)).length > 0) {
-//          errors.msisdn.addError(`'${msisdn}' is duplicated`);
-//        }
-//      });
-
-    if (formData.msisdn) {
-      const { msisdn } = formData;
-      if (msisdn && msisdn.length > 1 && msisdn[0] === msisdn[1])
-        errors.msisdn.addError(`'${msisdn[1]}' is duplicated`);
+    if (action === 'create' && nfconfigs && nfconfigs.data &&
+      nfconfigs.data.filter(nfconfig => nfconfig.username === username).length > 0) {
+      errors.username.addError(`'${username}' is duplicated`);
     }
 
-    if (formData.slice) {
-      let s_nssais = formData.slice.map(slice => {
-        return JSON.stringify({ sst: slice.sst, sd: slice.sd })
-      });
-      let duplicates = {};
-      for (let i = 0; i < s_nssais.length; i++) {
-        if (duplicates.hasOwnProperty(s_nssais[i])) {
-          duplicates[s_nssais[i]].push(i);
-        } else if (s_nssais.lastIndexOf(s_nssais[i]) !== i) {
-          duplicates[s_nssais[i]] = [i];
-        }
-      }
-      for (let key in duplicates) {
-        duplicates[key].forEach(index =>
-          errors.slice[index].sst.addError(`${key} is duplicated`));
-      }
+    if (action === 'create') {
+       if (password1 === undefined) {
+          errors.password1.addError(`is required`);
+       }
+       if (password2 === undefined) {
+          errors.password2.addError(`is required`);
+       }
     }
 
-    for (let i = 0; i < formData.slice.length; i++) {
-      let names = formData.slice[i].session.map(session => {
-        return session.name
-      });
-      let duplicates = {};
-      for (let j = 0; j < names.length; j++) {
-        if (duplicates.hasOwnProperty(names[j])) {
-          duplicates[names[j]].push(j);
-        } else if (names.lastIndexOf(names[j]) !== j) {
-          duplicates[names[j]] = [j];
-        }
-      }
-      for (let key in duplicates) {
-        duplicates[key].forEach(index => 
-          errors.slice[i].session[index].name.addError(`'${key}' is duplicated`));
-      }
-    }
-
-    if (!formData.slice.some(slice => slice.default_indicator == true)) {
-      for (let i = 0; i < formData.slice.length; i++) {
-        errors.slice[i].default_indicator.addError(
-            `At least 1 Default S-NSSAI is required`);
-      }
+    if (password1 != password2) {
+      if (Object.keys(errors.password1.__errors).length == 0)
+        errors.password1.addError(`is not matched`);
+      if (Object.keys(errors.password2.__errors).length == 0)
+        errors.password2.addError(`is not matched`);
     }
 
     return errors;
   }
 
-  handleSubmit = (formData) => {
-    const { dispatch, action } = this.props;
-
-    if (formData.security) {
-      if (formData.security.op_type === 1) {
-        formData.security.op = formData.security.op_value;
-        formData.security.opc = null;
-      } else {
-        formData.security.op = null;
-        formData.security.opc = formData.security.op_value;
+  generatePassword = function(password, cb) {
+    crypto.randomBytes(32, function(randomBytesErr, buf) {
+      if (randomBytesErr) {
+        return cb(randomBytesErr);
       }
-    }
+      var salt = buf.toString('hex');
+
+      crypto.pbkdf2(password, salt, 25000, 512, 'sha256', function(pbkdf2Err, hashRaw) {
+        if (pbkdf2Err) {
+          return cb(pbkdf2Err);
+        }
+        var hash = new Buffer(hashRaw, 'binary').toString('hex');
+
+        cb(null, salt, hash);
+      });
+    });
+  };
+
+  submit = (formData) => {
+    const { dispatch, action } = this.props;
 
     NProgress.configure({ 
       parent: '#nprogress-base-form',
@@ -256,6 +162,23 @@ class Document extends Component {
       dispatch(updateNFConfig(formData._id, {}, formData));
     } else {
       throw new Error(`Action type '${action}' is invalid.`);
+    }
+  }
+
+  handleSubmit = (formData) => {
+    if (formData.password1 === undefined) {
+      this.submit(formData);
+    } else {
+      this.generatePassword(formData.password1, (err, salt, hash) => {
+        if (err) throw err
+
+        formData = Object.assign(formData, {
+          salt,
+          hash,
+        })
+
+        this.submit(formData);
+      })
     }
   }
 
@@ -277,6 +200,7 @@ class Document extends Component {
     } = this;
 
     const { 
+      session,
       visible,
       action,
       status,
@@ -286,6 +210,7 @@ class Document extends Component {
 
     return (
       <NFConfig.Edit
+        session={session}
         visible={visible} 
         action={action}
         formData={this.state.formData}

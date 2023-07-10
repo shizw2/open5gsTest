@@ -49,9 +49,11 @@ class App extends Component {
         <Layout.Container visible={view === "profile"}>
           <Profile.Collection/>
         </Layout.Container>
-
+        <Layout.Container visible={view === "account"}>
+          <Account.Collection session={session}/>
+        </Layout.Container>
         <Layout.Container visible={view === "nfconfig"}>
-          <NFConfig.Collection/>
+          <NFConfig.Collection session={session}/>
         </Layout.Container>
         <Notification/>
       </Layout>

@@ -28,8 +28,13 @@ class Collection extends Component {
     },
     confirm: {
       visible: false,
-      username: ''
+      _id: ''
     },
+    view: {
+      visible: false,
+      disableOnClickOutside: false,
+      _id: ''
+    }
   };
 
   componentWillMount() {
@@ -51,7 +56,8 @@ class Collection extends Component {
     if (status.response) {
       dispatch(Notification.success({
         title: 'NFConfig',
-        message: `${status.id} has been deleted`
+//        message: `${status.id} has been deleted`
+        message: `This nfconfig has been deleted`
       }));
       dispatch(clearActionStatus(MODEL, 'delete'));
     } 
@@ -87,6 +93,10 @@ class Collection extends Component {
           visible: true,
           dimmed: true,
           ...payload
+        },
+        view: {
+          ...this.state.view,
+          disableOnClickOutside: true
         }
       })
     },
@@ -97,24 +107,32 @@ class Collection extends Component {
           visible: false,
           dimmed: false
         },
+        view: {
+          ...this.state.view,
+          disableOnClickOutside: false
+        }
       })
     },
     actions: {
       create: () => {
         this.documentHandler.show('create');
       },
-      update: (username) => {
-        this.documentHandler.show('update', { username });
+      update: (_id) => {
+        this.documentHandler.show('update', { _id });
       }
     }
   }
 
   confirmHandler = {
-    show: (username) => {
+    show: (_id) => {
       this.setState({
         confirm: {
           visible: true,
-          username,
+          _id,
+        },
+        view: {
+          ...this.state.view,
+          disableOnClickOutside: true
         }
       })
     },
@@ -123,6 +141,10 @@ class Collection extends Component {
         confirm: {
           ...this.state.confirm,
           visible: false
+        },
+        view: {
+          ...this.state.view,
+          disableOnClickOutside: false
         }
       })
     },
@@ -133,18 +155,39 @@ class Collection extends Component {
         if (this.state.confirm.visible === true) {
           this.confirmHandler.hide();
           this.documentHandler.hide();
+          this.viewHandler.hide();
 
-          dispatch(deleteNFConfig(this.state.confirm.username));
+          dispatch(deleteNFConfig(this.state.confirm._id));
         }
       }
     }
   }
 
+  viewHandler = {
+    show: (_id) => {
+      this.setState({
+        view: {
+          _id,
+          visible: true,
+          disableOnClickOutside: false
+        }
+      });
+    },
+    hide: () => {
+      this.setState({
+        view: {
+          ...this.state.view,
+          visible: false
+        }
+      })
+    }
+  }
+
+
   render() {
     const {
-      handleSearchChange,
-      handleSearchClear,
       documentHandler,
+      viewHandler,
       confirmHandler
     } = this;
 
@@ -153,15 +196,9 @@ class Collection extends Component {
     } = this.state;
 
     const { 
-      session,
       nfconfigs,
       status
     } = this.props
-
-    const {
-      username,
-      roles
-    } = session.user;
 
     const {
       isLoading,
@@ -171,17 +208,30 @@ class Collection extends Component {
     return (
       <Layout.Content>
         <NFConfig.List
-          session={session}
           nfconfigs={data}
           deletedId={status.id}
+          onView={viewHandler.show}
           onEdit={documentHandler.actions.update}
           onDelete={confirmHandler.show}
         />
         {isLoading && <Spinner md />}
-        {roles.indexOf('admin') !== -1 && <FloatingButton onClick={documentHandler.actions.create}/>}
+        <Blank
+          visible={!isLoading && !(Object.keys(data).length > 0)}
+          title="ADD A PROFILE"
+          body="You have no nfconfigs... yet!"
+          onTitle={documentHandler.actions.create}
+          />
+        <FloatingButton onClick={documentHandler.actions.create}/>
+        <NFConfig.View
+          visible={this.state.view.visible}
+          nfconfig={data.filter(nfconfig => 
+            nfconfig._id === this.state.view._id)[0]}
+          disableOnClickOutside={this.state.view.disableOnClickOutside}
+          onEdit={documentHandler.actions.update}
+          onDelete={confirmHandler.show}
+          onHide={viewHandler.hide}/>
         <Document 
           { ...document }
-          session={session}
           onEdit={documentHandler.actions.update}
           onDelete={confirmHandler.show}
           onHide={documentHandler.hide} />

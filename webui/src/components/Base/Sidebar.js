@@ -90,10 +90,10 @@ const Sidebar = ({ isOpen, width, selectedView, onSelectView }) => (
       <Icon><ProfileIcon/></Icon>
       <Title>Profile</Title>
     </Item>
-    {/*<Item name="account" selected={selectedView} onSelect={onSelectView}>
+    <Item name="account" selected={selectedView} onSelect={onSelectView}>
       <Icon><AccountIcon/></Icon>
       <Title>Account</Title>
-    </Item>*/}
+    </Item>
     <Item name="nfconfig" selected={selectedView} onSelect={onSelectView}>
       <Icon><AccountIcon/></Icon>
       <Title>NfConfig</Title>

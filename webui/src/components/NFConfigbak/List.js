@@ -18,24 +18,19 @@ const Wrapper = styled.div`
 
 const propTypes = {
   nfconfigs: PropTypes.arrayOf(PropTypes.object),
+  onView: PropTypes.func,
   onEdit: PropTypes.func,
   onDelete: PropTypes.func,
 }
 
-const List = ({ nfconfigs, deletedId, onEdit, onDelete, session }) => {
-  const {
-    username,
-    roles
-  } = session.user;
-
+const List = ({ nfconfigs, deletedId, onView, onEdit, onDelete }) => {
   const nfconfigList = nfconfigs
     .map(nfconfig =>
       <Item 
-        key={nfconfig.username}
-        session={session}
+        key={nfconfig._id}
         nfconfig={nfconfig}
-        disabled={deletedId === nfconfig.username || (roles.indexOf('admin') === -1 && nfconfig.username !== username)}
-        spinner={deletedId === nfconfig.username}
+        disabled={deletedId === nfconfig._id}
+        onView={onView}
         onEdit={onEdit}
         onDelete={onDelete} />
     );

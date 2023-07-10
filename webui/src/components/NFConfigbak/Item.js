@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import styled from 'styled-components';
 import oc from 'open-color';
-import { media  } from 'helpers/style-utils';
+import { media } from 'helpers/style-utils';
 
 import EditIcon from 'react-icons/lib/md/edit';
 import DeleteIcon from 'react-icons/lib/md/delete';
@@ -13,11 +13,11 @@ import { Tooltip, Spinner } from 'components';
 const Card = styled.div`
   position: relative;
   display: flex;
-  padding: 0.5rem;
+  padding : 0.5rem;
 
   cursor: pointer;
 
-  ${p => p.disabled && 'opacity: 0.5; cursor: not-allowed; pointer-events: none;'};
+  ${p => p.disabled && 'opacity: 0.5; cursor: not-allowed; pointer-events: none;'}
 
   .actions {
     position: absolute;
@@ -47,7 +47,7 @@ const CircleButton = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 1px;
+  margin: 1px 4px;
 
   color: ${oc.gray[6]};
 
@@ -72,15 +72,20 @@ const NFConfig = styled.div`
   line-height: 2.5rem;
   margin : 0 2rem;
 
-  .username {
+  .title {
     font-size: 1.25rem;
     color: ${oc.gray[8]};
     width: 320px;
   }
-  .role {
+  .ambr {
     font-size: 1.1rem;
     color: ${oc.gray[6]};
     width: 240px;
+  }
+  .name {
+    font-size: 1.1rem;
+    color: ${oc.gray[6]};
+    width: 120px;
   }
 `;
 
@@ -97,8 +102,9 @@ const SpinnerWrapper = styled.div`
 
 const propTypes = {
   nfconfig: PropTypes.shape({
-    username: PropTypes.string
+    title: PropTypes.string
   }),
+  onView: PropTypes.func,
   onEdit: PropTypes.func,
   onDelete: PropTypes.func
 }
@@ -106,8 +112,9 @@ const propTypes = {
 class Item extends Component {
   static propTypes = {
     nfconfig: PropTypes.shape({
-      username: PropTypes.string
+      title: PropTypes.string
     }),
+    onView: PropTypes.func,
     onEdit: PropTypes.func,
     onDelete: PropTypes.func
   }
@@ -136,10 +143,10 @@ class Item extends Component {
     } = this.props;
 
     const {
-      username
+      _id
     } = nfconfig;
 
-    onDelete(username)
+    onDelete(_id)
   }
 
   render() {
@@ -149,27 +156,58 @@ class Item extends Component {
     } = this;
     
     const {
-      session,
       disabled,
-      spinner,
       nfconfig,
+      onView,
       onEdit,
       onDelete
     } = this.props;
 
+    const {
+      _id,
+      title,
+      slice,
+      ambr
+    } = nfconfig;
+
     return (
-      <Card disabled={disabled} onClick={handleEdit}>
+      <Card disabled={disabled} onClick={() => onView(_id)}>
         <NFConfig>
-          <div className='username'>{nfconfig.username}</div>
-          <div className='role'>{nfconfig.roles[0]}</div>
+          <div className="title">{title}</div>
+          <div className="ambr">
+            {ambr['downlink'] === undefined ? "unlimited" :
+              ambr.downlink['value'] === undefined ? "unlimited" :
+                ambr.downlink.value
+            } {ambr['downlink'] === undefined ? "unlimited" :
+                 ambr.downlink['unit'] === undefined ? "bps" :
+                    ambr.downlink.unit === 0 ? "bps" :
+                    ambr.downlink.unit === 1 ? "Kbps" :
+                    ambr.downlink.unit === 2 ? "Mbps" :
+                    ambr.downlink.unit === 3 ? "Gbps" :
+                    ambr.downlink.unit === 4 ? "Tbps" :
+                      "Unknown Unit"
+            } / {ambr['uplink'] === undefined ? "unlimited" :
+              ambr.uplink['value'] === undefined ? "unlimited" :
+                ambr.uplink.value
+            } {ambr['uplink'] === undefined ? "unlimited" :
+                 ambr.uplink['unit'] === undefined ? "bps" :
+                    ambr.uplink.unit === 0 ? "bps" :
+                    ambr.uplink.unit === 1 ? "Kbps" :
+                    ambr.uplink.unit === 2 ? "Mbps" :
+                    ambr.uplink.unit === 3 ? "Gbps" :
+                    ambr.uplink.unit === 4 ? "Tbps" :
+                      "Unknown Unit" }
+           </div>
         </NFConfig>
-        {session.user.username !== nfconfig.username &&
-          <div className="actions">
-            <Tooltip content='Delete' width="60px">
-              <CircleButton className="delete" onClick={handleDelete}><DeleteIcon/></CircleButton>
-            </Tooltip>
-          </div>}
-        {spinner && <SpinnerWrapper><Spinner sm/></SpinnerWrapper>}
+        <div className="actions">
+          <Tooltip content='Edit' width="60px">
+            <CircleButton onClick={handleEdit}><EditIcon/></CircleButton>
+          </Tooltip>
+          <Tooltip content='Delete' width="60px">
+            <CircleButton className="delete" onClick={handleDelete}><DeleteIcon/></CircleButton>
+          </Tooltip>
+        </div>
+        {disabled && <SpinnerWrapper><Spinner sm/></SpinnerWrapper>}
       </Card>
     )
   }
