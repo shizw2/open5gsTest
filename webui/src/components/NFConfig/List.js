@@ -17,19 +17,19 @@ const Wrapper = styled.div`
 `
 
 const propTypes = {
-  profiles: PropTypes.arrayOf(PropTypes.object),
+  nfconfigs: PropTypes.arrayOf(PropTypes.object),
   onView: PropTypes.func,
   onEdit: PropTypes.func,
   onDelete: PropTypes.func,
 }
 
-const List = ({ profiles, deletedId, onView, onEdit, onDelete }) => {
-  const profileList = profiles
-    .map(profile =>
+const List = ({ nfconfigs, deletedId, onView, onEdit, onDelete }) => {
+  const nfconfigList = nfconfigs
+    .map(nfconfig =>
       <Item 
-        key={profile._id}
-        profile={profile}
-        disabled={deletedId === profile._id}
+        key={nfconfig._id}
+        nfconfig={nfconfig}
+        disabled={deletedId === nfconfig._id}
         onView={onView}
         onEdit={onEdit}
         onDelete={onDelete} />
@@ -37,7 +37,7 @@ const List = ({ profiles, deletedId, onView, onEdit, onDelete }) => {
 
   return (
     <Wrapper>
-      {profileList}
+      {nfconfigList}
     </Wrapper>
   )
 }

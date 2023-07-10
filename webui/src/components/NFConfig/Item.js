@@ -65,7 +65,7 @@ const CircleButton = styled.div`
   }
 `
 
-const Profile = styled.div`
+const NFConfig = styled.div`
   display: flex;
   flex-direction: row;
   flex:1;
@@ -101,7 +101,7 @@ const SpinnerWrapper = styled.div`
 `
 
 const propTypes = {
-  profile: PropTypes.shape({
+  nfconfig: PropTypes.shape({
     title: PropTypes.string
   }),
   onView: PropTypes.func,
@@ -111,7 +111,7 @@ const propTypes = {
 
 class Item extends Component {
   static propTypes = {
-    profile: PropTypes.shape({
+    nfconfig: PropTypes.shape({
       title: PropTypes.string
     }),
     onView: PropTypes.func,
@@ -123,13 +123,13 @@ class Item extends Component {
     e.stopPropagation();
 
     const {
-      profile,
+      nfconfig,
       onEdit,
     } = this.props;
 
     const {
       _id
-    } = profile;
+    } = nfconfig;
 
     onEdit(_id)
   }
@@ -138,13 +138,13 @@ class Item extends Component {
     e.stopPropagation();
 
     const {
-      profile,
+      nfconfig,
       onDelete
     } = this.props;
 
     const {
       _id
-    } = profile;
+    } = nfconfig;
 
     onDelete(_id)
   }
@@ -157,7 +157,7 @@ class Item extends Component {
     
     const {
       disabled,
-      profile,
+      nfconfig,
       onView,
       onEdit,
       onDelete
@@ -168,11 +168,11 @@ class Item extends Component {
       title,
       slice,
       ambr
-    } = profile;
+    } = nfconfig;
 
     return (
       <Card disabled={disabled} onClick={() => onView(_id)}>
-        <Profile>
+        <NFConfig>
           <div className="title">{title}</div>
           <div className="ambr">
             {ambr['downlink'] === undefined ? "unlimited" :
@@ -198,7 +198,7 @@ class Item extends Component {
                     ambr.uplink.unit === 4 ? "Tbps" :
                       "Unknown Unit" }
            </div>
-        </Profile>
+        </NFConfig>
         <div className="actions">
           <Tooltip content='Edit' width="60px">
             <CircleButton onClick={handleEdit}><EditIcon/></CircleButton>

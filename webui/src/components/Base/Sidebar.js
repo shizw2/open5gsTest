@@ -82,21 +82,21 @@ const defaultProps = {
 // Sidebar component using SubMenu and SubMenuItem
 const Sidebar = ({ isOpen, width, selectedView, onSelectView }) => (
   <Menu visible={isOpen} width={width}>
-    <Item name="subscriber" selected={selectedView} onSelect={onSelectView}>
+   {/*<Item name="subscriber" selected={selectedView} onSelect={onSelectView}>
       <Icon><SubscriberIcon/></Icon>
       <Title>Subscriber</Title>
-    </Item>
+    </Item>*/}
     <Item name="profile" selected={selectedView} onSelect={onSelectView}>
       <Icon><ProfileIcon/></Icon>
       <Title>Profile</Title>
     </Item>
-    <Item name="account" selected={selectedView} onSelect={onSelectView}>
+    {/*<Item name="account" selected={selectedView} onSelect={onSelectView}>
       <Icon><AccountIcon/></Icon>
       <Title>Account</Title>
-    </Item>
-    <Item name="config" selected={selectedView} onSelect={onSelectView}>
+    </Item>*/}
+    <Item name="nfconfig" selected={selectedView} onSelect={onSelectView}>
       <Icon><AccountIcon/></Icon>
-      <Title>Config</Title>
+      <Title>NfConfig</Title>
     </Item>
   </Menu>
 );

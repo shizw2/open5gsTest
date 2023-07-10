@@ -28,4 +28,20 @@ passport.use(
 router.use('/auth', auth);
 router.use('/db', passport.authenticate('jwt', { session: false }), db);
 
+const NFConfig = {
+  // Define the route handler for NFConfig
+  detail: (req, res, next) => {
+    try {
+      const configData = yaml.load(fs.readFileSync('/hote/test/nfconfig.yaml', 'utf8'));
+      res.status(200).json(configData);
+    } catch (error) {
+      console.error("Error loading NFConfig:", error);
+      res.status(500).json({ error: "Failed to load NFConfig data" });
+    }
+  }
+};
+
+// Create a custom endpoint for NFConfig
+router.get('/NFConfig', NFConfig.detail);
+
 module.exports = router;

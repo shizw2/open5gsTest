@@ -5,7 +5,7 @@ import withWidth, { SMALL } from 'helpers/with-width';
 import { Form } from 'components';
 
 const schema = {
-  "title": "Profile Configuration",
+  "title": "NFConfig Configuration",
   "type": "object",
   "properties": {
     "title": {
@@ -38,7 +38,7 @@ const schema = {
       "properties": {
         "k": {
           "type": "string",
-          "title": "Profile Key (K)*",
+          "title": "NFConfig Key (K)*",
           "required": true,
           "pattern": "^[0-9a-fA-F\\s]+$",
           "messages": {
@@ -716,7 +716,7 @@ class Edit extends Component {
     return (
       <Form 
         visible={visible}
-        title={(action === 'update') ? 'Edit Profile' : 'Create Profile'}
+        title={(action === 'update') ? 'Edit NFConfig' : 'Create NFConfig'}
         schema={this.state.schema}
         uiSchema={this.state.uiSchema}
         formData={formData}

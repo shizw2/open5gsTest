@@ -89,7 +89,7 @@ const Body = styled.div`
   overflow: scroll;
 `
 
-const Profile = styled.div`
+const NFConfig = styled.div`
   display: flex;
   flex-direction: column;
   margin: 0, auto;
@@ -165,14 +165,14 @@ const Pdn = styled.div`
     }
   }
 `
-const View = ({ visible, disableOnClickOutside, profile, onEdit, onDelete, onHide }) => {
-  const _id = (profile || {})._id;
-  const title = (profile || {}).title;
-  const msisdn_list = ((profile || {}).msisdn || []);
-  const imeisv = (profile || {}).imeisv;
-  const security = ((profile || {}).security || {});
-  const ambr = ((profile || {}).ambr || {});
-  const slice_list = ((profile || {}).slice || []);
+const View = ({ visible, disableOnClickOutside, nfconfig, onEdit, onDelete, onHide }) => {
+  const _id = (nfconfig || {})._id;
+  const title = (nfconfig || {}).title;
+  const msisdn_list = ((nfconfig || {}).msisdn || []);
+  const imeisv = (nfconfig || {}).imeisv;
+  const security = ((nfconfig || {}).security || {});
+  const ambr = ((nfconfig || {}).ambr || {});
+  const slice_list = ((nfconfig || {}).slice || []);
 
   return (
     <div>
@@ -196,9 +196,9 @@ const View = ({ visible, disableOnClickOutside, profile, onEdit, onDelete, onHid
             </div>
           </Header>
           <Body>
-            <Profile>
+            <NFConfig>
               <div className="header">
-                Profile Configuration
+                NFConfig Configuration
               </div>
               <div className="sectionbody">
                 <div className="sectioncolumn">
@@ -297,7 +297,7 @@ const View = ({ visible, disableOnClickOutside, profile, onEdit, onDelete, onHid
                   </div>
                 </div>
               </div>
-            </Profile>
+            </NFConfig>
             <Pdn>
               {slice_list.map((slice, index) =>
                 <div key={index}>

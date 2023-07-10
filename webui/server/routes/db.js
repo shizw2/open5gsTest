@@ -3,6 +3,10 @@ const router = express.Router();
 
 const restify = require('express-restify-mongoose')
 
+const yaml = require('js-yaml');
+const fs = require('fs');
+
+
 const Subscriber = require('../models/subscriber');
 restify.serve(router, Subscriber, {
   prefix: '',
@@ -22,5 +26,8 @@ restify.serve(router, Account, {
   version: '',
   idProperty: 'username'
 });
+
+
+
 
 module.exports = router;
