@@ -160,7 +160,7 @@ const ViewNRF = ({ visible, disableOnClickOutside, nfconfig, onEdit, onDelete, o
         disableOnClickOutside={disableOnClickOutside}>
         <Wrapper>
           <Header>
-            <div className="title">{title}</div>
+            <div className="title">NRF Configuration</div>
             <div className="actions">
               <Tooltip content='Edit' width="60px">
                 <CircleButton onClick={() => onEdit(_id)}><EditIcon/></CircleButton>
@@ -175,32 +175,12 @@ const ViewNRF = ({ visible, disableOnClickOutside, nfconfig, onEdit, onDelete, o
           </Header>
           <Body>
             <NFConfig>
-              <div className="header">
-                NFConfig Configuration
-              </div>
+              {/* <div className="header">
+                NRF Configuration
+              </div>*/}
               <div className="sectionbody">
                 <div className="sectioncolumn">
-                  {(msisdn_list.length !== 0 || (imeisv && imeisv.length !== 0)) &&
-                    <div className="body">
-                      <div className="left">
-                        <PhoneIcon/>
-                      </div>
-                      <div className="right">
-                        {msisdn_list.map((msisdn, index) =>
-                          <div key={index} className="data">
-                            {msisdn}
-                            <span style={{color:oc.gray[5]}}><KeyboardControlIcon/>MSISDN</span>
-                          </div>
-                        )}
-                        {imeisv && imeisv.length !== 0 &&
-                          <div className="data">
-                            {imeisv}
-                            <span style={{color:oc.gray[5]}}><KeyboardControlIcon/>IMEISV</span>
-                          </div>
-                        }
-                      </div>
-                    </div>
-                  }
+            
                   {/* 添加logger属性的渲染 */}
                   {nfconfig && nfconfig.logger && (
                     <div className="logger-section">

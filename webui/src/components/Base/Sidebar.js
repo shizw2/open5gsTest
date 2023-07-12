@@ -7,6 +7,7 @@ import oc from 'open-color';
 import SubscriberIcon from 'react-icons/lib/md/person-add';
 import ProfileIcon from 'react-icons/lib/md/content-copy';
 import AccountIcon from 'react-icons/lib/md/vpn-key';
+import ConfigIcon from 'react-icons/lib/md/settings';
 
 const Menu = styled.div`
   display: block;
@@ -95,7 +96,7 @@ const Sidebar = ({ isOpen, width, selectedView, onSelectView }) => (
       <Title>Account</Title>
     </Item>
     <Item name="nfconfig" selected={selectedView} onSelect={onSelectView}>
-      <Icon><AccountIcon/></Icon>
+      <Icon><ConfigIcon/></Icon>
       <Title>NfConfig</Title>
     </Item>
   </Menu>
