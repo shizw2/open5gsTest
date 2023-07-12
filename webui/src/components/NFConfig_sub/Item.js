@@ -29,17 +29,20 @@ const Sizer = styled.div`
 const Card = styled.div`
   position: relative;
   display: flex;
-  padding : 0.5rem;
 
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+
+  transition: all 0.3s cubic-bezier(.25,.8,.25,1);
   cursor: pointer;
 
-  ${p => p.disabled && 'opacity: 0.5; cursor: not-allowed; pointer-events: none;'}
+  ${p => p.disabled && 'pointer-events: none;'}
 
   .actions {
     position: absolute;
     top: 0;
     right: 0;
-    width: 8rem;
+    width: 6rem;
     height: 100%;
     display: flex;
     align-items: center;
@@ -49,7 +52,7 @@ const Card = styled.div`
   }
 
   &:hover {
-    background: ${oc.gray[1]};
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
 
     .actions {
       ${p => p.disabled ? 'opacity: 0;' : 'opacity: 1;'};
@@ -63,8 +66,9 @@ const CircleButton = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 1px 4px;
+  margin: 1px;
 
+  background: white;
   color: ${oc.gray[6]};
 
   border-radius: 1rem;
@@ -81,28 +85,11 @@ const CircleButton = styled.div`
   }
 `
 
-const NFConfig = styled.div`
-  display: flex;
-  flex-direction: row;
-  flex:1;
-  line-height: 2.5rem;
-  margin : 0 2rem;
-
-  .title {
-    font-size: 1.25rem;
-    color: ${oc.gray[8]};
-    width: 320px;
-  }
-  .ambr {
-    font-size: 1.1rem;
-    color: ${oc.gray[6]};
-    width: 240px;
-  }
-  .name {
-    font-size: 1.1rem;
-    color: ${oc.gray[6]};
-    width: 120px;
-  }
+const Imsi = styled.div`
+  padding-left: 1rem;
+  color: ${oc.gray[8]};
+  font-size: 1.25rem;
+  line-height : 3rem;
 `;
 
 const SpinnerWrapper = styled.div`
@@ -118,7 +105,7 @@ const SpinnerWrapper = styled.div`
 
 const propTypes = {
   nfconfig: PropTypes.shape({
-    title: PropTypes.string
+    imsi: PropTypes.string
   }),
   onView: PropTypes.func,
   onEdit: PropTypes.func,
@@ -128,7 +115,7 @@ const propTypes = {
 class Item extends Component {
   static propTypes = {
     nfconfig: PropTypes.shape({
-      title: PropTypes.string
+      imsi: PropTypes.string
     }),
     onView: PropTypes.func,
     onEdit: PropTypes.func,
@@ -144,10 +131,10 @@ class Item extends Component {
     } = this.props;
 
     const {
-      _id
+      imsi
     } = nfconfig;
 
-    onEdit(_id)
+    onEdit(imsi)
   }
 
   handleDelete = e => {
@@ -159,10 +146,10 @@ class Item extends Component {
     } = this.props;
 
     const {
-      _id
+      imsi
     } = nfconfig;
 
-    onDelete(_id)
+    onDelete(imsi)
   }
 
   render() {
@@ -180,28 +167,23 @@ class Item extends Component {
     } = this.props;
 
     const {
-      _id,
-      title,
-      slice,
-      ambr
+      imsi
     } = nfconfig;
 
     return (
       <Sizer disabled={disabled}>
-          <Card disabled={disabled} onClick={() => onView(_id)}>
-            <NFConfig>
-              <div className="title">{_id}</div>          
-            </NFConfig>
-            <div className="actions">
-              <Tooltip content='Edit' width="60px">
-                <CircleButton onClick={handleEdit}><EditIcon/></CircleButton>
-              </Tooltip>
-              <Tooltip content='Delete' width="60px">
-                <CircleButton className="delete" onClick={handleDelete}><DeleteIcon/></CircleButton>
-              </Tooltip>
-            </div>
-            {disabled && <SpinnerWrapper><Spinner sm/></SpinnerWrapper>}
-          </Card>
+        <Card disabled={disabled} onClick={() => onView(imsi)}>
+          <Imsi>{imsi}</Imsi>
+          <div className="actions">
+            <Tooltip content='Edit' width="60px">
+              <CircleButton onClick={handleEdit}><EditIcon/></CircleButton>
+            </Tooltip>
+            <Tooltip content='Delete' width="60px">
+              <CircleButton className="delete" onClick={handleDelete}><DeleteIcon/></CircleButton>
+            </Tooltip>
+          </div>
+          {disabled && <SpinnerWrapper><Spinner sm/></SpinnerWrapper>}
+        </Card>
       </Sizer>
     )
   }

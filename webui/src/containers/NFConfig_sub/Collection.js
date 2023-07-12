@@ -21,6 +21,7 @@ import Document from './Document';
 
 class Collection extends Component {
   state = {
+    search: '',
     document: {
       action: '',
       visible: false,
@@ -28,12 +29,12 @@ class Collection extends Component {
     },
     confirm: {
       visible: false,
-      _id: ''
+      imsi: ''
     },
     view: {
       visible: false,
       disableOnClickOutside: false,
-      _id: ''
+      imsi: ''
     }
   };
 
@@ -56,8 +57,7 @@ class Collection extends Component {
     if (status.response) {
       dispatch(Notification.success({
         title: 'NFConfig',
-//        message: `${status.id} has been deleted`
-        message: `This nfconfig has been deleted`
+        message: `${status.id} has been deleted`
       }));
       dispatch(clearActionStatus(MODEL, 'delete'));
     } 
@@ -83,6 +83,18 @@ class Collection extends Component {
       }));
       dispatch(clearActionStatus(MODEL, 'delete'));
     }
+  }
+
+  handleSearchChange = (e) => {
+    this.setState({
+      search: e.target.value
+    });
+  }
+
+  handleSearchClear = (e) => {
+    this.setState({
+      search: ''
+    });
   }
 
   documentHandler = {
@@ -117,18 +129,18 @@ class Collection extends Component {
       create: () => {
         this.documentHandler.show('create');
       },
-      update: (_id) => {
-        this.documentHandler.show('update', { _id });
+      update: (imsi) => {
+        this.documentHandler.show('update', { imsi });
       }
     }
   }
 
   confirmHandler = {
-    show: (_id) => {
+    show: (imsi) => {
       this.setState({
         confirm: {
           visible: true,
-          _id,
+          imsi,
         },
         view: {
           ...this.state.view,
@@ -157,17 +169,17 @@ class Collection extends Component {
           this.documentHandler.hide();
           this.viewHandler.hide();
 
-          dispatch(deleteNFConfig(this.state.confirm._id));
+          dispatch(deleteNFConfig(this.state.confirm.imsi));
         }
       }
     }
   }
 
   viewHandler = {
-    show: (_id) => {
+    show: (imsi) => {
       this.setState({
         view: {
-          _id,
+          imsi,
           visible: true,
           disableOnClickOutside: false
         }
@@ -186,12 +198,15 @@ class Collection extends Component {
 
   render() {
     const {
+      handleSearchChange,
+      handleSearchClear,
       documentHandler,
       viewHandler,
       confirmHandler
     } = this;
 
     const { 
+      search,
       document
     } = this.state;
 
@@ -207,17 +222,22 @@ class Collection extends Component {
 
     return (
       <Layout.Content>
+        {Object.keys(data).length > 0 && <NFConfig.Search 
+          onChange={handleSearchChange}
+          value={search}
+          onClear={handleSearchClear} />}
         <NFConfig.List
           nfconfigs={data}
-          deletedId={status.id}
+          deletedImsi={status.id}
           onView={viewHandler.show}
           onEdit={documentHandler.actions.update}
           onDelete={confirmHandler.show}
+          search={search}
         />
         {isLoading && <Spinner md />}
         <Blank
           visible={!isLoading && !(Object.keys(data).length > 0)}
-          title="ADD A NFCONFIG"
+          title="ADD A SUBSCRIBER"
           body="You have no nfconfigs... yet!"
           onTitle={documentHandler.actions.create}
           />
@@ -225,7 +245,7 @@ class Collection extends Component {
         <NFConfig.View
           visible={this.state.view.visible}
           nfconfig={data.filter(nfconfig => 
-            nfconfig._id === this.state.view._id)[0]}
+            nfconfig.imsi === this.state.view.imsi)[0]}
           disableOnClickOutside={this.state.view.disableOnClickOutside}
           onEdit={documentHandler.actions.update}
           onDelete={confirmHandler.show}

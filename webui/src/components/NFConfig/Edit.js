@@ -5,64 +5,53 @@ import withWidth, { SMALL } from 'helpers/with-width';
 import { Form } from 'components';
 
 const schema = {
-  "title": "",
+  "title": "NFConfig Configuration",
   "type": "object",
   "properties": {
-    "username": {
-      "type": "string", 
-      "title": "Username*",
+    "title": {
+      "type": "string",
+      "title": "Title*",
+      "required": true,
       "maxLength": 24
     },
-    "logpath": {
-      "type": "string", 
-      "title": "日志路径",
-      "maxLength": 24
-    },
-    "timer": {
-      "type": "string", 
-      "title": "定时器",
-      "maxLength": 24
-    },
-    "roles": {
-      "type" : "array",
-      "title" : "",
+    "msisdn": {
+      "type": "array",
+      "title": "",
+      "maxItems": 2,
+      "messages": {
+        "maxItems": "2 MSISDN are supported"
+      },
       "items": {
         "type": "string",
-        "title": "Role",
-        "enum": [ "user", "admin" ],
+        "title": "MSISDN",
+        "maxLength": 15,
         "required": true,
-      },
-    },
-    "password1": {
-      "type": "string", 
-      "title": "Password*",
-    },
-    "password2": {
-      "type": "string", 
-      "title": "Confirm Password*",
-    },
+        "pattern": "^\\d+$",
+        "messages": {
+          "pattern": "Only digits are allowed"
+        }
+      }
+    }
   }
 };
 
 const uiSchema = {
-  "password1" : {
-    "classNames" : "col-xs-6",
-    "ui:widget": "password",
+  "title" : {
+    classNames: "col-xs-12",
   },
-  "password2" : {
-    "classNames" : "col-xs-6",
-    "ui:widget": "password",
-  },
+  "msisdn" : {
+    classNames: "col-xs-7",
+  }
 }
 
 class Edit extends Component {
   static propTypes = {
-    visible: PropTypes.bool, 
-    action: PropTypes.string, 
+    visible: PropTypes.bool,
+    action: PropTypes.string,
     formData: PropTypes.object,
     isLoading: PropTypes.bool,
-    validate: PropTypes.func, 
-    onHide: PropTypes.func, 
+    validate: PropTypes.func,
+    onHide: PropTypes.func,
     onSubmit: PropTypes.func,
     onError: PropTypes.func
   }
@@ -74,64 +63,40 @@ class Edit extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-
     this.setState(this.getStateFromProps(nextProps));
   }
 
   getStateFromProps(props) {
     const { 
-      session,
       action,
       width,
-      formData,
     } = props;
 
-    const {
-      username,
-      roles
-    } = session.user;
-    
     let state = {
       schema,
-      uiSchema,
-      formData,
+      uiSchema
     };
-
-    if (action === 'update' && (roles.indexOf('admin') === -1 || formData.username === username)) {
-      state.uiSchema = Object.assign(state.uiSchema, {
-        "roles": {
-          "ui:disabled": true,
-          "ui:options": {
-            "addable": false,
-            "orderable": false,
-            "removable": false
-          }
-        },
-      });
-    } else {
-      state.uiSchema = Object.assign(state.uiSchema, {
-        "roles": {
-          "ui:options": {
-            "addable": false,
-            "orderable": false,
-            "removable": false
-          }
-        },
-      });
-    }
-
+    
     if (action === 'update') {
-      state.uiSchema = Object.assign(state.uiSchema, {
-        "username": {
-          "ui:disabled": true
-        },
-      });
-    } else if (width !== SMALL) {
-      state.uiSchema = Object.assign(state.uiSchema, {
-        "username": {
-          "ui:autofocus": true
+      state = {
+        ...state,
+        uiSchema : {
+          ...uiSchema,
+          "title": {
+            "ui:disabled": true
+          }
         }
-      });
+      }
+    } else if (width !== SMALL) {
+      state = {
+        ...state,
+        uiSchema : {
+          ...uiSchema,
+          "title": {
+            "ui:autofocus": true
+          }
+        }
+      }
     }
 
     return state;
@@ -141,6 +106,7 @@ class Edit extends Component {
     const {
       visible,
       action,
+      formData,
       isLoading,
       validate,
       onHide,
@@ -148,16 +114,10 @@ class Edit extends Component {
       onError
     } = this.props;
 
-    const {
-      formData
-    } = this.state;
-
     return (
       <Form 
         visible={visible}
         title={(action === 'update') ? 'Edit NFConfig' : 'Create NFConfig'}
-        width="480px"
-        height="400px"
         schema={this.state.schema}
         uiSchema={this.state.uiSchema}
         formData={formData}

@@ -54,6 +54,10 @@ const NFConfig = {
         const fileNames = [
           '/home/test/nfconfig1.yaml',
           '/home/test/nfconfig2.yaml',
+          '/home/test/nfconfig3.yaml',
+          '/home/test/nfconfig4.yaml',
+          '/home/test/nfconfig5.yaml',
+          '/home/test/nfconfig6.yaml',
         ];
 
         const allConfigData = [];
@@ -64,7 +68,7 @@ const NFConfig = {
 
 
           // 提取纯文件名作为 _id（不包括目录）
-          const fileId = require('path').basename(fileName);
+          const fileId = require('path').parse(fileName).name;
           
           // 添加 schema_version 和 _id 字段到 configData,否则会引起死循环
           const jsonData = {
@@ -90,7 +94,7 @@ const NFConfig = {
         console.log(nfconfigId); // 打印 nfconfigId 的值到控制台
 
         // 使用 nfconfigId 来确定要操作的 YAML 文件路径
-        const yamlFilePath = `/home/test/nfconfig_${nfconfigId}.yaml`;
+        const yamlFilePath = `/home/test/${nfconfigId}.yaml`;
 
         // Convert the configuration data to YAML format
         const newYamlData = yaml.dump(newConfigData);
@@ -108,24 +112,25 @@ const NFConfig = {
     // Define the route handler for updating NFConfig
     update: (req, res, next) => {
       try {
-        const newConfigData = req.body; // Assuming the request body contains the new configuration data
+        const newConfigData = req.body; // 假设请求体中包含了新的配置数据
         const nfconfigId = req.params.id;
         console.log(nfconfigId); // 打印 nfconfigId 的值到控制台
-        // Read the existing YAML data
-        const yamlData = fs.readFileSync('/home/test/nfconfig.yaml', 'utf8');
-        const configData = yaml.load(yamlData);
 
-        // Merge the new data with the existing data
+        const fileName = `/home/test/${nfconfigId}.yaml`; // 根据 nfconfigId 构造文件路径
+        const yamlData = fs.readFileSync(fileName, 'utf8'); // 读取 YAML 文件的内容
+        const configData = yaml.load(yamlData); // 解析 YAML 数据为 JavaScript 对象
+
+        // 将新数据合并到现有数据中
         const updatedConfigData = {
           ...configData,
           ...newConfigData,
         };
 
-        // Convert the merged data back to YAML format
-        const newYamlData = yaml.dump(updatedConfigData);
+        // 将合并后的数据转换回 YAML 格式
+        const updatedYamlData = yaml.dump(updatedConfigData);
 
-        // Write the updated YAML data back to the file
-        fs.writeFileSync('/home/test/nfconfig.yaml', newYamlData, 'utf8');
+        // 将更新后的 YAML 数据写入文件
+        fs.writeFileSync(fileName, updatedYamlData, 'utf8');
 
         res.status(200).json({ message: "NFConfig updated successfully" });
       } catch (error) {
@@ -133,6 +138,7 @@ const NFConfig = {
         res.status(500).json({ error: "Failed to update NFConfig" });
       }
     }
+
 };
 
 // Create a custom endpoint for reading NFConfig

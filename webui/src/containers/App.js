@@ -53,7 +53,7 @@ class App extends Component {
           <Account.Collection session={session}/>
         </Layout.Container>
         <Layout.Container visible={view === "nfconfig"}>
-          <NFConfig.Collection session={session}/>
+          <NFConfig.Collection/>
         </Layout.Container>
         <Notification/>
       </Layout>

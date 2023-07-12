@@ -54,7 +54,11 @@ const formData = {
           }
         },
     }]
-  }]
+  }],
+  "logger": {
+    "file": "log.txt",
+    "level": "debug"
+  }
 }
 
 class Document extends Component {

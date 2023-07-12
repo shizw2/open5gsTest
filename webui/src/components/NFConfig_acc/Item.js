@@ -3,37 +3,21 @@ import PropTypes from 'prop-types';
 
 import styled from 'styled-components';
 import oc from 'open-color';
-import { media } from 'helpers/style-utils';
+import { media  } from 'helpers/style-utils';
 
 import EditIcon from 'react-icons/lib/md/edit';
 import DeleteIcon from 'react-icons/lib/md/delete';
 
 import { Tooltip, Spinner } from 'components';
 
-const Sizer = styled.div`
-  display: inline-block;
-  width: 33.3%;
-  padding: 0.5rem;
-
-  ${p => p.disabled && 'opacity: 0.5; cursor: not-allowed;'};
-
-  ${media.desktop`
-    width: 50%;
-  `}
-
-  ${media.tablet`
-    width: 100%;
-  `}
-`;
-
 const Card = styled.div`
   position: relative;
   display: flex;
-  padding : 0.5rem;
+  padding: 0.5rem;
 
   cursor: pointer;
 
-  ${p => p.disabled && 'opacity: 0.5; cursor: not-allowed; pointer-events: none;'}
+  ${p => p.disabled && 'opacity: 0.5; cursor: not-allowed; pointer-events: none;'};
 
   .actions {
     position: absolute;
@@ -63,7 +47,7 @@ const CircleButton = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 1px 4px;
+  margin: 1px;
 
   color: ${oc.gray[6]};
 
@@ -88,20 +72,15 @@ const NFConfig = styled.div`
   line-height: 2.5rem;
   margin : 0 2rem;
 
-  .title {
+  .username {
     font-size: 1.25rem;
     color: ${oc.gray[8]};
     width: 320px;
   }
-  .ambr {
+  .role {
     font-size: 1.1rem;
     color: ${oc.gray[6]};
     width: 240px;
-  }
-  .name {
-    font-size: 1.1rem;
-    color: ${oc.gray[6]};
-    width: 120px;
   }
 `;
 
@@ -118,9 +97,8 @@ const SpinnerWrapper = styled.div`
 
 const propTypes = {
   nfconfig: PropTypes.shape({
-    title: PropTypes.string
+    username: PropTypes.string
   }),
-  onView: PropTypes.func,
   onEdit: PropTypes.func,
   onDelete: PropTypes.func
 }
@@ -128,9 +106,8 @@ const propTypes = {
 class Item extends Component {
   static propTypes = {
     nfconfig: PropTypes.shape({
-      title: PropTypes.string
+      username: PropTypes.string
     }),
-    onView: PropTypes.func,
     onEdit: PropTypes.func,
     onDelete: PropTypes.func
   }
@@ -159,10 +136,10 @@ class Item extends Component {
     } = this.props;
 
     const {
-      _id
+      username
     } = nfconfig;
 
-    onDelete(_id)
+    onDelete(username)
   }
 
   render() {
@@ -172,37 +149,28 @@ class Item extends Component {
     } = this;
     
     const {
+      session,
       disabled,
+      spinner,
       nfconfig,
-      onView,
       onEdit,
       onDelete
     } = this.props;
 
-    const {
-      _id,
-      title,
-      slice,
-      ambr
-    } = nfconfig;
-
     return (
-      <Sizer disabled={disabled}>
-          <Card disabled={disabled} onClick={() => onView(_id)}>
-            <NFConfig>
-              <div className="title">{_id}</div>          
-            </NFConfig>
-            <div className="actions">
-              <Tooltip content='Edit' width="60px">
-                <CircleButton onClick={handleEdit}><EditIcon/></CircleButton>
-              </Tooltip>
-              <Tooltip content='Delete' width="60px">
-                <CircleButton className="delete" onClick={handleDelete}><DeleteIcon/></CircleButton>
-              </Tooltip>
-            </div>
-            {disabled && <SpinnerWrapper><Spinner sm/></SpinnerWrapper>}
-          </Card>
-      </Sizer>
+      <Card disabled={disabled} onClick={handleEdit}>
+        <NFConfig>
+          <div className='username'>{nfconfig.username}</div>
+          <div className='role'>{nfconfig.roles[0]}</div>
+        </NFConfig>
+        {session.user.username !== nfconfig.username &&
+          <div className="actions">
+            <Tooltip content='Delete' width="60px">
+              <CircleButton className="delete" onClick={handleDelete}><DeleteIcon/></CircleButton>
+            </Tooltip>
+          </div>}
+        {spinner && <SpinnerWrapper><Spinner sm/></SpinnerWrapper>}
+      </Card>
     )
   }
 }

@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import NProgress from 'nprogress';
 
 import { MODEL, fetchNFConfigs, fetchNFConfig, createNFConfig, updateNFConfig } from 'modules/crud/nfconfig';
+import { fetchProfiles } from 'modules/crud/profile';
 import { clearActionStatus } from 'modules/crud/actions';
 import { select, selectActionStatus } from 'modules/crud/selectors';
 import * as Notification from 'modules/notification/actions';
@@ -69,19 +70,25 @@ class Document extends Component {
   }
 
   componentWillMount() {
-    const { nfconfig, dispatch } = this.props
+    const { nfconfig, profiles, dispatch } = this.props
 
     if (nfconfig.needsFetch) {
       dispatch(nfconfig.fetch)
     }
+    if (profiles.needsFetch) {
+      dispatch(profiles.fetch)
+    }
   }
 
   componentWillReceiveProps(nextProps) {
-    const { nfconfig, status } = nextProps
+    const { nfconfig, profiles, status } = nextProps
     const { dispatch, action, onHide } = this.props
 
     if (nfconfig.needsFetch) {
       dispatch(nfconfig.fetch)
+    }
+    if (profiles.needsFetch) {
+      dispatch(profiles.fetch)
     }
 
     if (nfconfig.data) {
@@ -110,6 +117,7 @@ class Document extends Component {
           nfconfig.data.security.op_value = nfconfig.data.security.op;
         }
       }
+
       this.setState({ formData: nfconfig.data })
     } else {
       this.setState({ formData });
@@ -122,8 +130,7 @@ class Document extends Component {
       });
       NProgress.done(true);
 
-//      const message = action === 'create' ? "New nfconfig created" : `${status.id} nfconfig updated`;
-      const message = action === 'create' ? "New nfconfig created" : `This nfconfig updated`;
+      const message = action === 'create' ? "New nfconfig created" : `${status.id} nfconfig updated`;
 
       dispatch(Notification.success({
         title: 'NFConfig',
@@ -168,13 +175,19 @@ class Document extends Component {
 
   validate = (formData, errors) => {
     const { nfconfigs, action, status } = this.props;
+    const { imsi } = formData;
+
+    if (action === 'create' && nfconfigs && nfconfigs.data &&
+      nfconfigs.data.filter(nfconfig => nfconfig.imsi === imsi).length > 0) {
+      errors.imsi.addError(`'${imsi}' is duplicated`);
+    }
 
 //    In Editing-mode, this is not working!
 //    More study is needed.
 //
 //    if (formData.msisdn) {
 //      formData.msisdn.map(msisdn => {
-//        if (subscribers.data.filter(subscriber => subscriber.msisdn.includes(msisdn)).length > 0) {
+//        if (nfconfigs.data.filter(nfconfig => nfconfig.msisdn.includes(msisdn)).length > 0) {
 //          errors.msisdn.addError(`'${msisdn}' is duplicated`);
 //        }
 //      });
@@ -233,7 +246,6 @@ class Document extends Component {
 
   handleSubmit = (formData) => {
     const { dispatch, action } = this.props;
-
     if (formData.security) {
       if (formData.security.op_type === 1) {
         formData.security.op = formData.security.op_value;
@@ -253,7 +265,7 @@ class Document extends Component {
     if (action === 'create') {
       dispatch(createNFConfig({}, formData));
     } else if (action === 'update') {
-      dispatch(updateNFConfig(formData._id, {}, formData));
+      dispatch(updateNFConfig(formData.imsi, {}, formData));
     } else {
       throw new Error(`Action type '${action}' is invalid.`);
     }
@@ -281,6 +293,7 @@ class Document extends Component {
       action,
       status,
       nfconfig,
+      profiles,
       onHide
     } = this.props
 
@@ -289,6 +302,7 @@ class Document extends Component {
         visible={visible} 
         action={action}
         formData={this.state.formData}
+        profiles={profiles.data}
         isLoading={nfconfig.isLoading && !status.pending}
         validate={validate}
         onHide={onHide}
@@ -301,7 +315,8 @@ class Document extends Component {
 Document = connect(
   (state, props) => ({ 
     nfconfigs: select(fetchNFConfigs(), state.crud),
-    nfconfig: select(fetchNFConfig(props._id), state.crud),
+    nfconfig: select(fetchNFConfig(props.imsi), state.crud),
+    profiles: select(fetchProfiles(), state.crud),
     status: selectActionStatus(MODEL, state.crud, props.action)
   })
 )(Document);

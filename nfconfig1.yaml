@@ -1,6 +1,55 @@
+title: '1'
 logger:
-    file: /home/test/install/var/log/open5gs/amf.log
-roles:
-  - admin
-username: admin
-__v: 0
+  file: /home/test/install/var/log/open5gs/nrf.log
+  level: error
+sbi:
+  server:
+    no_tls: false
+    no_verify: true
+    cacert: /home/test/install/etc/open5gs/tls/ca.crt
+    key: /home/test/install/etc/open5gs/tls/nrf.key
+    cert: /home/test/install/etc/open5gs/tls/nrf.crt
+  client:
+    no_tls: false
+    no_verify: true
+    cacert: /home/test/install/etc/open5gs/tls/ca.crt
+    key: /home/test/install/etc/open5gs/tls/nrf.key
+    cert: /home/test/install/etc/open5gs/tls/nrf.crt
+security:
+  k: 465B5CE8 B199B49F AA5F0A2E E238A6BC
+  amf: '8000'
+  op_type: 0
+  op_value: E8ED289D EBA952E4 283B54E8 8E6183CA
+  op: null
+  opc: E8ED289D EBA952E4 283B54E8 8E6183CA
+ambr:
+  downlink:
+    value: 2
+    unit: 3
+  uplink:
+    value: 1
+    unit: 3
+slice:
+  - sst: 1
+    default_indicator: true
+    session:
+      - name: internet
+        type: 3
+        ambr:
+          downlink:
+            value: 12345
+            unit: 3
+          uplink:
+            value: 1
+            unit: 3
+        qos:
+          index: 9
+          arp:
+            priority_level: 8
+            pre_emption_capability: 1
+            pre_emption_vulnerability: 1
+schema_version: '1.0'
+_id: nfconfig1
+msisdn:
+  - '123'
+  - '456'
