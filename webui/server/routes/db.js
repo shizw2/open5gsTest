@@ -5,7 +5,14 @@ const restify = require('express-restify-mongoose')
 
 const yaml = require('js-yaml');
 const fs = require('fs');
+const path = require('path');
+// 指定目录路径
+//const directoryPath = '/home/test/config'; // yaml配置文件的目录，修改为实际的目录路径
+const configFileData = fs.readFileSync('config.json', 'utf8');
+const config = JSON.parse(configFileData);
 
+// 获取配置文件的目录路径
+const directoryPath = config.directoryPath;
 
 const Subscriber = require('../models/subscriber');
 restify.serve(router, Subscriber, {
@@ -50,41 +57,41 @@ const NFConfig = {
     },
     
     detailAll: async (req, res, next) => {
-      try {
-        const fileNames = [
-          '/home/test/nfconfig1.yaml',
-          '/home/test/nfconfig2.yaml',
-          '/home/test/nfconfig3.yaml',
-          '/home/test/nfconfig4.yaml',
-          '/home/test/nfconfig5.yaml',
-          '/home/test/nfconfig6.yaml',
-        ];
-
         const allConfigData = [];
 
-        for (const fileName of fileNames) {
-          const yamlData = fs.readFileSync(fileName, 'utf8');
-          const configData = yaml.load(yamlData);
+        try {
+          // 读取目录中的所有文件
+          const fileNames = fs.readdirSync(directoryPath);
 
+          // 筛选出 YAML 文件
+          const yamlFileNames = fileNames.filter((fileName) =>
+            path.extname(fileName).toLowerCase() === '.yaml'
+          );
 
-          // 提取纯文件名作为 _id（不包括目录）
-          const fileId = require('path').parse(fileName).name;
-          
-          // 添加 schema_version 和 _id 字段到 configData,否则会引起死循环
-          const jsonData = {
-            schema_version: '1.0',
-            _id: fileId, // 使用文件名作为 _id
-            ...configData
-          };
+          for (const fileName of yamlFileNames) {
+            const filePath = path.join(directoryPath, fileName);
 
-          allConfigData.push(jsonData);
+            const yamlData = fs.readFileSync(filePath, 'utf8');
+            const configData = yaml.load(yamlData);
+
+            // 提取纯文件名作为 _id（不包括目录和扩展名）
+            const fileId = path.parse(fileName).name;
+
+            // 添加 schema_version 和 _id 字段到 configData，避免死循环
+            const jsonData = {
+              schema_version: '1.0',
+              _id: fileId, // 使用文件名作为 _id
+              ...configData,
+            };
+
+            allConfigData.push(jsonData);
+          }
+
+          res.status(200).json(allConfigData);
+        } catch (error) {
+          console.error('Error loading NFConfig:', error);
+          res.status(500).json({ error: 'Failed to load NFConfig data' });
         }
-
-        res.status(200).json(allConfigData);
-      } catch (error) {
-        console.error("Error loading NFConfig:", error);
-        res.status(500).json({ error: "Failed to load NFConfig data" });
-      }
     },    
     
     create: (req, res, next) => {
@@ -94,7 +101,8 @@ const NFConfig = {
         console.log(nfconfigId); // 打印 nfconfigId 的值到控制台
 
         // 使用 nfconfigId 来确定要操作的 YAML 文件路径
-        const yamlFilePath = `/home/test/${nfconfigId}.yaml`;
+        
+        const yamlFilePath = path.join(directoryPath, `${nfconfigId}.yaml`);
 
         // Convert the configuration data to YAML format
         const newYamlData = yaml.dump(newConfigData);
@@ -116,7 +124,7 @@ const NFConfig = {
         const nfconfigId = req.params.id;
         console.log(nfconfigId); // 打印 nfconfigId 的值到控制台
 
-        const fileName = `/home/test/${nfconfigId}.yaml`; // 根据 nfconfigId 构造文件路径
+        const fileName = path.join(directoryPath, `${nfconfigId}.yaml`);// 根据 nfconfigId 构造文件路径
         const yamlData = fs.readFileSync(fileName, 'utf8'); // 读取 YAML 文件的内容
         const configData = yaml.load(yamlData); // 解析 YAML 数据为 JavaScript 对象
 
