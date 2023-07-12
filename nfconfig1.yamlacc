@@ -1,6 +1,0 @@
-logger:
-    file: /home/test/install/var/log/open5gs/amf.log
-roles:
-  - admin
-username: admin
-__v: 0

@@ -91,7 +91,7 @@ const uiSchema = {
   }
 }
 
-class Edit extends Component {
+class EditBSF extends Component {
   static propTypes = {
     visible: PropTypes.bool,
     action: PropTypes.string,
@@ -177,4 +177,4 @@ class Edit extends Component {
   }
 }
 
-export default withWidth()(Edit);
+export default withWidth()(EditBSF);

@@ -32,3 +32,10 @@ slice:
             priority_level: 8
             pre_emption_capability: 1
             pre_emption_vulnerability: 1
+logger:
+  file: '123'
+  level: info
+nrf:
+  sbi: {}
+schema_version: '1.0'
+_id: nfconfig2

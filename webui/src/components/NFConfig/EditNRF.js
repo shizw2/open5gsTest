@@ -5,33 +5,15 @@ import withWidth, { SMALL } from 'helpers/with-width';
 import { Form } from 'components';
 
 const schema = {
-  "title": "NFConfig Configuration",
+  "title": "NRF Configuration",
   "type": "object",
   "properties": {
-    "title": {
+    /*"title": {
       "type": "string",
       "title": "Title*",
       "required": true,
       "maxLength": 24
-    },
-    "msisdn": {
-      "type": "array",
-      "title": "",
-      "maxItems": 2,
-      "messages": {
-        "maxItems": "2 MSISDN are supported"
-      },
-      "items": {
-        "type": "string",
-        "title": "MSISDN",
-        "maxLength": 15,
-        "required": true,
-        "pattern": "^\\d+$",
-        "messages": {
-          "pattern": "Only digits are allowed"
-        }
-      }
-    },
+    },  */  
     "logger": {
       "type": "object",
       "properties": {
@@ -76,9 +58,9 @@ const schema = {
 };
 
 const uiSchema = {
-  "title" : {
+  /*"title" : {
     classNames: "col-xs-12",
-  },
+  },*/
   "msisdn" : {
     classNames: "col-xs-7",
   },

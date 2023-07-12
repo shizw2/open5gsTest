@@ -22,8 +22,8 @@ import { Modal, Tooltip, Dimmed } from 'components';
 const View = ({ visible, disableOnClickOutside, nfconfig, onEdit, onDelete, onHide }) => {
   const _id = (nfconfig || {})._id;
   const title = (nfconfig || {}).title;
-  console.log(title)
-  
+  console.log('title '+title)
+  console.log('_id '+_id)
   // 根据title选择要渲染的View组件
   const renderViewComponent = () => {
     if (_id === 'nfconfig1') {

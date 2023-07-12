@@ -140,7 +140,7 @@ const NFConfig = {
         // 将更新后的 YAML 数据写入文件
         fs.writeFileSync(fileName, updatedYamlData, 'utf8');
 
-        res.status(200).json({ message: "NFConfig updated successfully" });
+       res.status(200).json(updatedConfigData);
       } catch (error) {
         console.error("Error updating NFConfig:", error);
         res.status(500).json({ error: "Failed to update NFConfig" });
