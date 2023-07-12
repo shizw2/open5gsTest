@@ -130,6 +130,18 @@ const NFConfig = styled.div`
       }
     }
   }
+  .four-spaces {
+    padding-left: 4px;
+  }
+  
+  .eight-spaces {
+    padding-left: 8px;
+  }
+  
+  .twelve-spaces {
+    padding-left: 12px;
+  }
+  
 `
 
 
@@ -194,15 +206,50 @@ const View = ({ visible, disableOnClickOutside, nfconfig, onEdit, onDelete, onHi
                     <div className="logger-section">
                       <div className="logger-header">logger:</div>
                       <div className="logger-body">
-                        <div className="logger-data">
-                          &nbsp;&nbsp;&nbsp;&nbsp;file: {nfconfig.logger.file}
+                        <div className="eight-spaces">
+                          file: {nfconfig.logger.file}
                         </div>
-                        <div className="logger-data">
-                          &nbsp;&nbsp;&nbsp;&nbsp;level: {nfconfig.logger.level}
+                        <div className="eight-spaces">
+                          level: {nfconfig.logger.level}
                         </div>
                       </div>
                     </div>
                   )}
+                  
+                  {/* 添加 nrf 属性的渲染 */}
+                  {nfconfig && nfconfig.nrf && (
+                    <div className="nrf-section">
+                      <div className="nrf-header">nrf:</div>
+                      <div className="nrf-body">
+                  
+                        {/* 添加 sbi 属性的渲染 */}
+                        {nfconfig.nrf.sbi && (
+                          <div className="sbi-section">
+                            <div className="sbi-header">&nbsp;&nbsp;&nbsp;&nbsp;sbi:</div>
+                            <div className="sbi-body">
+                  
+                              {/* 添加 addr 属性的渲染 */}
+                              {nfconfig.nrf.sbi.addr && nfconfig.nrf.sbi.addr.map((item, index) => (
+                                <div className="addr-data" key={index}>
+                                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;addr: {item}
+                                </div>
+                              ))}
+                  
+                              {/* 添加 port 属性的渲染 */}
+                              {nfconfig.nrf.sbi.port && (
+                                <div className="port-data">
+                                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;port: {nfconfig.nrf.sbi.port}
+                                </div>
+                              )}
+                  
+                            </div>
+                          </div>
+                        )}
+                  
+                      </div>
+                    </div>
+                  )}
+              
                 </div>                
               </div>
             </NFConfig>            
