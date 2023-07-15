@@ -101,7 +101,7 @@ class Document extends Component {
       //  if (this.key == 'uplink') this.update(Number(x));
       //})
 
-      if (nfconfig.data.security) {
+      /*if (nfconfig.data.security) {
         if (nfconfig.data.security.opc) {
           nfconfig.data.security.op_type = 0;
           nfconfig.data.security.op_value = nfconfig.data.security.opc;
@@ -109,7 +109,7 @@ class Document extends Component {
           nfconfig.data.security.op_type = 1;
           nfconfig.data.security.op_value = nfconfig.data.security.op;
         }
-      }
+      }*/
       this.setState({ formData: nfconfig.data })
     } else {
       this.setState({ formData });
@@ -168,17 +168,7 @@ class Document extends Component {
 
   validate = (formData, errors) => {
     const { nfconfigs, action, status } = this.props;
-
-//    In Editing-mode, this is not working!
-//    More study is needed.
-//
-//    if (formData.msisdn) {
-//      formData.msisdn.map(msisdn => {
-//        if (subscribers.data.filter(subscriber => subscriber.msisdn.includes(msisdn)).length > 0) {
-//          errors.msisdn.addError(`'${msisdn}' is duplicated`);
-//        }
-//      });
-
+/*
     if (formData.msisdn) {
       const { msisdn } = formData;
       if (msisdn && msisdn.length > 1 && msisdn[0] === msisdn[1])
@@ -227,14 +217,14 @@ class Document extends Component {
             `At least 1 Default S-NSSAI is required`);
       }
     }
-
+*/
     return errors;
   }
 
   handleSubmit = (formData) => {
     const { dispatch, action } = this.props;
 
-    if (formData.security) {
+    /*if (formData.security) {
       if (formData.security.op_type === 1) {
         formData.security.op = formData.security.op_value;
         formData.security.opc = null;
@@ -242,7 +232,7 @@ class Document extends Component {
         formData.security.op = null;
         formData.security.opc = formData.security.op_value;
       }
-    }
+    }*/
 
     NProgress.configure({ 
       parent: '#nprogress-base-form',

@@ -26,11 +26,29 @@ const View = ({ visible, disableOnClickOutside, nfconfig, onEdit, onDelete, onHi
   console.log('_id '+_id)
   // 根据title选择要渲染的View组件
   const renderViewComponent = () => {
-    if (_id === 'nfconfig1') {
+    if (_id === 'nfconfig1' || _id === 'nrf') {
       return <ViewNRF visible={visible} disableOnClickOutside={disableOnClickOutside} nfconfig={nfconfig} onEdit={onEdit} onDelete={onDelete} onHide={onHide} />;
-    } else if (_id === 'nfconfig2') {
+    } else if (_id === 'nfconfig2' || _id === 'bsf') {
       return <ViewBSF visible={visible} disableOnClickOutside={disableOnClickOutside} nfconfig={nfconfig} onEdit={onEdit} onDelete={onDelete} onHide={onHide} />;
-    }  else {
+    }if (_id === 'nfconfig1' || _id === 'upf') {
+      return <ViewNRF visible={visible} disableOnClickOutside={disableOnClickOutside} nfconfig={nfconfig} onEdit={onEdit} onDelete={onDelete} onHide={onHide} />;
+    }if ( _id === 'amf') {
+      return <ViewNRF visible={visible} disableOnClickOutside={disableOnClickOutside} nfconfig={nfconfig} onEdit={onEdit} onDelete={onDelete} onHide={onHide} />;
+    }if (_id === 'ausf') {
+      return <ViewNRF visible={visible} disableOnClickOutside={disableOnClickOutside} nfconfig={nfconfig} onEdit={onEdit} onDelete={onDelete} onHide={onHide} />;
+    }if (_id === 'nssf') {
+      return <ViewNRF visible={visible} disableOnClickOutside={disableOnClickOutside} nfconfig={nfconfig} onEdit={onEdit} onDelete={onDelete} onHide={onHide} />;
+    }if (_id === 'pcf') {
+      return <ViewNRF visible={visible} disableOnClickOutside={disableOnClickOutside} nfconfig={nfconfig} onEdit={onEdit} onDelete={onDelete} onHide={onHide} />;
+    } if (_id === 'scp') {
+      return <ViewNRF visible={visible} disableOnClickOutside={disableOnClickOutside} nfconfig={nfconfig} onEdit={onEdit} onDelete={onDelete} onHide={onHide} />;
+    }if (_id === 'smf') {
+      return <ViewNRF visible={visible} disableOnClickOutside={disableOnClickOutside} nfconfig={nfconfig} onEdit={onEdit} onDelete={onDelete} onHide={onHide} />;
+    }if (_id === 'udm') {
+      return <ViewNRF visible={visible} disableOnClickOutside={disableOnClickOutside} nfconfig={nfconfig} onEdit={onEdit} onDelete={onDelete} onHide={onHide} />;
+    }if (_id === 'udr') {
+      return <ViewNRF visible={visible} disableOnClickOutside={disableOnClickOutside} nfconfig={nfconfig} onEdit={onEdit} onDelete={onDelete} onHide={onHide} />;
+    } else {
       return null; // 如果找不到匹配的title，则返回空
     }
   };

@@ -1,95 +1,36 @@
+/*import { Component } from 'react';
+import PropTypes from 'prop-types';
+
+import withWidth, { SMALL } from 'helpers/with-width';
+
+
+import EditNRF from './EditNRF'
+import EditBSF from './EditBSF'
+
+const Edit = ({ formData }) => {
+  console.log('Edit2_id ' + formData._id);
+
+  if (formData._id === 'nfconfig1') {
+    console.log('EditNRF');
+    return <EditNRF />;
+  } else if (formData._id === 'nfconfig2') {
+    console.log('EditBSF');
+    return <EditBSF />;
+  }
+
+  return null;
+};
+
+export default withWidth()(Edit);*/
+
 import { Component } from 'react';
 import PropTypes from 'prop-types';
 
 import withWidth, { SMALL } from 'helpers/with-width';
 import { Form } from 'components';
 
-const schema = {
-  "title": "NRF Configuration",
-  "type": "object",
-  "properties": {
-    /*"title": {
-      "type": "string",
-      "title": "Title*",
-      "required": true,
-      "maxLength": 24
-    },  */  
-    "logger": {
-      "type": "object",
-      "properties": {
-        "file": {
-          "type": "string",
-          "title": "Log File",
-          "default": ""
-        },
-        "level": {
-          "type": "string",
-          "title": "Log Level",
-          "enum": ["debug", "info", "warning", "error"],
-          "default": "info"
-        }
-      }
-    },
-    "nrf": {
-      "type": "object",
-      "title": "NRF Configuration",
-      "properties": {
-        "sbi": {
-          "type": "object",
-          "title": "SBI Configuration",
-          "properties": {
-            "addr": {
-              "type": "array",
-              "title": "Addresses",
-              "items": {
-                "type": "string",
-                "title": "Address"
-              }
-            },
-            "port": {
-              "type": "number",
-              "title": "Port"
-            }
-          }
-        }
-      }
-    }
-  }
-};
-
-const uiSchema = {
-  /*"title" : {
-    classNames: "col-xs-12",
-  },*/
-  "msisdn" : {
-    classNames: "col-xs-7",
-  },
-  "logger" : {
-    classNames: "col-xs-7",
-  },
-  /*"nrf": {
-    "sbi": {
-      "addr": {
-        "classNames": "col-xs-7"
-      },
-      "port": {
-        "classNames": "col-xs-7"
-      }
-    }
-  }*/
-  "nrf": {
-    classNames: "col-xs-12",
-    "sbi": {
-      classNames: "col-xs-12",
-      "addr": {
-        classNames: "col-xs-12"
-      },
-      "port": {
-        classNames: "col-xs-12"
-      }
-    }
-  }
-}
+import { nrfschema, nrfuiSchema } from './nrfConfigSchema';
+import { bsfschema, bsfuiSchema } from './bsfConfigSchema';
 
 class Edit extends Component {
   static propTypes = {
@@ -117,18 +58,36 @@ class Edit extends Component {
     const { 
       action,
       width,
+      formData
     } = props;
 
+ 
+    let selectedSchema;
+    let selectedUiSchema;
+
+    if (formData._id === 'nfconfig1' || formData._id === 'amf') {
+      selectedSchema = nrfschema;
+      selectedUiSchema = nrfuiSchema;
+    } else if (formData._id === 'nfconfig2'|| formData._id === 'bsf') {
+      selectedSchema = bsfschema;
+      selectedUiSchema = bsfuiSchema;
+    }else {
+      // 默认情况下，选择一个适当的“fallback”模式和 UI 模式
+      selectedSchema = nrfschema;
+      selectedUiSchema = nrfuiSchema;
+   }
+
+
     let state = {
-      schema,
-      uiSchema
+      schema: selectedSchema,
+      uiSchema: selectedUiSchema
     };
     
     if (action === 'update') {
       state = {
         ...state,
         uiSchema : {
-          ...uiSchema,
+          ...selectedUiSchema,
           "title": {
             "ui:disabled": true
           }
@@ -138,7 +97,7 @@ class Edit extends Component {
       state = {
         ...state,
         uiSchema : {
-          ...uiSchema,
+          ...selectedUiSchema,
           "title": {
             "ui:autofocus": true
           }
