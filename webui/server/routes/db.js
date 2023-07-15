@@ -6,8 +6,7 @@ const restify = require('express-restify-mongoose')
 const yaml = require('js-yaml');
 const fs = require('fs');
 const path = require('path');
-// 指定目录路径
-//const directoryPath = '/home/test/config'; // yaml配置文件的目录，修改为实际的目录路径
+
 const configFileData = fs.readFileSync('config.json', 'utf8');
 const config = JSON.parse(configFileData);
 
@@ -36,7 +35,6 @@ restify.serve(router, Account, {
 
 
 const NFConfig = {
-    // Define the route handler for reading NFConfig
     detail: async (req, res, next) => {
     try {
       const yamlData = fs.readFileSync('/home/test/nfconfig.yaml', 'utf8');
@@ -117,7 +115,7 @@ const NFConfig = {
       }
     },
   
-    // Define the route handler for updating NFConfig
+
     update: (req, res, next) => {
       try {
         const newConfigData = req.body; // 假设请求体中包含了新的配置数据
@@ -149,16 +147,13 @@ const NFConfig = {
 
 };
 
-// Create a custom endpoint for reading NFConfig
+
 router.get('/NFConfig', NFConfig.detailAll);
 
 router.post('/NFConfig/:id', NFConfig.create);
 
-// Create a custom endpoint for updating NFConfig
 router.post('/NFConfig', NFConfig.update);
 
-// Add a custom endpoint for patching NFConfig
-//router.patch('/NFConfig', NFConfig.update);
 router.patch('/NFConfig/:id', NFConfig.update);
 
 module.exports = router;

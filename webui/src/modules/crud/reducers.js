@@ -28,8 +28,6 @@ const modelInitialState = fromJS({
 const initialState = fromJS({});
 
 function byIdReducer(state = byIdInitialState, action) {
-  console.log("byIdReducer")
-  console.log(action.payload.data)
   const idProperty = action.meta ? action.meta.idProperty : '_id';
   const id = action.meta ? action.meta.id : undefined;
   switch(action.type) {

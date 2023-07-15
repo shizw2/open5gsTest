@@ -19,8 +19,6 @@ const crudApi = (method, url, csrf, authToken, { params, data } = {} ) => {
 }
 
 function* crudEntity(action) {
-  console.log("hello"); 
-  console.log(action.payload.data); // Add this line to log the value of action.payload.data
   const { method, url, params, data } = action.payload;
   const { success, failure } = action.meta;
   const meta = {
