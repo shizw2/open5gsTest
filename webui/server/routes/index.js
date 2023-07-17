@@ -1,7 +1,7 @@
 const express = require('express');
 const auth = require('./auth');
 const db = require('./db')
-
+const yaml = require('./yaml')
 const router = express.Router();
 
 const secret = process.env.JWT_SECRET_KEY || 'change-me';
@@ -27,5 +27,6 @@ passport.use(
 
 router.use('/auth', auth);
 router.use('/db', passport.authenticate('jwt', { session: false }), db);
+router.use('/yaml', yaml);
 
 module.exports = router;
