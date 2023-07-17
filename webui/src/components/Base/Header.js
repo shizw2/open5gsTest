@@ -7,6 +7,8 @@ import { CircleIcon, Tooltip } from 'components';
 import MenuIcon from 'react-icons/lib/md/menu';
 import PersonIcon from 'react-icons/lib/md/person';
 
+import properties from '../../../properties '; // 导入配置文件
+
 const Wrapper = styled.div`
   display: flex;
   align-items: center;
@@ -51,7 +53,7 @@ const Header = ({ onSidebarToggle, onLogoutRequest }) => (
       <MenuIcon/>
     </Menu>
     <Title>
-      TestIPV6
+    {properties.base_title}
     </Title>
     <Thumbnail onClick={onLogoutRequest}>
       <Tooltip bottom content='Logout' width="60px">

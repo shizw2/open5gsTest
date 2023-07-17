@@ -8,6 +8,7 @@ import Header from 'containers/Header';
 import Sidebar from 'containers/Sidebar';
 
 import Package from '../../../package';
+import properties from '../../../properties '; // 导入配置文件
 
 const Body = styled.div`
   display: flex;
@@ -19,7 +20,7 @@ const propTypes = {
 }
 
 const defaultProps = {
-  title: `TestIPV6 ${Package.version}`
+  title: `${properties.base_title} ${Package.version}`
 }
 
 const Layout = ({ title, children }) => (
