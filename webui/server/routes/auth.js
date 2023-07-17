@@ -4,7 +4,7 @@ const router = express.Router();
 const passport = require('passport');
 
 const jwt = require('jsonwebtoken');
-const secret = process.env.JWT_SECRET_KEY || 'change-me';
+const secret = process.env.JWT_SECRET_KEY || 'change-me';/*如果环境变量中不存在 JWT_SECRET_KEY，则该值将默认为 'change-me'。*/
 
 router.get('/csrf', (req, res) => {
   return res.json({csrfToken: res.locals._csrf});
