@@ -62,3 +62,23 @@ export const LOGSection = ({ nfconfig }) => (
     )}
   </div>
 );
+
+export const MetricSection = ({ metric }) => (
+  <div>
+    {metric && (
+      <div className="metric-section">
+        <div className="metric-header">metric:</div>
+        <div className="metric-body">
+          {metric.addr && metric.addr.map((item, index) => (
+              <div className="forty-spaces" key={index}>
+                -addr: {item}
+              </div>
+          ))}  
+          <div className="forty-spaces">
+            port: {metric.port}
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+);
