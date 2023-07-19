@@ -1,6 +1,6 @@
 import Document, { Head, Main, NextScript } from 'next/document'
 import { ServerStyleSheet } from 'styled-components'
-
+import properties from '../properties '; // 导入配置文件
 const description = 'an implementation of 3GPP EPC(MME, SGW, PGW, HSS)'
 
 export default class MyDocument extends Document {
@@ -11,7 +11,7 @@ export default class MyDocument extends Document {
     return (
       <html>
         <Head>
-          <title>Open5GS</title>
+          <title>{properties.base_title}</title>
 
           <meta charSet="utf-8" />
           <meta httpEquiv="X-UA-Compatible" content="IE=edge,chrome=1" />

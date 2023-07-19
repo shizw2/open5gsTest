@@ -2,26 +2,48 @@ export const NRFSection = ({ nfconfig }) => (
   <div>
     {nfconfig && nfconfig.nrf && (
       <div className="nrf-section">
-        <div className="nrf-header">nrf:</div>                      
+        <div className="nrf-header">nrf:</div>
         {nfconfig.nrf.sbi && (
           <div className="sbi-section">
-            <div className="twenty-spaces">sbi:</div>                                           
-            {nfconfig.nrf.sbi.addr && nfconfig.nrf.sbi.addr.map((item, index) => (
-              <div className="forty-spaces" key={index}>
-                -addr: {item}
+            <div className="twenty-spaces">sbi:</div>
+            {Array.isArray(nfconfig.nrf.sbi) ? (
+              // 如果 nfconfig.nrf.sbi 是数组
+              nfconfig.nrf.sbi.map((item, index) => (
+                <div key={index}>
+                  {item.addr && item.addr.map((addrItem, addrIndex) => (
+                    <div className="forty-spaces" key={addrIndex}>
+                      -addr: {addrItem}
+                    </div>
+                  ))}
+                  {item.port && (
+                    <div className="forty-spaces">
+                      port: {item.port}
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              // 如果 nfconfig.nrf.sbi 是对象
+              <div>
+                {nfconfig.nrf.sbi.addr && nfconfig.nrf.sbi.addr.map((item, index) => (
+                  <div className="forty-spaces" key={index}>
+                    addr: {item}
+                  </div>
+                ))}
+                {nfconfig.nrf.sbi.port && (
+                  <div className="forty-spaces">
+                    port: {nfconfig.nrf.sbi.port}
+                  </div>
+                )}
               </div>
-            ))}                  
-            {nfconfig.nrf.sbi.port && (
-              <div className="forty-spaces">
-                port: {nfconfig.nrf.sbi.port}
-              </div>
-            )}  
+            )}
           </div>
-        )} 
+        )}
       </div>
     )}
   </div>
 );
+
 
 export const SBISection = ({ nfconfig }) => (
   <div>
