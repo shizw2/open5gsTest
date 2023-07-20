@@ -9,6 +9,8 @@ import ProfileIcon from 'react-icons/lib/md/content-copy';
 import AccountIcon from 'react-icons/lib/md/vpn-key';
 import ConfigIcon from 'react-icons/lib/md/settings';
 
+import properties from '../../../properties '; // 导入配置文件
+
 const Menu = styled.div`
   display: block;
   width: ${p => p.visible ? p.width : '0' };
@@ -84,19 +86,19 @@ const Sidebar = ({ isOpen, width, selectedView, onSelectView }) => (
   <Menu visible={isOpen} width={width}>
     <Item name="subscriber" selected={selectedView} onSelect={onSelectView}>
       <Icon><SubscriberIcon/></Icon>
-      <Title>Subscriber</Title>
+      <Title>{properties.base_subscriber}</Title>
     </Item>
     <Item name="profile" selected={selectedView} onSelect={onSelectView}>
       <Icon><ProfileIcon/></Icon>
-      <Title>Profile</Title>
+      <Title>{properties.base_profile}</Title>
     </Item>
     <Item name="account" selected={selectedView} onSelect={onSelectView}>
       <Icon><AccountIcon/></Icon>
-      <Title>Account</Title>
+      <Title>{properties.base_account}</Title>
     </Item>
     <Item name="nfconfig" selected={selectedView} onSelect={onSelectView}>
       <Icon><ConfigIcon/></Icon>
-      <Title>NFConfig</Title>
+      <Title>{properties.base_nfconfig}</Title>
     </Item>
   </Menu>
 )

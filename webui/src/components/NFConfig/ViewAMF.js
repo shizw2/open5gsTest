@@ -1,6 +1,7 @@
-import { NRFSection, SBISection,LOGSection,MetricSection } from './ViewCfgSection';
+import { NRFSection, SBISection,LOGSection,MetricsSection,NF_SBI_Section,GuamiSection,TaiSection,PlmnSupportSection,SecuritySection ,TimeSection} from './ViewCfgSection';
 
 export const ViewAMF = ({ nfconfig }) => {  
+  console.log("nfconfig:", nfconfig); // 在这里添加打印语句
   return (
     <div>
       {/* // 使用 LOGSection 组件 */}                  
@@ -13,46 +14,42 @@ export const ViewAMF = ({ nfconfig }) => {
       <div>
       {nfconfig && nfconfig.amf && (
         <div className="nf-section">
-          <div className="nf-header">amf:</div>                      
-          {nfconfig.amf.sbi && (
-            <div className="sbi-section">
-              <div className="twenty-spaces">sbi:</div>                                           
-              {nfconfig.amf.sbi.addr && nfconfig.amf.sbi.addr.map((item, index) => (
-                <div className="forty-spaces" key={index}>
-                  -addr: {item}
-                </div>
-              ))}                  
-              {nfconfig.amf.sbi.port && (
-                <div className="forty-spaces">
-                  port: {nfconfig.amf.sbi.port}
-                </div>
-              )}  
-            </div>
-          )} 
+          <div className="nf-header">amf:</div>             
+          
+              <NF_SBI_Section  sbi={nfconfig.amf.sbi} />
 
-          <div className="twenty-spaces">ngap:</div> 
-          {nfconfig.amf.ngap.addr && nfconfig.amf.ngap.addr.map((item, index) => (
-                <div className="forty-spaces" key={index}>
-                  -addr: {item}
+              <div className="twenty-spaces">ngap:</div> 
+              <div className="forty-spaces">
+              {nfconfig.amf.ngap.map((item, index) => (
+                <div key={index}>
+                  <div>-addr: {item.addr}</div>
                 </div>
-          ))}  
-          
-          <div className="twenty-spaces">icps:</div> 
-          <div className="forty-spaces">spsnum: {nfconfig.amf.icps.spsnum}</div>
-          <div className="forty-spaces">port: {nfconfig.amf.icps.port}</div>
-          
-          {/*<div className="twenty-spaces">metrics:</div> 
-          <div className="forty-spaces">-addr: {nfconfig.metrics.addr}</div>
-          <div className="forty-spaces">port: {nfconfig.metrics.port}</div>*/}
-          <MetricSection metric={nfconfig.amf.metric} />
-          
+              ))}
+              </div>          
+              
+              <div className="twenty-spaces">icps:</div> 
+              <div className="forty-spaces">spsnum: {nfconfig.amf.icps.spsnum}</div>
+              <div className="forty-spaces">port: {nfconfig.amf.icps.port}</div>
+              
+
+              <MetricsSection metrics={nfconfig.amf.metrics} />
+              <GuamiSection guamis={nfconfig.amf.guami} />              
+              <TaiSection tais={nfconfig.amf.tai} />      
+              <PlmnSupportSection plmnSupport={nfconfig.amf.plmn_support} />      
+              <SecuritySection security={nfconfig.amf.security} />              
+              
+              <div className="twenty-spaces">network_name:</div>
+              <div className="forty-spaces">full: {nfconfig.amf.network_name.full}</div>
+
+              <div className="twenty-spaces">amf_name:{nfconfig.amf.amf_name}</div>  
+                      
         </div>
       )}
       </div>
 
       <div className="parameter-body">parameter:</div>
       <div className="max-body">max:</div>
-      <div className="time-body">time:</div>
+      <TimeSection time={nfconfig.time} />      
     </div>
   );
 };

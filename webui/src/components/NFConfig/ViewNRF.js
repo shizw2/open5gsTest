@@ -1,6 +1,7 @@
 import { NRFSection, SBISection,LOGSection } from './ViewCfgSection';
 
 export const ViewNRF = ({ nfconfig }) => {  
+
   return (
     <div>
       {/* // 使用 LOGSection 组件 */}                  

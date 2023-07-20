@@ -19,8 +19,8 @@ import { Modal, Tooltip, Dimmed } from 'components';
 import { ViewBSF } from './ViewBSF';
 import { ViewNRF } from './ViewNRF';
 import { ViewAMF } from './ViewAMF';
-/*import { ViewAUSF } from './ViewAUSF';
-import { ViewNSSF } from './ViewNSSF';
+import { ViewAUSF } from './ViewAUSF';
+/*import { ViewNSSF } from './ViewNSSF';
 import { ViewPCF } from './ViewPCF';
 import { ViewSCP } from './ViewSCP';
 import { ViewSMF } from './ViewSMF';
@@ -204,7 +204,8 @@ const View = ({ visible, disableOnClickOutside, nfconfig, onEdit, onDelete, onHi
               {/* 根据不同的情况渲染不同的组件 */}
               {nfconfig && nfconfig._id === "nrf" && (<ViewNRF  nfconfig={nfconfig}/>)}
               {nfconfig && nfconfig._id === "bsf" && (<ViewBSF  nfconfig={nfconfig}/>)}      
-              {nfconfig && nfconfig._id === "amf" && (<ViewAMF  nfconfig={nfconfig}/>)}                 
+              {nfconfig && nfconfig._id === "amf" && (<ViewAMF  nfconfig={nfconfig}/>)}
+              {nfconfig && nfconfig._id === "ausf" && (<ViewAUSF  nfconfig={nfconfig}/>)}                 
             </NFConfig>            
           </Body>
         </Wrapper>
