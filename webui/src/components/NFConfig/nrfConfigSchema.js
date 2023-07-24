@@ -2,12 +2,6 @@ export const nrfschema = {
   "title": "NRF Configuration",
   "type": "object",
   "properties": {
-    /*"title": {
-      "type": "string",
-      "title": "Title*",
-      "required": true,
-      "maxLength": 24
-    },  */  
     "logger": {
       "type": "object",
       "properties": {
@@ -52,25 +46,10 @@ export const nrfschema = {
 };
 
 export const nrfuiSchema = {
-  /*"title" : {
-    classNames: "col-xs-12",
-  },*/
-  "msisdn" : {
-    classNames: "col-xs-7",
-  },
+
   "logger" : {
     classNames: "col-xs-7",
   },
-  /*"nrf": {
-    "sbi": {
-      "addr": {
-        "classNames": "col-xs-7"
-      },
-      "port": {
-        "classNames": "col-xs-7"
-      }
-    }
-  }*/
   "nrf": {
     classNames: "col-xs-12",
     "sbi": {

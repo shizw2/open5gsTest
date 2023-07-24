@@ -205,7 +205,7 @@ const View = ({ visible, disableOnClickOutside, nfconfig, onEdit, onDelete, onHi
               {nfconfig && nfconfig._id === "nrf" && (<ViewNRF  nfconfig={nfconfig}/>)}
               {nfconfig && nfconfig._id === "bsf" && (<ViewBSF  nfconfig={nfconfig}/>)}      
               {nfconfig && nfconfig._id === "amf" && (<ViewAMF  nfconfig={nfconfig}/>)}
-              {nfconfig && nfconfig._id === "ausf" && (<ViewAUSF  nfconfig={nfconfig}/>)}                 
+              {nfconfig && nfconfig._id === "a" && (<ViewAMF  nfconfig={nfconfig}/>)}                 
             </NFConfig>            
           </Body>
         </Wrapper>
