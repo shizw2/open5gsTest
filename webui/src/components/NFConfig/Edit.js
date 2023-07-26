@@ -29,10 +29,10 @@ import PropTypes from 'prop-types';
 import withWidth, { SMALL } from 'helpers/with-width';
 import { Form } from 'components';
 
-import { nrfschema, nrfuiSchema } from './nrfConfigSchema';
-import { bsfschema, bsfuiSchema } from './bsfConfigSchema';
-import { ausfschema, ausfuiSchema } from './ausfConfigSchema';
-import { amfschema, amfuiSchema } from './amfConfigSchema';
+import { nrfschema, nrfuiSchema } from './EditNF/nrfConfigSchema';
+import { bsfschema, bsfuiSchema } from './EditNF/bsfConfigSchema';
+import { ausfschema, ausfuiSchema } from './EditNF/ausfConfigSchema';
+import { amfschema, amfuiSchema } from './EditNF/amfConfigSchema';
 
 class Edit extends Component {
   static propTypes = {

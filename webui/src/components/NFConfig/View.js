@@ -16,17 +16,32 @@ import KeyboardControlIcon from 'react-icons/lib/md/keyboard-control';
 import { Modal, Tooltip, Dimmed } from 'components';
 
 
-import { ViewBSF } from './ViewBSF';
-import { ViewNRF } from './ViewNRF';
-import { ViewAMF } from './ViewAMF';
-import { ViewAUSF } from './ViewAUSF';
-/*import { ViewNSSF } from './ViewNSSF';
-import { ViewPCF } from './ViewPCF';
-import { ViewSCP } from './ViewSCP';
-import { ViewSMF } from './ViewSMF';
-import { ViewUDM } from './ViewUDM';
-import { ViewUDR } from './ViewUDR';
-import { ViewUPF } from './ViewUPF';*/
+import { ViewBSF } from './ViewNF/ViewBSF';
+import { ViewNRF } from './ViewNF/ViewNRF';
+import { ViewAMF } from './ViewNF/ViewAMF';
+import { ViewAUSF } from './ViewNF/ViewAUSF';
+import { ViewNSSF } from './ViewNF/ViewNSSF';
+import { ViewPCF } from './ViewNF/ViewPCF';
+import { ViewSCP } from './ViewNF/ViewSCP';
+import { ViewSMF } from './ViewNF/ViewSMF';
+import { ViewUDM } from './ViewNF/ViewUDM';
+import { ViewUDR } from './ViewNF/ViewUDR';
+import { ViewUPF } from './ViewNF/ViewUPF';
+
+const componentMap = {
+  nrf: ViewNRF,
+  bsf: ViewBSF,
+  amf: ViewAMF,
+  a: ViewAMF,
+  nssf: ViewNSSF,
+  pcf: ViewPCF,
+  scp: ViewSCP,
+  smf: ViewSMF,
+  udm: ViewUDM,
+  udr: ViewUDR,
+  upf: ViewUPF,
+  // 其他 nfconfig._id 对应的组件
+};
 
 const Wrapper = styled.div`
   display: flex;
@@ -202,10 +217,7 @@ const View = ({ visible, disableOnClickOutside, nfconfig, onEdit, onDelete, onHi
           <Body>
             <NFConfig>
               {/* 根据不同的情况渲染不同的组件 */}
-              {nfconfig && nfconfig._id === "nrf" && (<ViewNRF  nfconfig={nfconfig}/>)}
-              {nfconfig && nfconfig._id === "bsf" && (<ViewBSF  nfconfig={nfconfig}/>)}      
-              {nfconfig && nfconfig._id === "amf" && (<ViewAMF  nfconfig={nfconfig}/>)}
-              {nfconfig && nfconfig._id === "a" && (<ViewAMF  nfconfig={nfconfig}/>)}                 
+              {nfconfig && componentMap[nfconfig._id] && React.createElement(componentMap[nfconfig._id], { nfconfig })}          
             </NFConfig>            
           </Body>
         </Wrapper>

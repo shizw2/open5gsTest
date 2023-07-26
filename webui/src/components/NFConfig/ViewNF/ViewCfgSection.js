@@ -212,14 +212,14 @@ export const TimeSection = ({ time }) => (
   <div>
       <div className="time-section">
         <div className="time-header">time:</div>  
-        {time.t3512 && (
+        {time && time.t3512 && (
             <div className="twenty-spaces">
               <div>t3512:</div>
               <div className="twenty-spaces">value: {time.t3512.value}</div>
             </div>       
         )}
     
-        {time.nf_instance && (     
+        {time && time.nf_instance && (     
             <div className="twenty-spaces">
               <div>nf_instance:</div>
               <div className="twenty-spaces">heartbeat: {time.nf_instance.heartbeat}</div>
@@ -228,3 +228,135 @@ export const TimeSection = ({ time }) => (
       </div>
   </div>
 );
+
+export const HnetSection = ({ hnet }) => (
+  <div>
+    {hnet && (
+      <div className="hnet-section">
+        <div className="hnet-header">hnet:</div>
+        <div className="hnet-body">
+          {hnet.map((entry) => (
+            <div className="hnet-entry" key={entry.id}>
+              <div className="twenty-spaces">id: {entry.id}</div>
+              <div className="twenty-spaces">scheme: {entry.scheme}</div>
+              <div className="twenty-spaces">key: {entry.key}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+);
+
+export const ParameterSection = ({ parameter }) => (
+  <div>
+    <div className="parameter-section">
+      <div className="parameter-header">{parameter ? parameter.name : 'parameter'}:</div>
+      {parameter ? (
+        <div className="parameter-body">
+          {parameter.no_ipv4 && <div className="eight-spaces">no_ipv4: true</div>}
+        </div>
+      ) : (
+        <div> </div>
+      )}
+    </div>
+  </div>
+);
+
+
+export const MaxSection = ({ max }) => (
+  <div>
+    <div className="max-section">
+      <div className="max-header">max:</div>
+      {max ? (
+        <div className="max-body">
+          {max.ue && <div className="twenty-spaces">ue: {max.ue}</div>}
+          {max.peer && <div className="twenty-spaces">peer: {max.peer}</div>}
+        </div>
+      ) : (
+        <div> </div>
+      )}
+    </div>
+  </div>
+);
+
+
+export const NSIComponent = ({ nsi }) => {
+  return (
+    <div>
+      {nsi && (
+        <div className="nsi-section">
+          <div className="twenty-spaces">nsi:</div>
+          {nsi.map((item, index) => (
+            <div key={index} className="twenty-spaces">
+              <div className="twenty-spaces">-addr: {item.addr}</div>
+              <div className="twenty-spaces">&nbsp;port: {item.port}</div>
+              <div className="twenty-spaces">
+                &nbsp;s_nssai:
+                <div className="twenty-spaces">sst: {item.s_nssai && item.s_nssai.sst}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const FreeDiameterSection = ({ freeDiameter }) => {
+  return (
+    <div className="twenty-spaces">
+      <div>freeDiameter:</div>
+      {freeDiameter && (
+        <div>
+          <div className="twenty-spaces">identity: {freeDiameter.identity}</div>
+          <div className="twenty-spaces">realm: {freeDiameter.realm}</div>
+          <div className="twenty-spaces">listen_on: {freeDiameter.listen_on}</div>
+          <div className="twenty-spaces">no_fwd: {String(freeDiameter.no_fwd)}</div>
+          {freeDiameter.load_extension && (
+            <div className="twenty-spaces">
+              load_extension:
+              {freeDiameter.load_extension.map((extension, index) => (
+                <div key={index} className="twenty-spaces">
+                  -module: {extension.module}
+                  {extension.conf && (
+                    <div className="twenty-spaces">conf: {extension.conf}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          {freeDiameter.connect && (
+            <div className="twenty-spaces">
+              connect:
+              {freeDiameter.connect.map((connection, index) => (
+                <div key={index} className="twenty-spaces">
+                  -identity: {connection.identity}
+                  <div className="twenty-spaces">&nbsp;addr: {connection.addr}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const PfcpSection = ({ pfcp }) => {
+  return (
+    <div>
+      {pfcp && (
+        <div className="pfcp">
+          <h1>pfcp:</h1>
+          {pfcp.map((item, index) => (
+            <div key={index}>
+              <div>- addr:</div>
+              <div className="twenty-spaces">{item.addr}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
