@@ -16,25 +16,25 @@
 #
 #  o Set OGS_LOG_TRACE to all domain level
 #    level: trace
-#    domain: core,sbi,udm,event,tlv,mem,sock
+#    domain: core,sbi,nssf,event,tlv,mem,sock
 #
 logger:
-    file: /home/test/install/var/log/open5gs/udm.log
+    file: /home/test/install/var/log/open5gs/nssf.log
 sbi:
     server:
       no_tls: false
       no_verify: true
       cacert: /home/test/install/etc/open5gs/tls/ca.crt
-      key: /home/test/install/etc/open5gs/tls/udm.key
-      cert: /home/test/install/etc/open5gs/tls/udm.crt
+      key: /home/test/install/etc/open5gs/tls/nssf.key
+      cert: /home/test/install/etc/open5gs/tls/nssf.crt
     client:
       no_tls: false
       no_verify: true
       cacert: /home/test/install/etc/open5gs/tls/ca.crt
-      key: /home/test/install/etc/open5gs/tls/udm.key
-      cert: /home/test/install/etc/open5gs/tls/udm.crt
+      key: /home/test/install/etc/open5gs/tls/nssf.key
+      cert: /home/test/install/etc/open5gs/tls/nssf.crt
 #
-# udm:
+# nssf:
 #
 #  <SBI Server>
 #
@@ -51,24 +51,24 @@ sbi:
 #  o SBI Server(https://<all address available>:443)
 #    sbi:
 #      - tls:
-#          key: udm.key
-#          pem: udm.pem
+#          key: nssf.key
+#          pem: nssf.pem
 #
-#  o SBI Server(https://127.0.0.12:443, http://[::1]:80)
+#  o SBI Server(https://127.0.0.14:443, http://[::1]:80)
 #    sbi:
-#      - addr: 127.0.0.12
+#      - addr: 127.0.0.14
 #        tls:
-#          key: udm.key
-#          pem: udm.pem
+#          key: nssf.key
+#          pem: nssf.pem
 #      - addr: ::1
 #
-#  o SBI Server(http://udm.open5gs.org:80)
+#  o SBI Server(http://nssf.open5gs.org:80)
 #    sbi:
-#      - name: udm.open5gs.org
+#      - name: nssf.open5gs.org
 #
-#  o SBI Server(http://127.0.0.12:7777)
+#  o SBI Server(http://127.0.0.14:7777)
 #    sbi:
-#      - addr: 127.0.0.12
+#      - addr: 127.0.0.14
 #        port: 7777
 #
 #  o SBI Server(http://<eth0 IP address>:80)
@@ -78,7 +78,7 @@ sbi:
 #  o Provide custom SBI address to be advertised to NRF
 #    sbi:
 #      - dev: eth0
-#        advertise: open5gs-udm.svc.local
+#        advertise: open5gs-nssf.svc.local
 #
 #    sbi:
 #      - addr: localhost
@@ -91,7 +91,57 @@ sbi:
 #    - so_linger.l_onoff : false
 #
 #    sbi:
-#      addr: 127.0.0.12
+#      addr: 127.0.0.14
+#      option:
+#        tcp_nodelay: false
+#        so_linger:
+#          l_onoff: true
+#          l_linger: 10
+#
+#  <List of available Network Slice Instance(NSI)>
+#
+#  o One NSI
+#   - NRF[http://::1:7777/nnrf-nfm/v1/nf-instances]
+#     NSSAI[SST:1]
+#
+#    nsi:
+#      - addr: ::1
+#        port: 7777
+#        s_nssai:
+#          sst: 1
+#
+#  o Three NSI
+#   1. NRF[http://::1:7777/nnrf-nfm/v1/nf-instances]
+#      S-NSSAI[SST:1]
+#
+#   2. NRF[http://127.0.0.19:7777/nnrf-nfm/v1/nf-instances]
+#      NSSAI[SST:1, SD:000080]
+#
+#   2. NRF[http://127.0.0.10:7777/nnrf-nfm/v1/nf-instances]
+#      NSSAI[SST:1, SD:009000]
+#
+#    nsi:
+#      - addr: ::1
+#        port: 7777
+#        s_nssai:
+#          sst: 1
+#      - addr: 127.0.0.19
+#        port: 7777
+#        s_nssai:
+#          sst: 1
+#          sd: 000080
+#      - addr: 127.0.0.10
+#        port: 7777
+#        s_nssai:
+#          sst: 1
+#          sd: 009000
+#
+#  o NSI Option (Default)
+#    - tcp_nodelay : true
+#    - so_linger.l_onoff : false
+#
+#    nsi:
+#      addr: ::1
 #      option:
 #        tcp_nodelay: false
 #        so_linger:
@@ -105,22 +155,20 @@ sbi:
 #
 #  o NF Service Name(Only some NF services are available)
 #    service_name:
-#      - nudm-sdm
-#      - nudm-uecm
-#      - nudm-ueau
+#      - nnssf-nsselection
 #
 #  <NF Discovery Query Parameter>
 #
 #  o (Default) If you do not set Query Parameter as shown below,
 #
 #    sbi:
-#      - addr: 127.0.0.12
+#      - addr: 127.0.0.14
 #        port: 7777
 #
 #    - 'service-names' is included.
 #
 #    sbi:
-#      - addr: 127.0.0.12
+#      - addr: 127.0.0.14
 #        port: 7777
 #    discovery:
 #      option:
@@ -138,14 +186,14 @@ sbi:
 #  o (Default) If you do not set Delegated Discovery as shown below,
 #
 #    sbi:
-#      - addr: 127.0.0.12
+#      - addr: 127.0.0.14
 #        port: 7777
 #
 #    - Use SCP if SCP avaiable. Otherwise NRF is used.
 #      => App fails if both NRF and SCP are unavailable.
 #
 #    sbi:
-#      - addr: 127.0.0.12
+#      - addr: 127.0.0.14
 #        port: 7777
 #    discovery:
 #      delegated: auto
@@ -156,29 +204,15 @@ sbi:
 #  o Don't use SCP server => App fails if no NRF available.
 #      delegated: no
 #
-udm:
-    hnet:
-      - id: 1
-        scheme: 1
-        key: /home/test/install/etc/open5gs/hnet/curve25519-1.key
-      - id: 2
-        scheme: 2
-        key: /home/test/install/etc/open5gs/hnet/secp256r1-2.key
-      - id: 3
-        scheme: 1
-        key: /home/test/install/etc/open5gs/hnet/curve25519-3.key
-      - id: 4
-        scheme: 2
-        key: /home/test/install/etc/open5gs/hnet/secp256r1-4.key
-      - id: 5
-        scheme: 1
-        key: /home/test/install/etc/open5gs/hnet/curve25519-5.key
-      - id: 6
-        scheme: 2
-        key: /home/test/install/etc/open5gs/hnet/secp256r1-6.key
+nssf:
     sbi:
-      - addr: 127.0.0.12
+      - addr: 127.0.0.14
         port: 7777
+    nsi:
+      - addr: 127.0.0.10
+        port: 7777
+        s_nssai:
+          sst: 1
 
 #
 # scp:
@@ -222,13 +256,7 @@ udm:
 #scp:
 #    sbi:
 #      - addr: 127.0.1.10
-#        port: 7777
-nrf:
-    sbi:
-      - addr:
-          - 127.0.0.10
-#          - ::1
-        port: 7777
+#       port: 7777
 
 #
 # nrf:
@@ -256,24 +284,12 @@ nrf:
 #        - 127.0.0.10
 #        - fd69:f21d:873c:fa::1
 #
-#  o SBI Option (Default)
-#    - tcp_nodelay : true
-#    - so_linger.l_onoff : false
-#
-#    sbi:
-#      addr: 127.0.0.10
-#      option:
-#        tcp_nodelay: false
-#        so_linger:
-#          l_onoff: true
-#          l_linger: 10
-#
-#nrf:
-#    sbi:
-#      - addr:
-#          - 127.0.0.10
-#          - ::1
-#        port: 7777
+nrf:
+    sbi:
+      - addr:
+          - 127.0.0.10
+ #         - ::1
+        port: 7777
 
 #
 # parameter:
@@ -313,11 +329,17 @@ max:
 #    nf_instance:
 #      heartbeat: 20
 #
+#  o NF Instance Heartbeat (Disabled)
+#    nf_instance:
+#      heartbeat: 0
+#
+#  o NF Instance Heartbeat (10 seconds)
+#    nf_instance:
+#      heartbeat: 10
+#
 #  o Message Wait Duration (Default : 10,000 ms = 10 seconds)
 #
 #  o Message Wait Duration (3000 ms)
 #    message:
 #        duration: 3000
 time:
-    nf_instance:
-      heartbeat: 10
