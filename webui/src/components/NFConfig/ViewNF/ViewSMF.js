@@ -8,11 +8,18 @@ import {
   TimeSection,
   FreeDiameterSection,
   MetricsSection,
+  PfcpSection,
+  GtpcSection,
+  GtpuSection,
+  MtuSection,
+  CtfSection,
+  FreeDiameterFileSection,
+  InfoSection,
 } from './ViewCfgSection';
 
 
 export const ViewSMF = ({ nfconfig }) => {  
-  const { pcf, parameter, max, time } = nfconfig;
+  const { smf, parameter, max, time, upf } = nfconfig;
   return (
     <div>
       <LOGSection nfconfig={nfconfig} />
@@ -24,9 +31,22 @@ export const ViewSMF = ({ nfconfig }) => {
           <div className="nf-section">
             <div className="nf-header">smf:</div>
             <NF_SBI_Section sbi={smf.sbi} />
-            <MetricsSection metrics={smf.metrics} />            
+            <PfcpSection pfcp={smf.pfcp} />
+            <GtpcSection gtpc={smf.gtpc} />     
+            <GtpuSection gtpu={smf.gtpu} />  
+            <MetricsSection metrics={smf.metrics} /> 
+            <MtuSection mtu={smf.mtu} /> 
+            <CtfSection ctf={smf.ctf} /> 
+            <FreeDiameterFileSection freediameter={smf.freediameter} /> 
+            <InfoSection info={smf.info} /> 
+
           </div>
         )}
+      </div>
+      
+      <div className="upf-section">
+          <div className="upf-header">upf:</div>          
+          <PfcpSection pfcp={upf.pfcp} /> 
       </div>
       
       <ParameterSection parameter={parameter} />
