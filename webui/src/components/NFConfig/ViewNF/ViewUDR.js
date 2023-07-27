@@ -1,18 +1,38 @@
-import { NRFSection, SBISection,LOGSection } from './ViewCfgSection';
+import {
+  NRFSection,
+  SBISection,
+  LOGSection,
+  NF_SBI_Section,  
+  MaxSection,
+  ParameterSection,
+  TimeSection,
+  FreeDiameterSection,
+  MetricsSection,
+  DbUriSection,
+} from './ViewCfgSection';
 
-export const ViewNRF = ({ nfconfig }) => {  
+export const ViewUDR= ({ nfconfig }) => {
+  const { udr, parameter, max, time } = nfconfig;
+
   return (
-    <div>
-      {/* // 使用 LOGSection 组件 */}                  
+    <div>   
+      <DbUriSection db_uri={nfconfig.db_uri} />
       <LOGSection nfconfig={nfconfig} />
-      {/* // 使用 NRFSection 组件 */}                  
       <NRFSection nfconfig={nfconfig} />
-      {/* // 使用 SBISection 组件 */}   
       <SBISection nfconfig={nfconfig} />
 
-      <div className="parameter-body">parameter:</div>
-      <div className="max-body">max:</div>
-      <div className="time-body">time:</div>
+      <div>
+        {udr && (
+          <div className="nf-section">
+            <div className="nf-header">udr:</div>
+            <NF_SBI_Section sbi={udr.sbi} />   
+          </div>
+        )}
+      </div>
+
+      <ParameterSection parameter={parameter} />
+      <MaxSection max={max} />
+      <TimeSection time={time} />
     </div>
   );
 };

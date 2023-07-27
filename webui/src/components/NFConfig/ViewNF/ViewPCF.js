@@ -8,13 +8,15 @@ import {
   TimeSection,
   FreeDiameterSection,
   MetricsSection,
+  DbUriSection,
 } from './ViewCfgSection';
 
 export const ViewPCF= ({ nfconfig }) => {
   const { pcf, parameter, max, time } = nfconfig;
 
   return (
-    <div>   
+    <div> 
+      <DbUriSection db_uri={nfconfig.db_uri} />
       <LOGSection nfconfig={nfconfig} />
       <NRFSection nfconfig={nfconfig} />
       <SBISection nfconfig={nfconfig} />

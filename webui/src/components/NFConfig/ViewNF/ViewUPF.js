@@ -1,18 +1,58 @@
-import { NRFSection, SBISection,LOGSection } from './ViewCfgSection';
+import {
+  NRFSection,
+  SBISection,
+  LOGSection,
+  NF_SBI_Section,  
+  MaxSection,
+  ParameterSection,
+  TimeSection,
+  FreeDiameterSection,
+  MetricsSection,
+  PfcpSection,
+  GtpcSection,
+  GtpuSection,
+  MtuSection,
+  CtfSection,
+  FreeDiameterFileSection,
+  InfoSection,
+  SubnetSection,
+} from './ViewCfgSection';
 
-export const ViewNRF = ({ nfconfig }) => {  
+
+export const ViewUPF = ({ nfconfig }) => {  
+  const { smf, parameter, max, time, upf } = nfconfig;
   return (
     <div>
-      {/* // 使用 LOGSection 组件 */}                  
       <LOGSection nfconfig={nfconfig} />
-      {/* // 使用 NRFSection 组件 */}                  
       <NRFSection nfconfig={nfconfig} />
-      {/* // 使用 SBISection 组件 */}   
       <SBISection nfconfig={nfconfig} />
 
-      <div className="parameter-body">parameter:</div>
-      <div className="max-body">max:</div>
-      <div className="time-body">time:</div>
+      <div className="upf-section">
+          <div className="upf-header">upf:</div>          
+          <PfcpSection pfcp={upf.pfcp} /> 
+          <GtpuSection gtpu={upf.gtpu} />
+          <SubnetSection subnet={upf.subnet} />
+          <MetricsSection metrics={upf.metrics} /> 
+      </div>
+      
+      <div>  
+        <div className="nf-section">
+          <div className="nf-header">smf:</div>
+          <div className="smf-section">
+            {smf && (
+              <div>
+                <NF_SBI_Section sbi={smf.sbi} />
+                <PfcpSection pfcp={smf.pfcp} />               
+              </div>
+            )}
+          </div>
+        </div>
+      </div> 
+      
+      
+      <ParameterSection parameter={parameter} />
+      <MaxSection max={max} />
+      <TimeSection time={time} />
     </div>
   );
 };

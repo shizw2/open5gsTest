@@ -515,3 +515,14 @@ export const InfoSection = ({ info }) => {
     </div>
   );
 };
+
+
+export const DbUriSection = ({ db_uri }) => {
+  return (
+    <div>
+      {db_uri && (
+        <div className="db-uri-section">db_uri: {db_uri}</div>
+      )}
+    </div>
+  );
+};

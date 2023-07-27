@@ -10,9 +10,9 @@ export const ViewNRF = ({ nfconfig }) => {
       {/* // 使用 SBISection 组件 */}   
       <SBISection nfconfig={nfconfig} />
 
-      <div className="parameter-body">parameter:</div>
-      <div className="max-body">max:</div>
-      <div className="time-body">time:</div>
+      <ParameterSection parameter={parameter} />
+      <MaxSection max={max} />
+      <TimeSection time={time} />
     </div>
   );
 };

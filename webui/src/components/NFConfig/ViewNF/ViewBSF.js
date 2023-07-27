@@ -1,8 +1,9 @@
-import { NRFSection, SBISection,LOGSection } from './ViewCfgSection';
+import { NRFSection, SBISection,LOGSection,DbUriSection } from './ViewCfgSection';
 
 export const ViewBSF = ({ nfconfig }) => {  
   return (
     <div>
+      <DbUriSection db_uri={nfconfig.db_uri} />
       {/* // 使用 LOGSection 组件 */}                  
       <LOGSection nfconfig={nfconfig} />
 
