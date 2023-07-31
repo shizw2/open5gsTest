@@ -17,7 +17,7 @@ export const NRFSection = ({ nfconfig }) => (
                   ))}
                   {item.port && (
                     <div className="forty-spaces">
-                      port: {item.port}
+                      &nbsp;port: {item.port}
                     </div>
                   )}
                 </div>
@@ -47,31 +47,43 @@ export const NRFSection = ({ nfconfig }) => (
 
 export const SBISection = ({ nfconfig }) => (
   <div>
-	  {nfconfig && nfconfig.sbi && (
-		<div className="sbi-section">
-		  <div className="sbi-header">sbi:</div>
-		  <div className="sbi-body">                  
-			{nfconfig.sbi.server && (
-			  <div className="sbi-detail">
-				<div className="twenty-spaces">server:</div>                                      
-				  <div className="forty-spaces">no_tls:{String(nfconfig.sbi.server.no_tls)}</div> 
-				  <div className="forty-spaces">no_verify:{String(nfconfig.sbi.server.no_verify)}</div>
-				  <div className="forty-spaces">cacert:{nfconfig.sbi.server.cacert}</div>
-				  <div className="forty-spaces">key:{nfconfig.sbi.server.key}</div>
-				  <div className="forty-spaces">cert:{nfconfig.sbi.server.cert}</div>
-			  </div>
-			)}                  
-		  </div>
-		</div>
-	  )}
+    {nfconfig && nfconfig.sbi && (
+      <div className="sbi-section">
+        <div className="sbi-header">sbi:</div>
+        <div className="sbi-body">
+          {nfconfig.sbi.server && (
+            <div className="sbi-detail">
+              <div className="twenty-spaces">server:</div>
+              <div className="forty-spaces">no_tls: {String(nfconfig.sbi.server.no_tls)}</div>
+              <div className="forty-spaces">no_verify: {String(nfconfig.sbi.server.no_verify)}</div>
+              <div className="forty-spaces">cacert: {nfconfig.sbi.server.cacert}</div>
+              <div className="forty-spaces">key: {nfconfig.sbi.server.key}</div>
+              <div className="forty-spaces">cert: {nfconfig.sbi.server.cert}</div>
+            </div>
+          )}
+
+          {nfconfig.sbi.client && (
+            <div className="sbi-detail">
+              <div className="twenty-spaces">client:</div>
+              <div className="forty-spaces">no_tls: {String(nfconfig.sbi.client.no_tls)}</div>
+              <div className="forty-spaces">no_verify: {String(nfconfig.sbi.client.no_verify)}</div>
+              <div className="forty-spaces">cacert: {nfconfig.sbi.client.cacert}</div>
+              <div className="forty-spaces">key: {nfconfig.sbi.client.key}</div>
+              <div className="forty-spaces">cert: {nfconfig.sbi.client.cert}</div>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
   </div>
 );
+
 
 export const LOGSection = ({ nfconfig }) => (
   <div>
     {nfconfig && nfconfig.logger && (
       <div className="logger-section">
-        <div className="logger-header">logger:</div>
+        <div className="logger-header">logger1111:</div>
         <div className="logger-body">
           <div className="eight-spaces">
             file: {nfconfig.logger.file}
@@ -237,9 +249,9 @@ export const HnetSection = ({ hnet }) => (
         <div className="hnet-body">
           {hnet.map((entry) => (
             <div className="hnet-entry" key={entry.id}>
-              <div className="twenty-spaces">id: {entry.id}</div>
-              <div className="twenty-spaces">scheme: {entry.scheme}</div>
-              <div className="twenty-spaces">key: {entry.key}</div>
+              <div className="twenty-spaces">-id: {entry.id}</div>
+              <div className="twenty-spaces">&nbsp;scheme: {entry.scheme}</div>
+              <div className="twenty-spaces">&nbsp;key: {entry.key}</div>
             </div>
           ))}
         </div>
@@ -327,15 +339,15 @@ export const FreeDiameterSection = ({ freeDiameter }) => {
             </div>
           )}
           {freeDiameter.connect && (
-            <div className="twenty-spaces">
-              connect:
-              {freeDiameter.connect.map((connection, index) => (
-                <div key={index} className="twenty-spaces">
-                  -identity: {connection.identity}
-                  <div className="twenty-spaces">&nbsp;addr: {connection.addr}</div>
-                </div>
-              ))}
-            </div>
+			<div className="twenty-spaces">
+			  connect:
+			  {freeDiameter.connect.map((connection, index) => (
+				<div key={index} className="connect">
+				  <div className="twenty-spaces">-identity: {connection.identity}</div>
+				  <div className="twenty-spaces">&nbsp;addr: {connection.addr}</div>
+				</div>
+			  ))}
+			</div>
           )}
         </div>
       )}

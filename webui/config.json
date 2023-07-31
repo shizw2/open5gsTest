@@ -1,3 +1,17 @@
 {
-  "directoryPath": "/home/test/config"
+  "directoryPath": "/home/test/config",
+  "desiredFileNames": [
+    "amf.yaml",
+    "ausf.yaml",
+    "bsf.yaml",
+    "nrf.yaml",
+    "nssf.yaml",
+    "pcf.yaml",
+    "scp.yaml",
+    "smf.yaml",
+    "udm.yaml",
+    "udr.yaml",
+    "upf.yaml",
+    "test.yaml"
+  ]
 }

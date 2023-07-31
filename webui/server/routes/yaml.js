@@ -37,14 +37,16 @@ const NFConfig = {
     
     detailAll: async (req, res, next) => {
         const allConfigData = [];
-
+		const desiredFileNames = config.desiredFileNames; // 使用配置文件中的desiredFileNames
+		
+		
         try {
           // 读取目录中的所有文件
           const fileNames = fs.readdirSync(directoryPath);
 
-          // 筛选出 YAML 文件
+          // 筛选出 YAML 文件并且只返回5GC相关的yaml文件
           const yamlFileNames = fileNames.filter((fileName) =>
-            path.extname(fileName).toLowerCase() === '.yaml'
+            path.extname(fileName).toLowerCase() === '.yaml' && desiredFileNames.includes(fileName)
           );
 
           for (const fileName of yamlFileNames) {

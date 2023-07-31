@@ -67,10 +67,10 @@ class Edit extends Component {
     let selectedSchema;
     let selectedUiSchema;
 
-    if (formData._id === 'nfconfig1' || formData._id === 'amf') {
+    if (formData._id === 'nrf') {
       selectedSchema = nrfschema;
       selectedUiSchema = nrfuiSchema;
-    } else if (formData._id === 'nfconfig2'|| formData._id === 'bsf') {
+    } else if (formData._id === 'bsf') {
       selectedSchema = bsfschema;
       selectedUiSchema = bsfuiSchema;
     }else if (formData._id === 'ausf') {

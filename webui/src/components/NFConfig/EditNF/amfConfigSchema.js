@@ -2,7 +2,7 @@ import { loggerSchema, sbiSchema, nrfSchema,nf_sbi_Schema,timeSchema,icpsSchema,
 import { loggerUiSchema, sbiUiSchema, nrfUiSchema,nf_sbi_UiSchema,timeUiSchema,icpsUiSchema,metricsUiSchema,guamiUiSchema,taiUiSchema,securityUiSchema,networkNameUiSchema,amfNameUiSchema } from './EditCfgSection';
 
 export const amfschema = {
-  title: "NRF Configuration",
+  title: "AMF Configuration",
   type: "object",
   properties: {
     logger: loggerSchema,

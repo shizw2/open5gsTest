@@ -1,7 +1,15 @@
-import { NRFSection, SBISection,LOGSection,MetricsSection,NF_SBI_Section,GuamiSection,TaiSection,PlmnSupportSection,SecuritySection ,TimeSection} from './ViewCfgSection';
+import {
+  NRFSection,
+  SBISection,
+  LOGSection,
+  NF_SBI_Section,  
+  MaxSection,
+  ParameterSection,
+  TimeSection,
+} from './ViewCfgSection';
 
 export const ViewAUSF = ({ nfconfig }) => {  
-  console.log("nfconfig:", nfconfig); // 在这里添加打印语句
+  const {parameter, max, time } = nfconfig;
   return (
     <div>
       {/* // 使用 LOGSection 组件 */}                  
@@ -22,9 +30,9 @@ export const ViewAUSF = ({ nfconfig }) => {
       )}
       </div>
 
-      <div className="parameter-body">parameter:</div>
-      <div className="max-body">max:</div>
-      <TimeSection time={nfconfig.time} />      
+      <ParameterSection parameter={parameter} />
+      <MaxSection max={max} />
+      <TimeSection time={time} /> 
     </div>
   );
 };

@@ -1,6 +1,14 @@
-import { NRFSection, SBISection,LOGSection } from './ViewCfgSection';
+import {
+  NRFSection,
+  SBISection,
+  LOGSection, 
+  MaxSection,
+  ParameterSection,
+  TimeSection, 
+} from './ViewCfgSection';
 
-export const ViewNRF = ({ nfconfig }) => {  
+export const ViewNRF = ({ nfconfig }) => {
+  const {parameter, max, time } = nfconfig;
   return (
     <div>
       {/* // 使用 LOGSection 组件 */}                  

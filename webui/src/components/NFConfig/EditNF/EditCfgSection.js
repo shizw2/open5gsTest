@@ -95,6 +95,7 @@ export const sbiSchema = {
 export const sbiUiSchema = {
   classNames: "col-xs-12",
   server: {
+	classNames: "col-xs-12",
     no_tls: {
       classNames: "col-xs-12",
     },
@@ -112,6 +113,7 @@ export const sbiUiSchema = {
     },
   },
   client: {
+	classNames: "col-xs-12",  
     no_tls: {
       classNames: "col-xs-12",
     },
@@ -196,6 +198,7 @@ export const nf_sbi_UiSchema = {
   sbi: {
     classNames: "col-xs-12",
     items: {
+	  classNames: "col-xs-12",
       addr: {
         classNames: "col-xs-12"
       },
@@ -225,14 +228,13 @@ export const timeSchema = {
 export const timeUiSchema = {
   classNames: "col-xs-12",
   nf_instance: {
-    classNames: "col-xs-12",
-    properties: {
-      heartbeat: {
-        classNames: "col-xs-12"
-      }
-    }
+	classNames: "col-xs-12",
+    heartbeat: {
+      classNames: "col-xs-12"
+    }		
   }
 };
+
 
 // Schema
 export const icpsSchema = {
@@ -262,6 +264,7 @@ export const icpsUiSchema = {
 
 export const metricsSchema = {
   type: "array",
+  title: "Metrics",
   items: {
     type: "object",
     properties: {
@@ -282,16 +285,20 @@ export const metricsSchema = {
 
 export const metricsUiSchema = {
   classNames: "col-xs-12",
-  metrics: {
-    items: {
-      addr: {
-        classNames: "col-xs-12"
+  items: {
+    metrics: {
+      classNames: "col-xs-12",
+      items: {
+		classNames: "col-xs-12",
+        addr: {
+          classNames: "col-xs-12",
+        },
+        port: {
+          classNames: "col-xs-12",
+        },
       },
-      port: {
-        classNames: "col-xs-12"
-      }
-    }
-  }
+    },
+  },
 };
 
 
