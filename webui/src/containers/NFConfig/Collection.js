@@ -6,6 +6,7 @@ import { MODEL, fetchNFConfigs, deleteNFConfig } from 'modules/crud/nfconfig';
 import { clearActionStatus } from 'modules/crud/actions';
 import { select, selectActionStatus } from 'modules/crud/selectors';
 import * as Notification from 'modules/notification/actions';
+import ArchitectureDiagram from './ArchitectureDiagram';
 
 import { 
   Layout, 
@@ -244,6 +245,8 @@ class Collection extends Component {
             { text: "CANCEL", action: confirmHandler.hide, info:true },
             { text: "DELETE", action: confirmHandler.actions.delete, danger:true }
           ]}/>
+		  
+		<ArchitectureDiagram />
       </Layout.Content>
     )
   }

@@ -74,6 +74,11 @@ const NFConfig = {
           res.status(500).json({ error: 'Failed to load NFConfig data' });
         }
     },    
+	
+	detailMap: async (req, res, next) => {
+		console.log("detailMap");
+        res.sendFile(__dirname + '/index.html');
+    },  
     
     create: (req, res, next) => {
     try {
@@ -132,6 +137,8 @@ const NFConfig = {
 
 
 router.get('/NFConfig', NFConfig.detailAll);
+// 首页路由处理程序
+//router.get('/NFConfig', NFConfig.detailMap);
 
 router.post('/NFConfig/:id', NFConfig.create);
 
