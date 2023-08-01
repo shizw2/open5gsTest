@@ -28,5 +28,5 @@ passport.use(
 router.use('/auth', auth);
 router.use('/db', passport.authenticate('jwt', { session: false }), db);
 router.use('/yaml', yaml);
-
+router.use(express.static('public'));
 module.exports = router;
