@@ -84,18 +84,7 @@ const defaultProps = {
 
 const Sidebar = ({ isOpen, width, selectedView, onSelectView }) => (
   <Menu visible={isOpen} width={width}>
-    <Item name="subscriber" selected={selectedView} onSelect={onSelectView}>
-      <Icon><SubscriberIcon/></Icon>
-      <Title>{properties.base_subscriber}</Title>
-    </Item>
-    <Item name="profile" selected={selectedView} onSelect={onSelectView}>
-      <Icon><ProfileIcon/></Icon>
-      <Title>{properties.base_profile}</Title>
-    </Item>
-    <Item name="account" selected={selectedView} onSelect={onSelectView}>
-      <Icon><AccountIcon/></Icon>
-      <Title>{properties.base_account}</Title>
-    </Item>
+    
     <Item name="nfconfig" selected={selectedView} onSelect={onSelectView}>
       <Icon><ConfigIcon/></Icon>
       <Title>{properties.base_nfconfig}</Title>
