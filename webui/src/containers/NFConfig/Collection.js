@@ -35,7 +35,22 @@ class Collection extends Component {
       visible: false,
       disableOnClickOutside: false,
       _id: ''
-    }
+    },
+    selectedNF: null,
+    rectCoordinates: null,
+  };
+  
+  handleSelectedNFChange = (selectedNF) => {
+    console.log("handleSelectedNFChange"+selectedNF)
+    this.setState({ selectedNF });
+  };
+
+  handleRectCoordinatesChange = (rectCoordinates) => {
+    this.setState({ rectCoordinates });
+  };
+
+  handleViewHandlerShow = (_id) => {
+    this.viewHandler.show(_id);
   };
 
   componentWillMount() {
@@ -246,7 +261,11 @@ class Collection extends Component {
             { text: "DELETE", action: confirmHandler.actions.delete, danger:true }
           ]}/>
 		  
-		<ArchitectureDiagram />
+		 <ArchitectureDiagram
+          onSelectedNFChange={this.handleSelectedNFChange}
+          onRectCoordinatesChange={this.handleRectCoordinatesChange}
+          onViewHandlerShow={this.handleViewHandlerShow}
+         />
       </Layout.Content>
     )
   }

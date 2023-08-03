@@ -14,11 +14,18 @@ class ArchitectureDiagram extends React.Component {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = rect.x; // 获取矩形左上角的x坐标
     const y = rect.y; // 获取矩形左上角的y坐标
-    console.log("handleNFClick,offsetX:"+x+"offsetY:"+y)
+    console.log("handleNFClick,offsetX:"+x+"offsetY:"+y+"nf:",nf)
+    
     this.setState({
-      selectedNF: nf,
-      rectCoordinates: { x, y },
+    selectedNF: nf,
+    rectCoordinates: { x, y },
     });
+  
+    this.props.onSelectedNFChange(nf);
+    this.props.onRectCoordinatesChange({ x, y });  
+    // 调用viewHandler的show方法，传递A的_id作为参数
+    this.props.onViewHandlerShow(nf);
+    
   }
 
   handleSvgClick(event) {
@@ -43,20 +50,20 @@ class ArchitectureDiagram extends React.Component {
           
           {/* A网元 */}
           <g onClick={(event) => this.handleNFClick('A', event)}>
-            <rect x="36" y="60" width="130" height="50" fill={selectedNF === 'A' ? 'blue' : 'transparent'} />
-            <text x="75" y="80">A</text>
+             <rect x="35" y="57" width="136" height="44" fill={selectedNF === 'A' ? 'gray' : 'transparent'} opacity="0.5" style={{ mixBlendMode: 'multiply' }} />
+            {/*<text x="75" y="80" fill="blue">A</text>*/}
           </g>
 
           {/* B网元 */}
           <g onClick={(event) => this.handleNFClick('B', event)}>
-            <rect x="230" y="60" width="130" height="50" fill={selectedNF === 'B' ? 'green' : 'transparent'} />
-            <text x="225" y="80">B</text>
+            <rect x="230" y="57" width="136" height="44" fill={selectedNF === 'B' ? 'gray' : 'transparent'} opacity="0.5" style={{ mixBlendMode: 'multiply' }}/>
+           
           </g>
 
           {/* C网元 */}
           <g onClick={(event) => this.handleNFClick('C', event)}>
-            <rect x="107" y="190" width="130" height="50" fill={selectedNF === 'C' ? 'yellow' : 'transparent'} />
-            <text x="175" y="180">C</text>
+            <rect x="107" y="190" width="136" height="44" fill={selectedNF === 'C' ? 'gray' : 'transparent'} opacity="0.5" style={{ mixBlendMode: 'multiply' }}/>
+           
           </g>
 
           

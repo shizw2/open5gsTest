@@ -101,7 +101,7 @@ co(function* () {
   passport.deserializeUser(Account.deserializeUser());
 
   server.use('/api', api);
-  server.use(express.static('public'));
+  server.use(express.static('public'));//必须要放到server.get('*', (req, res)前
   
   server.get('*', (req, res) => {
     return handle(req, res);
