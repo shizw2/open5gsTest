@@ -14,25 +14,24 @@ class ArchitectureDiagram extends React.Component {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = rect.x; // 获取矩形左上角的x坐标
     const y = rect.y; // 获取矩形左上角的y坐标
-    console.log("handleNFClick,offsetX:"+x+"offsetY:"+y+"nf:",nf)
-    
+    console.log("handleNFClick,offsetX:" + x + " offsetY:" + y + " nf:", nf)
+
     this.setState({
-    selectedNF: nf,
-    rectCoordinates: { x, y },
+      selectedNF: nf,
+      rectCoordinates: { x, y },
     });
-  
+
     this.props.onSelectedNFChange(nf);
-    this.props.onRectCoordinatesChange({ x, y });  
+    this.props.onRectCoordinatesChange({ x, y });
     // 调用viewHandler的show方法，传递A的_id作为参数
     this.props.onViewHandlerShow(nf);
-    
   }
 
   handleSvgClick(event) {
     const svgRect = event.currentTarget.getBoundingClientRect();
     const offsetX = event.clientX - svgRect.left;
     const offsetY = event.clientY - svgRect.top;
-    console.log("handleSvgClick,offsetX:"+offsetX+"offsetY:"+offsetY)
+    console.log("handleSvgClick,offsetX:" + offsetX + " offsetY:" + offsetY)
     this.setState({
       selectedNF: null,
       rectCoordinates: { x: offsetX, y: offsetY },
@@ -41,43 +40,49 @@ class ArchitectureDiagram extends React.Component {
 
   render() {
     const { selectedNF, rectCoordinates } = this.state;
+    // 网元数量
+    const numElements = 11;
 
+    const w = 125;
+    const h = 60
+    const selectedNFArray = ['nssf', 'udm', 'nrf', 'pcf', 'bsf', 'udr', 'ausf', 'amf', 'smf', "upf"];
     return (
-      <div>
-        <svg width="400" height="300" onClick={(event) => this.handleSvgClick(event)}>
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        {/* 添加一个居中对齐的容器 */}
+        <svg width="1200" height="800" onClick={(event) => this.handleSvgClick(event)}>
           {/* 架构图背景 */}
-          <image href="/ABC.svg" width="400" height="300" />
-          
-          {/* A网元 */}
-          <g onClick={(event) => this.handleNFClick('A', event)}>
-             <rect x="35" y="57" width="136" height="44" fill={selectedNF === 'A' ? 'gray' : 'transparent'} opacity="0.5" style={{ mixBlendMode: 'multiply' }} />
-            {/*<text x="75" y="80" fill="blue">A</text>*/}
-          </g>
+          <image href="/5GC.png" width="1200" height="800" />
 
-          {/* B网元 */}
-          <g onClick={(event) => this.handleNFClick('B', event)}>
-            <rect x="230" y="57" width="136" height="44" fill={selectedNF === 'B' ? 'gray' : 'transparent'} opacity="0.5" style={{ mixBlendMode: 'multiply' }}/>
-           
-          </g>
+          {/* NF网元1 */}
+          {Array.from({ length: numElements }, (_, index) => {
+            let x, y;
+            if (index === 9) {
+              x = 770; // 特殊情况下的x坐标
+              y = 560; // 特殊情况下的y坐标
+            } else {
+              x = index < 5 ? 56 + index * 183 : 133 + (index - 5) * 190; // 计算x坐标
+              y = index < 5 ? 155 : 353; // 计算y坐标	
+            }
 
-          {/* C网元 */}
-          <g onClick={(event) => this.handleNFClick('C', event)}>
-            <rect x="107" y="190" width="136" height="44" fill={selectedNF === 'C' ? 'gray' : 'transparent'} opacity="0.5" style={{ mixBlendMode: 'multiply' }}/>
-           
-          </g>
-
-          
+            return (
+              <g key={index} onClick={(event) => this.handleNFClick(selectedNFArray[index], event)}>
+                <rect
+                  x={x}
+                  y={y}
+                  width={w}
+                  height={h}
+                  fill={selectedNF === selectedNFArray[index] ? 'green' : 'transparent'}
+                  opacity="0.5"
+                  style={{ mixBlendMode: 'multiply' }}
+                  data-selected-index={index}
+                />
+              </g>
+            );
+          })}
         </svg>
 
-        {selectedNF && (
-          <div>
-            <h3>{selectedNF} 网元配置</h3>
-            <p>{selectedNF}配置信息</p>
-          </div>
-        )}
-
         {rectCoordinates && (
-          <div>
+          <div style={{ position: 'absolute', bottom: '-40px', left: '50%', transform: 'translateX(-50%)' }}>
             <h3>选中坐标</h3>
             <p>x: {rectCoordinates.x}, y: {rectCoordinates.y}</p>
           </div>

@@ -190,19 +190,18 @@ const schema = {
                       "type": "object",
                       "title": "",
                       "properties": {
-
+                        "priority_level": {
+                          "type": "number",
+                          "title": "ARP Priority Level (1-15)*",
+                          "enum": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+                          "default": 1,
+                        },
                         "pre_emption_capability": {
                           "type": "number",
                           "title": "Capability*",
                           "enum": [1, 2],
                           "enumNames": ["Disabled", "Enabled"],
                           "default": 1
-                        },
-						"priority_level": {
-                          "type": "number",
-                          "title": "ARP Priority Level (1-15)*",
-                          "enum": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-                          "default": 1,
                         },
                         "pre_emption_vulnerability": {
                           "type": "number",
@@ -533,13 +532,12 @@ const uiSchema = {
             },
             "arp": {
               "priority_level": {
-				  
               },
               "pre_emption_capability": {
-                classNames: "col-xs-12"
+                classNames: "col-xs-6"
               },
               "pre_emption_vulnerability": {
-                classNames: "col-xs-12"
+                classNames: "col-xs-6"
               }
             }
           },

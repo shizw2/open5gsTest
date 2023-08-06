@@ -101,12 +101,11 @@ co(function* () {
   passport.deserializeUser(Account.deserializeUser());
 
   server.use('/api', api);
-  server.use(express.static('public'));//必须要放到server.get('*', (req, res)前
+  server.use(express.static('static'));//必须要放到server.get('*', (req, res)前
   
   server.get('*', (req, res) => {
     return handle(req, res);
   });
-
 
   if (dev) {
     server.use(morgan('tiny'));/*morgan 是一个流行的日志记录中间件，它可以用于记录 HTTP 请求的相关信息，如请求路径、响应状态码、响应时间等,'tiny' 是格式*/

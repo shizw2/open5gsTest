@@ -83,7 +83,7 @@ export const LOGSection = ({ nfconfig }) => (
   <div>
     {nfconfig && nfconfig.logger && (
       <div className="logger-section">
-        <div className="logger-header">logger1111:</div>
+        <div className="logger-header">logger:</div>
         <div className="logger-body">
           <div className="eight-spaces">
             file: {nfconfig.logger.file}
