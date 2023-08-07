@@ -33,6 +33,8 @@ import { nrfschema, nrfuiSchema } from './EditNF/nrfConfigSchema';
 import { bsfschema, bsfuiSchema } from './EditNF/bsfConfigSchema';
 import { ausfschema, ausfuiSchema } from './EditNF/ausfConfigSchema';
 import { amfschema, amfuiSchema } from './EditNF/amfConfigSchema';
+import { smfschema, smfuiSchema } from './EditNF/smfConfigSchema';
+
 
 class Edit extends Component {
   static propTypes = {
@@ -79,6 +81,9 @@ class Edit extends Component {
     }else if (formData._id === 'amf' || formData._id === 'a') {
       selectedSchema = amfschema;
       selectedUiSchema = amfuiSchema;
+    }else if (formData._id === 'smf') {
+      selectedSchema = smfschema;
+      selectedUiSchema = smfuiSchema;
     }else {
       // 默认情况下，选择一个适当的“fallback”模式和 UI 模式
       selectedSchema = nrfschema;

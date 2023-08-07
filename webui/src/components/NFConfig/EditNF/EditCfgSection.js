@@ -489,3 +489,246 @@ export const amfNameUiSchema = {
   }
 };
 
+export const pfcpSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    properties: {
+      addr: {
+        type: "string",
+        title: "Address",
+        default: "127.0.0.4"
+      }
+    }
+  }
+};
+
+export const pfcpUiSchema = {
+  classNames: "col-xs-12",
+  pfcp: {
+    classNames: "col-xs-12",
+    items: {
+	  classNames: "col-xs-12",
+      addr: {
+        classNames: "col-xs-12"
+      }
+    }
+  }
+};
+
+export const gtpcSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    properties: {
+      addr: {
+        type: "string",
+        title: "Address",
+        default: "127.0.0.4"
+      }
+    }
+  }
+};
+
+export const gtpcUiSchema = {
+  classNames: "col-xs-12",
+  gtpc: {
+    classNames: "col-xs-12",
+    items: {
+	  classNames: "col-xs-12",
+      addr: {
+        classNames: "col-xs-12"
+      }
+    }
+  }
+};
+
+export const gtpuSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    properties: {
+      addr: {
+        type: "string",
+        title: "Address",
+        default: "127.0.0.4"
+      }
+    }
+  }
+};
+
+export const gtpuUiSchema = {
+  classNames: "col-xs-12",
+  gtpu: {
+    classNames: "col-xs-12",
+    items: {
+      classNames: "col-xs-12",
+      addr: {
+        classNames: "col-xs-12"
+      }
+    }
+  }
+};
+
+
+export const subnetSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    properties: {
+      addr: {
+        type: "string",
+        title: "Address"
+      }
+    }
+  }
+};
+
+export const subnetUiSchema = {
+  classNames: "col-xs-12",
+  subnet: {
+    classNames: "col-xs-12",
+    items: {
+      classNames: "col-xs-12",
+      addr: {
+        classNames: "col-xs-12"
+      }
+    }
+  }
+};
+
+export const dnsSchema = {
+  type: "array",
+  items: {
+    type: "string"
+  }
+};
+
+export const dnsUiSchema = {
+  classNames: "col-xs-12",
+  dns: {
+    classNames: "col-xs-12"
+  }
+};
+
+export const mtuSchema = {
+  type: "number",
+  minimum: 0
+};
+
+export const mtuUiSchema = {
+  classNames: "col-xs-12"
+};
+
+export const crfSchema = {
+  type: "object",
+  properties: {
+    enabled: {
+      type: "string",
+      enum: ["auto", "yes", "no"]
+    }
+  },
+  required: ["enabled"]
+};
+
+export const crfUiSchema = {
+  classNames: "col-xs-12",
+  enabled: {
+    classNames:"col-xs-12"
+  }
+};
+
+export const freeDiameterSchema = {
+  type: "string"
+};
+
+export const freeDiameterUiSchema = {
+  classNames: "col-xs-12"
+};
+
+
+export const infoSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    properties: {
+      s_nssai: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            sst: {
+              type: "number"
+            },
+            dnn: {
+              type: "array",
+              items: {
+                type: "string"
+              }
+            }
+          },
+          required: ["sst", "dnn"]
+        }
+      },
+      tai: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            plmn_id: {
+              type: "object",
+              properties: {
+                mcc: {
+                  type: "number"
+                },
+                mnc: {
+                  type: "number"
+                }
+              },
+              required: ["mcc", "mnc"]
+            },
+            tac: {
+              type: "number"
+            }
+          },
+          required: ["plmn_id", "tac"]
+        }
+      }
+    }
+  }
+};
+
+export const infoUiSchema = {
+  classNames: "col-xs-12",
+  items: {
+    classNames: "col-xs-12",
+    s_nssai: {
+      classNames: "col-xs-12",
+      items: {
+        sst: {
+          classNames: "col-xs-12"
+        },
+        dnn: {
+          classNames: "col-xs-12"
+        }
+      }
+    },
+    tai: {
+      classNames: "col-xs-12",
+      items: {
+        plmn_id: {
+          classNames: "col-xs-12",
+          mcc: {
+            classNames: "col-xs-12"
+          },
+          mnc: {
+            classNames: "col-xs-12"
+          }
+        },
+        tac: {
+          classNames: "col-xs-12"
+        }
+      }
+    }
+  }
+};
