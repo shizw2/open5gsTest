@@ -20,7 +20,8 @@ const propTypes = {
 }
 
 const defaultProps = {
-  title: `${properties.base_title} ${Package.version}`
+  //title: `${properties.base_title} ${Package.version}`
+  title: `${properties.base_title}`
 }
 
 const Layout = ({ title, children }) => (

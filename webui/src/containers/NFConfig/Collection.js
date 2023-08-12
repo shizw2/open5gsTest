@@ -223,11 +223,11 @@ class Collection extends Component {
 
     return (
       <Layout.Content>
-      {/*<ArchitectureDiagram
+        <ArchitectureDiagram
           onSelectedNFChange={this.handleSelectedNFChange}
           onRectCoordinatesChange={this.handleRectCoordinatesChange}
           onViewHandlerShow={this.handleViewHandlerShow}
-      />*/}
+        />
         <NFConfig.List
           nfconfigs={data}
           deletedId={status.id}

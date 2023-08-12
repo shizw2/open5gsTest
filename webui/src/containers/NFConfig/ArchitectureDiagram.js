@@ -41,27 +41,30 @@ class ArchitectureDiagram extends React.Component {
   render() {
     const { selectedNF, rectCoordinates } = this.state;
     // 网元数量
-    const numElements = 11;
-
-    const w = 125;
-    const h = 60
+    const numElements = 10;
+    
+    const scale = 0.85;
+    const w = 125 * scale;
+    const h = 60 * scale;
     const selectedNFArray = ['nssf', 'udm', 'nrf', 'pcf', 'bsf', 'udr', 'ausf', 'amf', 'smf', "upf"];
     return (
       <div style={{ display: 'flex', justifyContent: 'center' }}>
         {/* 添加一个居中对齐的容器 */}
-        <svg width="1200" height="800" onClick={(event) => this.handleSvgClick(event)}>
+        <svg width={"1200"*scale} height={"800"*scale} onClick={(event) => this.handleSvgClick(event)}>
           {/* 架构图背景 */}
-          <image href="/5GC.png" width="1200" height="800" />
+          <image href="/5GC.png" width={"1200"*scale} height={"800"*scale} />
 
           {/* NF网元1 */}
           {Array.from({ length: numElements }, (_, index) => {
             let x, y;
             if (index === 9) {
-              x = 770; // 特殊情况下的x坐标
-              y = 560; // 特殊情况下的y坐标
+              x = 770 * scale; // 特殊情况下的x坐标
+              y = 560 * scale; // 特殊情况下的y坐标
             } else {
-              x = index < 5 ? 56 + index * 183 : 133 + (index - 5) * 190; // 计算x坐标
-              y = index < 5 ? 155 : 353; // 计算y坐标	
+              //x = index < 5 ? 56 + index * 183 : 133 + (index - 5) * 190; // 计算x坐标
+              //y = index < 5 ? 155 : 353; // 计算y坐标
+              x = index < 5 ? 57  * scale+ index * 183 * scale : 134 * scale + (index - 5) * 190 * scale; // 计算x坐标
+              y = index < 5 ? 156 * scale : 354 * scale; // 计算y坐标	
             }
 
             return (

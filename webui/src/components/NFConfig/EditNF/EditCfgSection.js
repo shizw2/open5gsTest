@@ -19,10 +19,10 @@ export const loggerSchema = {
 export const loggerUiSchema = {
   classNames: "col-xs-12",
   file: {
-    classNames: "col-xs-12",
+    classNames: "col-xs-6",
   },
   level: {
-    classNames: "col-xs-12",
+    classNames: "col-xs-6",
   },
 };
 
@@ -209,7 +209,10 @@ export const nf_sbi_UiSchema = {
   }
 };
 
-export const timeSchema = {
+//字段可能存在也可能不存在的处理
+export const timeSchema = {/*
+  anyOf: [
+    {
   type: "object",
   properties: {
     nf_instance: {
@@ -222,17 +225,18 @@ export const timeSchema = {
       },
       required: ["heartbeat"]
     }
-  }
+      },
+    },
+    {
+      type: "null"
+    },
+  ]*/
 };
 
+//TODO
 export const timeUiSchema = {
-  classNames: "col-xs-12",
-  nf_instance: {
-	classNames: "col-xs-12",
-    heartbeat: {
-      classNames: "col-xs-12"
-    }		
-  }
+  
+  
 };
 
 
@@ -625,7 +629,7 @@ export const crfSchema = {
   properties: {
     enabled: {
       type: "string",
-      enum: ["auto", "yes", "no"]
+      enum: ['auto', 'yes', 'no']
     }
   },
   required: ["enabled"]
@@ -726,6 +730,196 @@ export const infoUiSchema = {
           }
         },
         tac: {
+          classNames: "col-xs-12"
+        }
+      }
+    }
+  }
+};
+
+export const nsiSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    properties: {
+      addr: {
+        type: "string"
+      },
+      port: {
+        type: "integer"
+      },
+      s_nssai: {
+        type: "object",
+        properties: {
+          sst: {
+            type: "integer"
+          }
+        },
+        required: ["sst"]
+      }
+    },
+    required: ["addr", "port", "s_nssai"]
+  }
+};
+
+export const nsiUiSchema = {
+  classNames: "col-xs-12",
+  items: {
+    addr: {
+      classNames: "col-xs-4",
+      "ui:autofocus": true,
+      "ui:placeholder": "Enter the address"
+    },
+    port: {
+      classNames: "col-xs-4",
+      "ui:widget": "updown"
+    },
+    s_nssai: {
+      classNames: "col-xs-4",
+      sst: {
+        "ui:widget": "updown"
+      }
+    }
+  }
+};
+
+export const freeDiameter2Schema = {
+  type: "object",
+  properties: {
+    identity: {
+      type: "string",
+      title: "Identity"
+    },
+    realm: {
+      type: "string",
+      title: "Realm"
+    },
+    listen_on: {
+      type: "string",
+      title: "Listen On"
+    },
+    no_fwd: {
+      type: "boolean",
+      title: "No Forward"
+    },
+    load_extension: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          module: {
+            type: "string",
+            title: "Module"
+          },
+          conf: {
+            type: "string",
+            title: "conf",
+            pattern: "^0x[0-9A-Fa-f]+$",
+            description: "Please enter a valid hexadecimal number starting with '0x'"
+          }
+        },
+        required: ["module"]
+      },
+      title: "Load Extension"
+    },
+    connect: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          identity: {
+            type: "string",
+            title: "Identity"
+          },
+          addr: {
+            type: "string",
+            title: "Address"
+          }
+        },
+        required: ["identity", "addr"]
+      },
+      title: "Connect"
+    }
+  },
+  required: ["identity", "realm", "listen_on", "no_fwd", "load_extension", "connect"],
+  title: "Free Diameter"
+};
+
+export const freeDiameter2UiSchema = {
+  classNames: "col-xs-12",
+  identity: {
+    classNames: "col-xs-12"
+  },
+  realm: {
+    classNames: "col-xs-12"
+  },
+  listen_on: {
+    classNames: "col-xs-12"
+  },
+  no_fwd: {
+    classNames: "col-xs-12"
+  },
+  load_extension: {
+    classNames: "col-xs-12",
+    items: {
+      module: {
+        classNames: "col-xs-12"
+      },
+      conf: {
+        classNames: "col-xs-12"
+      }
+    }
+  },
+  connect: {
+    classNames: "col-xs-12",
+    items: {
+      identity: {
+        classNames: "col-xs-12"
+      },
+      addr: {
+        classNames: "col-xs-12"
+      }
+    }
+  }
+};
+
+export const hnetSchema = {
+  type: "array",
+  title: "HNET",
+  items: {
+    type: "object",
+    properties: {
+      id: {
+        type: "integer",
+        title: "ID"
+      },
+      scheme: {
+        type: "integer",
+        title: "Scheme"
+      },
+      key: {
+        type: "string",
+        title: "Key"
+      }
+    },
+    required: ["id", "scheme", "key"]
+  }
+};
+
+export const hnetUiSchema = {
+  classNames: "col-xs-12",
+  items: {
+    hnet: {
+      classNames: "col-xs-12",
+      items: {
+        classNames: "col-xs-12",
+        id: {
+          classNames: "col-xs-12"
+        },
+        scheme: {
+          classNames: "col-xs-12"
+        },
+        key: {
           classNames: "col-xs-12"
         }
       }
