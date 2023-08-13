@@ -1,32 +1,40 @@
-import { loggerSchema, sbiSchema, nrfSchema,nf_sbi_Schema,timeSchema,icpsSchema,metricsSchema,guamiSchema,taiSchema,securitySchema,networkNameSchema,amfNameSchema } from './EditCfgSection';
-import { loggerUiSchema, sbiUiSchema, nrfUiSchema,nf_sbi_UiSchema,timeUiSchema,icpsUiSchema,metricsUiSchema,guamiUiSchema,taiUiSchema,securityUiSchema,networkNameUiSchema,amfNameUiSchema } from './EditCfgSection';
+import * as schemas from './EditCfgSection';
 
 export const amfschema = {
   title: "AMF Configuration",
   type: "object",
   properties: {
-    logger: loggerSchema,
-    sbi: sbiSchema,
+    logger: schemas.loggerSchema,
+    sbi: schemas.sbiSchema,
     amf: {
       type: "object",
       properties: {
-        sbi: nf_sbi_Schema,
-        metrics: metricsSchema,
+        sbi: schemas.nf_sbi_Schema,
+		ngap: schemas.ngapSchema,
+        metrics: schemas.metricsSchema,
+		guami: schemas.guamiSchema,
+		tai: schemas.taiSchema,
+		//plmn
+		security:schemas.securitySchema,
       },
     },
-    nrf: nrfSchema,
-    time: timeSchema,
+    nrf: schemas.nrfSchema,
+    
   },
 };
 
 export const amfuiSchema = {
-  logger: loggerUiSchema,
-  sbi: sbiUiSchema,
-  nrf: nrfUiSchema,
+  logger: schemas.loggerUiSchema,
+  sbi: schemas.sbiUiSchema,
+  nrf: schemas.nrfUiSchema,
   amf: {
     classNames: "col-xs-12",
-    sbi: nf_sbi_UiSchema,
-    metrics: metricsUiSchema,
+    sbi: schemas.nf_sbi_UiSchema,
+	ngap: schemas.ngapUiSchema,
+    metrics: schemas.metricsUiSchema,
+	guami: schemas.guamiUiSchema,
+	tai: schemas.taiUiSchema,
+	security:schemas.securityUiSchema,
   },
-  time: timeUiSchema,
+  
 };

@@ -1,45 +1,28 @@
-import { loggerSchema, sbiSchema, nrfSchema,nf_sbi_Schema,timeSchema } from './EditCfgSection';
-import { loggerUiSchema, sbiUiSchema, nrfUiSchema,nf_sbi_UiSchema,timeUiSchema } from './EditCfgSection';
+import * as schemas from './EditCfgSection';
 
 export const ausfschema = {
-  "title": "NRF Configuration",
-  "type": "object",
-  "properties": {
-    logger: {
-      ...loggerSchema,
-    },
-    sbi: {
-      ...sbiSchema,
-    },
-    "ausf": {
-      "type": "object",
-      ...nf_sbi_Schema,
-    },
-    nrf: {
-      ...nrfSchema,
-    },
-
-    time: {
-      ...timeSchema, 
-    }
-  }
+  title: "AUSF Configuration",
+  type: "object",
+  properties: {
+    logger: schemas.loggerSchema,
+    sbi: schemas.sbiSchema,
+    nrf: schemas.nrfSchema,
+    ausf: {
+      type: "object",
+      properties: {
+        sbi: schemas.nf_sbi_Schema, 
+      },
+    },    
+    
+  },
 };
 
 export const ausfuiSchema = {
-  logger: {
-    ...loggerUiSchema,
+  logger: schemas.loggerUiSchema,
+  sbi: schemas.sbiUiSchema,
+  nrf: schemas.nrfUiSchema,
+  ausf: {
+    sbi: schemas.nf_sbi_UiSchema,
   },
-  sbi: {
-    ...sbiUiSchema,
-  },
-  nrf: {
-    ...nrfUiSchema,
-  },
-  "ausf": {
-    classNames: "col-xs-12",
-    ...nf_sbi_Schema,
-  }, 
-  time: {
-    ...timeUiSchema, 
-  }
+ 
 };

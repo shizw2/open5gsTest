@@ -97,10 +97,10 @@ export const sbiUiSchema = {
   server: {
 	classNames: "col-xs-12",
     no_tls: {
-      classNames: "col-xs-12",
+      classNames: "col-xs-6",
     },
     no_verify: {
-      classNames: "col-xs-12",
+      classNames: "col-xs-6",
     },
     cacert: {
       classNames: "col-xs-12",
@@ -115,10 +115,10 @@ export const sbiUiSchema = {
   client: {
 	classNames: "col-xs-12",  
     no_tls: {
-      classNames: "col-xs-12",
+      classNames: "col-xs-6",
     },
     no_verify: {
-      classNames: "col-xs-12",
+      classNames: "col-xs-6",
     },
     cacert: {
       classNames: "col-xs-12",
@@ -137,7 +137,7 @@ export const nrfSchema = {
   properties: {
     sbi: {
       type: "array",
-      title: "SBI Configuration",
+      title: "sbi",
       items: {
         type: "object",
         properties: {
@@ -164,10 +164,10 @@ export const nrfUiSchema = {
     classNames: "col-xs-12",
     items: {
       addr: {
-        classNames: "col-xs-12",
+        classNames: "col-xs-6",
       },
       port: {
-        classNames: "col-xs-12",
+        classNames: "col-xs-6",
       },
     },
   },
@@ -194,16 +194,14 @@ export const nf_sbi_Schema = {
 };
 
 export const nf_sbi_UiSchema = {
-  classNames: "col-xs-12",
   sbi: {
-    classNames: "col-xs-12",
     items: {
 	  classNames: "col-xs-12",
-      addr: {
-        classNames: "col-xs-12"
+	  addr: {
+        classNames: "col-xs-6"
       },
       port: {
-        classNames: "col-xs-12"
+        classNames: "col-xs-6"
       }
     }
   }
@@ -266,6 +264,37 @@ export const icpsUiSchema = {
   }
 };
 
+export const ngapSchema = {
+  type: "array",
+  title: "Ngap",
+  items: {
+    type: "object",
+    properties: {
+      addr: {
+        type: "string",
+        title: "Address",
+        default: "127.0.0.5"
+      },
+    }
+  }
+};
+
+
+export const ngapUiSchema = {
+  classNames: "col-xs-12",
+  items: {
+    metrics: {
+      classNames: "col-xs-12",
+      items: {
+		classNames: "col-xs-12",
+        addr: {
+          classNames: "col-xs-12",
+        },
+      },
+    },
+  },
+};
+
 export const metricsSchema = {
   type: "array",
   title: "Metrics",
@@ -307,153 +336,150 @@ export const metricsUiSchema = {
 
 
 export const guamiSchema = {
-  type: "object",
-  properties: {
-    guami: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          plmn_id: {
-            type: "object",
-            properties: {
-              mcc: {
-                type: "integer"
-              },
-              mnc: {
-                type: "integer"
-              }
-            },
-            required: ["mcc", "mnc"]
-          },
-          amf_id: {
-            type: "object",
-            properties: {
-              region: {
-                type: "integer"
-              },
-              set: {
-                type: "integer"
-              }
-            },
-            required: ["region", "set"]
-          }
-        },
-        required: ["plmn_id", "amf_id"]
-      }
-    }
+  type: "array",
+  title: "Guami",
+  items: {
+	type: "object",
+	properties: {
+	  plmn_id: {
+		type: "object",
+		properties: {
+		  mcc: {
+			type: "integer"
+		  },
+		  mnc: {
+			type: "integer"
+		  }
+		},
+		required: ["mcc", "mnc"]
+	  },
+	  amf_id: {
+		type: "object",
+		properties: {
+		  region: {
+			type: "integer"
+		  },
+		  set: {
+			type: "integer"
+		  }
+		},
+		required: ["region", "set"]
+	  }
+	},
+	required: ["plmn_id", "amf_id"]
   }
+
 };
 
 export const guamiUiSchema = {
-  guami: {
-    items: {
-      plmn_id: {
-        mcc: {
-          classNames: "col-xs-12"
-        },
-        mnc: {
-          classNames: "col-xs-12"
-        }
-      },
-      amf_id: {
-        region: {
-          classNames: "col-xs-12"
-        },
-        set: {
-          classNames: "col-xs-12"
-        }
-      }
+  classNames: "col-xs-12",   //增加这个，guami元素才显示
+  items: {
+    plmn_id: {
+		classNames: "col-xs-12",//增加这个，体现层次感
+		mcc: {
+		  classNames: "col-xs-6"
+		},
+		mnc: {
+		  classNames: "col-xs-6"
+		}
+    },
+    amf_id: {
+		classNames: "col-xs-12",
+		region: {
+		  classNames: "col-xs-6"
+		},
+		set: {
+		  classNames: "col-xs-6"
+		}
     }
   }
+  
 };
 
 export const taiSchema = {
-  type: "object",
-  properties: {
-    tai: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          plmn_id: {
-            type: "object",
-            properties: {
-              mcc: {
-                type: "integer"
-              },
-              mnc: {
-                type: "integer"
-              }
-            },
-            required: ["mcc", "mnc"]
-          },
-          tac: {
-            type: "array",
-            items: {
-              type: "integer"
-            }
-          }
-        },
-        required: ["plmn_id", "tac"]
-      }
-    }
+  type: "array",
+  items: {
+	type: "object",
+	properties: {
+	  plmn_id: {
+		type: "object",
+		properties: {
+		  mcc: {
+			type: "integer"
+		  },
+		  mnc: {
+			type: "integer"
+		  }
+		},
+		required: ["mcc", "mnc"]
+	  },
+	  tac: {
+		type: "integer",		
+	  }
+	},
+	required: ["plmn_id", "tac"]
   }
+
 };
 
 export const taiUiSchema = {
-  tai: {
-    items: {
-      plmn_id: {
-        mcc: {
-          classNames: "col-xs-12"
-        },
-        mnc: {
-          classNames: "col-xs-12"
-        }
-      },
-      tac: {
-        classNames: "col-xs-12"
-      }
+  classNames: "col-xs-12",  
+  items: {
+    plmn_id: {
+		classNames: "col-xs-6",//增加这个，体现层次感
+		mcc: {
+		  classNames: "col-xs-6"
+		},
+		mnc: {
+		  classNames: "col-xs-6"
+		}
+	},
+    tac: {
+		classNames: "col-xs-6"
     }
-  }
+  }  
 };
 
 export const securitySchema = {
   type: "object",
+  title: "Security",
   properties: {
-    security: {
-      type: "object",
-      properties: {
-        integrity_order: {
-          type: "array",
-          items: {
-            type: "string"
-          }
-        },
-        ciphering_order: {
-          type: "array",
-          items: {
-            type: "string"
-          }
-        }
+    integrity_order: {
+      type: "array",
+      title: "Integrity Order",
+      items: {
+        type: "string",
+        enum: ["NIA2", "NIA1", "NIA0"]
       },
-      required: ["integrity_order", "ciphering_order"]
+      contains: {
+        type: "string",
+        format: "unique"
+      }
+    },
+    ciphering_order: {
+      type: "array",
+      title: "Ciphering Order",
+      items: {
+        type: "string",
+        enum: ["NEA0", "NEA1", "NEA2"]
+      },
+      contains: {
+        type: "string",
+        format: "unique"
+      }
     }
   }
 };
 
 export const securityUiSchema = {
-  security: {
-    integrity_order: {
-      classNames: "col-xs-12"
-    },
-    ciphering_order: {
-      classNames: "col-xs-12"
-    }
+  classNames: "col-xs-12",
+  integrity_order: {
+    classNames: "col-xs-12"
+  },
+  ciphering_order: {
+    classNames: "col-xs-12"
   }
 };
-
 export const networkNameSchema = {
   type: "object",
   properties: {
