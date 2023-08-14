@@ -1,28 +1,3 @@
-/*import { Component } from 'react';
-import PropTypes from 'prop-types';
-
-import withWidth, { SMALL } from 'helpers/with-width';
-
-
-import EditNRF from './EditNRF'
-import EditBSF from './EditBSF'
-
-const Edit = ({ formData }) => {
-  console.log('Edit2_id ' + formData._id);
-
-  if (formData._id === 'nfconfig1') {
-    console.log('EditNRF');
-    return <EditNRF />;
-  } else if (formData._id === 'nfconfig2') {
-    console.log('EditBSF');
-    return <EditBSF />;
-  }
-
-  return null;
-};
-
-export default withWidth()(Edit);*/
-
 import { Component } from 'react';
 import PropTypes from 'prop-types';
 
@@ -37,6 +12,7 @@ import { smfschema, smfuiSchema } from './EditNF/smfConfigSchema';
 import { nssfschema, nssfuiSchema } from './EditNF/nssfConfigSchema';
 import { pcfschema, pcfuiSchema } from './EditNF/pcfConfigSchema';
 import { udmschema, udmuiSchema } from './EditNF/udmConfigSchema';
+import { upfschema, upfuiSchema } from './EditNF/upfConfigSchema';
 
 class Edit extends Component {
   static propTypes = {
@@ -95,6 +71,9 @@ class Edit extends Component {
     }else if (formData._id === 'udm') {
       selectedSchema = udmschema;
       selectedUiSchema = udmuiSchema;
+    }else if (formData._id === 'upf') {
+      selectedSchema = upfschema;
+      selectedUiSchema = upfuiSchema;
     }else {
       // 默认情况下，选择一个适当的“fallback”模式和 UI 模式
       selectedSchema = nrfschema;

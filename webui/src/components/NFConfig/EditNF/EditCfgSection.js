@@ -319,6 +319,7 @@ export const metricsSchema = {
 export const metricsUiSchema = {
   classNames: "col-xs-12",
   items: {
+	classNames: "col-xs-12",//层次感  
     metrics: {
       classNames: "col-xs-12",
       items: {
@@ -480,43 +481,31 @@ export const securityUiSchema = {
     classNames: "col-xs-12"
   }
 };
-export const networkNameSchema = {
-  type: "object",
-  properties: {
-    network_name: {
-      type: "object",
-      properties: {
-        full: {
-          type: "string"
-        }
-      },
-      required: ["full"]
-    }
-  }
-};
 
-export const networkNameUiSchema = {
-  network_name: {
+export const network_nameSchema = {
+  type: "object",
+  title:"network_name",
+  properties: {
     full: {
-      classNames: "col-xs-12"
-    }
-  }
-};
-
-export const amfNameSchema = {
-  type: "object",
-  properties: {
-    amf_name: {
-      type: "string"
+      type: "string",
     }
   },
-  required: ["amf_name"]
 };
 
-export const amfNameUiSchema = {
-  amf_name: {
-    classNames: "col-xs-12"
+export const network_nameUiSchema = {
+  classNames: "col-xs-6",	
+  full: {
+	classNames: "col-xs-12",	  
+    "ui:placeholder": "Enter the full name",
   }
+};
+
+export const amf_nameSchema = {
+  type: "string"
+};
+
+export const amf_nameUiSchema = {
+  classNames: "col-xs-6"
 };
 
 export const pfcpSchema = {
@@ -535,15 +524,13 @@ export const pfcpSchema = {
 
 export const pfcpUiSchema = {
   classNames: "col-xs-12",
-  pfcp: {
+  //pfcp: {  //不需要再加一层。加了反而没层次感  
+  items: {
     classNames: "col-xs-12",
-    items: {
-	  classNames: "col-xs-12",
-      addr: {
-        classNames: "col-xs-12"
-      }
+    addr: {
+  	classNames: "col-xs-12"
     }
-  }
+  }  
 };
 
 export const gtpcSchema = {
@@ -562,15 +549,12 @@ export const gtpcSchema = {
 
 export const gtpcUiSchema = {
   classNames: "col-xs-12",
-  gtpc: {
-    classNames: "col-xs-12",
-    items: {
-	  classNames: "col-xs-12",
-      addr: {
-        classNames: "col-xs-12"
-      }
+  items: {
+  classNames: "col-xs-12",
+    addr: {
+      classNames: "col-xs-12"
     }
-  }
+  } 
 };
 
 export const gtpuSchema = {
@@ -589,13 +573,10 @@ export const gtpuSchema = {
 
 export const gtpuUiSchema = {
   classNames: "col-xs-12",
-  gtpu: {
+  items: {
     classNames: "col-xs-12",
-    items: {
-      classNames: "col-xs-12",
-      addr: {
-        classNames: "col-xs-12"
-      }
+    addr: {
+      classNames: "col-xs-12"
     }
   }
 };
@@ -616,15 +597,13 @@ export const subnetSchema = {
 
 export const subnetUiSchema = {
   classNames: "col-xs-12",
-  subnet: {
+  //删除无用代码,反而有层次感
+  items: {
     classNames: "col-xs-12",
-    items: {
-      classNames: "col-xs-12",
-      addr: {
-        classNames: "col-xs-12"
-      }
+    addr: {
+      classNames: "col-xs-12"
     }
-  }
+  }  
 };
 
 export const dnsSchema = {

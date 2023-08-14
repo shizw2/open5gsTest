@@ -20,7 +20,6 @@ export const smfschema = {
         mtu:schemas.mtuSchema,
         crf:schemas.crfSchema,
         freeDiameter:schemas.freeDiameterSchema,
-        info:schemas.infoSchema,
       },
     },    
     time: schemas.timeSchema,
@@ -43,7 +42,6 @@ export const smfuiSchema = {
     mtu:schemas.mtuUiSchema,
     crf:schemas.crfUiSchema,
     freeDiameter:schemas.freeDiameterUiSchema,
-    info:schemas.infoUiSchema,
   },
   time: schemas.timeUiSchema,
 };
