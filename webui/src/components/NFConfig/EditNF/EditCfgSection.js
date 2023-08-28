@@ -1,6 +1,6 @@
 export const loggerSchema = {
   type: "object",
-  title: "logger",
+  title: "Logger",
   properties: {
     file: {
       type: "string",
@@ -28,9 +28,11 @@ export const loggerUiSchema = {
 
 export const sbiSchema = {
   type: "object",
+  title: "SBI",
   properties: {
     server: {
       type: "object",
+      title:"Server",
       properties: {
         no_tls: {
           type: "boolean",
@@ -61,6 +63,7 @@ export const sbiSchema = {
     },
     client: {
       type: "object",
+      title:"Client",
       properties: {
         no_tls: {
           type: "boolean",
@@ -134,28 +137,42 @@ export const sbiUiSchema = {
 
 export const nrfSchema = {
   type: "object",
+  title:"NRF",
   properties: {
     sbi: {
       type: "array",
-      title: "sbi",
+      title: "SBI",
       items: {
         type: "object",
         properties: {
           addr: {
-                type: "array",
-                items: {
-                  type: "string"
-                }
+            type: "array",
+            title:"IP Address",
+              items: {
+              type: "string",
+              anyOf: [
+                { format: "ipv4" },
+                { format: "ipv6" },
+              ],
+              messages: {
+                "anyOf": "IPv4 or IPv6 allowed"
               },
+              required: true,
+            },
+            //description: "Please enter a valid IPv4/IPv6 Address",
+            required: true,
+          },
           port: {
             type: "number",
             title: "Port",
-            default: 0,
+            required: true,
           },
         },
       },
+      //required:["addr","port"],
     },
   },
+  //required:["addr","port"],
 };
 
 export const nrfUiSchema = {
@@ -164,10 +181,15 @@ export const nrfUiSchema = {
     classNames: "col-xs-12",
     items: {
       addr: {
-        classNames: "col-xs-6",
+        classNames: "col-xs-7",
+        items:{
+          //classNames: "col-xs-12",
+          //"ui:help": "Enter a valid IPv4/IPv6 Address",
+          //"ui:placeholder": "Enter a valid IPv4/IPv6 Address",
+        }
       },
       port: {
-        classNames: "col-xs-6",
+        classNames: "col-xs-5",
       },
     },
   },
@@ -176,33 +198,45 @@ export const nrfUiSchema = {
 
 export const nf_sbi_Schema = {
   type: "array",
+  title:"SBI",
   items: {
     type: "object",
     properties: {
       addr: {
         type: "string",
-        title: "Address",
-        default: "127.0.0.5"
+        title: "IP Address",
+        anyOf: [
+          { format: "ipv4" },
+          { format: "ipv6" },
+        ],
+        messages: {
+          "anyOf": "IPv4 or IPv6 allowed"
+        },
+        //format:"ipv4",
+        //description: "Please enter a valid IPv4/IPv6 Address",
+        required: true,
+        //default: "127.0.0.5"
       },
       port: {
         type: "number",
         title: "Port",
-        default: 7777
+        required: true,
+        //default: 7777
       }
     }
   }
 };
 
 export const nf_sbi_UiSchema = {
-  sbi: {
-    items: {
-	  classNames: "col-xs-12",
-	  addr: {
-        classNames: "col-xs-6"
-      },
-      port: {
-        classNames: "col-xs-6"
-      }
+  classNames: "col-xs-12",
+  items: {
+    addr: {
+      classNames: "col-xs-6",
+      //"ui:help": "Enter a valid IPv4/IPv6 Address",
+      //"ui:placeholder": "Enter a valid IPv4/IPv6 Address",
+    },
+    port: {
+      classNames: "col-xs-6"
     }
   }
 };
@@ -238,7 +272,7 @@ export const timeUiSchema = {
 };
 
 
-// Schema
+// ICPS Schema
 export const icpsSchema = {
   type: "object",
   properties: {
@@ -608,6 +642,7 @@ export const subnetUiSchema = {
 
 export const dnsSchema = {
   type: "array",
+  title:"DNS",
   items: {
     type: "string"
   }
@@ -744,26 +779,52 @@ export const infoUiSchema = {
 
 export const nsiSchema = {
   type: "array",
+  title:"NSI",
   items: {
     type: "object",
     properties: {
       addr: {
-        type: "string"
+        type: "string",
+        title:"IP Address",
+        anyOf: [
+            { format: "ipv4" },
+            { format: "ipv6" }
+        ],
+        messages: {
+          "anyOf": "IPv4 or IPv6 allowed"
+        },
+        required: true
       },
       port: {
-        type: "integer"
+        type: "number",
+        title:"Port",
+        required:true,
       },
       s_nssai: {
         type: "object",
+        title:"S_NSSAI",
         properties: {
           sst: {
-            type: "integer"
+            type: "number",
+            title: "SST*",
+            enum: [ 1, 2, 3, 4 ],
+            required:true,
+          },
+          sd: {
+            type: "string",
+            title: "SD",
+            pattern: "^[0-9a-fA-F]+$",
+            minLength: 6,
+            maxLength: 6,
+            messages: {
+              "pattern": "Only hexadecimal digits are allowed"
+            }
           }
         },
-        required: ["sst"]
+        //required: ["sst"]
       }
     },
-    required: ["addr", "port", "s_nssai"]
+    //required: ["addr", "port", "s_nssai"]
   }
 };
 
@@ -771,19 +832,25 @@ export const nsiUiSchema = {
   classNames: "col-xs-12",
   items: {
     addr: {
-      classNames: "col-xs-4",
-      "ui:autofocus": true,
-      "ui:placeholder": "Enter the address"
+      classNames: "col-xs-6",
+      //"ui:help": "Enter a valid IPv4/IPv6 Address",
+      //"ui:placeholder": "Enter a valid IPv4/IPv6 Address",
     },
     port: {
-      classNames: "col-xs-4",
-      "ui:widget": "updown"
+      classNames: "col-xs-6",
+      //"ui:widget": "updown"
     },
     s_nssai: {
-      classNames: "col-xs-4",
+      classNames: "col-xs-12",
       sst: {
-        "ui:widget": "updown"
-      }
+        classNames: "col-xs-6",
+        "ui:widget": "radio",
+        "ui:options": { "inline": true },
+      },
+      sd: {
+        classNames: "col-xs-6",
+        //"ui:widget": "updown"
+      },
     }
   }
 };

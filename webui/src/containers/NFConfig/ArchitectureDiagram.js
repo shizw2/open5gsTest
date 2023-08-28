@@ -1,5 +1,5 @@
 import React from 'react';
-
+const selectedNFArray = ['nssf', 'udm', 'nrf', 'pcf', 'bsf', 'udr', 'ausf', 'amf', 'smf', 'upf'];
 class ArchitectureDiagram extends React.Component {
   constructor(props) {
     super(props);
@@ -38,6 +38,19 @@ class ArchitectureDiagram extends React.Component {
     });
   }
 
+  handleMouseOver(index) {
+    
+    this.setState({
+      selectedNF: selectedNFArray[index],
+    });
+  }
+
+  handleMouseOut() {
+    this.setState({
+      selectedNF: null,
+    });
+  }
+
   render() {
     const { selectedNF, rectCoordinates } = this.state;
     // 网元数量
@@ -46,11 +59,15 @@ class ArchitectureDiagram extends React.Component {
     const scale = 0.85;
     const w = 125 * scale;
     const h = 60 * scale;
-    const selectedNFArray = ['nssf', 'udm', 'nrf', 'pcf', 'bsf', 'udr', 'ausf', 'amf', 'smf', "upf"];
     return (
       <div style={{ display: 'flex', justifyContent: 'center' }}>
         {/* 添加一个居中对齐的容器 */}
         <svg width={"1200"*scale} height={"800"*scale} onClick={(event) => this.handleSvgClick(event)}>
+          <defs>
+            <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+              <feDropShadow dx="0" dy="0" stdDeviation="20" floodColor="rgba(0, 0, 0, 0)" />
+            </filter>
+          </defs>
           {/* 架构图背景 */}
           <image href="/5GC.png" width={"1200"*scale} height={"800"*scale} />
 
@@ -68,7 +85,12 @@ class ArchitectureDiagram extends React.Component {
             }
 
             return (
-              <g key={index} onClick={(event) => this.handleNFClick(selectedNFArray[index], event)}>
+              <g
+                key={index}
+                onClick={(event) => this.handleNFClick(selectedNFArray[index], event)}
+                onMouseOver={() => this.handleMouseOver(index)}
+                onMouseOut={() => this.handleMouseOut()}
+              >
                 <rect
                   x={x}
                   y={y}
@@ -76,7 +98,12 @@ class ArchitectureDiagram extends React.Component {
                   height={h}
                   fill={selectedNF === selectedNFArray[index] ? 'green' : 'transparent'}
                   opacity="0.5"
-                  style={{ mixBlendMode: 'multiply' }}
+                  style={{
+                    mixBlendMode: 'multiply',
+                    cursor: 'pointer',
+                    filter: selectedNF === selectedNFArray[index] ? 'url(#shadow)' : 'none',
+                    //boxShadow: selectedNF === selectedNFArray[index] ? '0 0 200px rgba(0, 0, 0, 0.5)' : 'none',
+                  }}
                   data-selected-index={index}
                 />
               </g>

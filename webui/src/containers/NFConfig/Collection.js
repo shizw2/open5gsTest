@@ -242,7 +242,7 @@ class Collection extends Component {
           body="You have no nfconfigs... yet!"
           onTitle={documentHandler.actions.create}
           />
-        <FloatingButton onClick={documentHandler.actions.create}/>
+        {/*<FloatingButton onClick={documentHandler.actions.create}/>*/}
         <NFConfig.View
           visible={this.state.view.visible}
           nfconfig={data.filter(nfconfig => 

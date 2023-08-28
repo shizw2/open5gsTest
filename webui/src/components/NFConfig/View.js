@@ -1,4 +1,4 @@
-import PropTypes from 'prop-types';
+import PropTypes, { string } from 'prop-types';
 
 import styled from 'styled-components';
 import oc from 'open-color';
@@ -74,7 +74,7 @@ const Header = styled.div`
     position: absolute;
     top: 0;
     right: 0;
-    width: 8rem;
+    width: 6rem;
     height: 100%;
     display: flex;
     align-items: center;
@@ -186,13 +186,13 @@ const NFConfig = styled.div`
   
 `
 
-
 const View = ({ visible, disableOnClickOutside, nfconfig, onEdit, onDelete, onHide }) => {
   const _id = (nfconfig || {})._id;
   const title = (nfconfig || {}).title;
   const msisdn_list = ((nfconfig || {}).msisdn || []);
   const imeisv = (nfconfig || {}).imeisv;
-
+  const nfname = String(_id).toUpperCase();
+  
 
   return (
     <div>
@@ -202,14 +202,16 @@ const View = ({ visible, disableOnClickOutside, nfconfig, onEdit, onDelete, onHi
         disableOnClickOutside={disableOnClickOutside}>
         <Wrapper>
           <Header>
-            <div className="title">{_id} Configuration</div>
+            <div className="title">{nfname} Configuration</div>
             <div className="actions">
               <Tooltip content='Edit' width="60px">
                 <CircleButton onClick={() => onEdit(_id)}><EditIcon/></CircleButton>
               </Tooltip>
+              {/*
               <Tooltip content='Delete' width="60px">
                 <CircleButton className="delete" onClick={() => onDelete(_id)}><DeleteIcon/></CircleButton>
               </Tooltip>
+              */}
               <Tooltip content='Close' width="60px">
                 <CircleButton className="delete" onClick={onHide}><CloseIcon/></CircleButton>
               </Tooltip>

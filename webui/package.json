@@ -1,10 +1,10 @@
 {
-  "name": "open5gs",
-  "version": "2.6.3",
-  "description": "Open5gs",
+  "name": "5GC",
+  "version": "2.6.4",
+  "description": "5GC",
   "main": "index.js",
-  "repository": "https://github.com/open5gs/open5gs/webui",
-  "author": "Open5gs Group",
+  "repository": "https://",
+  "author": "5GC Group",
   "license": "AGPL-3.0",
   "dependencies": {
     "axios": "^0.27.2",

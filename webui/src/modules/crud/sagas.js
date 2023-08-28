@@ -34,7 +34,8 @@ function* crudEntity(action) {
     const csrf = ((sessionData || {}).session || {}).csrfToken;
     const authToken = ((sessionData || {}).session || {}).authToken;
     // 根据 url 判断使用哪个基础 URL
-    const baseURL = url === '/NFConfig' ? '/api/yaml' : '/api/db';
+    //const baseURL = url === '/NFConfig' ? '/api/yaml' : '/api/db';
+    const baseURL = url.startsWith('/NFConfig') ? '/api/yaml' : '/api/db';
     const response = yield call(crudApi, method, url, csrf, authToken, { params, data }, baseURL);
     yield put({ meta, type: success, payload: response })
   } catch (error) {

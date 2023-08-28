@@ -17,29 +17,30 @@ const directoryPath = config.directoryPath;
 
 const NFConfig = {
     detail: async (req, res, next) => {
-    try {
-      const yamlData = fs.readFileSync('/home/test/nfconfig.yaml', 'utf8');
-      const configData = yaml.load(yamlData);
+      try {
+        const nfconfigId = req.params.id;
+        console.log(nfconfigId); // 打印 nfconfigId 的值到控制台
       
-      // 添加 schema_version 和 _id 字段到 configData,否则会引起死循环
-      const jsonData = {
-        schema_version: '1.0',
-        _id: '123456',
-        ...configData
-      };
-
-      res.status(200).json([jsonData]);//要返回数组，否则有问题
-    } catch (error) {
-      console.error("Error loading NFConfig:", error);
-      res.status(500).json({ error: "Failed to load NFConfig data" });
-    }
+        const filePath = path.join(directoryPath, `${nfconfigId}.yaml`);
+    
+        const yamlData = fs.readFileSync(filePath, 'utf8');
+        const configData = yaml.load(yamlData);
+    
+        const jsonData = {
+          _id: nfconfigId, 
+          ...configData,
+        };
+        res.status(200).json(jsonData);
+      } catch (error) {
+        console.error(`Error loading NFConfig ${desiredFileName}:`, error);
+        res.status(500).json({ error: 'Failed to load NFConfig data' });
+      }
     },
     
     detailAll: async (req, res, next) => {
         const allConfigData = [];
-		const desiredFileNames = config.desiredFileNames; // 使用配置文件中的desiredFileNames
-		
-		
+        const desiredFileNames = config.desiredFileNames; // 使用配置文件中的desiredFileNames
+
         try {
           // 读取目录中的所有文件
           const fileNames = fs.readdirSync(directoryPath);
@@ -132,6 +133,8 @@ const NFConfig = {
 
 
 router.get('/NFConfig', NFConfig.detailAll);
+
+router.get('/NFConfig/:id', NFConfig.detail);
 
 router.post('/NFConfig/:id', NFConfig.create);
 

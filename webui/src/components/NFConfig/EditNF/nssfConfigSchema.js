@@ -9,6 +9,7 @@ export const nssfschema = {
     nrf: schemas.nrfSchema,
     nssf: {
       type: "object",
+      title:"NSSF",
       properties: {
         sbi: schemas.nf_sbi_Schema,        
         nsi:schemas.nsiSchema, 
