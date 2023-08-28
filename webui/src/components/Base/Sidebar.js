@@ -5,6 +5,7 @@ import { media, transitions } from 'helpers/style-utils';
 import oc from 'open-color';
 
 import SubscriberIcon from 'react-icons/lib/md/person-add';
+import Subscriber2Icon from 'react-icons/lib/md/person';
 import ProfileIcon from 'react-icons/lib/md/content-copy';
 import AccountIcon from 'react-icons/lib/md/vpn-key';
 import ConfigIcon from 'react-icons/lib/md/settings';
@@ -84,8 +85,8 @@ const defaultProps = {
   width: "16rem",
 }
 
-const SubMenu = styled.div`
-  margin-top: 1rem;
+const SubMenu = styled.div` 
+  padding-left: 2rem; /* 添加缩进效果 */
 `;
 
 const Sidebar = ({ isOpen, width, selectedView, onSelectView }) => (
@@ -95,21 +96,20 @@ const Sidebar = ({ isOpen, width, selectedView, onSelectView }) => (
       <Title>{properties.base_nfconfig}</Title>
     </Item>
 
-<Item name="nfconfig111" selected={selectedView} onSelect={onSelectView}>
-  <Icon><ConfigIcon/></Icon>
-  <Title>运行管理</Title>
-</Item>
-<SubMenu>
-  <Item name="subscriber" selected={selectedView} onSelect={onSelectView}>
-    <Icon><SubscriberIcon/></Icon>
-    <Title>{properties.base_subscriber}</Title>
-  </Item>
-  <Item name="profile" selected={selectedView} onSelect={onSelectView}>
-    <Icon><ProfileIcon/></Icon>
-    <Title>{properties.base_profile}</Title>
-  </Item>
-</SubMenu>
- 
+	<Item name="operator" >
+	  <Icon><SubscriberIcon/></Icon>
+	  <Title>{properties.base_operation}</Title>
+	</Item>
+	<SubMenu>
+	  <Item name="subscriber" selected={selectedView} onSelect={onSelectView}>
+		<Icon><Subscriber2Icon/></Icon>
+		<Title>{properties.base_subscriber}</Title>
+	  </Item>
+	  <Item name="profile" selected={selectedView} onSelect={onSelectView}>
+		<Icon><ProfileIcon/></Icon>
+		<Title>{properties.base_profile}</Title>
+	  </Item>
+	</SubMenu>
    
     <Item name="alert" selected={selectedView} onSelect={onSelectView}>
       <Icon><AlertIcon/></Icon>
