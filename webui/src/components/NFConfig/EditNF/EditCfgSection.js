@@ -2,16 +2,16 @@ export const loggerSchema = {
   type: "object",
   title: "Logger",
   properties: {
-    file: {
-      type: "string",
-      title: "Log File",
-      default: "",
-    },
     level: {
       type: "string",
       title: "Log Level",
       enum: ["debug", "info", "warning", "error"],
       default: "info",
+    },
+    file: {
+      type: "string",
+      title: "Log File",
+      default: "",
     },
   },
 };
@@ -19,10 +19,10 @@ export const loggerSchema = {
 export const loggerUiSchema = {
   classNames: "col-xs-12",
   file: {
-    classNames: "col-xs-6",
+    classNames: "col-xs-9",
   },
   level: {
-    classNames: "col-xs-6",
+    classNames: "col-xs-3",
   },
 };
 
@@ -97,40 +97,40 @@ export const sbiSchema = {
 
 export const sbiUiSchema = {
   classNames: "col-xs-12",
-  server: {
+    server: {
 	classNames: "col-xs-12",
     no_tls: {
-      classNames: "col-xs-6",
+      classNames: "col-xs-3",
     },
     no_verify: {
-      classNames: "col-xs-6",
+      classNames: "col-xs-3",
     },
     cacert: {
-      classNames: "col-xs-12",
+      classNames: "col-xs-6",
     },
     key: {
-      classNames: "col-xs-12",
+      classNames: "col-xs-6",
     },
     cert: {
-      classNames: "col-xs-12",
+      classNames: "col-xs-6",
     },
   },
   client: {
 	classNames: "col-xs-12",  
     no_tls: {
-      classNames: "col-xs-6",
+      classNames: "col-xs-3",
     },
     no_verify: {
-      classNames: "col-xs-6",
+      classNames: "col-xs-3",
     },
     cacert: {
-      classNames: "col-xs-12",
+      classNames: "col-xs-6",
     },
     key: {
-      classNames: "col-xs-12",
+      classNames: "col-xs-6",
     },
     cert: {
-      classNames: "col-xs-12",
+      classNames: "col-xs-6",
     },
   },
 };
@@ -337,7 +337,14 @@ export const metricsSchema = {
     properties: {
       addr: {
         type: "string",
-        title: "Address",
+        title: "IP Address",
+        anyOf: [
+          { format: "ipv4" },
+          { format: "ipv6" }
+        ],
+        messages: {
+          "anyOf": "IPv4 or IPv6 allowed"
+        },
         default: "127.0.0.5"
       },
       port: {
@@ -352,20 +359,20 @@ export const metricsSchema = {
 
 export const metricsUiSchema = {
   classNames: "col-xs-12",
-  items: {
-	classNames: "col-xs-12",//层次感  
-    metrics: {
-      classNames: "col-xs-12",
+  //items: {
+    //classNames: "col-xs-12",//层次感  
+    //metrics: {
+      //classNames: "col-xs-12",
       items: {
-		classNames: "col-xs-12",
+        //classNames: "col-xs-12",
         addr: {
-          classNames: "col-xs-12",
+          classNames: "col-xs-6",
         },
         port: {
-          classNames: "col-xs-12",
+          classNames: "col-xs-6",
         },
-      },
-    },
+      //},
+    //},
   },
 };
 
@@ -664,7 +671,7 @@ export const mtuUiSchema = {
   classNames: "col-xs-12"
 };
 
-export const crfSchema = {
+export const ctfSchema = {
   type: "object",
   properties: {
     enabled: {
@@ -675,7 +682,7 @@ export const crfSchema = {
   required: ["enabled"]
 };
 
-export const crfUiSchema = {
+export const ctfUiSchema = {
   classNames: "col-xs-12",
   enabled: {
     classNames:"col-xs-12"
@@ -858,6 +865,10 @@ export const nsiUiSchema = {
 export const freeDiameter2Schema = {
   type: "object",
   properties: {
+    no_fwd: {
+      type: "boolean",
+      title: "No Forward"
+    },
     identity: {
       type: "string",
       title: "Identity"
@@ -868,28 +879,34 @@ export const freeDiameter2Schema = {
     },
     listen_on: {
       type: "string",
-      title: "Listen On"
+      title: "Listen On",
+      anyOf: [
+        { format: "ipv4" },
+        { format: "ipv6" }
+      ],
+      messages: {
+        "anyOf": "IPv4 or IPv6 allowed"
     },
-    no_fwd: {
-      type: "boolean",
-      title: "No Forward"
-    },
-    load_extension: {
+  },
+  load_extension: {
       type: "array",
-      items: {
+    items: {
         type: "object",
         properties: {
-          module: {
+      module: {
             type: "string",
             title: "Module"
-          },
-          conf: {
+      },
+      conf: {
             type: "string",
-            title: "conf",
+            title: "Conf",
             pattern: "^0x[0-9A-Fa-f]+$",
-            description: "Please enter a valid hexadecimal number starting with '0x'"
-          }
-        },
+            messages: {
+              "pattern": "Hex starting with '0x'"
+            },
+            //description: "Please enter a valid hexadecimal number starting with '0x'",
+    }
+  },
         required: ["module"]
       },
       title: "Load Extension"
@@ -905,7 +922,14 @@ export const freeDiameter2Schema = {
           },
           addr: {
             type: "string",
-            title: "Address"
+            title:"IP Address",
+            anyOf: [
+              { format: "ipv4" },
+              { format: "ipv6" }
+            ],
+            messages: {
+              "anyOf": "IPv4 or IPv6 allowed"
+            },
           }
         },
         required: ["identity", "addr"]
@@ -919,26 +943,26 @@ export const freeDiameter2Schema = {
 
 export const freeDiameter2UiSchema = {
   classNames: "col-xs-12",
+  no_fwd: {
+    classNames: "col-xs-3"
+  },
   identity: {
-    classNames: "col-xs-12"
+    classNames: "col-xs-3"
   },
   realm: {
-    classNames: "col-xs-12"
+    classNames: "col-xs-3"
   },
   listen_on: {
-    classNames: "col-xs-12"
-  },
-  no_fwd: {
-    classNames: "col-xs-12"
+    classNames: "col-xs-3"
   },
   load_extension: {
     classNames: "col-xs-12",
     items: {
       module: {
-        classNames: "col-xs-12"
+        classNames: "col-xs-9"
       },
       conf: {
-        classNames: "col-xs-12"
+        classNames: "col-xs-3"
       }
     }
   },
@@ -946,10 +970,10 @@ export const freeDiameter2UiSchema = {
     classNames: "col-xs-12",
     items: {
       identity: {
-        classNames: "col-xs-12"
+        classNames: "col-xs-6"
       },
       addr: {
-        classNames: "col-xs-12"
+        classNames: "col-xs-6"
       }
     }
   }

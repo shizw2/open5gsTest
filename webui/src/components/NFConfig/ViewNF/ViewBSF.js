@@ -1,44 +1,34 @@
-import { NRFSection, SBISection,LOGSection,DbUriSection } from './ViewCfgSection';
+import {
+  NRFSection,
+  SBISection,
+  LOGSection,
+  NF_SBI_Section,  
+  MaxSection,
+  ParameterSection,
+  TimeSection,  
+} from './ViewCfgSection';
 
-export const ViewBSF = ({ nfconfig }) => {  
+export const ViewBSF= ({ nfconfig }) => {
+  const { bsf, parameter, max, time } = nfconfig;
+
   return (
-    <div>
-      <DbUriSection db_uri={nfconfig.db_uri} />
-      {/* // 使用 LOGSection 组件 */}                  
+    <div>        
       <LOGSection nfconfig={nfconfig} />
-
-      {/* // 使用 SBISection 组件 */}   
+      <NRFSection nfconfig={nfconfig} />
       <SBISection nfconfig={nfconfig} />
 
       <div>
-      {nfconfig && nfconfig.bsf && (
-        <div className="bsf-section">
-          <div className="bsf-header">bsf:</div>                      
-          {nfconfig.bsf.sbi && (
-            <div className="sbi-section">
-              <div className="twenty-spaces">sbi:</div>                                           
-              {nfconfig.bsf.sbi.addr && nfconfig.bsf.sbi.addr.map((item, index) => (
-                <div className="forty-spaces" key={index}>
-                  -addr: {item}
-                </div>
-              ))}                  
-              {nfconfig.bsf.sbi.port && (
-                <div className="forty-spaces">
-                  port: {nfconfig.bsf.sbi.port}
-                </div>
-              )}  
-            </div>
-          )} 
-        </div>
-      )}
+        {bsf && (
+          <div className="nf-section">
+            <div className="nf-header">bsf:</div>
+            <NF_SBI_Section sbi={bsf.sbi} />   
+          </div>
+        )}
       </div>
 
-      {/* // 使用 NRFSection 组件 */}                  
-      <NRFSection nfconfig={nfconfig} />
-      
-      <div className="parameter-body">parameter:</div>
-      <div className="max-body">max:</div>
-      <div className="time-body">time:</div>
+      <ParameterSection parameter={parameter} />
+      <MaxSection max={max} />
+      <TimeSection time={time} />
     </div>
   );
 };

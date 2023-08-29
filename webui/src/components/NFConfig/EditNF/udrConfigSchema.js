@@ -1,35 +1,30 @@
 import * as schemas from './EditCfgSection';
 
-export const pcfschema = {
-  title: "PCF Configuration",
+export const udrschema = {
+  title: "UDR Configuration",
   type: "object",
   properties: {
     logger: schemas.loggerSchema,
     sbi: schemas.sbiSchema,
     nrf: schemas.nrfSchema,
-    pcf: {
+    udr: {
       type: "object",
-      title: "PCF",
+      title: "UDR",
       properties: {
-        sbi: schemas.nf_sbi_Schema,        
-        freeDiameter:schemas.freeDiameter2Schema,
-        metrics: schemas.metricsSchema,
-        
+        sbi: schemas.nf_sbi_Schema,  
       },
     },    
     
   },
 };
 
-export const pcfuiSchema = {
+export const udruiSchema = {
   logger: schemas.loggerUiSchema,
   sbi: schemas.sbiUiSchema,
   nrf: schemas.nrfUiSchema,
-  pcf: {
+  udr: {
     classNames: "col-xs-12",
     sbi: schemas.nf_sbi_UiSchema,
-    freeDiameter:schemas.freeDiameter2UiSchema,
-    metrics: schemas.metricsUiSchema,    
   },
  
 };

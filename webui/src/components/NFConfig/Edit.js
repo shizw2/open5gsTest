@@ -13,6 +13,7 @@ import { nssfschema, nssfuiSchema } from './EditNF/nssfConfigSchema';
 import { pcfschema, pcfuiSchema } from './EditNF/pcfConfigSchema';
 import { udmschema, udmuiSchema } from './EditNF/udmConfigSchema';
 import { upfschema, upfuiSchema } from './EditNF/upfConfigSchema';
+import { udrschema, udruiSchema } from './EditNF/udrConfigSchema';
 
 class Edit extends Component {
   static propTypes = {
@@ -74,6 +75,9 @@ class Edit extends Component {
     }else if (formData._id === 'upf') {
       selectedSchema = upfschema;
       selectedUiSchema = upfuiSchema;
+    }else if (formData._id === 'udr') {
+      selectedSchema = udrschema;
+      selectedUiSchema = udruiSchema;
     }else {
       // 默认情况下，选择一个适当的“fallback”模式和 UI 模式
       selectedSchema = nrfschema;
