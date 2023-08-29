@@ -963,11 +963,14 @@ export const hnetSchema = {
     properties: {
       id: {
         type: "integer",
-        title: "ID"
+        title: "ID",
+        minimum: 1,
+        maximum:99,
       },
       scheme: {
         type: "integer",
-        title: "Scheme"
+        title: "Scheme",
+        minimum: 1,
       },
       key: {
         type: "string",
@@ -981,20 +984,14 @@ export const hnetSchema = {
 export const hnetUiSchema = {
   classNames: "col-xs-12",
   items: {
-    hnet: {
-      classNames: "col-xs-12",
-      items: {
-        classNames: "col-xs-12",
-        id: {
-          classNames: "col-xs-12"
-        },
-        scheme: {
-          classNames: "col-xs-12"
-        },
-        key: {
-          classNames: "col-xs-12"
-        }
-      }
+    id: {
+      classNames: "col-xs-2"
+    },
+    scheme: {
+      classNames: "col-xs-2"
+    },
+    key: {
+      classNames: "col-xs-8"
     }
   }
 };

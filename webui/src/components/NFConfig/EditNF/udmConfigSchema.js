@@ -9,6 +9,7 @@ export const udmschema = {
     nrf: schemas.nrfSchema,
     udm: {
       type: "object",
+      title: "UDM",
       properties: {
         sbi: schemas.nf_sbi_Schema,        
         hnet:schemas.hnetSchema,
