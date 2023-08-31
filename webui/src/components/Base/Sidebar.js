@@ -96,34 +96,7 @@ const Sidebar = ({ isOpen, width, selectedView, onSelectView }) => (
       <Icon><ConfigIcon/></Icon>
       <Title>{properties.base_nfconfig}</Title>
     </Item>
-    <Item name="operator" selected={selectedView} onSelect={onSelectView}>
-      <Icon><SubscriberIcon/></Icon>
-      <Title>{properties.base_operation}</Title>
-    </Item>
-    {(selectedView === "operator" || selectedView === "subscriber" || selectedView === "profile")&& (
-      <SubMenu>
-        <Item name="subscriber" selected={selectedView} onSelect={onSelectView}>
-          <Icon><Subscriber2Icon/></Icon>
-          <Title>{properties.base_subscriber}</Title>
-        </Item>
-        <Item name="profile" selected={selectedView} onSelect={onSelectView}>
-          <Icon><ProfileIcon/></Icon>
-          <Title>{properties.base_profile}</Title>
-        </Item>
-      </SubMenu>
-    )}
-    <Item name="alert" selected={selectedView} onSelect={onSelectView}>
-      <Icon><AlertIcon/></Icon>
-      <Title>{properties.base_alert}</Title>
-    </Item>
-    <Item name="performance" selected={selectedView} onSelect={onSelectView}>
-      <Icon><PerformanceIcon/></Icon>
-      <Title>{properties.base_performance}</Title>
-    </Item>
-    <Item name="account" selected={selectedView} onSelect={onSelectView}>
-      <Icon><AccountIcon/></Icon>
-      <Title>{properties.base_account}</Title>
-    </Item>
+   
   </Menu>
 )
 

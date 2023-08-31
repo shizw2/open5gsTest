@@ -242,33 +242,56 @@ export const nf_sbi_UiSchema = {
 };
 
 //字段可能存在也可能不存在的处理
-export const timeSchema = {/*
-  anyOf: [
-    {
+// Scheme
+export const time_instanceSchema = {
   type: "object",
   properties: {
     nf_instance: {
       type: "object",
       properties: {
         heartbeat: {
-          type: "integer",
+          type: "number",
           default: 10
         }
       },
       required: ["heartbeat"]
     }
-      },
-    },
-    {
-      type: "null"
-    },
-  ]*/
+  }
 };
 
-//TODO
-export const timeUiSchema = {
-  
-  
+// UiSchema
+export const time_instanceUiSchema = {
+  classNames: "col-xs-12",
+  nf_instance: {
+    classNames: "col-xs-12",
+    heartbeat: {
+      classNames: "col-xs-12"
+    }
+  }
+};
+
+export const time_t3512Schema = {
+  type: "object",
+  properties: {
+    t3512: {
+      type: "object",
+      properties: {
+        value: {
+          type: "number"
+        }
+      }
+    }
+  }
+};
+
+export const time_t3512UiSchema = {
+  classNames: "col-xs-12",
+  t3512: {
+    classNames: "col-xs-12",
+    value: {
+      classNames: "col-xs-12"
+    }
+  }
 };
 
 

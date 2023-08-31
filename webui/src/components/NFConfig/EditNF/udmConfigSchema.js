@@ -16,7 +16,14 @@ export const udmschema = {
         
       },
     },    
-    
+    time: {
+      type: "object",
+      title: "time",
+      properties: {
+          instance: schemas.time_instanceSchema,
+          instance: schemas.time_instanceSchema,
+      },
+    },
   },
 };
 
@@ -29,5 +36,8 @@ export const udmuiSchema = {
     sbi: schemas.nf_sbi_UiSchema,
     hnet:schemas.hnetUiSchema,
   },
- 
+  time: {
+    classNames: "col-xs-12",
+    instance: schemas.time_instanceUiSchema,
+  },
 };
