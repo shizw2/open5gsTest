@@ -4,6 +4,7 @@ export const pcfschema = {
   title: "PCF Configuration",
   type: "object",
   properties: {
+    db_uri: schemas.db_uriSchema,  
     logger: schemas.loggerSchema,
     sbi: schemas.sbiSchema,
     nrf: schemas.nrfSchema,
@@ -22,6 +23,7 @@ export const pcfschema = {
 };
 
 export const pcfuiSchema = {
+  db_uri: schemas.db_uriUiSchema,
   logger: schemas.loggerUiSchema,
   sbi: schemas.sbiUiSchema,
   nrf: schemas.nrfUiSchema,

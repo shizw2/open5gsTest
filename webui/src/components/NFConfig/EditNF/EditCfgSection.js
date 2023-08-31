@@ -1042,3 +1042,12 @@ export const hnetUiSchema = {
     }
   }
 };
+
+export const db_uriSchema = {
+  type: "string",
+  title: "DB_URI",
+};
+
+export const db_uriUiSchema = {
+  classNames: "col-xs-12"
+};
