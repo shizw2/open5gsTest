@@ -680,6 +680,7 @@ int ngap_send_paging_icps(ogs_5gs_tai_t *nr_tai,ogs_pkbuf_t *pkbuf)
                             &(nr_tai->plmn_id), OGS_PLMN_ID_LEN) == 0 &&
                     gnb->supported_ta_list[i].tac.v == nr_tai->tac.v) {                    
                     pkbuftmp=ogs_pkbuf_copy(pkbuf);
+                    amf_metrics_inst_global_inc(AMF_METR_GLOB_CTR_MM_PAGING_5G_REQ);
                     rv = ngap_send_to_gnb(gnb, pkbuftmp, NGAP_NON_UE_SIGNALLING);
                     if (rv != OGS_OK) {
                         ogs_error("ngap_send_paging_icps() failed");

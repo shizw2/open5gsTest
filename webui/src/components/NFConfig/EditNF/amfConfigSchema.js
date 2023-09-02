@@ -8,20 +8,29 @@ export const amfschema = {
     sbi: schemas.sbiSchema,
     amf: {
       type: "object",
+      title: "AMF",
       properties: {
         sbi: schemas.nf_sbi_Schema,
-		ngap: schemas.ngapSchema,
+        ngap: schemas.ngapSchema,
         metrics: schemas.metricsSchema,
-		guami: schemas.guamiSchema,
-		tai: schemas.taiSchema,
-		//plmn
-		security:schemas.securitySchema,
-		network_name:schemas.network_nameSchema,
-		amf_name:schemas.amf_nameSchema,
+        guami: schemas.guamiSchema,
+        tai: schemas.taiSchema,
+        //plmn
+        security:schemas.securitySchema,
+        network_name:schemas.network_nameSchema,
+        amf_name:schemas.amf_nameSchema,
       },
     },
     nrf: schemas.nrfSchema,
-    
+    time: {
+      type: "object",
+      title: "time",
+      properties: {
+        instance: schemas.time_instanceSchema,
+        t3512: schemas.time_t3512Schema,
+        t3502: schemas.time_t3502Schema,
+      },
+    },
   },
 };
 
@@ -32,13 +41,18 @@ export const amfuiSchema = {
   amf: {
     classNames: "col-xs-12",
     sbi: schemas.nf_sbi_UiSchema,
-	ngap: schemas.ngapUiSchema,
+    ngap: schemas.ngapUiSchema,
     metrics: schemas.metricsUiSchema,
-	guami: schemas.guamiUiSchema,
-	tai: schemas.taiUiSchema,
-	security:schemas.securityUiSchema,
-	network_name:schemas.network_nameUiSchema,
-	amf_name:schemas.amf_nameUiSchema,
+    guami: schemas.guamiUiSchema,
+    tai: schemas.taiUiSchema,
+    security:schemas.securityUiSchema,
+    network_name:schemas.network_nameUiSchema,
+    amf_name:schemas.amf_nameUiSchema,
   },
-  
+  time: {
+    classNames: "col-xs-12",
+    instance: schemas.time_instanceUiSchema,
+    t3512: schemas.time_t3512UiSchema,
+    t3502: schemas.time_t3502UiSchema,
+  },
 };

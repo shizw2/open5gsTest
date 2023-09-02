@@ -9,11 +9,11 @@ export const ausfschema = {
     nrf: schemas.nrfSchema,
     ausf: {
       type: "object",
+      title: "AUSF",
       properties: {
         sbi: schemas.nf_sbi_Schema, 
       },
     },    
-    
   },
 };
 
@@ -22,7 +22,7 @@ export const ausfuiSchema = {
   sbi: schemas.sbiUiSchema,
   nrf: schemas.nrfUiSchema,
   ausf: {
+    classNames: "col-xs-12",
     sbi: schemas.nf_sbi_UiSchema,
   },
- 
 };

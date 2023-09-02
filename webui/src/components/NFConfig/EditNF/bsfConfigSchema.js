@@ -4,7 +4,6 @@ export const bsfschema = {
   title: "BSF Configuration",
   type: "object",
   properties: {
-    db_uri: schemas.db_uriSchema,
     logger: schemas.loggerSchema,
     sbi: schemas.sbiSchema,
     nrf: schemas.nrfSchema,
@@ -19,7 +18,6 @@ export const bsfschema = {
 };
 
 export const bsfuiSchema = {
-  db_uri: schemas.db_uriUiSchema,
   logger: schemas.loggerUiSchema,
   sbi: schemas.sbiUiSchema,
   nrf: schemas.nrfUiSchema,

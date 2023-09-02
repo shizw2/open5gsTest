@@ -192,8 +192,6 @@ static _MHD_Result mhd_server_access_handler(void *cls, struct MHD_Connection *c
     struct MHD_Response *rsp;
     int ret;
 
-    ogs_error("MHD_version:%s",MHD_get_version());
-
     if (strcmp(method, "GET") != 0) {
         buf = "Invalid HTTP Method\n";
         rsp = MHD_create_response_from_buffer(strlen(buf), (void *)buf, MHD_RESPMEM_PERSISTENT);
@@ -203,7 +201,6 @@ static _MHD_Result mhd_server_access_handler(void *cls, struct MHD_Connection *c
     }
     if (strcmp(url, "/") == 0) {
         buf = "OK\n";
-        ogs_error("mhd_server_access_handler,buf:%s",buf);
         rsp = MHD_create_response_from_buffer(strlen(buf), (void *)buf, MHD_RESPMEM_PERSISTENT);
         ret = MHD_queue_response(connection, MHD_HTTP_OK, rsp);
         MHD_destroy_response(rsp);
@@ -213,19 +210,10 @@ static _MHD_Result mhd_server_access_handler(void *cls, struct MHD_Connection *c
         buf = prom_collector_registry_bridge(PROM_COLLECTOR_REGISTRY_DEFAULT);
         rsp = MHD_create_response_from_buffer(strlen(buf), (void *)buf, MHD_RESPMEM_MUST_FREE);
         ret = MHD_queue_response(connection, MHD_HTTP_OK, rsp);
-
-        if (ret != MHD_YES)
-        {           
-            ogs_error("Failed to queue response: %d",ret);
-        }else{
-            ogs_error("MHD_queue_response sucess");
-        }
         MHD_destroy_response(rsp);
-  
         return ret;
     }
     buf = "Bad Request\n";
-    ogs_error("mhd_server_access_handler,buf:%s",buf);
     rsp = MHD_create_response_from_buffer(strlen(buf), (void *)buf, MHD_RESPMEM_PERSISTENT);
     ret = MHD_queue_response(connection, MHD_HTTP_BAD_REQUEST, rsp);
     MHD_destroy_response(rsp);

@@ -1,17 +1,17 @@
 pkill -9 open5gs
 level="warn"
-
-if [ ! -n "$1" ] ;then
-	level="warn"
-else
-	level=$1
-fi
 spsno=1
 
-if [ ! -n "$2" ] ;then
-        spsno=1
-else
-	spsno=$2
+if [ -n "$1" ] ;then
+    if [ $1 -le 16 ] ;then
+        spsno=$1
+    else
+        level=$1
+    fi
+fi
+
+if [  -n "$2" ] ;then
+    spsno=$2
 fi
 
 ./build/src/nrf/open5gs-nrfd -e $level &

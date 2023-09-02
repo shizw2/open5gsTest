@@ -4,4 +4,4 @@
 pkill node
 
 # 设置环境变量并启动服务
-DB_URI=mongodb://127.0.0.1/open5gs HOSTNAME=0.0.0.0 npm run dev & disown
+DB_URI=mongodb://127.0.0.1/5gc HOSTNAME=0.0.0.0 npm run dev &

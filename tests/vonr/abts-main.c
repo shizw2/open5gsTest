@@ -27,18 +27,21 @@ abts_suite *test_simple(abts_suite *suite);
 abts_suite *test_af(abts_suite *suite);
 abts_suite *test_video(abts_suite *suite);
 abts_suite *test_vonr_multi_ue_test(abts_suite *suite);
-
-
+extern int g_threadNum;
 const struct testlist {
     abts_suite *(*func)(abts_suite *suite);
 } alltests[] = {
-#if 0
+
     {test_qos_flow},
     {test_session},
     {test_simple},
     {test_af},
-    {test_video},
-#endif
+    {test_video},    
+    {NULL},
+};
+const struct testlist2 {
+    abts_suite *(*func)(abts_suite *suite);
+} alltests2[] = {
     {test_vonr_multi_ue_test},
     {NULL},
 };
@@ -78,12 +81,14 @@ int main(int argc, const char *const argv[])
 {
     int i;
     abts_suite *suite = NULL;
-
     atexit(terminate);
     test_app_run(argc, argv, "vonr.yaml", initialize);
-
+    if(g_threadNum<2){        
     for (i = 0; alltests[i].func; i++)
         suite = alltests[i].func(suite);
-
+        }else{
+            for (i = 0; alltests2[i].func; i++)
+                suite = alltests2[i].func(suite);
+            }   
     return abts_report(suite);
 }

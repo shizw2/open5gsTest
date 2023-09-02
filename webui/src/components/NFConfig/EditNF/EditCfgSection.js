@@ -241,57 +241,66 @@ export const nf_sbi_UiSchema = {
   }
 };
 
-//字段可能存在也可能不存在的处理
-// Scheme
-export const time_instanceSchema = {
-  type: "object",
-  properties: {
-    nf_instance: {
-      type: "object",
-      properties: {
-        heartbeat: {
-          type: "number",
-          default: 10
-        }
-      },
-      required: ["heartbeat"]
-    }
-  }
+//对于没有配置time的网元，使用timeSchema/timeUiSchema
+export const timeSchema = {  
 };
 
 // UiSchema
-export const time_instanceUiSchema = {
-  classNames: "col-xs-12",
-  nf_instance: {
-    classNames: "col-xs-12",
+export const timeUiSchema = {    
+};
+
+//对于配置了具体内容的time,使用下面的Schema/UiSchema,如time_instanceSchema,time_t3512Schema
+export const time_instanceSchema = {
+  type: "object",
+  title:"instance", 
+  properties: {
     heartbeat: {
-      classNames: "col-xs-12"
+      type: "number",
+      default: 20
     }
-  }
+  },
+};
+
+// UiSchema
+export const time_instanceUiSchema = {  
+  classNames: "col-xs-12",
+  heartbeat: {
+    classNames: "col-xs-12"
+  }  
 };
 
 export const time_t3512Schema = {
   type: "object",
   properties: {
-    t3512: {
-      type: "object",
-      properties: {
-        value: {
-          type: "number"
-        }
-      }
+    value: {
+      type: "number",
+      default: 3240
     }
   }
 };
 
 export const time_t3512UiSchema = {
   classNames: "col-xs-12",
-  t3512: {
+  value: {
     classNames: "col-xs-12",
+  } 
+};
+
+export const time_t3502Schema = {
+  type: "object",
+  properties: {
     value: {
-      classNames: "col-xs-12"
+      type: "number",
+      default: 720
     }
   }
+};
+
+export const time_t3502UiSchema = {
+  classNames: "col-xs-12",
+  value: {
+    classNames: "col-xs-12",
+  } 
 };
 
 

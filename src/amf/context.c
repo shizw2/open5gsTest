@@ -2499,11 +2499,19 @@ void amf_sbi_select_nf(
                         false)
                 continue;
 
-            nf_info = ogs_sbi_nf_info_find(
-                        &nf_instance->nf_info_list, nf_instance->nf_type);
-            if (nf_info) {
-                if (nf_instance->nf_type == OpenAPI_nf_type_SMF &&
-                    check_smf_info(nf_info, sess) == false)
+           if ((nf_instance->nf_type == OpenAPI_nf_type_SMF) &&
+                (ogs_list_count(&nf_instance->nf_info_list) > 0)) {
+
+                ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
+                    if (nf_info->nf_type != nf_instance->nf_type)
+                        continue;
+                    if (check_smf_info(nf_info, sess) == false)
+                        continue;
+
+                    break;
+                }
+
+                if (!nf_info)
                     continue;
             }
             
@@ -2836,7 +2844,7 @@ static void stats_remove_ran_ue(void)
     ogs_info("[Removed] Number of gNB-UEs is now %d", num_of_ran_ue);
 }
 
-int get_ran_ue_load(void)
+int amf_instance_get_load(void)
 {
     return (((ogs_pool_size(&ran_ue_pool) -
             ogs_pool_avail(&ran_ue_pool)) * 100) /

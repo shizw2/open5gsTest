@@ -903,7 +903,7 @@ void amf_clear_subscribed_info(amf_ue_t *amf_ue);
 
 bool amf_update_allowed_nssai(amf_ue_t *amf_ue);
 bool amf_ue_is_rat_restricted(amf_ue_t *amf_ue);
-int get_ran_ue_load(void);
+int amf_instance_get_load(void);
 
 uint8_t amf_sps_id_find_by_supi(char *supi);
 void amf_sps_id_set_supi(uint8_t *sps_id, char *supi);
