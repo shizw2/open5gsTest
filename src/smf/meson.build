@@ -136,7 +136,7 @@ smf_sources = files('''
     ../main.c
 '''.split())
 
-executable('open5gs-smfd',
+executable(project_name + '-smfd',
     sources : smf_sources,
     c_args : '-DDEFAULT_CONFIG_FILENAME="@0@/smf.yaml"'.format(open5gs_sysconfdir),
     include_directories : srcinc,

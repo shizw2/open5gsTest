@@ -20,7 +20,7 @@
 #    domain: core,sbi,ausf,event,tlv,mem,sock
 #
 logger:
-    file: @localstatedir@/log/open5gs/nssf.log
+    file: @localstatedir@/log/@project_name@/nssf.log
 
 #
 #  o TLS enable/disable
@@ -62,14 +62,14 @@ logger:
 sbi:
     server:
       no_tls: true
-      cacert: @sysconfdir@/open5gs/tls/ca.crt
-      key: @sysconfdir@/open5gs/tls/nssf.key
-      cert: @sysconfdir@/open5gs/tls/nssf.crt
+      cacert: @sysconfdir@/@project_name@/tls/ca.crt
+      key: @sysconfdir@/@project_name@/tls/nssf.key
+      cert: @sysconfdir@/@project_name@/tls/nssf.crt
     client:
       no_tls: true
-      cacert: @sysconfdir@/open5gs/tls/ca.crt
-      key: @sysconfdir@/open5gs/tls/nssf.key
-      cert: @sysconfdir@/open5gs/tls/nssf.crt
+      cacert: @sysconfdir@/@project_name@/tls/ca.crt
+      key: @sysconfdir@/@project_name@/tls/nssf.key
+      cert: @sysconfdir@/@project_name@/tls/nssf.crt
 
 #
 #  <SBI Server>

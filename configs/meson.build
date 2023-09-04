@@ -21,9 +21,11 @@ conf_data.set('bindir', bindir)
 conf_data.set('sysconfdir', sysconfdir)
 conf_data.set('libdir', libdir)
 conf_data.set('localstatedir', localstatedir)
+conf_data.set('project_name', project_name)
 
 build_configs_dir = join_paths(open5gs_build_dir, 'configs')
 conf_data.set('build_configs_dir', build_configs_dir)
+
 
 build_subprojects_freeDiameter_extensions_dir = join_paths(
         open5gs_build_dir, 'subprojects', 'freeDiameter', 'extensions')

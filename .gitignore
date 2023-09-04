@@ -4,7 +4,7 @@ subprojects/libtins
 subprojects/prometheus-client-c
 subprojects/usrsctp
 build/
-core-*
+core*
 *.pcap
 version/
 install*/

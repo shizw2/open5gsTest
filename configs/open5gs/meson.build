@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-open5gs_sysconfdir = join_paths(sysconfdir, 'open5gs')
+open5gs_sysconfdir = join_paths(sysconfdir, project_name)
 meson.add_install_script(python3_exe, '-c',
         mkdir_p.format(open5gs_sysconfdir))
 

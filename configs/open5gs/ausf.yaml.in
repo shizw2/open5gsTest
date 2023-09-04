@@ -20,7 +20,7 @@
 #    domain: core,sbi,ausf,event,tlv,mem,sock
 #
 logger:
-    file: @localstatedir@/log/open5gs/ausf.log
+    file: @localstatedir@/log/@project_name@/ausf.log
 
 #
 #  o TLS enable/disable
@@ -46,30 +46,30 @@ logger:
 #  sbi:
 #    client:
 #      no_verify: true
-#      key: /etc/open5gs/tls/amf.key
-#      cert: /etc/open5gs/tls/amf.crt
+#      key: /etc/@project_name@/tls/amf.key
+#      cert: /etc/@project_name@/tls/amf.crt
 #
 #  o Use the specified certificate while verifying the client
 #  sbi:
 #    server
-#      cacert: /etc/open5gs/tls/ca.crt
+#      cacert: /etc/@project_name@/tls/ca.crt
 #
 #  o Use the specified certificate while verifying the server
 #  sbi:
 #    client
-#      cacert: /etc/open5gs/tls/ca.crt
+#      cacert: /etc/@project_name@/tls/ca.crt
 #
 sbi:
     server:
       no_tls: true
-      cacert: @sysconfdir@/open5gs/tls/ca.crt
-      key: @sysconfdir@/open5gs/tls/ausf.key
-      cert: @sysconfdir@/open5gs/tls/ausf.crt
+      cacert: @sysconfdir@/@project_name@/tls/ca.crt
+      key: @sysconfdir@/@project_name@/tls/ausf.key
+      cert: @sysconfdir@/@project_name@/tls/ausf.crt
     client:
       no_tls: true
-      cacert: @sysconfdir@/open5gs/tls/ca.crt
-      key: @sysconfdir@/open5gs/tls/ausf.key
-      cert: @sysconfdir@/open5gs/tls/ausf.crt
+      cacert: @sysconfdir@/@project_name@/tls/ca.crt
+      key: @sysconfdir@/@project_name@/tls/ausf.key
+      cert: @sysconfdir@/@project_name@/tls/ausf.crt
 
 #
 #  <SBI Server>

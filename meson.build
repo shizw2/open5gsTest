@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-project('open5gs', 'c', 'cpp',
+project('5gc', 'c', 'cpp',
     version : '2.6.4',
     license : 'AGPL-3.0-or-later',
     meson_version : '>= 0.43.0',
@@ -24,6 +24,9 @@ project('open5gs', 'c', 'cpp',
         'c_std=gnu89',
     ],
 )
+
+#变量名称不能以数字开头。另外,变量定义只能放在project之后
+project_name = '5gc'
 
 libogslib_version = '2.6.4'
 
@@ -56,8 +59,9 @@ if clangtidy.found() != true
     clangtidy = find_program('clang-tidy', required: false)
 endif
 
+#创建日志文件路径: localstatedir/log/5gc
 meson.add_install_script(python3_exe, '-c',
-        mkdir_p.format(join_paths(localstatedir, 'log', 'open5gs')))
+        mkdir_p.format(join_paths(localstatedir, 'log', project_name)))
 
 # Compiler flags
 if cc.get_id() == 'gcc' or cc.get_id() == 'clang'

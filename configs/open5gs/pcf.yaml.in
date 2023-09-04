@@ -1,4 +1,4 @@
-db_uri: mongodb://localhost/open5gs
+db_uri: mongodb://localhost/@project_name@
 
 #
 #  o Set OGS_LOG_INFO to all domain level
@@ -22,7 +22,7 @@ db_uri: mongodb://localhost/open5gs
 #    domain: core,sbi,ausf,event,tlv,mem,sock
 #
 logger:
-    file: @localstatedir@/log/open5gs/pcf.log
+    file: @localstatedir@/log/@project_name@/pcf.log
 
 #
 #  o TLS enable/disable
@@ -64,14 +64,14 @@ logger:
 sbi:
     server:
       no_tls: true
-      cacert: @sysconfdir@/open5gs/tls/ca.crt
-      key: @sysconfdir@/open5gs/tls/pcf.key
-      cert: @sysconfdir@/open5gs/tls/pcf.crt
+      cacert: @sysconfdir@/@project_name@/tls/ca.crt
+      key: @sysconfdir@/@project_name@/tls/pcf.key
+      cert: @sysconfdir@/@project_name@/tls/pcf.crt
     client:
       no_tls: true
-      cacert: @sysconfdir@/open5gs/tls/ca.crt
-      key: @sysconfdir@/open5gs/tls/pcf.key
-      cert: @sysconfdir@/open5gs/tls/pcf.crt
+      cacert: @sysconfdir@/@project_name@/tls/ca.crt
+      key: @sysconfdir@/@project_name@/tls/pcf.key
+      cert: @sysconfdir@/@project_name@/tls/pcf.crt
 
 #
 #  <SBI Server>

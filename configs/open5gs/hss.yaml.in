@@ -1,4 +1,4 @@
-db_uri: mongodb://localhost/open5gs
+db_uri: mongodb://localhost/@project_name@
 
 #
 #  o Set OGS_LOG_INFO to all domain level
@@ -22,7 +22,7 @@ db_uri: mongodb://localhost/open5gs
 #    domain: core,sbi,ausf,event,tlv,mem,sock
 #
 logger:
-    file: @localstatedir@/log/open5gs/hss.log
+    file: @localstatedir@/log/@project_name@/hss.log
 
 hss:
     freeDiameter: @sysconfdir@/freeDiameter/hss.conf
