@@ -19,16 +19,16 @@ export const loggerSchema = {
 export const loggerUiSchema = {
   classNames: "col-xs-12",
   file: {
-    classNames: "col-xs-9",
+    classNames: "col-xs-8",
   },
   level: {
-    classNames: "col-xs-3",
+    classNames: "col-xs-4",
   },
 };
 
 export const sbiSchema = {
   type: "object",
-  title: "SBI",
+  title: "SBI Security",
   properties: {
     server: {
       type: "object",
@@ -141,14 +141,14 @@ export const nrfSchema = {
   properties: {
     sbi: {
       type: "array",
-      title: "SBI",
+      title: "SBI Interface",
       items: {
         type: "object",
         properties: {
           addr: {
             type: "array",
             title:"IP Address",
-              items: {
+            items: {
               type: "string",
               anyOf: [
                 { format: "ipv4" },
@@ -198,7 +198,7 @@ export const nrfUiSchema = {
 
 export const nf_sbi_Schema = {
   type: "array",
-  title:"SBI",
+  title:"SBI Interface",
   items: {
     type: "object",
     properties: {
@@ -332,31 +332,33 @@ export const icpsUiSchema = {
 
 export const ngapSchema = {
   type: "array",
-  title: "Ngap",
+  title: "NGAP",
   items: {
     type: "object",
     properties: {
       addr: {
         type: "string",
-        title: "Address",
-        default: "127.0.0.5"
+        title: "IP Address",
+        anyOf: [
+          { format: "ipv4" },
+          { format: "ipv6" }
+        ],
+        messages: {
+          "anyOf": "IPv4 or IPv6 allowed"
+        },
+        default: "127.0.0.5",
+        required: true,
       },
     }
   }
 };
 
-
 export const ngapUiSchema = {
   classNames: "col-xs-12",
   items: {
-    metrics: {
-      classNames: "col-xs-12",
-      items: {
-		classNames: "col-xs-12",
-        addr: {
-          classNames: "col-xs-12",
-        },
-      },
+    //classNames: "col-xs-12",
+    addr: {
+      classNames: "col-xs-6",
     },
   },
 };
@@ -411,107 +413,152 @@ export const metricsUiSchema = {
 
 export const guamiSchema = {
   type: "array",
-  title: "Guami",
+  title: "GUAMI",
   items: {
-	type: "object",
-	properties: {
-	  plmn_id: {
-		type: "object",
-		properties: {
-		  mcc: {
-			type: "integer"
-		  },
-		  mnc: {
-			type: "integer"
-		  }
-		},
-		required: ["mcc", "mnc"]
-	  },
-	  amf_id: {
-		type: "object",
-		properties: {
-		  region: {
-			type: "integer"
-		  },
-		  set: {
-			type: "integer"
-		  }
-		},
-		required: ["region", "set"]
-	  }
-	},
-	required: ["plmn_id", "amf_id"]
-  }
+    type: "object",
+    properties: {
+      plmn_id: {
+        type: "object",
+        title: "PLMN_ID",
+        properties: {
+          mcc: {
+            type: "string",
+            title: "MCC",
+            maxLength: 3,
+            required: true,
+            pattern: "^\\d+$",
+            messages: {
+              pattern: "Only digits are allowed"
+            }
+          },
+          mnc: {
+            type: "string",
+            title: "MNC",
+            maxLength: 3,
+            required: true,
+            pattern: "^\\d+$",
+            messages: {
+              pattern: "Only digits are allowed"
+            }
+          }
+        },
+        required: ["mcc", "mnc"]
+      },
+      amf_id: {
+        type: "object",
+        title: "AMF_ID",
+          properties: {
+          region: {
+            type: "integer",
+            title: "Region ID",
+            minimum: 1,
+            maximum: 255,
+            messages: {
+              minimum: "must >= 1",
+              maximum: "must <= 255",
+            }
 
+          },
+          set: {
+            type: "integer",
+            title: "Set ID",
+            minimum: 1,
+            maximum: 1023,
+            messages: {
+              minimum: "must >= 1",
+              maximum: "must <= 1023",
+            }
+          }
+        },
+        required: ["region", "set"]
+      }
+    },
+    required: ["plmn_id", "amf_id"]
+  }
 };
 
 export const guamiUiSchema = {
   classNames: "col-xs-12",   //增加这个，guami元素才显示
   items: {
     plmn_id: {
-		classNames: "col-xs-12",//增加这个，体现层次感
-		mcc: {
-		  classNames: "col-xs-6"
-		},
-		mnc: {
-		  classNames: "col-xs-6"
-		}
+      classNames: "col-xs-6",//增加这个，体现层次感
+      mcc: {
+        classNames: "col-xs-6"
+      },
+      mnc: {
+        classNames: "col-xs-6"
+      }
     },
     amf_id: {
-		classNames: "col-xs-12",
-		region: {
-		  classNames: "col-xs-6"
-		},
-		set: {
-		  classNames: "col-xs-6"
-		}
+      classNames: "col-xs-6",
+      region: {
+        classNames: "col-xs-6"
+      },
+      set: {
+        classNames: "col-xs-6"
+      }
     }
   }
-  
 };
 
 export const taiSchema = {
   type: "array",
+  title: "TAI",
   items: {
-	type: "object",
-	properties: {
-	  plmn_id: {
-		type: "object",
-		properties: {
-		  mcc: {
-			type: "integer"
-		  },
-		  mnc: {
-			type: "integer"
-		  }
-		},
-		required: ["mcc", "mnc"]
-	  },
-	  tac: {
-		type: "integer",		
-	  }
-	},
-	required: ["plmn_id", "tac"]
+    type: "object",
+    properties: {
+      plmn_id: {
+        type: "object",
+        title: "PLMN_ID",
+        properties: {
+          mcc: {
+            type: "string",
+            title: "MCC",
+            maxLength: 3,
+            required: true,
+            pattern: "^\\d+$",
+            messages: {
+              pattern: "Only digits are allowed"
+            }
+          },
+          mnc: {
+            type: "string",
+            title: "MNC",
+            maxLength: 3,
+            required: true,
+            pattern: "^\\d+$",
+            messages: {
+              pattern: "Only digits are allowed"
+            }
+          }
+        },
+        required: ["mcc", "mnc"]
+      },
+      tac: {
+        type: "integer",
+        title: "TAC",
+      }
+    },
+    required: ["plmn_id", "tac"]
   }
-
 };
 
 export const taiUiSchema = {
   classNames: "col-xs-12",  
   items: {
     plmn_id: {
-		classNames: "col-xs-6",//增加这个，体现层次感
-		mcc: {
-		  classNames: "col-xs-6"
-		},
-		mnc: {
-		  classNames: "col-xs-6"
-		}
-	},
+      classNames: "col-xs-6", //增加这个，体现层次感
+      mcc: {
+        classNames: "col-xs-6"
+      },
+      mnc: {
+        classNames: "col-xs-6"
+      }
+    },
     tac: {
-		classNames: "col-xs-6"
+      classNames: "col-xs-6"
     }
-  }  
+  }
 };
 
 export const securitySchema = {
@@ -548,37 +595,47 @@ export const securitySchema = {
 export const securityUiSchema = {
   classNames: "col-xs-12",
   integrity_order: {
-    classNames: "col-xs-12"
+    classNames: "col-xs-6"
   },
   ciphering_order: {
-    classNames: "col-xs-12"
+    classNames: "col-xs-6"
   }
 };
 
 export const network_nameSchema = {
   type: "object",
-  title:"network_name",
+  title:"Network Name",
   properties: {
     full: {
       type: "string",
+      title: "FULL Name",
+    },
+    short: {
+      type: "string",
+      title: "Short Name",
     }
   },
 };
 
 export const network_nameUiSchema = {
-  classNames: "col-xs-6",	
+  classNames: "col-xs-12",	
   full: {
-	classNames: "col-xs-12",	  
+    classNames: "col-xs-6",	  
     "ui:placeholder": "Enter the full name",
+  },
+  short: {
+    classNames: "col-xs-6",	  
+    "ui:placeholder": "Enter the short name",
   }
 };
 
 export const amf_nameSchema = {
-  type: "string"
+  type: "string",
+  title: "AMF Name",
 };
 
 export const amf_nameUiSchema = {
-  classNames: "col-xs-6"
+  classNames: "col-xs-12"
 };
 
 export const pfcpSchema = {
@@ -918,18 +975,18 @@ export const freeDiameter2Schema = {
       ],
       messages: {
         "anyOf": "IPv4 or IPv6 allowed"
+      },
     },
-  },
-  load_extension: {
+    load_extension: {
       type: "array",
-    items: {
+      items: {
         type: "object",
         properties: {
-      module: {
+          module: {
             type: "string",
             title: "Module"
-      },
-      conf: {
+          },
+          conf: {
             type: "string",
             title: "Conf",
             pattern: "^0x[0-9A-Fa-f]+$",
@@ -937,8 +994,8 @@ export const freeDiameter2Schema = {
               "pattern": "Hex starting with '0x'"
             },
             //description: "Please enter a valid hexadecimal number starting with '0x'",
-    }
-  },
+          }
+        },
         required: ["module"]
       },
       title: "Load Extension"

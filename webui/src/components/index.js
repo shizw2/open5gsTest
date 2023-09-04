@@ -19,6 +19,7 @@ import Confirm from './Shared/Confirm';
 import * as Subscriber from './Subscriber';
 import * as Profile from './Profile';
 import * as Account from './Account';
+import * as Alarm from './Alarm';
 import * as NFConfig from './NFConfig';
 
 export {
@@ -43,5 +44,6 @@ export {
   Subscriber,
   Profile,
   Account,
-  NFConfig
+  NFConfig,
+  Alarm
 }

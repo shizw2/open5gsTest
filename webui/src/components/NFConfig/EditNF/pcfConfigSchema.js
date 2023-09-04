@@ -15,10 +15,8 @@ export const pcfschema = {
         sbi: schemas.nf_sbi_Schema,        
         freeDiameter:schemas.freeDiameter2Schema,
         metrics: schemas.metricsSchema,
-        
       },
-    },    
-    
+    },
   },
 };
 
@@ -33,5 +31,4 @@ export const pcfuiSchema = {
     freeDiameter:schemas.freeDiameter2UiSchema,
     metrics: schemas.metricsUiSchema,    
   },
- 
 };

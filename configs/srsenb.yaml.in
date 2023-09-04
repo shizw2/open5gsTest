@@ -5,14 +5,14 @@ logger:
 sbi:
     server:
       no_tls: true
-      cacert: @build_configs_dir@/@project_name@/tls/ca.crt
-      key: @build_configs_dir@/@project_name@/tls/testserver.key
-      cert: @build_configs_dir@/@project_name@/tls/testserver.crt
+      cacert: @build_configs_dir@/open5gs/tls/ca.crt
+      key: @build_configs_dir@/open5gs/tls/testserver.key
+      cert: @build_configs_dir@/open5gs/tls/testserver.crt
     client:
       no_tls: true
-      cacert: @build_configs_dir@/@project_name@/tls/ca.crt
-      key: @build_configs_dir@/@project_name@/tls/testclient.key
-      cert: @build_configs_dir@/@project_name@/tls/testclient.crt
+      cacert: @build_configs_dir@/open5gs/tls/ca.crt
+      key: @build_configs_dir@/open5gs/tls/testclient.key
+      cert: @build_configs_dir@/open5gs/tls/testclient.crt
 
 parameter:
 #    no_nrf: true

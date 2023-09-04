@@ -11,6 +11,8 @@ import Notification from 'containers/Notification';
 import * as Subscriber from 'containers/Subscriber';
 import * as Profile from 'containers/Profile';
 import * as Account from 'containers/Account';
+import * as Alarm from 'containers/Alarm';
+import * as Performance from 'containers/Performance';
 import * as NFConfig from 'containers/NFConfig';
 
 class App extends Component {
@@ -56,6 +58,12 @@ class App extends Component {
         </Layout.Container>
         <Layout.Container visible={view === "nfconfig"}>
           <NFConfig.Collection/>
+        </Layout.Container>       
+        <Layout.Container visible={view === "alert"}>
+          <Alarm.Collection/>        
+        </Layout.Container>
+        <Layout.Container visible={view === "performance"}> 
+          <Performance.Collection/>       
         </Layout.Container>
         <Notification/>
       </Layout>

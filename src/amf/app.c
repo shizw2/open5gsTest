@@ -29,7 +29,7 @@ int app_initialize(const char *const argv[])
     char *FileDP = (char *)argv[0];
     char *FileName = strrchr(FileDP, '/') +1 ;
     printf("arg:%s.\r\n",FileName);    
-    if (ogs_strcasecmp(FileName, "open5gs-amfd") == 0 || g_sps_id == 0){
+    if (g_sps_id == 0){
         printf("amf init.\r\n");
     rv = amf_initialize();
     }else{

@@ -4,7 +4,7 @@ const properties = {
   base_operation: '运营管理',
   base_subscriber: '用户管理',
   base_profile: '签约模板',
-  base_alert: '告警管理',
+  base_alert: '告警监控',
   base_performance: '性能监控',
   base_account: '账号管理',
 };

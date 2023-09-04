@@ -9,11 +9,11 @@ export const bsfschema = {
     nrf: schemas.nrfSchema,
     bsf: {
       type: "object",
+      title: "BSF",
       properties: {
         sbi: schemas.nf_sbi_Schema, 
       },
-    },    
-    
+    },
   },
 };
 
@@ -25,5 +25,4 @@ export const bsfuiSchema = {
     classNames: "col-xs-12",
     sbi: schemas.nf_sbi_UiSchema,
   },
- 
 };
