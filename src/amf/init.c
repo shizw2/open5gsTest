@@ -54,8 +54,6 @@ int amf_initialize(void)
 
     ogs_metrics_context_open(ogs_metrics_self());
 
-    ogs_error("ddddddddddddddddddddddddddd");
-
     rv = amf_sbi_open();
     if (rv != OGS_OK) return rv;
 

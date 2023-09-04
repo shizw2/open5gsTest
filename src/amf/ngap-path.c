@@ -32,8 +32,6 @@ int ngap_open(void)
 {
     ogs_socknode_t *node = NULL;
 
-    ogs_error("ngap_open");
-
     ogs_list_for_each(&amf_self()->ngap_list, node)
         if (ngap_server(node) == NULL) return OGS_ERROR;
 
