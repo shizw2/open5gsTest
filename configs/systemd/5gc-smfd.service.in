@@ -1,15 +1,15 @@
 [Unit]
-Description=Open5GS MME Daemon
+Description=@project_name@ SMF Daemon
 After=network-online.target
 
 [Service]
 Type=simple
 
-User=open5gs
-Group=open5gs
+User=@project_name@
+Group=@project_name@
 
 Restart=always
-ExecStart=@bindir@/open5gs-mmed -c @sysconfdir@/open5gs/mme.yaml
+ExecStart=@bindir@/@project_name@-smfd -c @sysconfdir@/@project_name@/smf.yaml
 RestartSec=2
 RestartPreventExitStatus=1
 ExecReload=/bin/kill -HUP $MAINPID

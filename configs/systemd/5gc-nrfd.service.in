@@ -1,15 +1,15 @@
 [Unit]
-Description=Open5GS NRF Daemon
+Description=@project_name@ NRF Daemon
 Wants=mongodb.service mongod.service
 
 [Service]
 Type=simple
 
-User=open5gs
-Group=open5gs
+User=@project_name@
+Group=@project_name@
 
 Restart=always
-ExecStart=@bindir@/open5gs-scpd -c @sysconfdir@/open5gs/scp.yaml
+ExecStart=@bindir@/@project_name@-nrfd -c @sysconfdir@/@project_name@/nrf.yaml
 RestartSec=2
 RestartPreventExitStatus=1
 ExecReload=/bin/kill -HUP $MAINPID

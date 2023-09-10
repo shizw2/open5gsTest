@@ -57,7 +57,30 @@ class Edit extends Component {
     }else if (formData._id === 'ausf') {
       selectedSchema = ausfschema;
       selectedUiSchema = ausfuiSchema;
-    }else if (formData._id === 'amf' || formData._id === 'a') {
+    }else if (formData._id === 'amf' || formData._id === 'a') {      
+      //将读取到的mcc,mnc的类型改为string
+      if (Array.isArray(formData.amf.guami)) {
+        formData.amf.guami.forEach(guami => {         
+          if (typeof guami.plmn_id.mcc === 'number') {
+            guami.plmn_id.mcc = String(guami.plmn_id.mcc);           
+          }
+          if (typeof guami.plmn_id.mnc === 'number') {
+            guami.plmn_id.mnc = String(guami.plmn_id.mnc);
+          }
+        });
+      }
+
+      if (Array.isArray(formData.amf.tai)) {
+        formData.amf.tai.forEach(tai => {         
+          if (typeof tai.plmn_id.mcc === 'number') {
+            tai.plmn_id.mcc = String(tai.plmn_id.mcc);           
+          }
+          if (typeof tai.plmn_id.mnc === 'number') {
+            tai.plmn_id.mnc = String(tai.plmn_id.mnc);
+          }
+        });
+      }
+
       selectedSchema = amfschema;
       selectedUiSchema = amfuiSchema;
     }else if (formData._id === 'smf') {

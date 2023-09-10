@@ -1,15 +1,15 @@
 [Unit]
-Description=Open5GS NSSF Daemon
+Description=@project_name@ NSSF Daemon
 After=network-online.target
 
 [Service]
 Type=simple
 
-User=open5gs
-Group=open5gs
+User=@project_name@
+Group=@project_name@
 
 Restart=always
-ExecStart=@bindir@/open5gs-nssfd -c @sysconfdir@/open5gs/nssf.yaml
+ExecStart=@bindir@/@project_name@-nssfd -c @sysconfdir@/@project_name@/nssf.yaml
 RestartSec=2
 RestartPreventExitStatus=1
 ExecReload=/bin/kill -HUP $MAINPID

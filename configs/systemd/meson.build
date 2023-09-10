@@ -14,24 +14,24 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
+#这里不太好用变量替换，先写死
 systemd_conf_in = '''
-    open5gs-mmed.service
-    open5gs-sgwcd.service
-    open5gs-smfd.service
-    open5gs-amfd.service
-    open5gs-sgwud.service
-    open5gs-upfd.service
-    open5gs-hssd.service
-    open5gs-pcrfd.service
-    open5gs-nrfd.service
-    open5gs-scpd.service
-    open5gs-ausfd.service
-    open5gs-udmd.service
-    open5gs-pcfd.service
-    open5gs-nssfd.service
-    open5gs-bsfd.service
-    open5gs-udrd.service
+    5gc-mmed.service
+    5gc-sgwcd.service
+    5gc-smfd.service
+    5gc-amfd.service
+    5gc-sgwud.service
+    5gc-upfd.service
+    5gc-hssd.service
+    5gc-pcrfd.service
+    5gc-nrfd.service
+    5gc-scpd.service
+    5gc-ausfd.service
+    5gc-udmd.service
+    5gc-pcfd.service
+    5gc-nssfd.service
+    5gc-bsfd.service
+    5gc-udrd.service
 '''.split()
 
 foreach file : systemd_conf_in
@@ -42,8 +42,8 @@ foreach file : systemd_conf_in
 endforeach
 
 systemd_conf = '''
-    99-open5gs.netdev
-    99-open5gs.network        
+    99-5gc.netdev
+    99-5gc.network        
 '''.split()
 
 foreach file : systemd_conf

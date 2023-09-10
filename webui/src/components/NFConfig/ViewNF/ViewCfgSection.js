@@ -224,18 +224,25 @@ export const TimeSection = ({ time }) => (
   <div>
       <div className="time-section">
         <div className="time-header">time:</div>  
-        {time && time.t3512 && (
-            <div className="twenty-spaces">
-              <div>t3512:</div>
-              <div className="twenty-spaces">value: {time.t3512.value}</div>
-            </div>       
-        )}
-    
         {time && time.nf_instance && (     
             <div className="twenty-spaces">
               <div>nf_instance:</div>
               <div className="twenty-spaces">heartbeat: {time.nf_instance.heartbeat}</div>
             </div>  
+        )}
+        
+        {time && time.t3512 && (
+            <div className="twenty-spaces">
+              <div>t3512:</div>
+              <div className="twenty-spaces">value: {time.t3512.value}</div>
+            </div>
+        )}
+ 
+        {time && time.t3502 && (
+            <div className="twenty-spaces">
+              <div>t3502:</div>
+              <div className="twenty-spaces">value: {time.t3502.value}</div>
+            </div>
         )}
       </div>
   </div>

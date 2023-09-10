@@ -27,7 +27,7 @@ export const ViewAMF = ({ nfconfig }) => {
               ))}
               </div>          
               
-              <div className="twenty-spaces">icps:</div> 
+              <div className="twenty-spaces">icps: </div> 
               <div className="forty-spaces">spsnum: {nfconfig.amf.icps.spsnum}</div>
               <div className="forty-spaces">port: {nfconfig.amf.icps.port}</div>
               
@@ -40,15 +40,17 @@ export const ViewAMF = ({ nfconfig }) => {
               
               <div className="twenty-spaces">network_name:</div>
               <div className="forty-spaces">full: {nfconfig.amf.network_name.full}</div>
+              <div className="forty-spaces">short: {nfconfig.amf.network_name.short}</div>
 
-              <div className="twenty-spaces">amf_name:{nfconfig.amf.amf_name}</div>  
+              <div className="twenty-spaces">amf_name: {nfconfig.amf.amf_name}</div>  
                       
         </div>
       )}
       </div>
-
+      {/*
       <div className="parameter-body">parameter:</div>
       <div className="max-body">max:</div>
+      */}
       <TimeSection time={nfconfig.time} />      
     </div>
   );

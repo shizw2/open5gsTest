@@ -24,9 +24,9 @@ export const amfschema = {
     nrf: schemas.nrfSchema,
     time: {
       type: "object",
-      title: "time",
+      title: "Time",
       properties: {
-        instance: schemas.time_instanceSchema,
+        nf_instance: schemas.time_nf_instanceSchema,
         t3512: schemas.time_t3512Schema,
         t3502: schemas.time_t3502Schema,
       },
@@ -51,7 +51,7 @@ export const amfuiSchema = {
   },
   time: {
     classNames: "col-xs-12",
-    instance: schemas.time_instanceUiSchema,
+    nf_instance: schemas.time_nf_instanceUiSchema,
     t3512: schemas.time_t3512UiSchema,
     t3502: schemas.time_t3502UiSchema,
   },

@@ -1,15 +1,15 @@
 [Unit]
-Description=Open5GS PCF Daemon
+Description=@project_name@ BSF Daemon
 Wants=mongodb.service mongod.service
 
 [Service]
 Type=simple
 
-User=open5gs
-Group=open5gs
+User=@project_name@
+Group=@project_name@
 
 Restart=always
-ExecStart=@bindir@/open5gs-pcfd -c @sysconfdir@/open5gs/pcf.yaml
+ExecStart=@bindir@/@project_name@-bsfd -c @sysconfdir@/@project_name@/bsf.yaml
 RestartSec=2
 RestartPreventExitStatus=1
 ExecReload=/bin/kill -HUP $MAINPID

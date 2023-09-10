@@ -1,15 +1,15 @@
 [Unit]
-Description=Open5GS AUSF Daemon
+Description=@project_name@ AUSF Daemon
 After=network-online.target
 
 [Service]
 Type=simple
 
-User=open5gs
-Group=open5gs
+User=@project_name@
+Group=@project_name@
 
 Restart=always
-ExecStart=@bindir@/open5gs-ausfd -c @sysconfdir@/open5gs/ausf.yaml
+ExecStart=@bindir@/@project_name@-ausfd -c @sysconfdir@/@project_name@/ausf.yaml
 RestartSec=2
 RestartPreventExitStatus=1
 ExecReload=/bin/kill -HUP $MAINPID

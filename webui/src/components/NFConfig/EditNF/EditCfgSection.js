@@ -249,21 +249,22 @@ export const timeSchema = {
 export const timeUiSchema = {    
 };
 
-//对于配置了具体内容的time,使用下面的Schema/UiSchema,如time_instanceSchema,time_t3512Schema
-export const time_instanceSchema = {
+//对于配置了具体内容的time,使用下面的Schema/UiSchema,如time_nf_instanceSchema,time_t3512Schema
+export const time_nf_instanceSchema = {
   type: "object",
-  title:"instance", 
+  title:"NF_Instance", 
   properties: {
     heartbeat: {
       type: "number",
+      title: "HeartBeat",
       default: 20
     }
   },
 };
 
 // UiSchema
-export const time_instanceUiSchema = {  
-  classNames: "col-xs-12",
+export const time_nf_instanceUiSchema = {  
+  classNames: "col-xs-4",
   heartbeat: {
     classNames: "col-xs-12"
   }  
@@ -271,16 +272,18 @@ export const time_instanceUiSchema = {
 
 export const time_t3512Schema = {
   type: "object",
+  title: "T3512",
   properties: {
     value: {
       type: "number",
-      default: 3240
+      title: "Value",
+      default: 540
     }
   }
 };
 
 export const time_t3512UiSchema = {
-  classNames: "col-xs-12",
+  classNames: "col-xs-4",
   value: {
     classNames: "col-xs-12",
   } 
@@ -288,21 +291,22 @@ export const time_t3512UiSchema = {
 
 export const time_t3502Schema = {
   type: "object",
+  title: "T3502",
   properties: {
     value: {
       type: "number",
+      title: "Value",
       default: 720
     }
   }
 };
 
 export const time_t3502UiSchema = {
-  classNames: "col-xs-12",
+  classNames: "col-xs-4",
   value: {
     classNames: "col-xs-12",
   } 
 };
-
 
 // ICPS Schema
 export const icpsSchema = {
@@ -618,7 +622,7 @@ export const network_nameSchema = {
 };
 
 export const network_nameUiSchema = {
-  classNames: "col-xs-12",	
+  classNames: "col-xs-8",	
   full: {
     classNames: "col-xs-6",	  
     "ui:placeholder": "Enter the full name",
@@ -635,7 +639,8 @@ export const amf_nameSchema = {
 };
 
 export const amf_nameUiSchema = {
-  classNames: "col-xs-12"
+  classNames: "col-xs-4",
+  "ui:title": <CustomTitle21 title="AMF Name" />,
 };
 
 export const pfcpSchema = {
@@ -1109,11 +1114,41 @@ export const hnetUiSchema = {
   }
 };
 
+function CustomInput1(props) {
+  return (
+    <input
+      className="col-xs-12"
+      style={{
+        fontWeight: "400",
+        fontSize: "21px"
+      }}
+      {...props}
+    />
+  );
+}
+
+function CustomTitle21({ title }) {
+  return (
+    <div>
+      <label
+        style={{
+          fontWeight: "400",
+          fontSize: "21px",
+        }}
+      >
+        {title}
+      </label>
+    </div>
+  );
+}
+
 export const db_uriSchema = {
   type: "string",
   title: "DB_URI",
 };
 
 export const db_uriUiSchema = {
-  classNames: "col-xs-12"
+  classNames: "col-xs-12",
+  "ui:title": <CustomTitle21 title="DB_URI" />,
+  //"ui:widget": CustomInput1
 };
