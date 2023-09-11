@@ -15,42 +15,37 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-conf_data = configuration_data()
+open5gs_sysconfdir = join_paths(sysconfdir, project_name)
+meson.add_install_script(python3_exe, '-c',
+        mkdir_p.format(open5gs_sysconfdir))
 
-conf_data.set('bindir', bindir)
-conf_data.set('sysconfdir', sysconfdir)
-conf_data.set('libdir', libdir)
-conf_data.set('localstatedir', localstatedir)
-conf_data.set('project_name', project_name)
-
-build_configs_dir = join_paths(open5gs_build_dir, 'configs')
-conf_data.set('build_configs_dir', build_configs_dir)
-
-build_subprojects_freeDiameter_extensions_dir = join_paths(
-        open5gs_build_dir, 'subprojects', 'freeDiameter', 'extensions')
-conf_data.set('build_subprojects_freeDiameter_extensions_dir',
-        build_subprojects_freeDiameter_extensions_dir)
-
-example_conf = '''
-    sample.yaml
-    310014.yaml
-    csfb.yaml
-    volte.yaml
-    vonr.yaml
-    slice.yaml
-    srsenb.yaml
-    non3gpp.yaml
+open5gs_conf = '''
+    mme.yaml
+    sgwc.yaml
+    sgwu.yaml
+    smf.yaml
+    amf.yaml
+    upf.yaml
+    hss.yaml
+    pcrf.yaml
+    nrf.yaml
+    scp.yaml
+    ausf.yaml
+    udm.yaml
+    udr.yaml
+    pcf.yaml
+    nssf.yaml
+    bsf.yaml
 '''.split()
 
-foreach file : example_conf
+foreach file : open5gs_conf
     gen = configure_file(
             input : file + '.in',
             output : file,
             configuration : conf_data)
+    meson.add_install_script(python3_exe, '-c',
+            install_conf.format(gen, open5gs_sysconfdir))
 endforeach
 
-subdir(project_name)
-subdir('freeDiameter')
-subdir('systemd')
-subdir('logrotate')
-subdir('newsyslog')
+subdir('tls')
+subdir('hnet')

@@ -150,7 +150,7 @@ amf:
         ciphering_order : [ NEA0, NEA1, NEA2 ]
     network_name:
         full: Open5GS
-    amf_name: open5gs-amf0
+    amf_name: 5gc-amf0
 
 sgwu:
     pfcp:

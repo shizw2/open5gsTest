@@ -172,7 +172,7 @@ logger:
 #              mcc: 002
 #              mnc: 02
 #            lac: 43692
-#      - name: msc.open5gs.org
+#      - name: msc.5gc.org
 #        map:
 #          tai:
 #            plmn_id:
@@ -312,7 +312,7 @@ logger:
 #
 #  <MME Name>
 #  mme:
-#    mme_name: open5gs-mme0
+#    mme_name: 5gc-mme0
 #
 #  <Relative Capacity> - Default(255)
 #  mme:
@@ -343,7 +343,7 @@ mme:
         ciphering_order : [ EEA0, EEA1, EEA2 ]
     network_name:
         full: Open5GS
-    mme_name: open5gs-mme0
+    mme_name: 5gc-mme0
 
 #
 # <GTP-C Client>
@@ -373,7 +373,7 @@ mme:
 #      - addr
 #        - 127.0.0.22
 #        - fd69:f21d:873c:fa::12
-#      - name: sgw3.open5gs.org
+#      - name: sgw3.5gc.org
 #
 # <SGW Selection Mode>
 #

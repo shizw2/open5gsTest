@@ -46,18 +46,18 @@ logger:
 #  sbi:
 #    client:
 #      no_verify: true
-#      key: /etc/open5gs/tls/amf.key
-#      cert: /etc/open5gs/tls/amf.crt
+#      key: /etc/5gc/tls/amf.key
+#      cert: /etc/5gc/tls/amf.crt
 #
 #  o Use the specified certificate while verifying the client
 #  sbi:
 #    server
-#      cacert: /etc/open5gs/tls/ca.crt
+#      cacert: /etc/5gc/tls/ca.crt
 #
 #  o Use the specified certificate while verifying the server
 #  sbi:
 #    client
-#      cacert: /etc/open5gs/tls/ca.crt
+#      cacert: /etc/5gc/tls/ca.crt
 #
 sbi:
     server:
@@ -95,8 +95,8 @@ sbi:
 #  o SBI Server(https://<all address available>:443)
 #  sbi:
 #    server:
-#      key: /etc/open5gs/tls/amf.key
-#      cert: /etc/open5gs/tls/amf.crt
+#      key: /etc/5gc/tls/amf.key
+#      cert: /etc/5gc/tls/amf.crt
 #  amf:
 #    sbi:
 #
@@ -104,24 +104,24 @@ sbi:
 #  sbi:
 #    server:
 #      no_verify: true
-#      key: /etc/open5gs/tls/amf.key
-#      cert: /etc/open5gs/tls/amf.crt
+#      key: /etc/5gc/tls/amf.key
+#      cert: /etc/5gc/tls/amf.crt
 #  amf:
 #    sbi:
 #      - addr: 127.0.0.5
 #      - addr: ::1
 #
-#  o SBI Server(https://amf.open5gs.org:443)
+#  o SBI Server(https://amf.5gc.org:443)
 #    Use the specified certificate while verifying the client
 #
 #  sbi:
 #    server:
-#      cacert: /etc/open5gs/tls/ca.crt
-#      key: /etc/open5gs/tls/amf.key
-#      cert: /etc/open5gs/tls/amf.crt
+#      cacert: /etc/5gc/tls/ca.crt
+#      key: /etc/5gc/tls/amf.key
+#      cert: /etc/5gc/tls/amf.crt
 #  amf:
 #    sbi:
-#      - name: amf.open5gs.org
+#      - name: amf.5gc.org
 #
 #  o SBI Server(http://127.0.0.5:7777)
 #  sbi:
@@ -147,7 +147,7 @@ sbi:
 #  amf:
 #    sbi:
 #      - dev: eth0
-#        advertise: open5gs-amf.svc.local
+#        advertise: 5gc-amf.svc.local
 #
 #  o Another example of advertising on NRF
 #  sbi:
@@ -462,7 +462,7 @@ sbi:
 #  <AMF Name>
 #
 #  amf:
-#    amf_name: amf1.open5gs.amf.5gc.mnc70.mcc999.3gppnetwork.org
+#    amf_name: amf1.5gc.amf.5gc.mnc70.mcc999.3gppnetwork.org
 #
 #  <Relative Capacity> - Default(255)
 #
@@ -523,24 +523,24 @@ amf:
 #  sbi:
 #    client:
 #      no_verify: true
-#      key: /etc/open5gs/tls/amf.key
-#      cert: /etc/open5gs/tls/amf.crt
+#      key: /etc/5gc/tls/amf.key
+#      cert: /etc/5gc/tls/amf.crt
 #  scp:
 #    sbi:
 #      - addr: 127.0.1.10
 #      - addr: ::1
 #
-#  o SBI Client(https://scp.open5gs.org:443)
+#  o SBI Client(https://scp.5gc.org:443)
 #    Use the specified certificate while verifying the server
 #
 #  sbi:
 #    client:
-#      cacert: /etc/open5gs/tls/ca.crt
-#      key: /etc/open5gs/tls/amf.key
-#      cert: /etc/open5gs/tls/amf.crt
+#      cacert: /etc/5gc/tls/ca.crt
+#      key: /etc/5gc/tls/amf.key
+#      cert: /etc/5gc/tls/amf.crt
 #  scp:
 #    sbi:
-#      - name: scp.open5gs.org
+#      - name: scp.5gc.org
 #
 #  o SBI Client(http://[fd69:f21d:873c:fb::1]:80)
 #    If prefer_ipv4 is true, http://127.0.1.10:80 is selected.
@@ -592,24 +592,24 @@ amf:
 #  sbi:
 #    client:
 #      no_verify: true
-#      key: /etc/open5gs/tls/amf.key
-#      cert: /etc/open5gs/tls/amf.crt
+#      key: /etc/5gc/tls/amf.key
+#      cert: /etc/5gc/tls/amf.crt
 #  nrf:
 #    sbi:
 #      - addr: 127.0.0.10
 #      - addr: ::1
 #
-#  o SBI Client(https://nrf.open5gs.org:443)
+#  o SBI Client(https://nrf.5gc.org:443)
 #    Use the specified certificate while verifying the server
 #
 #  sbi:
 #    client:
-#      cacert: /etc/open5gs/tls/ca.crt
-#      key: /etc/open5gs/tls/amf.key
-#      cert: /etc/open5gs/tls/amf.crt
+#      cacert: /etc/5gc/tls/ca.crt
+#      key: /etc/5gc/tls/amf.key
+#      cert: /etc/5gc/tls/amf.crt
 #  nrf:
 #    sbi:
-#      - name: nrf.open5gs.org
+#      - name: nrf.5gc.org
 #
 #  o SBI Client(http://[fd69:f21d:873c:fa::1]:80)
 #    If prefer_ipv4 is true, http://127.0.0.10:80 is selected.

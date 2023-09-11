@@ -20,7 +20,7 @@
 #    domain: core,sbi,ausf,event,tlv,mem,sock
 #
 logger:
-    file: @localstatedir@/log/@project_name@/nssf.log
+    file: @localstatedir@/log/@project_name@/bsf.log
 
 #
 #  o TLS enable/disable
@@ -46,30 +46,30 @@ logger:
 #  sbi:
 #    client:
 #      no_verify: true
-#      key: /etc/open5gs/tls/amf.key
-#      cert: /etc/open5gs/tls/amf.crt
+#      key: /etc/5gc/tls/amf.key
+#      cert: /etc/5gc/tls/amf.crt
 #
 #  o Use the specified certificate while verifying the client
 #  sbi:
 #    server
-#      cacert: /etc/open5gs/tls/ca.crt
+#      cacert: /etc/5gc/tls/ca.crt
 #
 #  o Use the specified certificate while verifying the server
 #  sbi:
 #    client
-#      cacert: /etc/open5gs/tls/ca.crt
+#      cacert: /etc/5gc/tls/ca.crt
 #
 sbi:
     server:
       no_tls: true
       cacert: @sysconfdir@/@project_name@/tls/ca.crt
-      key: @sysconfdir@/@project_name@/tls/nssf.key
-      cert: @sysconfdir@/@project_name@/tls/nssf.crt
+      key: @sysconfdir@/@project_name@/tls/bsf.key
+      cert: @sysconfdir@/@project_name@/tls/bsf.crt
     client:
       no_tls: true
       cacert: @sysconfdir@/@project_name@/tls/ca.crt
-      key: @sysconfdir@/@project_name@/tls/nssf.key
-      cert: @sysconfdir@/@project_name@/tls/nssf.crt
+      key: @sysconfdir@/@project_name@/tls/bsf.key
+      cert: @sysconfdir@/@project_name@/tls/bsf.crt
 
 #
 #  <SBI Server>
@@ -78,14 +78,14 @@ sbi:
 #  sbi:
 #    server:
 #      no_tls: true
-#  nssf:
+#  bsf:
 #    sbi:
 #
 #  o SBI Server(http://<any address>:7777)
 #  sbi:
 #    server:
 #      no_tls: true
-#  nssf:
+#  bsf:
 #    sbi:
 #      - addr:
 #          - 0.0.0.0
@@ -95,48 +95,48 @@ sbi:
 #  o SBI Server(https://<all address available>:443)
 #  sbi:
 #    server:
-#      key: /etc/open5gs/tls/nssf.key
-#      cert: /etc/open5gs/tls/nssf.crt
-#  nssf:
+#      key: /etc/5gc/tls/bsf.key
+#      cert: /etc/5gc/tls/bsf.crt
+#  bsf:
 #    sbi:
 #
-#  o SBI Server(https://127.0.0.14:443, https://[::1]:443) without verification
+#  o SBI Server(https://127.0.0.15:443, https://[::1]:443) without verification
 #  sbi:
 #    server:
 #      no_verify: true
-#      key: /etc/open5gs/tls/nssf.key
-#      cert: /etc/open5gs/tls/nssf.crt
-#  nssf:
+#      key: /etc/5gc/tls/bsf.key
+#      cert: /etc/5gc/tls/bsf.crt
+#  bsf:
 #    sbi:
-#      - addr: 127.0.0.14
+#      - addr: 127.0.0.15
 #      - addr: ::1
 #
-#  o SBI Server(https://nssf.open5gs.org:443)
+#  o SBI Server(https://bsf.5gc.org:443)
 #    Use the specified certificate while verifying the client
 #
 #  sbi:
 #    server:
-#      cacert: /etc/open5gs/tls/ca.crt
-#      key: /etc/open5gs/tls/nssf.key
-#      cert: /etc/open5gs/tls/nssf.crt
-#  nssf:
+#      cacert: /etc/5gc/tls/ca.crt
+#      key: /etc/5gc/tls/bsf.key
+#      cert: /etc/5gc/tls/bsf.crt
+#  bsf:
 #    sbi:
-#      - name: nssf.open5gs.org
+#      - name: bsf.5gc.org
 #
-#  o SBI Server(http://127.0.0.14:7777)
+#  o SBI Server(http://127.0.0.15:7777)
 #  sbi:
 #    server:
 #      no_tls: true
-#  nssf:
+#  bsf:
 #    sbi:
-#      - addr: 127.0.0.14
+#      - addr: 127.0.0.15
 #        port: 7777
 #
 #  o SBI Server(http://<eth0 IP address>:80)
 #  sbi:
 #    server:
 #      no_tls: true
-#  nssf:
+#  bsf:
 #    sbi:
 #      - dev: eth0
 #
@@ -144,16 +144,16 @@ sbi:
 #  sbi:
 #    server:
 #      no_tls: true
-#  nssf:
+#  bsf:
 #    sbi:
 #      - dev: eth0
-#        advertise: open5gs-nssf.svc.local
+#        advertise: 5gc-bsf.svc.local
 #
 #  o Another example of advertising on NRF
 #  sbi:
 #    server:
 #      no_tls: true
-#  nssf:
+#  bsf:
 #    sbi:
 #      - addr: localhost
 #        advertise:
@@ -167,62 +167,9 @@ sbi:
 #  sbi:
 #    server:
 #      no_tls: true
-#  nssf:
+#  bsf:
 #    sbi:
-#      addr: 127.0.0.14
-#      option:
-#        tcp_nodelay: false
-#        so_linger:
-#          l_onoff: true
-#          l_linger: 10
-#
-#  <List of available Network Slice Instance(NSI)>
-#
-#  o One NSI
-#   - NRF[http://::1:7777/nnrf-nfm/v1/nf-instances]
-#     NSSAI[SST:1]
-#
-#  nssf:
-#    nsi:
-#      - addr: ::1
-#        port: 7777
-#        s_nssai:
-#          sst: 1
-#
-#  o Three NSI
-#   1. NRF[http://::1:7777/nnrf-nfm/v1/nf-instances]
-#      S-NSSAI[SST:1]
-#
-#   2. NRF[http://127.0.0.19:7777/nnrf-nfm/v1/nf-instances]
-#      NSSAI[SST:1, SD:000080]
-#
-#   2. NRF[http://127.0.0.10:7777/nnrf-nfm/v1/nf-instances]
-#      NSSAI[SST:1, SD:009000]
-#
-#  nssf:
-#    nsi:
-#      - addr: ::1
-#        port: 7777
-#        s_nssai:
-#          sst: 1
-#      - addr: 127.0.0.19
-#        port: 7777
-#        s_nssai:
-#          sst: 1
-#          sd: 000080
-#      - addr: 127.0.0.10
-#        port: 7777
-#        s_nssai:
-#          sst: 1
-#          sd: 009000
-#
-#  o NSI Option (Default)
-#    - tcp_nodelay : true
-#    - so_linger.l_onoff : false
-#
-#  nssf:
-#    nsi:
-#      addr: ::1
+#      addr: 127.0.0.15
 #      option:
 #        tcp_nodelay: false
 #        so_linger:
@@ -232,13 +179,13 @@ sbi:
 #  <NF Service>
 #
 #  o NF Service Name(Default : all NF services available)
-#  nssf:
+#  bsf:
 #    service_name:
 #
 #  o NF Service Name(Only some NF services are available)
-#  nssf:
+#  bsf:
 #    service_name:
-#      - nnssf-nsselection
+#      - nbsf-management
 #
 #  <NF Discovery Query Parameter>
 #
@@ -247,9 +194,9 @@ sbi:
 #  sbi:
 #    server:
 #      no_tls: true
-#  nssf:
+#  bsf:
 #    sbi:
-#      - addr: 127.0.0.14
+#      - addr: 127.0.0.15
 #        port: 7777
 #
 #    - 'service-names' is included.
@@ -258,9 +205,9 @@ sbi:
 #  sbi:
 #    server:
 #      no_tls: true
-#  nssf:
+#  bsf:
 #    sbi:
-#      - addr: 127.0.0.14
+#      - addr: 127.0.0.15
 #        port: 7777
 #    discovery:
 #      option:
@@ -280,9 +227,9 @@ sbi:
 #  sbi:
 #    server:
 #      no_tls: true
-#  nssf:
+#  bsf:
 #    sbi:
-#      - addr: 127.0.0.14
+#      - addr: 127.0.0.15
 #        port: 7777
 #
 #    - Use SCP if SCP avaiable. Otherwise NRF is used.
@@ -291,9 +238,9 @@ sbi:
 #  sbi:
 #    server:
 #      no_tls: true
-#  nssf:
+#  bsf:
 #    sbi:
-#      - addr: 127.0.0.14
+#      - addr: 127.0.0.15
 #        port: 7777
 #    discovery:
 #      delegated: auto
@@ -304,15 +251,10 @@ sbi:
 #  o Don't use SCP server => App fails if no NRF available.
 #      delegated: no
 #
-nssf:
+bsf:
     sbi:
-      - addr: 127.0.0.14
+      - addr: 127.0.0.15
         port: 7777
-    nsi:
-      - addr: 127.0.0.10
-        port: 7777
-        s_nssai:
-          sst: 1
 
 #
 #  <SBI Client>>
@@ -330,24 +272,24 @@ nssf:
 #  sbi:
 #    client:
 #      no_verify: true
-#      key: /etc/open5gs/tls/amf.key
-#      cert: /etc/open5gs/tls/amf.crt
+#      key: /etc/5gc/tls/amf.key
+#      cert: /etc/5gc/tls/amf.crt
 #  scp:
 #    sbi:
 #      - addr: 127.0.1.10
 #      - addr: ::1
 #
-#  o SBI Client(https://scp.open5gs.org:443)
+#  o SBI Client(https://scp.5gc.org:443)
 #    Use the specified certificate while verifying the server
 #
 #  sbi:
 #    client:
-#      cacert: /etc/open5gs/tls/ca.crt
-#      key: /etc/open5gs/tls/amf.key
-#      cert: /etc/open5gs/tls/amf.crt
+#      cacert: /etc/5gc/tls/ca.crt
+#      key: /etc/5gc/tls/amf.key
+#      cert: /etc/5gc/tls/amf.crt
 #  scp:
 #    sbi:
-#      - name: scp.open5gs.org
+#      - name: scp.5gc.org
 #
 #  o SBI Client(http://[fd69:f21d:873c:fb::1]:80)
 #    If prefer_ipv4 is true, http://127.0.1.10:80 is selected.
@@ -399,24 +341,24 @@ nssf:
 #  sbi:
 #    client:
 #      no_verify: true
-#      key: /etc/open5gs/tls/amf.key
-#      cert: /etc/open5gs/tls/amf.crt
+#      key: /etc/5gc/tls/amf.key
+#      cert: /etc/5gc/tls/amf.crt
 #  nrf:
 #    sbi:
 #      - addr: 127.0.0.10
 #      - addr: ::1
 #
-#  o SBI Client(https://nrf.open5gs.org:443)
+#  o SBI Client(https://nrf.5gc.org:443)
 #    Use the specified certificate while verifying the server
 #
 #  sbi:
 #    client:
-#      cacert: /etc/open5gs/tls/ca.crt
-#      key: /etc/open5gs/tls/amf.key
-#      cert: /etc/open5gs/tls/amf.crt
+#      cacert: /etc/5gc/tls/ca.crt
+#      key: /etc/5gc/tls/amf.key
+#      cert: /etc/5gc/tls/amf.crt
 #  nrf:
 #    sbi:
-#      - name: nrf.open5gs.org
+#      - name: nrf.5gc.org
 #
 #  o SBI Client(http://[fd69:f21d:873c:fa::1]:80)
 #    If prefer_ipv4 is true, http://127.0.0.10:80 is selected.

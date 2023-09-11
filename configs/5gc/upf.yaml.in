@@ -50,7 +50,7 @@ logger:
 #  upf:
 #    pfcp:
 #      - addr: 0.0.0.0
-#        advertise: open5gs-smf.svc.local
+#        advertise: 5gc-smf.svc.local
 #
 #  <GTP-U Server>>
 #

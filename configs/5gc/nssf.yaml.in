@@ -1,5 +1,3 @@
-db_uri: mongodb://localhost/@project_name@
-
 #
 #  o Set OGS_LOG_INFO to all domain level
 #   - If `level` is omitted, the default level is OGS_LOG_INFO)
@@ -22,7 +20,7 @@ db_uri: mongodb://localhost/@project_name@
 #    domain: core,sbi,ausf,event,tlv,mem,sock
 #
 logger:
-    file: @localstatedir@/log/@project_name@/pcf.log
+    file: @localstatedir@/log/@project_name@/nssf.log
 
 #
 #  o TLS enable/disable
@@ -48,30 +46,30 @@ logger:
 #  sbi:
 #    client:
 #      no_verify: true
-#      key: /etc/open5gs/tls/amf.key
-#      cert: /etc/open5gs/tls/amf.crt
+#      key: /etc/5gc/tls/amf.key
+#      cert: /etc/5gc/tls/amf.crt
 #
 #  o Use the specified certificate while verifying the client
 #  sbi:
 #    server
-#      cacert: /etc/open5gs/tls/ca.crt
+#      cacert: /etc/5gc/tls/ca.crt
 #
 #  o Use the specified certificate while verifying the server
 #  sbi:
 #    client
-#      cacert: /etc/open5gs/tls/ca.crt
+#      cacert: /etc/5gc/tls/ca.crt
 #
 sbi:
     server:
       no_tls: true
       cacert: @sysconfdir@/@project_name@/tls/ca.crt
-      key: @sysconfdir@/@project_name@/tls/pcf.key
-      cert: @sysconfdir@/@project_name@/tls/pcf.crt
+      key: @sysconfdir@/@project_name@/tls/nssf.key
+      cert: @sysconfdir@/@project_name@/tls/nssf.crt
     client:
       no_tls: true
       cacert: @sysconfdir@/@project_name@/tls/ca.crt
-      key: @sysconfdir@/@project_name@/tls/pcf.key
-      cert: @sysconfdir@/@project_name@/tls/pcf.crt
+      key: @sysconfdir@/@project_name@/tls/nssf.key
+      cert: @sysconfdir@/@project_name@/tls/nssf.crt
 
 #
 #  <SBI Server>
@@ -80,14 +78,14 @@ sbi:
 #  sbi:
 #    server:
 #      no_tls: true
-#  pcf:
+#  nssf:
 #    sbi:
 #
 #  o SBI Server(http://<any address>:7777)
 #  sbi:
 #    server:
 #      no_tls: true
-#  pcf:
+#  nssf:
 #    sbi:
 #      - addr:
 #          - 0.0.0.0
@@ -97,48 +95,48 @@ sbi:
 #  o SBI Server(https://<all address available>:443)
 #  sbi:
 #    server:
-#      key: /etc/open5gs/tls/pcf.key
-#      cert: /etc/open5gs/tls/pcf.crt
-#  pcf:
+#      key: /etc/5gc/tls/nssf.key
+#      cert: /etc/5gc/tls/nssf.crt
+#  nssf:
 #    sbi:
 #
-#  o SBI Server(https://127.0.0.13:443, https://[::1]:443) without verification
+#  o SBI Server(https://127.0.0.14:443, https://[::1]:443) without verification
 #  sbi:
 #    server:
 #      no_verify: true
-#      key: /etc/open5gs/tls/pcf.key
-#      cert: /etc/open5gs/tls/pcf.crt
-#  pcf:
+#      key: /etc/5gc/tls/nssf.key
+#      cert: /etc/5gc/tls/nssf.crt
+#  nssf:
 #    sbi:
-#      - addr: 127.0.0.13
+#      - addr: 127.0.0.14
 #      - addr: ::1
 #
-#  o SBI Server(https://pcf.open5gs.org:443)
+#  o SBI Server(https://nssf.5gc.org:443)
 #    Use the specified certificate while verifying the client
 #
 #  sbi:
 #    server:
-#      cacert: /etc/open5gs/tls/ca.crt
-#      key: /etc/open5gs/tls/pcf.key
-#      cert: /etc/open5gs/tls/pcf.crt
-#  pcf:
+#      cacert: /etc/5gc/tls/ca.crt
+#      key: /etc/5gc/tls/nssf.key
+#      cert: /etc/5gc/tls/nssf.crt
+#  nssf:
 #    sbi:
-#      - name: pcf.open5gs.org
+#      - name: nssf.5gc.org
 #
-#  o SBI Server(http://127.0.0.13:7777)
+#  o SBI Server(http://127.0.0.14:7777)
 #  sbi:
 #    server:
 #      no_tls: true
-#  pcf:
+#  nssf:
 #    sbi:
-#      - addr: 127.0.0.13
+#      - addr: 127.0.0.14
 #        port: 7777
 #
 #  o SBI Server(http://<eth0 IP address>:80)
 #  sbi:
 #    server:
 #      no_tls: true
-#  pcf:
+#  nssf:
 #    sbi:
 #      - dev: eth0
 #
@@ -146,16 +144,16 @@ sbi:
 #  sbi:
 #    server:
 #      no_tls: true
-#  pcf:
+#  nssf:
 #    sbi:
 #      - dev: eth0
-#        advertise: open5gs-pcf.svc.local
+#        advertise: 5gc-nssf.svc.local
 #
 #  o Another example of advertising on NRF
 #  sbi:
 #    server:
 #      no_tls: true
-#  pcf:
+#  nssf:
 #    sbi:
 #      - addr: localhost
 #        advertise:
@@ -169,9 +167,62 @@ sbi:
 #  sbi:
 #    server:
 #      no_tls: true
-#  pcf:
+#  nssf:
 #    sbi:
-#      addr: 127.0.0.13
+#      addr: 127.0.0.14
+#      option:
+#        tcp_nodelay: false
+#        so_linger:
+#          l_onoff: true
+#          l_linger: 10
+#
+#  <List of available Network Slice Instance(NSI)>
+#
+#  o One NSI
+#   - NRF[http://::1:7777/nnrf-nfm/v1/nf-instances]
+#     NSSAI[SST:1]
+#
+#  nssf:
+#    nsi:
+#      - addr: ::1
+#        port: 7777
+#        s_nssai:
+#          sst: 1
+#
+#  o Three NSI
+#   1. NRF[http://::1:7777/nnrf-nfm/v1/nf-instances]
+#      S-NSSAI[SST:1]
+#
+#   2. NRF[http://127.0.0.19:7777/nnrf-nfm/v1/nf-instances]
+#      NSSAI[SST:1, SD:000080]
+#
+#   2. NRF[http://127.0.0.10:7777/nnrf-nfm/v1/nf-instances]
+#      NSSAI[SST:1, SD:009000]
+#
+#  nssf:
+#    nsi:
+#      - addr: ::1
+#        port: 7777
+#        s_nssai:
+#          sst: 1
+#      - addr: 127.0.0.19
+#        port: 7777
+#        s_nssai:
+#          sst: 1
+#          sd: 000080
+#      - addr: 127.0.0.10
+#        port: 7777
+#        s_nssai:
+#          sst: 1
+#          sd: 009000
+#
+#  o NSI Option (Default)
+#    - tcp_nodelay : true
+#    - so_linger.l_onoff : false
+#
+#  nssf:
+#    nsi:
+#      addr: ::1
 #      option:
 #        tcp_nodelay: false
 #        so_linger:
@@ -181,33 +232,35 @@ sbi:
 #  <NF Service>
 #
 #  o NF Service Name(Default : all NF services available)
-#  pcf:
+#  nssf:
 #    service_name:
 #
 #  o NF Service Name(Only some NF services are available)
-#  pcf:
+#  nssf:
 #    service_name:
-#      - npcf-am-policy-control
-#      - npcf-smpolicycontrol
-#      - npcf-policyauthorization
-#
-#  == NOTE ==
-#  Placing npcf-smpolicycontrol and pcf-policyauthorization
-#  in different NFs is not supported. Both npcf-smpolicycontrol
-#  and pcf-policyauthorization should be placed in the same NF.
+#      - nnssf-nsselection
 #
 #  <NF Discovery Query Parameter>
 #
 #  o (Default) If you do not set Query Parameter as shown below,
 #
+#  sbi:
+#    server:
+#      no_tls: true
+#  nssf:
 #    sbi:
-#      - addr: 127.0.0.13
+#      - addr: 127.0.0.14
 #        port: 7777
 #
 #    - 'service-names' is included.
 #
+#  o Service-Names are not included
+#  sbi:
+#    server:
+#      no_tls: true
+#  nssf:
 #    sbi:
-#      - addr: 127.0.0.13
+#      - addr: 127.0.0.14
 #        port: 7777
 #    discovery:
 #      option:
@@ -227,9 +280,9 @@ sbi:
 #  sbi:
 #    server:
 #      no_tls: true
-#  pcf:
+#  nssf:
 #    sbi:
-#      - addr: 127.0.0.13
+#      - addr: 127.0.0.14
 #        port: 7777
 #
 #    - Use SCP if SCP avaiable. Otherwise NRF is used.
@@ -238,9 +291,9 @@ sbi:
 #  sbi:
 #    server:
 #      no_tls: true
-#  pcf:
+#  nssf:
 #    sbi:
-#      - addr: 127.0.0.13
+#      - addr: 127.0.0.14
 #        port: 7777
 #    discovery:
 #      delegated: auto
@@ -251,69 +304,58 @@ sbi:
 #  o Don't use SCP server => App fails if no NRF available.
 #      delegated: no
 #
-#
-#  <Metrics Server>
-#
-#  o Metrics Server(http://<any address>:9090)
-#  pcf:
-#    metrics:
-#    - addr: 0.0.0.0
-#      port: 9090
-#
-pcf:
+nssf:
     sbi:
-      - addr: 127.0.0.13
+      - addr: 127.0.0.14
         port: 7777
-    freeDiameter:
-      identity: pcf.localdomain
-      realm: localdomain
-      listen_on: 127.0.0.9
-      no_fwd: true
-      load_extension:
-        - module: @build_subprojects_freeDiameter_extensions_dir@/dbg_msg_dumps.fdx
-          conf: 0x8888
-        - module: @build_subprojects_freeDiameter_extensions_dir@/dict_rfc5777.fdx
-        - module: @build_subprojects_freeDiameter_extensions_dir@/dict_mip6i.fdx
-        - module: @build_subprojects_freeDiameter_extensions_dir@/dict_nasreq.fdx
-        - module: @build_subprojects_freeDiameter_extensions_dir@/dict_nas_mipv6.fdx
-        - module: @build_subprojects_freeDiameter_extensions_dir@/dict_dcca.fdx
-        - module: @build_subprojects_freeDiameter_extensions_dir@/dict_dcca_3gpp/dict_dcca_3gpp.fdx
-      connect:
-        - identity: ims.localdomain
-          addr: 127.0.0.1
-    metrics:
-      - addr: 127.0.0.13
-        port: 9090
+    nsi:
+      - addr: 127.0.0.10
+        port: 7777
+        s_nssai:
+          sst: 1
 
-#
-# scp:
 #
 #  <SBI Client>>
 #
 #  o SBI Client(http://127.0.1.10:7777)
+#  sbi:
+#    client:
+#      no_tls: true
+#  scp:
 #    sbi:
 #      addr: 127.0.1.10
 #      port: 7777
 #
-#  o SBI Client(https://127.0.1.10:443, http://scp.open5gs.org:80)
+#  o SBI Client(https://127.0.1.10:443, https://[::1]:443) without verification
+#  sbi:
+#    client:
+#      no_verify: true
+#      key: /etc/5gc/tls/amf.key
+#      cert: /etc/5gc/tls/amf.crt
+#  scp:
 #    sbi:
 #      - addr: 127.0.1.10
-#        tls:
-#          key: /etc/open5gs/tls/pcf.key
-#          cert: /etc/open5gs/tls/pcf.crt
-#      - name: scp.open5gs.org
+#      - addr: ::1
 #
-#  o SBI Client(https://scp.open5gs.org:443)
-#    Use the specified certificate to verify peer
+#  o SBI Client(https://scp.5gc.org:443)
+#    Use the specified certificate while verifying the server
 #
+#  sbi:
+#    client:
+#      cacert: /etc/5gc/tls/ca.crt
+#      key: /etc/5gc/tls/amf.key
+#      cert: /etc/5gc/tls/amf.crt
+#  scp:
 #    sbi:
-#      - name: scp.open5gs.org
-#        tls:
-#          cacert: /etc/open5gs/tls/ca.crt
+#      - name: scp.5gc.org
 #
 #  o SBI Client(http://[fd69:f21d:873c:fb::1]:80)
 #    If prefer_ipv4 is true, http://127.0.1.10:80 is selected.
 #
+#  sbi:
+#    client:
+#      no_tls: true
+#  scp:
 #    sbi:
 #      addr:
 #        - 127.0.1.10
@@ -323,6 +365,10 @@ pcf:
 #    - tcp_nodelay : true
 #    - so_linger.l_onoff : false
 #
+#  sbi:
+#    client:
+#      no_tls: true
+#  scp:
 #    sbi:
 #      addr: 127.0.1.10
 #      option:
@@ -338,34 +384,39 @@ pcf:
 #        port: 7777
 
 #
-# nrf:
-#
 #  <SBI Client>>
 #
 #  o SBI Client(http://127.0.0.10:7777)
+#  sbi:
+#    client:
+#      no_tls: true
+#  nrf:
 #    sbi:
 #      addr: 127.0.0.10
 #      port: 7777
 #
-#  o SBI Client(https://127.0.0.10:443, https://[::1]:443)
-#  tls:
+#  o SBI Client(https://127.0.0.10:443, https://[::1]:443) without verification
+#  sbi:
 #    client:
-#      key: /etc/open5gs/tls/pcf.key
-#      cert: /etc/open5gs/tls/pcf.crt
+#      no_verify: true
+#      key: /etc/5gc/tls/amf.key
+#      cert: /etc/5gc/tls/amf.crt
 #  nrf:
 #    sbi:
 #      - addr: 127.0.0.10
 #      - addr: ::1
 #
-#  o SBI Client(https://nrf.open5gs.org:443)
-#    Use the specified certificate to verify server
+#  o SBI Client(https://nrf.5gc.org:443)
+#    Use the specified certificate while verifying the server
 #
-#  tls:
+#  sbi:
 #    client:
-#      cacert: /etc/open5gs/tls/ca.crt
+#      cacert: /etc/5gc/tls/ca.crt
+#      key: /etc/5gc/tls/amf.key
+#      cert: /etc/5gc/tls/amf.crt
 #  nrf:
 #    sbi:
-#      - name: nrf.open5gs.org
+#      - name: nrf.5gc.org
 #
 #  o SBI Client(http://[fd69:f21d:873c:fa::1]:80)
 #    If prefer_ipv4 is true, http://127.0.0.10:80 is selected.
@@ -379,6 +430,10 @@ pcf:
 #    - tcp_nodelay : true
 #    - so_linger.l_onoff : false
 #
+#  sbi:
+#    client:
+#      no_tls: true
+#  nrf:
 #    sbi:
 #      addr: 127.0.0.10
 #      option:
