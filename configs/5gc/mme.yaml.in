@@ -307,7 +307,7 @@ logger:
 #  <Network Name>
 #  mme:
 #    network_name:
-#        full: Open5GS
+#        full: 5G Core Network
 #        short: Next
 #
 #  <MME Name>
@@ -342,7 +342,7 @@ mme:
         integrity_order : [ EIA2, EIA1, EIA0 ]
         ciphering_order : [ EEA0, EEA1, EEA2 ]
     network_name:
-        full: Open5GS
+        full: 5G Core Network
     mme_name: 5gc-mme0
 
 #

@@ -14,7 +14,6 @@ export const upfschema = {
         metrics: schemas.metricsSchema,
       },
     },    
-    time: schemas.timeSchema,
   },
 };
 
@@ -27,5 +26,4 @@ export const upfuiSchema = {
     metrics: schemas.metricsUiSchema,
     subnet:schemas.subnetUiSchema,
   },
-  time: schemas.timeUiSchema,
 };

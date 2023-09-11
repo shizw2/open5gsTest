@@ -241,13 +241,6 @@ export const nf_sbi_UiSchema = {
   }
 };
 
-//对于没有配置time的网元，使用timeSchema/timeUiSchema
-export const timeSchema = {  
-};
-
-// UiSchema
-export const timeUiSchema = {    
-};
 
 //对于配置了具体内容的time,使用下面的Schema/UiSchema,如time_nf_instanceSchema,time_t3512Schema
 export const time_nf_instanceSchema = {

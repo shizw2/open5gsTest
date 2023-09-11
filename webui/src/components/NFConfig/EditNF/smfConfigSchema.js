@@ -22,7 +22,7 @@ export const smfschema = {
         freeDiameter:schemas.freeDiameterSchema,
       },
     },    
-    time: schemas.timeSchema,
+
   },
 };
 
@@ -43,5 +43,4 @@ export const smfuiSchema = {
     ctf:schemas.ctfUiSchema,
     freeDiameter:schemas.freeDiameterUiSchema,
   },
-  time: schemas.timeUiSchema,
 };

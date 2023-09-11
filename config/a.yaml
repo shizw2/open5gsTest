@@ -456,7 +456,7 @@ sbi:
 #
 #  amf:
 #    network_name:
-#        full: Open5GS
+#        full: 5G Core Network
 #        short: Next
 #
 #  <AMF Name>

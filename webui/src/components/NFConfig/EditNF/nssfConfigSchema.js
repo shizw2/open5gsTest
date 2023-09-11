@@ -15,7 +15,7 @@ export const nssfschema = {
         nsi:schemas.nsiSchema, 
       },
     },    
-    time: schemas.timeSchema,
+
   },
 };
 
@@ -28,5 +28,4 @@ export const nssfuiSchema = {
     sbi: schemas.nf_sbi_UiSchema,
     nsi:schemas.nsiUiSchema,
   },
-  time: schemas.timeUiSchema,
 };

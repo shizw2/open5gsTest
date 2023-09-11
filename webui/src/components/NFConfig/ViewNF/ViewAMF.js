@@ -47,11 +47,7 @@ export const ViewAMF = ({ nfconfig }) => {
         </div>
       )}
       </div>
-      {/*
-      <div className="parameter-body">parameter:</div>
-      <div className="max-body">max:</div>
-      */}
-      <TimeSection time={nfconfig.time} />      
+      <TimeSection time={nfconfig.time} />   
     </div>
   );
 };
