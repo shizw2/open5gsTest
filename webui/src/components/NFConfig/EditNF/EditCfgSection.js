@@ -565,6 +565,85 @@ export const taiUiSchema = {
   }
 };
 
+export const plmn_supportSchema = {
+  type: "array",
+  title: "PLMN_SUPPORT",
+  items: {
+    type: "object",
+    properties: {
+      plmn_id: {
+        type: "object",
+        title: "PLMN_ID",
+        properties: {
+          mcc: {
+            type: "string",
+            title: "MCC",
+            maxLength: 3,
+            required: true,
+            pattern: "^\\d+$",
+            messages: {
+              pattern: "Only digits are allowed"
+            }
+          },
+          mnc: {
+            type: "string",
+            title: "MNC",
+            maxLength: 3,
+            required: true,
+            pattern: "^\\d+$",
+            messages: {
+              pattern: "Only digits are allowed"
+            }
+          }
+        },
+        required: ["mcc", "mnc"]
+      },
+      s_nssai: {
+          type: "array",
+          title: "S-NSSAI",
+          items: {
+            type: "object",
+            properties: {
+              sst: {
+                type: "number",
+                title: "SST*",
+                enum: [ 1, 2, 3, 4 ],
+                required:true,
+              },
+            },
+            required: ["sst"]
+          }
+      }
+    },
+    required: ["plmn_id"]
+  }
+};
+
+export const plmn_supportUiSchema = {
+  classNames: "col-xs-12",   
+  items: {
+    plmn_id: {
+      classNames: "col-xs-6",
+      mcc: {
+        classNames: "col-xs-6"
+      },
+      mnc: {
+        classNames: "col-xs-6"
+      }
+    },
+    s_nssai: {
+      classNames: "col-xs-12",
+      items: {
+          sst: {
+            classNames: "col-xs-6",
+            "ui:widget": "radio",
+            "ui:options": { "inline": true },
+          },
+      }
+    }
+  }
+};
+
 export const securitySchema = {
   type: "object",
   title: "Security",
