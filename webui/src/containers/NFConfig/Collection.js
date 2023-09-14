@@ -134,6 +134,7 @@ class Collection extends Component {
         this.documentHandler.show('create');
       },
       update: (_id) => {
+        console.log("documentHandler,update:"+_id)
         this.documentHandler.show('update', { _id });
       }
     }

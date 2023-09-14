@@ -7,11 +7,13 @@ export const upfschema = {
     logger: schemas.loggerSchema,
     upf: {
       type: "object",
+      title: "UPF",
       properties: {          
         pfcp:schemas.pfcpSchema,
         gtpu:schemas.gtpuSchema,
-		subnet:schemas.subnetSchema,
-        metrics: schemas.metricsSchema,
+        emptyLine1:schemas.emptyLineSchema,
+        subnet:schemas.subnetSchema,
+        metrics: schemas.metricsShortSchema,
       },
     },    
   },
@@ -23,7 +25,8 @@ export const upfuiSchema = {
     classNames: "col-xs-12",
     pfcp:schemas.pfcpUiSchema,
     gtpu:schemas.gtpuUiSchema,
-    metrics: schemas.metricsUiSchema,
+    emptyLine1:schemas.emptyLineUiSchema,
+    metrics: schemas.metricsShortUiSchema,
     subnet:schemas.subnetUiSchema,
   },
 };

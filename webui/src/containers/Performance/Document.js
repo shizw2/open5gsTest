@@ -24,7 +24,8 @@ class Document extends Component {
       selectedGtpOption: '1h',
       loading: true,
       loadingReg: true,
-      loadingGtp: true
+      loadingGtp: true,
+      selectedNavItem: '接入指标'
       
     }
 
@@ -59,6 +60,9 @@ class Document extends Component {
   handleGtpOptionChange = (event) => {
     this.setState({ selectedGtpOption: event.target.value });
   }
+  handleNavItemClick(item) {
+    this.setState({ selectedNavItem: item });
+  }
   static propTypes = {
     action: PropTypes.string,
     visible: PropTypes.bool, 
@@ -82,9 +86,69 @@ class Document extends Component {
     const { loading } = this.state;
     const { loadingReg } = this.state;
     const { loadingGtp } = this.state;
+    const styles = {
+      verticalLine: {
+        width: '1px',
+        height: '20px',
+        backgroundColor: '#5C7CFA',
+        margin: '0 1px',
+        display: 'inline-block',
+      },
+    
+      underline: {
+        width: '100%',
+        height: '2px',
+        backgroundColor: '#5C7CFA',
+      }
+    }
     return (
       <div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <nav >
+            {/* 导航链接 */}
+            <button 
+            className={`nav-link ${this.state.selectedNavItem === '接入指标' ? 'selected' : ''}`}
+            style={{
+              border: 'none',
+              padding: '10px',
+              backgroundColor: this.state.selectedNavItem === '接入指标' ? '#5C7CFA' : 'lightgray',
+              color: 'white'
+            }}
+            onClick={() => this.handleNavItemClick('接入指标')}
+          >
+            接入指标
+          </button>
+          
+          <button 
+            className={`nav-link ${this.state.selectedNavItem === '数据转发' ? 'selected' : ''}`}
+            style={{
+              border: 'none',
+              padding: '10px',
+              backgroundColor: this.state.selectedNavItem === '数据转发' ? '#5C7CFA' : 'lightgray',
+              color: 'white'
+            }}
+            onClick={() => this.handleNavItemClick('数据转发')}
+          >          
+            数据转发
+          </button>
+          
+          <button 
+            className={`nav-link ${this.state.selectedNavItem === '物理资源' ? 'selected' : ''}`}
+            style={{
+              border: 'none',
+              padding: '10px',
+              backgroundColor: this.state.selectedNavItem === '物理资源' ? '#5C7CFA' : 'lightgray',
+              color: 'white'
+            }}
+            onClick={() => this.handleNavItemClick('物理资源')}
+          >
+            物理资源
+          </button>
+          </nav>
+        </div>
+        <div style={styles.underline}></div>
         {/* ====实时在线统计===*/}
+        {this.state.selectedNavItem === '接入指标' && (<div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <div style={{ position: 'relative', width: '87%' }}>          
             {loading ? (
@@ -98,7 +162,11 @@ class Document extends Component {
                   border: '10px',
                   height: '300px',
                   fontWeight: 'bold',
-                  marginLeft: '0'
+                      marginTop: '1px',
+                      marginBottom: '0px',
+                      marginLeft: '0px',
+                      marginRight: '0px',
+                      boxShadow: '0px 3px 6px rgba(0, 0, 0, 0.16)'
                   }}
                 sandbox="allow-same-origin allow-scripts  allow-forms"
                 scrolling="auto"
@@ -126,7 +194,7 @@ class Document extends Component {
               title="实时在线基站统计"   
               //====实时在线基站统计===          
               src={`http://${ip}:3002/d-solo/f8997824-d2b3-4caa-aa3a-6e7e408ce4a2/guage?orgId=1&refresh=5s&panelId=2&theme=light&kiosk" `}
-              style={{ width: '13%', border: '10px', height: '300px' }}
+                  style={{ width: '12.8%', border: '10px', height: '300px',marginTop: '1px' }}
               sandbox="allow-same-origin allow-scripts allow-forms"
               scrolling="auto"
               onLoad={this.handleIframeLoad}
@@ -200,7 +268,9 @@ class Document extends Component {
             ></iframe>)
           }        
       </div>
+          </div>)}
       {/* =====用户面统计===*/}
+      {this.state.selectedNavItem === '数据转发' && (<div>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <div style={{ position: 'relative', width: '74%' }}>
           {loadingGtp ? (
@@ -255,6 +325,111 @@ class Document extends Component {
           ></iframe>)
         }
         </div>
+        </div>)}
+         {/* =====用户面统计 end===*/}
+         {/* =====资源监控 begin===*/}
+         {this.state.selectedNavItem === '物理资源' && (<div>
+          <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap'}}>
+              <div style={{ display: 'flex', flexDirection: 'column',width: '10%' }}>
+                <iframe
+                  id="myFrame1"
+                  title="resg"        
+                  //srcDoc =====运行时间=== 
+                  src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=15" width="450" height="200" frameborder="0"&kiosk" `}
+                  style={{ width: '100%', border: '10px', height: '100px' }}
+                  sandbox="allow-same-origin allow-scripts allow-forms"
+                  scrolling="auto"            
+                ></iframe>
+                <iframe
+                  id="myFrame2"
+                  title="resg"        
+                  //srcDoc=====核数=== 
+                  src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=14" width="450" height="200" frameborder="0"&kiosk" `}
+                  style={{ width: '100%', border: '10px', height: '100px' }}
+                  sandbox="allow-same-origin allow-scripts allow-forms"
+                  scrolling="auto"            
+                ></iframe>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column',width: '10%' }}>
+                <iframe
+                  id="myFrame3"
+                  title="resg"        
+                  //srcDoc=====总内存=== 
+                  src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=75" width="450" height="200" frameborder="0"&kiosk" `}
+                  style={{ width: '100%', border: '10px', height: '100px'  }}
+                  sandbox="allow-same-origin allow-scripts allow-forms"
+                  scrolling="auto"            
+                ></iframe>
+                <iframe
+                  id="myFrame4"
+                  title="resg"        
+                  //srcDoc=====IO WAIT=== 
+                  src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=20" width="450" height="200" frameborder="0"&kiosk" `}
+                  style={{ width: '100%', border: '10px', height: '100px' }}
+                  sandbox="allow-same-origin allow-scripts allow-forms"
+                  scrolling="auto"            
+                ></iframe>
+              </div>
+
+              <iframe
+                id="myFrame5"
+                title="resg"        
+                //srcDoc=====使用率=== 
+                src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=177" width="450" height="200" frameborder="0"&kiosk" `}
+                style={{ width: '13%', border: '10px', height: '200px' }}
+                sandbox="allow-same-origin allow-scripts allow-forms"
+                scrolling="auto"            
+              ></iframe>
+
+              <iframe
+                id="myFrame6"
+                title="resg"        
+                //srcDoc=====硬盘=== 
+                src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=181" width="250" height="200" frameborder="0"&kiosk" `}
+                style={{ width: '67%', border: '10px', height: '200px' }}
+                sandbox="allow-same-origin allow-scripts allow-forms"
+                scrolling="auto"            
+              ></iframe>
+              <iframe
+                id="myFrame7"
+                title="resg"        
+                //srcDoc=====CPU使用率=== 
+                src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=7" width="450" height="200" frameborder="0"&kiosk" `}
+                style={{ width: '50%', border: '10px', height: '300px' }}
+                sandbox="allow-same-origin allow-scripts allow-forms"
+                scrolling="auto"            
+              ></iframe>
+              <iframe
+                id="myFrame8"
+                title="resg"        
+                //srcDoc=====内存信息=== 
+                src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=156" width="450" height="200" frameborder="0"&kiosk" `}
+                style={{ width: '50%', border: '10px', height: '300px' }}
+                sandbox="allow-same-origin allow-scripts allow-forms"
+                scrolling="auto"            
+              ></iframe>
+              <iframe
+                id="myFrame9"
+                title="resg"        
+                //srcDoc=====每小时流量ens33=== 
+                src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=183" width="450" height="200" frameborder="0"&kiosk" `}
+                style={{ width: '50%', border: '10px', height: '300px' }}
+                sandbox="allow-same-origin allow-scripts allow-forms"
+                scrolling="auto"            
+              ></iframe>
+              <iframe
+                id="myFrame10"
+                title="resg"        
+                //srcDoc=====每秒网络带宽使用=== 
+                src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=157" width="450" height="200" frameborder="0"&kiosk" `}
+                style={{ width: '50%', border: '10px', height: '300px' }}
+                sandbox="allow-same-origin allow-scripts allow-forms"
+                scrolling="auto"            
+              ></iframe>
+            </div>
+          </div>)} 
+         {/* =====资源监控 end===*/}
       </div>
     )
   }

@@ -6,6 +6,7 @@ function recent(fetchedAt) {
   if (fetchedAt === null) return false;
 
   const interval = 10 * 60 * 1000; // 10 minutes
+  console.log("now:"+Date.now()+ ",interval:"+interval+",fetchedAt:"+fetchedAt)
   return ((Date.now() - interval) < fetchedAt);
 }
 
@@ -24,6 +25,7 @@ export function selectCollection(modelName, crud, params) {
   });
 
   if (collection === undefined) {
+    console.log("collection undefined")
     return isLoading({ needsFetch: true });
   }
 
@@ -31,6 +33,7 @@ export function selectCollection(modelName, crud, params) {
   if (fetchedAt === 0) {
     return isLoading({ needsFetch: false });
   } else if (!recent(fetchedAt)) {
+    console.log("recent(fetchedAt) is false")
     return isLoading({ needsFetch: true });
   }
 
@@ -44,6 +47,7 @@ export function selectCollection(modelName, crud, params) {
     }
   })
   if (documentThatNeedsFetch) {
+    console.log("documentThatNeedsFetch")
     return isLoading({ needsFetch: true });
   }
 

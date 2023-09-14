@@ -32,18 +32,17 @@ export const ViewSMF = ({ nfconfig }) => {
             <div className="nf-header">smf:</div>
             <NF_SBI_Section sbi={smf.sbi} />
             <PfcpSection pfcp={smf.pfcp} />
-            <GtpcSection gtpc={smf.gtpc} />     
-            <GtpuSection gtpu={smf.gtpu} />  
-            <MetricsSection metrics={smf.metrics} /> 
-            <MtuSection mtu={smf.mtu} /> 
-            <CtfSection ctf={smf.ctf} /> 
-            <FreeDiameterFileSection freediameter={smf.freediameter} /> 
-            <InfoSection info={smf.info} /> 
-
+            <GtpcSection gtpc={smf.gtpc} />
+            <GtpuSection gtpu={smf.gtpu} />
+            <MetricsSection metrics={smf.metrics} />
+            <MtuSection mtu={smf.mtu} />
+            <CtfSection ctf={smf.ctf} />
+            <FreeDiameterFileSection freediameter={smf.freediameter} />
+            <InfoSection info={smf.info} />
           </div>
         )}
       </div>
-      
+
       <div className="upf-section">
           <div className="upf-header">upf:</div>          
           <PfcpSection pfcp={upf.pfcp} /> 

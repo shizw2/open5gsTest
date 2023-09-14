@@ -72,6 +72,7 @@ class Document extends Component {
     const { nfconfig, dispatch } = this.props
 
     if (nfconfig.needsFetch) {
+      console.log("componentWillMount nfconfig.needsFetch.")
       dispatch(nfconfig.fetch)
     }
   }
@@ -81,6 +82,7 @@ class Document extends Component {
     const { dispatch, action, onHide } = this.props
 
     if (nfconfig.needsFetch) {
+      console.log("componentWillReceiveProps nfconfig.needsFetch.")
       dispatch(nfconfig.fetch)
     }
 
@@ -239,6 +241,8 @@ class Document extends Component {
       trickleSpeed: 5
     });
     NProgress.start();
+
+    console.log("handleSubmit,action:"+action)
 
     if (action === 'create') {
       dispatch(createNFConfig({}, formData));

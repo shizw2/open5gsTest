@@ -10,12 +10,12 @@ export const amfschema = {
       type: "object",
       title: "AMF",
       properties: {
-        sbi: schemas.nf_sbi_Schema,
+        sbi: schemas.nf_sbi_shortSchema,
         ngap: schemas.ngapSchema,
         metrics: schemas.metricsSchema,
         guami: schemas.guamiSchema,
         tai: schemas.taiSchema,
-        //plmn
+        plmn_support: schemas.plmn_supportSchema,
         security:schemas.securitySchema,
         network_name:schemas.network_nameSchema,
         amf_name:schemas.amf_nameSchema,
@@ -40,11 +40,12 @@ export const amfuiSchema = {
   nrf: schemas.nrfUiSchema,
   amf: {
     classNames: "col-xs-12",
-    sbi: schemas.nf_sbi_UiSchema,
+    sbi: schemas.nf_sbi_shortUiSchema,
     ngap: schemas.ngapUiSchema,
     metrics: schemas.metricsUiSchema,
     guami: schemas.guamiUiSchema,
     tai: schemas.taiUiSchema,
+    plmn_support: schemas.plmn_supportUiSchema,
     security:schemas.securityUiSchema,
     network_name:schemas.network_nameUiSchema,
     amf_name:schemas.amf_nameUiSchema,
