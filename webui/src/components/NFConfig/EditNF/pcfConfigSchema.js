@@ -1,13 +1,9 @@
 import * as schemas from './EditCfgSection';
 
 export const pcfschema = {
-  title: "PCF Configuration",
+  //title: "PCF Configuration",
   type: "object",
   properties: {
-    db_uri: schemas.db_uriSchema,  
-    logger: schemas.loggerSchema,
-    sbi: schemas.sbiSchema,
-    nrf: schemas.nrfSchema,
     pcf: {
       type: "object",
       title: "PCF",
@@ -17,6 +13,10 @@ export const pcfschema = {
         metrics: schemas.metricsSchema,
       },
     },
+    nrf: schemas.nrfSchema,
+    db_uri: schemas.db_uriSchema,
+    sbi: schemas.sbiSchema,
+    logger: schemas.loggerSchema,
   },
 };
 

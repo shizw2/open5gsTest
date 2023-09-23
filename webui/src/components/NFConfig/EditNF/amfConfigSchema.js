@@ -1,11 +1,9 @@
 import * as schemas from './EditCfgSection';
 
 export const amfschema = {
-  title: "AMF Configuration",
+  //title: "AMF Configuration",
   type: "object",
   properties: {
-    logger: schemas.loggerSchema,
-    sbi: schemas.sbiSchema,
     amf: {
       type: "object",
       title: "AMF",
@@ -31,6 +29,8 @@ export const amfschema = {
         t3502: schemas.time_t3502Schema,
       },
     },
+    sbi: schemas.sbiSchema,
+    logger: schemas.loggerSchema,
   },
 };
 

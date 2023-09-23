@@ -56,7 +56,7 @@ class ArchitectureDiagram extends React.Component {
     // 网元数量
     const numElements = 10;
     
-    const scale = 0.85;
+    const scale = 0.84;
     const w = 125 * scale;
     const h = 60 * scale;
     return (
@@ -96,7 +96,7 @@ class ArchitectureDiagram extends React.Component {
                   y={y}
                   width={w}
                   height={h}
-                  fill={selectedNF === selectedNFArray[index] ? 'green' : 'transparent'}
+                  fill={selectedNF === selectedNFArray[index] ? 'orange' : 'transparent'}
                   opacity="0.5"
                   style={{
                     mixBlendMode: 'multiply',
@@ -111,12 +111,14 @@ class ArchitectureDiagram extends React.Component {
           })}
         </svg>
 
+        {/*
         {rectCoordinates && (
           <div style={{ position: 'absolute', bottom: '-40px', left: '50%', transform: 'translateX(-50%)' }}>
             <h3>选中坐标</h3>
             <p>x: {rectCoordinates.x}, y: {rectCoordinates.y}</p>
           </div>
         )}
+        */}
       </div>
     );
   }

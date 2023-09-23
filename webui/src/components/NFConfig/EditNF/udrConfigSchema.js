@@ -1,13 +1,9 @@
 import * as schemas from './EditCfgSection';
 
 export const udrschema = {
-  title: "UDR Configuration",
+  //title: "UDR Configuration",
   type: "object",
   properties: {
-    db_uri: schemas.db_uriSchema,
-    logger: schemas.loggerSchema,
-    sbi: schemas.sbiSchema,
-    nrf: schemas.nrfSchema,
     udr: {
       type: "object",
       title: "UDR",
@@ -15,7 +11,10 @@ export const udrschema = {
         sbi: schemas.nf_sbi_Schema,  
       },
     },    
-    
+    nrf: schemas.nrfSchema,
+    db_uri: schemas.db_uriSchema,
+    sbi: schemas.sbiSchema,
+    logger: schemas.loggerSchema,
   },
 };
 

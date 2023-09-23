@@ -25,7 +25,7 @@ class Document extends Component {
       loading: true,
       loadingReg: true,
       loadingGtp: true,
-      selectedNavItem: '接入指标'
+      selectedNavItem: '物理资源'
       
     }
 
@@ -107,6 +107,18 @@ class Document extends Component {
           <nav >
             {/* 导航链接 */}
             <button 
+            className={`nav-link ${this.state.selectedNavItem === '物理资源' ? 'selected' : ''}`}
+            style={{
+              border: 'none',
+              padding: '10px',
+              backgroundColor: this.state.selectedNavItem === '物理资源' ? '#5C7CFA' : 'lightgray',
+              color: 'white'
+            }}
+            onClick={() => this.handleNavItemClick('物理资源')}
+          >
+            物理资源
+          </button>
+            <button 
             className={`nav-link ${this.state.selectedNavItem === '接入指标' ? 'selected' : ''}`}
             style={{
               border: 'none',
@@ -130,20 +142,8 @@ class Document extends Component {
             onClick={() => this.handleNavItemClick('数据转发')}
           >          
             数据转发
-          </button>
-          
-          <button 
-            className={`nav-link ${this.state.selectedNavItem === '物理资源' ? 'selected' : ''}`}
-            style={{
-              border: 'none',
-              padding: '10px',
-              backgroundColor: this.state.selectedNavItem === '物理资源' ? '#5C7CFA' : 'lightgray',
-              color: 'white'
-            }}
-            onClick={() => this.handleNavItemClick('物理资源')}
-          >
-            物理资源
-          </button>
+          </button>         
+
           </nav>
         </div>
         <div style={styles.underline}></div>

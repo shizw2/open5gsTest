@@ -12,7 +12,7 @@ import ConfigIcon from 'react-icons/lib/md/settings';
 import AlertIcon from 'react-icons/lib/go/alert';
 import PerformanceIcon from 'react-icons/lib/go/graph';
 
-import properties from '../../../properties '; // 导入配置文件
+import properties from '../../../properties'; // 导入配置文件
 
 const Menu = styled.div`
   display: block;

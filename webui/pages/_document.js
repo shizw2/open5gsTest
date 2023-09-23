@@ -1,6 +1,6 @@
 import Document, { Head, Main, NextScript } from 'next/document'
 import { ServerStyleSheet } from 'styled-components'
-import properties from '../properties '; // 导入配置文件
+import properties from '../properties'; // 导入配置文件
 const description = 'an implementation of 3GPP EPC(MME, SGW, PGW, HSS)'
 
 export default class MyDocument extends Document {

@@ -1,12 +1,9 @@
 import * as schemas from './EditCfgSection';
 
 export const bsfschema = {
-  title: "BSF Configuration",
+  //title: "BSF Configuration",
   type: "object",
   properties: {
-    logger: schemas.loggerSchema,
-    sbi: schemas.sbiSchema,
-    nrf: schemas.nrfSchema,
     bsf: {
       type: "object",
       title: "BSF",
@@ -14,6 +11,9 @@ export const bsfschema = {
         sbi: schemas.nf_sbi_Schema, 
       },
     },
+    nrf: schemas.nrfSchema,
+    sbi: schemas.sbiSchema,
+    logger: schemas.loggerSchema,
   },
 };
 

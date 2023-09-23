@@ -1,12 +1,9 @@
 import * as schemas from './EditCfgSection';
 
 export const smfschema = {
-  title: "SMF Configuration",
+  //title: "SMF Configuration",
   type: "object",
   properties: {
-    logger: schemas.loggerSchema,
-    sbi: schemas.sbiSchema,
-    nrf: schemas.nrfSchema,
     smf: {
       type: "object",
       title: "SMF",
@@ -25,8 +22,10 @@ export const smfschema = {
         ctf:schemas.ctfSchema,
         freeDiameter:schemas.freeDiameterSchema,
       },
-    },    
-
+    },
+    nrf: schemas.nrfSchema,
+    sbi: schemas.sbiSchema,
+    logger: schemas.loggerSchema,
   },
 };
 

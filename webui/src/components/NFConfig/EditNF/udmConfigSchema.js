@@ -1,12 +1,9 @@
 import * as schemas from './EditCfgSection';
 
 export const udmschema = {
-  title: "UDM Configuration",
+  //title: "UDM Configuration",
   type: "object",
   properties: {
-    logger: schemas.loggerSchema,
-    sbi: schemas.sbiSchema,
-    nrf: schemas.nrfSchema,
     udm: {
       type: "object",
       title: "UDM",
@@ -15,7 +12,10 @@ export const udmschema = {
         hnet:schemas.hnetSchema,
         
       },
-    },    
+    }, 
+    nrf: schemas.nrfSchema,
+    sbi: schemas.sbiSchema,
+    logger: schemas.loggerSchema,
     //time: {
     //  type: "object",
     //  title: "time",

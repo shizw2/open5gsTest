@@ -36,9 +36,10 @@ const List = ({ nfconfigs, deletedId, onView, onEdit, onDelete }) => {
     );
 
   return (
-    <Wrapper>
-      {nfconfigList}
-    </Wrapper>
+    <title></title>
+    //<Wrapper>
+    //  {nfconfigList}
+    //</Wrapper>
   )
 }
 

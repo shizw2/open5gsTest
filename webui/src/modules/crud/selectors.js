@@ -5,8 +5,7 @@ import { CRUD } from './actions';
 function recent(fetchedAt) {
   if (fetchedAt === null) return false;
 
-  const interval = 10 * 60 * 1000; // 10 minutes
-  console.log("now:"+Date.now()+ ",interval:"+interval+",fetchedAt:"+fetchedAt)
+  const interval = 30 * 1000; // 10 minutes
   return ((Date.now() - interval) < fetchedAt);
 }
 

@@ -37,13 +37,14 @@ export const sbiSchema = {
         no_tls: {
           type: "boolean",
           title: "No TLS",
-          default: false,
+          default: true,
         },
         no_verify: {
           type: "boolean",
           title: "No Verify",
           default: true,
         },
+        /* 此部分在界面上暂不呈现
         cacert: {
           type: "string",
           title: "CA Cert",
@@ -59,6 +60,7 @@ export const sbiSchema = {
           title: "Cert",
           default: "",
         },
+        */
       },
     },
     client: {
@@ -68,13 +70,14 @@ export const sbiSchema = {
         no_tls: {
           type: "boolean",
           title: "No TLS",
-          default: false,
+          default: true,
         },
         no_verify: {
           type: "boolean",
           title: "No Verify",
           default: true,
         },
+        /* 此部分在界面上暂不呈现
         cacert: {
           type: "string",
           title: "CA Cert",
@@ -90,6 +93,7 @@ export const sbiSchema = {
           title: "Cert",
           default: "",
         },
+        */
       },
     },
   },
@@ -98,14 +102,15 @@ export const sbiSchema = {
 export const sbiUiSchema = {
   classNames: "col-xs-12",
     server: {
-      classNames: "col-xs-12",
+      classNames: "col-xs-6",
       "ui:title": <CustomTitle18 title="Server" />,
       no_tls: {
-        classNames: "col-xs-3",
+        classNames: "col-xs-6",
       },
       no_verify: {
-        classNames: "col-xs-3",
+        classNames: "col-xs-6",
       },
+      /* 此部分在界面上暂不呈现
       cacert: {
         classNames: "col-xs-6",
       },
@@ -115,16 +120,18 @@ export const sbiUiSchema = {
       cert: {
         classNames: "col-xs-6",
       },
+      */
   },
   client: {
-    classNames: "col-xs-12",
+    classNames: "col-xs-6",
     "ui:title": <CustomTitle18 title="Client" />,
     no_tls: {
-      classNames: "col-xs-3",
+      classNames: "col-xs-6",
     },
     no_verify: {
-      classNames: "col-xs-3",
+      classNames: "col-xs-6",
     },
+    /* 此部分在界面上暂不呈现
     cacert: {
       classNames: "col-xs-6",
     },
@@ -134,6 +141,7 @@ export const sbiUiSchema = {
     cert: {
       classNames: "col-xs-6",
     },
+    */
   },
 };
 
@@ -150,6 +158,7 @@ export const nrfSchema = {
           addr: {
             type: "array",
             title:"IP Address",
+            minItems: 1,
             items: {
               type: "string",
               anyOf: [
@@ -183,13 +192,13 @@ export const nrfUiSchema = {
     classNames: "col-xs-12",
     "ui:title": <CustomTitle18 title="SBI Interface" />,
     items: {
-      //classNames: "col-xs-12",
+      classNames: "col-xs-12",
       addr: {
         classNames: "col-xs-8",
         "ui:title": <CustomTitle14 title="IP Address" />,
         items:{
           //classNames: "col-xs-7",
-          
+          classNames: "col-xs-12",
           //"ui:help": "Enter a valid IPv4/IPv6 Address",
           //"ui:placeholder": "Enter a valid IPv4/IPv6 Address",
         }
@@ -779,9 +788,12 @@ export const securitySchema = {
     integrity_order: {
       type: "array",
       title: "Integrity Order",
+      maxItems: 3,
       items: {
         type: "string",
-        enum: ["NIA2", "NIA1", "NIA0"]
+        enum: ["NIA0", "NIA1", "NIA2"],
+        default: "NIA0",
+        //require: true
       },
       contains: {
         type: "string",
@@ -791,9 +803,11 @@ export const securitySchema = {
     ciphering_order: {
       type: "array",
       title: "Ciphering Order",
+      maxItems: 3,
       items: {
         type: "string",
-        enum: ["NEA0", "NEA1", "NEA2"]
+        enum: ["NEA0", "NEA1", "NEA2"],
+        default: "NEA2",
       },
       contains: {
         type: "string",
@@ -856,13 +870,12 @@ export const amf_nameUiSchema = {
 
 export const pfcpSchema = {
   type: "array",
-  title: "PFCP",
+  title: "PFCP Address",
   items: {
     type: "object",
     properties: {
       addr: {
         type: "string",
-        title: "IP Address",
         anyOf: [
           { format: "ipv4" },
           { format: "ipv6" }
@@ -870,7 +883,7 @@ export const pfcpSchema = {
         messages: {
           "anyOf": "IPv4 or IPv6 allowed"
         },
-        default: "127.0.0.5"
+        default: "127.0.0.5",
       },
     }
   }
@@ -878,19 +891,23 @@ export const pfcpSchema = {
 
 export const pfcpUiSchema = {
   classNames: "col-xs-6",
-  "ui:title": <CustomTitle18 title="PFCP" />,
+  "ui:title": <CustomTitle18 title="PFCP Address" />,
   //pfcp: {  //不需要再加一层。加了反而没层次感  
   items: {
     classNames: "col-xs-12",
     addr: {
-  	  classNames: "col-xs-12"
+      classNames: "col-xs-12",
+      //"ui:widget": "hidden",
+      "ui:options": {
+        "label": false
+      }
     }
   }  
 };
 
 export const gtpcSchema = {
   type: "array",
-  title: "GTPC",
+  title: "GTPC Address",
   items: {
     type: "object",
     properties: {
@@ -912,18 +929,21 @@ export const gtpcSchema = {
 
 export const gtpcUiSchema = {
   classNames: "col-xs-6",
-  "ui:title": <CustomTitle18 title="GTPC" />,
+  "ui:title": <CustomTitle18 title="GTPC Address" />,
   items: {
     classNames: "col-xs-12",
     addr: {
       classNames: "col-xs-12",
+      "ui:options": {
+        "label": false
+      }
     }
   } 
 };
 
 export const gtpuSchema = {
   type: "array",
-  title: "GTPU",
+  title: "GTPU Address",
   items: {
     type: "object",
     properties: {
@@ -945,11 +965,14 @@ export const gtpuSchema = {
 
 export const gtpuUiSchema = {
   classNames: "col-xs-6",
-  "ui:title": <CustomTitle18 title="GTPU" />,
+  "ui:title": <CustomTitle18 title="GTPU Address" />,
   items: {
     classNames: "col-xs-12",
     addr: {
-      classNames: "col-xs-12"
+      classNames: "col-xs-12",
+      "ui:options": {
+        "label": false
+      }
     }
   }
 };
@@ -964,7 +987,7 @@ const subnetipv6Regex = /^([a-f0-9]{1,4}(:[a-f0-9]{1,4}){7}|[a-f0-9]{1,4}(:[a-f0
 
 export const subnetSchema = {
   type: "array",
-  title: "Subnet",
+  title: "Subnet Address",
   items: {
     type: "object",
     properties: {
@@ -987,12 +1010,15 @@ export const subnetSchema = {
 export const subnetUiSchema = {
   classNames: "col-xs-6",
   //删除无用代码,反而有层次感
-  "ui:title": <CustomTitle18 title="Subnet" />,
+  "ui:title": <CustomTitle18 title="Subnet Address" />,
   items: {
     classNames: "col-xs-12",
     addr: {
       classNames: "col-xs-12",
       "ui:placeholder": "ipv4/v6 subnet address",
+      "ui:options": {
+        "label": false
+      }
     }
   }  
 };
@@ -1043,7 +1069,8 @@ export const ctfSchema = {
   properties: {
     enabled: {
       type: "string",
-      enum: ['auto', 'yes', 'no']
+      enum: ["auto", "yes", "no"],
+      default: "auto"
     }
   },
   required: ["enabled"]
@@ -1401,10 +1428,27 @@ export const hnetUiSchema = {
 function CustomInput1(props) {
   return (
     <input
-      className="col-xs-12"
+      //className="col-xs-12"
       style={{
-        fontWeight: "400",
-        fontSize: "21px"
+        //fontWeight: "400",
+        //fontSize: "21px"
+        marginLeft: "10px",
+        
+        display: "block",
+        width: "-webkit-fill-available",
+        height: "34px",
+        padding: "6px 12px",
+        fontSize: "14px",
+        lineHeight: "1.42857143",
+        color: "#555",
+        backgroundColor: "#fff",
+        backgroundImage: "none",
+        border: "1px solid #ccc",
+        borderRadius: "4px",
+        boxShadow: "inset 0 1px 1px rgba(0,0,0,.075)",
+        writingMode: "horizontal-tb !important",
+        transition: "border-color ease-in-out .15s,box-shadow ease-in-out .15s"
+        
       }}
       {...props}
     />
@@ -1449,6 +1493,7 @@ function CustomTitle21({ title }) {
         style={{
           fontWeight: "400",
           fontSize: "21px",
+          //marginLeft: "5px",
         }}
       >
         {title}

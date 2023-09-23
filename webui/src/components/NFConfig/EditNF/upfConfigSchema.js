@@ -1,10 +1,9 @@
 import * as schemas from './EditCfgSection';
 
 export const upfschema = {
-  title: "UPF Configuration",
+  //title: "UPF Configuration",
   type: "object",
   properties: {
-    logger: schemas.loggerSchema,
     upf: {
       type: "object",
       title: "UPF",
@@ -15,7 +14,8 @@ export const upfschema = {
         subnet:schemas.subnetSchema,
         metrics: schemas.metricsShortSchema,
       },
-    },    
+    },
+    logger: schemas.loggerSchema,
   },
 };
 

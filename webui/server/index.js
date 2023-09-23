@@ -1,4 +1,4 @@
-process.env.DB_URI = process.env.DB_URI || 'mongodb://127.0.0.1/';
+process.env.DB_URI = process.env.DB_URI || 'mongodb://127.0.0.1/5gc';
 
 const _hostname = process.env.HOSTNAME || 'localhost';
 const port = process.env.PORT || 3000;
@@ -31,7 +31,7 @@ const Account = require('./models/account.js');
 
 co(function* () {
   yield app.prepare();
-
+  console.log("process.env.DB_URI:"+process.env.DB_URI+",process.env.HOSTNAME:"+process.env.HOSTNAME)
   mongoose.Promise = global.Promise;
   if (dev) {
     mongoose.set('debug', true);
@@ -44,7 +44,8 @@ co(function* () {
   })
 
   /*在开发模式下检查数据库中是否存在管理员账户，并在没有任何账户时创建一个默认的管理员账户*/
-  if (dev) {
+  //rel版本也进行数据库检查(后续可在安装脚本中通过mongo脚本添加管理员账户)
+  //if (dev) {
     Account.count((err, count) => {
       if (err) {
         console.error(err);
@@ -63,7 +64,7 @@ co(function* () {
         })
       }
     })
-  }
+  //}
 
   const server = express();
   

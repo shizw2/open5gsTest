@@ -1,12 +1,9 @@
 import * as schemas from './EditCfgSection';
 
 export const nssfschema = {
-  title: "NSSF Configuration",
+  //title: "NSSF Configuration",
   type: "object",
   properties: {
-    logger: schemas.loggerSchema,
-    sbi: schemas.sbiSchema,
-    nrf: schemas.nrfSchema,
     nssf: {
       type: "object",
       title:"NSSF",
@@ -14,8 +11,10 @@ export const nssfschema = {
         sbi: schemas.nf_sbi_Schema,        
         nsi:schemas.nsiSchema, 
       },
-    },    
-
+    },
+    nrf: schemas.nrfSchema,
+    sbi: schemas.sbiSchema,
+    logger: schemas.loggerSchema,
   },
 };
 

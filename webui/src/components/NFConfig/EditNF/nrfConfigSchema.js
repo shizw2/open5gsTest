@@ -1,13 +1,12 @@
 import * as schemas from './EditCfgSection';
 
 export const nrfschema = {
-  title: "NRF Configuration",
+  //title: "NRF Configuration",
   type: "object",
   properties: {
-    logger: schemas.loggerSchema,
-    sbi: schemas.sbiSchema,
     nrf: schemas.nrfSchema,
-  
+    sbi: schemas.sbiSchema,
+    logger: schemas.loggerSchema,
   },
 };
 

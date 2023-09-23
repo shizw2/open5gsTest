@@ -135,7 +135,7 @@ class Item extends Component {
     onDelete: PropTypes.func
   }
 
-  handleEdit = e => {
+  handleEdit = e => {    
     e.stopPropagation();
 
     const {
@@ -146,7 +146,7 @@ class Item extends Component {
     const {
       _id
     } = nfconfig;
-
+    console.log("handleEdit:",_id)
     onEdit(_id)
   }
 
