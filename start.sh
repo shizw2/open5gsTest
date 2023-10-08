@@ -1,4 +1,4 @@
-pkill -9 open5gs
+pkill -9 5gc
 level="warn"
 spsno=1
 
