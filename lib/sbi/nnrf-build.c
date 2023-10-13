@@ -380,6 +380,8 @@ void ogs_nnrf_nfm_free_nf_profile(OpenAPI_nf_profile_t *NFProfile)
     OpenAPI_map_t *AmfInfoMap = NULL;
     OpenAPI_amf_info_t *AmfInfo = NULL;
     OpenAPI_lnode_t *node = NULL;
+    OpenAPI_map_t *UdmInfoMap = NULL;
+    OpenAPI_udm_info_t *UdmInfo = NULL;
 
     ogs_assert(NFProfile);
 
@@ -428,6 +430,22 @@ void ogs_nnrf_nfm_free_nf_profile(OpenAPI_nf_profile_t *NFProfile)
 
     if (NFProfile->smf_info)
         free_smf_info(NFProfile->smf_info);
+    
+    OpenAPI_list_for_each(NFProfile->udm_info_list, node) {
+        UdmInfoMap = node->data;
+        if (UdmInfoMap) {
+            UdmInfo = UdmInfoMap->value;
+            if (UdmInfo)
+                free_udm_info(UdmInfo);
+            if (UdmInfoMap->key)
+                ogs_free(UdmInfoMap->key);
+            ogs_free(UdmInfoMap);
+        }
+    }
+    OpenAPI_list_free(NFProfile->udm_info_list);
+
+    if (NFProfile->udm_info)
+        free_udm_info(NFProfile->udm_info);
 
     OpenAPI_list_for_each(NFProfile->amf_info_list, node) {
         AmfInfoMap = node->data;
