@@ -2456,6 +2456,7 @@ amf_sess_t *amf_sess_cycle(amf_sess_t *sess)
 }
 
 static bool check_smf_info(ogs_sbi_nf_info_t *nf_info, void *context);
+static bool check_udm_info(ogs_sbi_nf_info_t *nf_info, void *context);
 
 void amf_sbi_select_nf(
         ogs_sbi_object_t *sbi_object,
@@ -2506,6 +2507,22 @@ void amf_sbi_select_nf(
                     if (nf_info->nf_type != nf_instance->nf_type)
                         continue;
                     if (check_smf_info(nf_info, sess) == false)
+                        continue;
+
+                    break;
+                }
+
+                if (!nf_info)
+                    continue;
+            }
+            
+            if ((nf_instance->nf_type == OpenAPI_nf_type_UDM) &&
+                (ogs_list_count(&nf_instance->nf_info_list) > 0)) {
+
+                ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
+                    if (nf_info->nf_type != nf_instance->nf_type)
+                        continue;
+                    if (check_udm_info(nf_info, sess) == false)
                         continue;
 
                     break;
@@ -2945,6 +2962,52 @@ static bool check_smf_info_nr_tai(
             }
         }
     }
+
+    return false;
+}
+
+static bool check_udm_info_supi(
+        ogs_sbi_udm_info_t *udm_info, amf_sess_t *sess);
+        
+static bool check_udm_info(ogs_sbi_nf_info_t *nf_info, void *context)
+{
+    amf_sess_t *sess = NULL;
+
+    ogs_assert(nf_info);
+    ogs_assert(nf_info->nf_type == OpenAPI_nf_type_UDM);
+    sess = context;
+    ogs_assert(sess);
+
+    if (check_udm_info_supi(&nf_info->udm, sess) == false)
+        return false;
+
+    return true;
+}
+
+static bool check_udm_info_supi(
+        ogs_sbi_udm_info_t *udm_info, amf_sess_t *sess)
+{
+    amf_ue_t *amf_ue = NULL;
+    int i, j;
+
+    ogs_assert(sess);
+    amf_ue = sess->amf_ue;
+    ogs_assert(amf_ue);
+    ogs_assert(udm_info);
+
+    if (udm_info->num_of_supi_range == 0)
+        return true;
+
+    /*for (i = 0; i < udm_info->num_of_supi_range; i++) {   
+        for (j = 0; j < udm_info->nr_tai_range[i].num_of_tac_range; j++) {
+            if (amf_ue->nr_tai.tac.v >=
+                udm_info->nr_tai_range[i].start[j].v &&
+                amf_ue->nr_tai.tac.v <=
+                udm_info->nr_tai_range[i].end[j].v) {
+                return true;
+            }
+        }     
+    }*/
 
     return false;
 }

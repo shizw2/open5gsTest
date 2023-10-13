@@ -1234,13 +1234,12 @@ static OpenAPI_udm_info_t *build_udm_info(ogs_sbi_nf_info_t *nf_info)
         SupiRangeItem = ogs_calloc(1, sizeof(*SupiRangeItem));
         ogs_assert(SupiRangeItem);
 
-        SupiRangeItem->start = ogs_uint24_to_0string(
-                nf_info->udm.start[i]);
+        SupiRangeItem->start = ogs_strdup(nf_info->udm.supi_ranges[i].start);
         ogs_assert(SupiRangeItem->start);
-        SupiRangeItem->end =
-            ogs_uint24_to_0string(
-                    nf_info->udm.end[i]);
+        SupiRangeItem->end = ogs_strdup(nf_info->udm.supi_ranges[i].end);
         ogs_assert(SupiRangeItem->end);
+        
+        ogs_warn("build_udm_info,start %s, end %s, num %d.",SupiRangeItem->start,SupiRangeItem->end,nf_info->udm.num_of_supi_range);
 
         OpenAPI_list_add(SupiRangeList, SupiRangeItem);
     }  

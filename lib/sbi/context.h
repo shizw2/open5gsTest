@@ -341,8 +341,13 @@ typedef struct ogs_sbi_amf_info_s {
 #define OGS_MAX_NUM_OF_SUPI              16
 typedef struct ogs_sbi_udm_info_s {   
     int num_of_supi_range;
-    ogs_uint24_t start[OGS_MAX_NUM_OF_SUPI], end[OGS_MAX_NUM_OF_SUPI];
-   
+    
+    ogs_uint24_t start[OGS_MAX_NUM_OF_SUPI], end[OGS_MAX_NUM_OF_SUPI];    
+
+    struct {
+        const char *start;
+        const char *end;
+    } supi_ranges[OGS_MAX_NUM_OF_SUPI];
 } ogs_sbi_udm_info_t;
 
 typedef struct ogs_sbi_nf_info_s {
