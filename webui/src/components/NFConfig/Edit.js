@@ -31,7 +31,6 @@ class Edit extends Component {
     super(props);
 
     this.state = this.getStateFromProps(props);
-    this.rendercnt = 0
   }
 
   componentWillReceiveProps(nextProps) {
@@ -49,8 +48,6 @@ class Edit extends Component {
     let selectedSchema;
     let selectedUiSchema;
 
-    console.log("Edit:"+formData._id+",action:"+action);     
-    this.rendercnt++
 
     if (formData._id === 'nrf') {
       selectedSchema = nrfschema;
@@ -126,8 +123,7 @@ class Edit extends Component {
       selectedUiSchema = udruiSchema;
     }else {
       // 默认情况下，选择一个适当的“fallback”模式和 UI 模式
-      console.log("Edit Default");   
-      this.rendercnt = 0  
+      console.log("Edit Default");     
       selectedSchema = nrfschema;
       selectedUiSchema = nrfuiSchema;
    }
@@ -175,23 +171,10 @@ class Edit extends Component {
       onError
     } = this.props;
 
-    /*if (this.rendercnt == 0){
-      console.log("Edit rentun null.")
-      return null
-    }*/
-
-
-    console.log("Edit info:", this.rendercnt,visible,
-    ",action",action,
-    ",formData",formData,
-    ",isLoading",isLoading,
-    ",onHide",onHide)
-    
-
     return (
       <Form 
-        visible={visible}
-        title={(action === 'update') ? `Edit  ${String(formData._id).toUpperCase()} ${this.rendercnt} Configuration` : `Create ${String(formData._id).toUpperCase()} Configuration`}
+        visible={isLoading?false:visible}//解决页面超时后空白的问题
+        title={(action === 'update') ? `Edit  ${String(formData._id).toUpperCase()} Configuration` : `Create ${String(formData._id).toUpperCase()} Configuration`}
         schema={this.state.schema}
         uiSchema={this.state.uiSchema}
         formData={formData}

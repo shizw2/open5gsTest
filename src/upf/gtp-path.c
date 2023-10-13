@@ -221,8 +221,11 @@ static void _gtpv1_tun_recv_common_cb(
      * It should not be used on the UPF/SGW-U data plane
      * until this issue is resolved.
      */
-#if 0
+
+//暂时放开测试性能展示
     upf_metrics_inst_global_inc(UPF_METR_GLOB_CTR_GTP_OUTDATAPKTN3UPF);
+#if 0
+
     upf_metrics_inst_by_qfi_add(pdr->qer->qfi,
         UPF_METR_CTR_GTP_OUTDATAVOLUMEQOSLEVELN3UPF, recvbuf->len);
 #endif
@@ -415,8 +418,12 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
          * It should not be used on the UPF/SGW-U data plane
          * until this issue is resolved.
          */
-#if 0
+
+//暂时放开测试性能展示
         upf_metrics_inst_global_inc(UPF_METR_GLOB_CTR_GTP_INDATAPKTN3UPF);
+
+#if 0
+
         upf_metrics_inst_by_qfi_add(qfi,
                 UPF_METR_CTR_GTP_INDATAVOLUMEQOSLEVELN3UPF, pkbuf->len);
 #endif
