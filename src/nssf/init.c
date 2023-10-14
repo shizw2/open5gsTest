@@ -26,6 +26,7 @@ static int initialized = 0;
 int nssf_initialize(void)
 {
     int rv;
+    nssf_metrics_init();
 
     ogs_sbi_context_init(OpenAPI_nf_type_NSSF);
     nssf_context_init();
@@ -39,9 +40,14 @@ int nssf_initialize(void)
     rv = ogs_log_config_domain(
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
+    
+    rv = ogs_metrics_context_parse_config("nssf");
+    if (rv != OGS_OK) return rv;
 
     rv = nssf_sbi_open();
     if (rv != OGS_OK) return rv;
+    
+    ogs_metrics_context_open(ogs_metrics_self());
 
     thread = ogs_thread_create(nssf_main, NULL);
     if (!thread) return OGS_ERROR;
@@ -82,9 +88,11 @@ void nssf_terminate(void)
     ogs_timer_delete(t_termination_holding);
 
     nssf_sbi_close();
+    ogs_metrics_context_close(ogs_metrics_self());
 
     nssf_context_final();
     ogs_sbi_context_final();
+    nssf_metrics_final();
 }
 
 static void nssf_main(void *data)

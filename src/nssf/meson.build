@@ -17,6 +17,7 @@
 
 libnssf_sources = files('''
     context.c
+    metrics.c
     event.c
 
     nnssf-handler.c
@@ -29,12 +30,14 @@ libnssf_sources = files('''
 
 libnssf = static_library('nssf',
     sources : libnssf_sources,
-    dependencies : libsbi_dep,
+    dependencies : [libsbi_dep,
+                    libmetrics_dep],
     install : false)
 
 libnssf_dep = declare_dependency(
     link_with : libnssf,
-    dependencies : libsbi_dep)
+    dependencies : [libsbi_dep,
+                    libmetrics_dep])
 
 nssf_sources = files('''
     app.c

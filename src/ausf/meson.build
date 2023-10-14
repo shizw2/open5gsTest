@@ -17,6 +17,7 @@
 
 libausf_sources = files('''
     context.c
+    metrics.c
     event.c
 
     nnrf-handler.c
@@ -35,12 +36,14 @@ libausf_sources = files('''
 libausf = static_library('ausf',
     sources : libausf_sources,
     dependencies : [libcrypt_dep,
+                    libmetrics_dep,
                     libsbi_dep],
     install : false)
 
 libausf_dep = declare_dependency(
     link_with : libausf,
     dependencies : [libcrypt_dep,
+        	    libmetrics_dep,
                     libsbi_dep])
 
 ausf_sources = files('''

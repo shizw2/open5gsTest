@@ -28,11 +28,15 @@ static int initialized = 0;
 int bsf_initialize(void)
 {
     int rv;
+    bsf_metrics_init();
 
     ogs_sbi_context_init(OpenAPI_nf_type_BSF);
     bsf_context_init();
 
     rv = ogs_sbi_context_parse_config("bsf", "nrf", "scp");
+    if (rv != OGS_OK) return rv;
+
+    rv = ogs_metrics_context_parse_config("bsf");
     if (rv != OGS_OK) return rv;
 
     rv = bsf_context_parse_config();
@@ -41,6 +45,7 @@ int bsf_initialize(void)
     rv = ogs_log_config_domain(
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
+    ogs_metrics_context_open(ogs_metrics_self());
 
     rv = bsf_sbi_open();
     if (rv != 0) return OGS_ERROR;
@@ -82,12 +87,14 @@ void bsf_terminate(void)
     event_termination();
     ogs_thread_destroy(thread);
     ogs_timer_delete(t_termination_holding);
+    ogs_metrics_context_close(ogs_metrics_self());
 
     bsf_sbi_close();
 
     bsf_context_final();
 
     ogs_sbi_context_final();
+    bsf_metrics_final();
 }
 
 static void bsf_main(void *data)

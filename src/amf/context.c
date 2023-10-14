@@ -219,13 +219,18 @@ static int amf_context_validation(void)
     }
 
     if (self.num_of_ciphering_order == 0) {
-        ogs_error("no amf.security.ciphering_order in '%s'",
+        ogs_error("No amf.security.ciphering_order in '%s'",
                 ogs_app()->file);
         return OGS_ERROR;
     }
     if (ogs_nas_gprs_timer_from_sec(&gprs_timer, self.time.t3502.value) !=
         OGS_OK) {
         ogs_error("Not support GPRS Timer 2 [%d]", (int)self.time.t3502.value);
+        return OGS_ERROR;
+    }
+    if (!self.time.t3512.value) {
+        ogs_error("No amf.time.t3512.value in '%s'",
+                ogs_app()->file);
         return OGS_ERROR;
     }
     if (ogs_nas_gprs_timer_3_from_sec(&gprs_timer, self.time.t3512.value) !=
@@ -1200,6 +1205,8 @@ int amf_context_parse_config(void)
                         } else
                             ogs_warn("unknown key `%s`", t3512_key);
                     }
+                } else if (!strcmp(time_key, "t3412")) {
+                    /* handle config in mme */
                 } else if (!strcmp(time_key, "nf_instance")) {
                     /* handle config in app library */
                 } else if (!strcmp(time_key, "subscription")) {
@@ -2475,13 +2482,15 @@ void amf_sbi_select_nf(
     ogs_assert(target_nf_type);
     ogs_assert(requester_nf_type);
 
+    ogs_info("amf_sbi_select_nf,sbi obj type:%d.", sbi_object->type);
+
     switch(sbi_object->type) {
     case OGS_SBI_OBJ_UE_TYPE:        
         if (target_nf_type == OpenAPI_nf_type_UDM || target_nf_type == OpenAPI_nf_type_PCF || target_nf_type == OpenAPI_nf_type_AUSF || target_nf_type == OpenAPI_nf_type_UDR){            
             nf_instance = ogs_sbi_nf_instance_find_by_select_key(
                         target_nf_type, requester_nf_type, discovery_option,g_select_key); 
         }else{
-        nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
+            nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
                         target_nf_type, requester_nf_type, discovery_option); 
         }
 
@@ -2532,7 +2541,7 @@ void amf_sbi_select_nf(
                     continue;
             }
             
-            if (target_nf_type == OpenAPI_nf_type_UDM|| target_nf_type == OpenAPI_nf_type_PCF){
+            if (target_nf_type == OpenAPI_nf_type_PCF){
                 if (nf_instance->time.heartbeat_interval != g_select_key){
                     ogs_warn("SESS_TYPE,select_key:%d, nf_instance id:%s, nf_instance_name:%s.",g_select_key,nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type));
                     continue;
@@ -3012,6 +3021,293 @@ static bool check_udm_info_supi(
     return false;
 }
 
+
+/*
+ * Issues #2482
+ *
+ * Changed to that registration can be accepted only
+ * when the UE slice is available in the RAN slice.
+ *
+ * TS23.502
+ * 4.2.2 Registration Management procedures
+ * 4.2.2.2 Registration procedures
+ * 4.2.2.2.2 General Registration
+ *
+ * 21. ...
+ * If the Requested NSSAI does not include S-NSSAIs which map to S-NSSAIs
+ * of the HPLMN subject to Network Slice-Specific Authentication and
+ * Authorization and the AMF determines that no S-NSSAI can be provided
+ * in the Allowed NSSAI for the UE in the current UE's Tracking Area and
+ * if no default S-NSSAI(s) not yet involved in the current UE Registration
+ * procedure could be further considered, the AMF shall reject the UE
+ * Registration and shall include in the rejection message the list
+ * of Rejected S-NSSAIs, each of them with the appropriate rejection
+ * cause value.
+ */
+ //支持下面的判断代价有点高，是不是有此应用场景的需求？
+#if 0
+static bool gnb_ta_is_supported(
+        amf_gnb_t *gnb,
+        ogs_plmn_id_t *plmn_id, ogs_uint24_t tac, ogs_s_nssai_t *s_nssai)
+{
+    int i, j, k;
+
+    ogs_assert(gnb);
+    ogs_assert(plmn_id);
+
+    for (i = 0; i < gnb->num_of_supported_ta_list; i++) {
+        if (gnb->supported_ta_list[i].tac.v != tac.v)
+            continue;
+
+        for (j = 0; j < gnb->supported_ta_list[i].num_of_bplmn_list; j++) {
+            if (memcmp(&gnb->supported_ta_list[i].bplmn_list[j].plmn_id,
+                        plmn_id, sizeof(*plmn_id)) != 0)
+                continue;
+
+            for (k = 0;
+                    k < gnb->supported_ta_list[i].bplmn_list[j].num_of_s_nssai;
+                    k++) {
+                if (gnb->supported_ta_list[i].bplmn_list[j].s_nssai[k].sst ==
+                        s_nssai->sst &&
+                    gnb->supported_ta_list[i].bplmn_list[j].s_nssai[k].sd.v ==
+                        s_nssai->sd.v)
+                    return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool amf_update_allowed_nssai(amf_ue_t *amf_ue)
+{
+    int i, j, k;
+    amf_gnb_t *gnb = NULL;
+    ran_ue_t *ran_ue = NULL;
+
+    ogs_assert(amf_ue);
+    ran_ue = ran_ue_cycle(amf_ue->ran_ue);
+    if (!ran_ue) {
+        ogs_error("[%s] RAN-NG Context has already been removed",
+                    amf_ue->supi);
+        return false;
+    }
+    gnb = amf_gnb_cycle(ran_ue->gnb);
+    if (!gnb) {
+        ogs_error("gNB has already been removed");
+        return false;
+    }
+
+    /*
+     * TS23.501
+     *
+     * 5.15.4 UE NSSAI configuration and NSSAI storage aspects
+     * 5.15.4.1 General
+     * 5.15.4.1.1 UE Network Slice configuration
+     *
+     * S-NSSAIs that the UE provides in the Requested NSSAI which are neither
+     * in the Allowed NSSAI nor provided as a rejected S-NSSAI, shall, by the
+     * UE, not be regarded as rejected, i.e. the UE may request to register
+     * these S-NSSAIs again next time the UE sends a Requested NSSAI
+     *
+     * 5.15.5 Detailed Operation Overview
+     *
+     * 5.15.5.2 Selection of a Serving AMF supporting the Network Slices
+     * 5.15.5.2.1 Registration to a set of Network Slices
+     *
+     * AMF checks whether it can serve all the S-NSSAI(s) from
+     * the Requested NSSAI present in the Subscribed S-NSSAIs
+     * (potentially using configuration for mapping S-NSSAI values
+     * between HPLMN and Serving PLMN), or all the S-NSSAI(s) marked
+     * as default in the Subscribed S-NSSAIs in the case that
+     * no Requested NSSAI was provided or none of the S-NSSAIs
+     * in the Requested NSSAI are permitted,
+     * i.e. do not match any of the Subscribed S-NSSAIs or not available
+     * at the current UE's Tracking Area (see clause 5.15.3).
+     *
+     *
+     * TS24.501
+     *
+     * 4.6.2 Mobility management aspects
+     * 4.6.2.1 General
+     *
+     * The UE in NB-N1 mode does not include the requested NSSAI during
+     * the registration procedure if the 5GS registration type IE indicates
+     * "mobility registration updating", procedure is not initiated
+     * to change the slice(s) that the UE is currently registered to,
+     * and the UE is still in the current registration area. The AMF does not
+     * include the allowed NSSAI during a registration procedure with the 5GS
+     * registration type IE indicating "mobility registration updating" except
+     * if the allowed NSSAI has changed for the UE. The UE considers
+     * the last received allowed NSSAI as valid until the UE receives
+     * a new allowed NSSAI.
+     *
+     * 5.5.1.2.4 Initial registration accepted by the network
+     *
+     * The AMF shall include the allowed NSSAI for the current PLMN
+     * and shall include the mapped S-NSSAI(s) for the allowed NSSAI
+     * contained in the requested NSSAI from the UE if available,
+     * in the REGISTRATION ACCEPT message if the UE included
+     * the requested NSSAI in the REGISTRATION REQUEST message
+     * and the AMF allows one or more S-NSSAIs in the requested NSSAI.
+     *
+     * 8.2.7.5 Allowed NSSAI
+     *
+     * This IE shall be included:
+     * a) if:
+     *   1) one or more S-NSSAIs in the requested NSSAI of
+     *      the REGISTRATION REQUEST message are allowed by the AMF
+     *      for a network not supporting NSSAA;
+     *   2) one or more S-NSSAIs in the requested NSSAI of
+     *      the REGISTRATION REQUEST message are not subject
+     *      to network slice-specific authentication and authorization
+     *      and are allowed by the AMF; or
+     *   3) the network slice-specific authentication and authorization
+     *      has been successfully performed for one or more S-NSSAIs in
+     *      the requested NSSAI of the REGISTRATION REQUEST message; or
+     * b) if:
+     *   1) the requested NSSAI was not included in the REGISTRATION
+     *      REQUEST message or none of the requested NSSAI are allowed;
+     *   2) the network not supporting NSSAA has one or more subscribed
+     *      S-NSSAIs marked as default that are available; or
+     *   3) the network has one or more subscribed S-NSSAIs marked
+     *      as default which are not subject to network slice-specific
+     *      authentication and authorization that are available.
+     */
+
+    amf_ue->allowed_nssai.num_of_s_nssai = 0;
+    amf_ue->rejected_nssai.num_of_s_nssai = 0;
+
+    if (amf_ue->requested_nssai.num_of_s_nssai) {
+        for (i = 0; i < amf_ue->requested_nssai.num_of_s_nssai; i++) {
+            ogs_slice_data_t *slice = NULL;
+            ogs_nas_s_nssai_ie_t *requested =
+                    &amf_ue->requested_nssai.s_nssai[i];
+            ogs_nas_s_nssai_ie_t *allowed =
+                    &amf_ue->allowed_nssai.
+                        s_nssai[amf_ue->allowed_nssai.num_of_s_nssai];
+            ogs_nas_rejected_s_nssai_t *rejected =
+                    &amf_ue->rejected_nssai.
+                        s_nssai[amf_ue->rejected_nssai.num_of_s_nssai];
+            bool ta_supported = false;
+
+
+            slice = ogs_slice_find_by_s_nssai(
+                    amf_ue->slice, amf_ue->num_of_slice,
+                    (ogs_s_nssai_t *)requested);
+            if (slice)
+                ta_supported = gnb_ta_is_supported(gnb,
+                        &amf_ue->nr_tai.plmn_id, amf_ue->nr_tai.tac,
+                        &slice->s_nssai);
+
+            if (ta_supported == true) {
+
+                allowed->sst = requested->sst;
+                allowed->sd.v = requested->sd.v;
+                allowed->mapped_hplmn_sst = requested->mapped_hplmn_sst;
+                allowed->mapped_hplmn_sd.v = requested->mapped_hplmn_sd.v;
+
+                amf_ue->allowed_nssai.num_of_s_nssai++;
+
+            } else {
+                rejected->sst = requested->sst;
+                rejected->sd.v = requested->sd.v;
+
+                if (rejected->sd.v != OGS_S_NSSAI_NO_SD_VALUE)
+                    rejected->length_of_rejected_s_nssai = 4;
+                else
+                    rejected->length_of_rejected_s_nssai = 1;
+
+                rejected->cause_value =
+                    OGS_NAS_REJECTED_S_NSSAI_NOT_AVIALABLE_IN_PLMN;
+
+                amf_ue->rejected_nssai.num_of_s_nssai++;
+            }
+        }
+    }
+
+    if (!amf_ue->allowed_nssai.num_of_s_nssai) {
+        for (i = 0; i < amf_ue->num_of_slice; i++) {
+            ogs_slice_data_t *slice = &amf_ue->slice[i];
+            ogs_nas_s_nssai_ie_t *allowed =
+                &amf_ue->allowed_nssai.
+                    s_nssai[amf_ue->allowed_nssai.num_of_s_nssai];
+
+            if (slice->default_indicator == true &&
+                gnb_ta_is_supported(gnb,
+                    &amf_ue->nr_tai.plmn_id, amf_ue->nr_tai.tac,
+                    &slice->s_nssai) == true) {
+
+                allowed->sst = slice->s_nssai.sst;
+                allowed->sd.v = slice->s_nssai.sd.v;
+                allowed->mapped_hplmn_sst = 0;
+                allowed->mapped_hplmn_sd.v = OGS_S_NSSAI_NO_SD_VALUE;
+
+                amf_ue->allowed_nssai.num_of_s_nssai++;
+
+            }
+        }
+    }
+
+    if (!amf_ue->allowed_nssai.num_of_s_nssai) {
+        ogs_error("No Allowed-NSSAI");
+        ogs_error("    Number of Subscribed S-NSSAI [%d]",
+                amf_ue->num_of_slice);
+        for (i = 0; i < amf_ue->num_of_slice; i++) {
+            ogs_slice_data_t *slice = &amf_ue->slice[i];
+            if (slice->default_indicator == true) {
+                ogs_error(
+                    "        Default S_NSSAI[SST:%d SD:0x%x]",
+                    slice->s_nssai.sst, slice->s_nssai.sd.v);
+            } else {
+                ogs_error(
+                    "        S_NSSAI[SST:%d SD:0x%x]",
+                    slice->s_nssai.sst, slice->s_nssai.sd.v);
+            }
+        }
+        ogs_error("    Number of Requested NSSAI [%d]",
+                amf_ue->requested_nssai.num_of_s_nssai);
+        for (i = 0; i < amf_ue->requested_nssai.
+                num_of_s_nssai; i++) {
+            ogs_error("        PLMN_ID[MCC:%d MNC:%d]",
+                    ogs_plmn_id_mcc(&amf_ue->nr_tai.plmn_id),
+                    ogs_plmn_id_mnc(&amf_ue->nr_tai.plmn_id));
+            ogs_error("        S_NSSAI[SST:%d SD:0x%x]",
+                    amf_ue->requested_nssai.s_nssai[i].sst,
+                    amf_ue->requested_nssai.s_nssai[i].sd.v);
+        }
+
+        ogs_error("    (gNB) Number of TA List [%d]", gnb->num_of_supported_ta_list);
+        for (i = 0; i < gnb->num_of_supported_ta_list; i++) {
+            ogs_error("        TAC:%d", gnb->supported_ta_list[i].tac.v);
+            ogs_error("        Number of BPLMN List [%d]",
+                    gnb->supported_ta_list[i].num_of_bplmn_list);
+            for (j = 0; j < gnb->supported_ta_list[i].num_of_bplmn_list; j++) {
+                ogs_plmn_id_t *plmn_id =
+                    &gnb->supported_ta_list[i].bplmn_list[j].plmn_id;
+                ogs_error("        PLMN_ID[MCC:%d MNC:%d]",
+                        ogs_plmn_id_mcc(plmn_id), ogs_plmn_id_mnc(plmn_id));
+                ogs_error("        Number of S_NSSAI [%d]",
+                        gnb->supported_ta_list[i].bplmn_list[j].num_of_s_nssai);
+                for (k = 0; k <
+                        gnb->supported_ta_list[i].bplmn_list[j].num_of_s_nssai;
+                        k++) {
+                    ogs_s_nssai_t *s_nssai =
+                        &gnb->supported_ta_list[i].bplmn_list[j].s_nssai[k];
+                    ogs_error("        S_NSSAI[SST:%d SD:0x%x]",
+                            s_nssai->sst, s_nssai->sd.v);
+                }
+            }
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
+#endif
+//下面的函数回退到了2641版本，不支持在SPS进行对gnb_ta_is_supported的判断。
 bool amf_update_allowed_nssai(amf_ue_t *amf_ue)
 {
     int i;

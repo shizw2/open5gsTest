@@ -1,7 +1,7 @@
 import { NRFSection, SBISection,LOGSection,MetricsSection,NF_SBI_Section,GuamiSection,TaiSection,PlmnSupportSection,SecuritySection ,TimeSection} from './ViewCfgSection';
 
 export const ViewAMF = ({ nfconfig }) => {  
-  console.log("ViewAMF nfconfig:", nfconfig); // 在这里添加打印语句
+  console.log("nfconfig:", nfconfig); // 在这里添加打印语句
   return (
     <div>
       {/* // 使用 LOGSection 组件 */}                  

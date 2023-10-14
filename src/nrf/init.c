@@ -26,11 +26,15 @@ static int initialized = 0;
 int nrf_initialize(void)
 {
     int rv;
+    nrf_metrics_init();
 
     ogs_sbi_context_init(OpenAPI_nf_type_NRF);
     nrf_context_init();
 
     rv = ogs_sbi_context_parse_config("nrf", NULL, "scp");
+    if (rv != OGS_OK) return rv;
+    
+    rv = ogs_metrics_context_parse_config("nrf");
     if (rv != OGS_OK) return rv;
 
     rv = nrf_context_parse_config();
@@ -39,6 +43,7 @@ int nrf_initialize(void)
     rv = ogs_log_config_domain(
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
+    ogs_metrics_context_open(ogs_metrics_self());
 
     rv = nrf_sbi_open();
     if (rv != OGS_OK) return rv;
@@ -80,9 +85,11 @@ void nrf_terminate(void)
     ogs_timer_delete(t_termination_holding);
 
     nrf_sbi_close();
+    ogs_metrics_context_close(ogs_metrics_self());
 
     nrf_context_final();
     ogs_sbi_context_final();
+    nrf_metrics_final();
 }
 
 static void nrf_main(void *data)

@@ -41,7 +41,9 @@ libmme_sources = files('''
     sbc-handler.h
     mme-sm.h
     mme-path.h
-    metrics.h 
+    metrics.h
+    mme-gn-build.h
+    mme-gn-handler.h
 
     mme-init.c
     mme-event.c
@@ -75,6 +77,8 @@ libmme_sources = files('''
     mme-path.c 
     sbc-handler.c 
     metrics.c
+    mme-gn-build.c
+    mme-gn-handler.c
 '''.split())
 
 libmme = static_library('mme',

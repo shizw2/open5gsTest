@@ -26,11 +26,15 @@ static int initialized = 0;
 int udr_initialize(void)
 {
     int rv;
+    udr_metrics_init();
 
     ogs_sbi_context_init(OpenAPI_nf_type_UDR);
     udr_context_init();
 
     rv = ogs_sbi_context_parse_config("udr", "nrf", "scp");
+    if (rv != OGS_OK) return rv;
+    
+    rv = ogs_metrics_context_parse_config("udr");
     if (rv != OGS_OK) return rv;
 
     rv = udr_context_parse_config();
@@ -39,6 +43,8 @@ int udr_initialize(void)
     rv = ogs_log_config_domain(
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
+    
+    ogs_metrics_context_open(ogs_metrics_self());
 
     rv = ogs_dbi_init(ogs_app()->db_uri);
     if (rv != OGS_OK) return rv;
@@ -85,11 +91,13 @@ void udr_terminate(void)
     ogs_timer_delete(t_termination_holding);
 
     udr_sbi_close();
+    ogs_metrics_context_close(ogs_metrics_self());
 
     ogs_dbi_final();
 
     udr_context_final();
     ogs_sbi_context_final();
+    udr_metrics_final();
 }
 
 static void udr_main(void *data)

@@ -25,6 +25,8 @@
 #include "ogs-sbi.h"
 
 #include "udm-sm.h"
+#include "metrics.h"
+
 
 #ifdef __cplusplus
 extern "C" {

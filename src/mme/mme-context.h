@@ -49,6 +49,7 @@ extern int __esm_log_domain;
 #undef OGS_LOG_DOMAIN
 #define OGS_LOG_DOMAIN __mme_log_domain
 
+typedef struct mme_sgsn_s mme_sgsn_t;
 typedef struct mme_sgw_s mme_sgw_t;
 typedef struct mme_pgw_s mme_pgw_t;
 typedef struct mme_vlr_s mme_vlr_t;
@@ -85,8 +86,10 @@ typedef struct mme_context_s {
     ogs_list_t      s1ap_list;      /* MME S1AP IPv4 Server List */
     ogs_list_t      s1ap_list6;     /* MME S1AP IPv6 Server List */
 
-    ogs_list_t      sgw_list;       /* SGW GTPC Client List */
+    ogs_list_t      sgw_list;       /* SGW GTPv2C Client List */
     mme_sgw_t       *sgw;           /* Iterator for SGW round-robin */
+
+    ogs_list_t      sgsn_list;       /* SGW GTPv1C Client List */
 
     ogs_list_t      pgw_list;       /* PGW GTPC Client List */
     ogs_sockaddr_t  *pgw_addr;      /* First IPv4 Address Selected */
@@ -145,6 +148,44 @@ typedef struct mme_context_s {
     /* Generator for unique identification */
     uint32_t        mme_ue_s1ap_id;         /* mme_ue_s1ap_id generator */
 
+#define MME_UE_LIST_CHECK \
+    if (ogs_log_get_domain_level(OGS_LOG_DOMAIN) >= OGS_LOG_TRACE) { \
+        mme_ue_t *mme_ue = NULL; \
+        sgw_ue_t *sgw_ue = NULL; \
+        enb_ue_t *enb_ue = NULL; \
+        mme_sess_t *sess = NULL; \
+        mme_bearer_t *bearer = NULL; \
+        ogs_list_for_each(&mme_self()->mme_ue_list, mme_ue) { \
+            ogs_trace("MME_UE(%p) [%s] MME_S11_TEID[%d]", \
+                    mme_ue, mme_ue->imsi_bcd, mme_ue->mme_s11_teid); \
+            if (mme_ue->sgw_ue) { \
+                sgw_ue = mme_ue->sgw_ue; \
+                ogs_trace("SGW_UE(%p) MME_UE(%p) SGW_S11_TEID[%d]", \
+                        sgw_ue, mme_ue, sgw_ue->sgw_s11_teid); \
+            } \
+            if (mme_ue->enb_ue) { \
+                enb_ue = mme_ue->enb_ue; \
+                ogs_trace("ENB_UE(%p) MME_UE(%p) " \
+                    "[ENB_UE_S1AP_ID:%d MME_UE_S1AP_ID:%d]", \
+                    enb_ue, enb_ue->mme_ue, \
+                    enb_ue->enb_ue_s1ap_id, enb_ue->mme_ue_s1ap_id); \
+            } \
+            ogs_list_for_each(&mme_ue->sess_list, sess) { \
+                ogs_trace("SESS(%p) [%s:%d]", sess, \
+                        sess->session ? sess->session->name : "Unknown", \
+                        sess->pti); \
+                ogs_assert(sess->mme_ue == mme_ue); \
+                ogs_list_for_each(&sess->bearer_list, bearer) { \
+                    ogs_trace("BEARER(%p) [%d] " \
+                            "ENB_S1U_TEID[%d] SGW_S1U_TEID[%d]", \
+                            bearer, bearer->ebi, \
+                            bearer->enb_s1u_teid, bearer->sgw_s1u_teid); \
+                    ogs_assert(bearer->sess == sess); \
+                    ogs_assert(bearer->mme_ue == mme_ue); \
+                } \
+            } \
+        } \
+    }
     ogs_list_t      mme_ue_list;
 
     ogs_hash_t *enb_addr_hash;  /* hash table for ENB Address */
@@ -160,6 +201,18 @@ typedef struct mme_context_s {
         } t3402, t3412, t3423;
     } time;
 } mme_context_t;
+
+typedef struct mme_sgsn_route_s {
+    ogs_list_t    list;       /* listed in mme_sgsn_t->route_list */
+    ogs_nas_rai_t rai;
+    uint16_t cell_id;
+} mme_sgsn_route_t;
+
+typedef struct mme_sgsn_s {
+    ogs_gtp_node_t  gnode;
+    ogs_list_t      route_list; /* list of mme_sgsn_route_t */
+    bool            default_route; /* use this SGSN as default route */
+} mme_sgsn_t;
 
 typedef struct mme_sgw_s {
     ogs_gtp_node_t  gnode;
@@ -224,6 +277,7 @@ typedef struct mme_enb_s {
     ogs_fsm_t       sm;         /* A state machine */
 
     uint32_t        enb_id;     /* eNB_ID received from eNB */
+    ogs_plmn_id_t   plmn_id;    /* eNB PLMN-ID received from eNB */
     ogs_sctp_sock_t sctp;       /* SCTP socket */
 
     struct {
@@ -623,14 +677,14 @@ struct mme_ue_s {
     do { \
         mme_ue_t *mme_ue = NULL; \
         ogs_assert(__sESS); \
-        mme_ue = __sESS->mme_ue; \
+        mme_ue = (__sESS)->mme_ue; \
         ogs_assert(mme_ue); \
         ogs_info("Removed Session: UE IMSI:[%s] APN:[%s]", \
                 mme_ue->imsi_bcd, \
-                sess->session ? sess->session->name : "Unknown"); \
+                (__sESS)->session ? (__sESS)->session->name : "Unknown"); \
         if (mme_sess_count(mme_ue) == 1) /* Last Session */ \
             CLEAR_SESSION_CONTEXT(mme_ue); \
-        mme_sess_remove(sess); \
+        mme_sess_remove(__sESS); \
     } while(0)
 
 #define ACTIVE_EPS_BEARERS_IS_AVAIABLE(__mME) \
@@ -775,6 +829,13 @@ void mme_context_final(void);
 mme_context_t *mme_self(void);
 
 int mme_context_parse_config(void);
+
+mme_sgsn_t *mme_sgsn_add(ogs_sockaddr_t *addr);
+void mme_sgsn_remove(mme_sgsn_t *sgsn);
+void mme_sgsn_remove_all(void);
+mme_sgsn_t *mme_sgsn_find_by_addr(ogs_sockaddr_t *addr);
+mme_sgsn_t *mme_sgsn_find_by_routing_address(const ogs_nas_rai_t *rai, uint16_t cell_id);
+mme_sgsn_t *mme_sgsn_find_by_default_routing_address(void);
 
 mme_sgw_t *mme_sgw_add(ogs_sockaddr_t *addr);
 void mme_sgw_remove(mme_sgw_t *sgw);

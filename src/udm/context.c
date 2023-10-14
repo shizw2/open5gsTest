@@ -106,7 +106,9 @@ int udm_context_parse_config(void)
                     /* handle config in sbi library */
                 } else if (!strcmp(udm_key, "discovery")) {
                     /* handle config in sbi library */
-                } else if (!strcmp(udm_key, "hnet")) {
+                } else if (!strcmp(udm_key, "metrics")) {
+                    /* handle config in metrics library */
+                }else if (!strcmp(udm_key, "hnet")) {
                     rv = ogs_sbi_context_parse_hnet_config(&udm_iter);
                     if (rv != OGS_OK) return rv;
                 } else if (!strcmp(udm_key, "info")) {
@@ -158,13 +160,7 @@ int udm_context_parse_config(void)
                                 ogs_warn("has udm supi");
                                 ogs_yaml_iter_t tai_array, tai_iter;
                                 ogs_yaml_iter_recurse(&info_iter, &tai_array);
-                                do {
-                                    //int num_of_range = 0;
-                                    //ogs_uint24_t start[OGS_MAX_NUM_OF_SUPI];
-                                    //ogs_uint24_t end[OGS_MAX_NUM_OF_SUPI];
-                                    
-
-
+                                do {                                  
                                     if (ogs_yaml_iter_type(&tai_array) ==
                                             YAML_MAPPING_NODE) {
                                         memcpy(&tai_iter, &tai_array,

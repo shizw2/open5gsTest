@@ -17,6 +17,7 @@
 
 libbsf_sources = files('''
     context.c
+    metrics.c
     event.c
 
     nnrf-handler.c
@@ -31,12 +32,14 @@ libbsf_sources = files('''
 libbsf = static_library('bsf',
     sources : libbsf_sources,
     dependencies : [libcrypt_dep,
+                    libmetrics_dep,
                     libsbi_dep],
     install : false)
 
 libbsf_dep = declare_dependency(
     link_with : libbsf,
     dependencies : [libcrypt_dep,
+                    libmetrics_dep,
                     libsbi_dep])
 
 bsf_sources = files('''

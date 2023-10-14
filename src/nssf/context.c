@@ -256,6 +256,8 @@ int nssf_context_parse_config(void)
                         ogs_socknode_remove_all(&list6);
                     } while (ogs_yaml_iter_type(&nsi_array) ==
                             YAML_SEQUENCE_NODE);
+                } else if (!strcmp(nssf_key, "metrics")){
+                    /* handle config in metrics library */
                 } else
                     ogs_warn("unknown key `%s`", nssf_key);
             }

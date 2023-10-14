@@ -26,11 +26,16 @@ static int initialized = 0;
 int udm_initialize(void)
 {
     int rv;
+    
+    udm_metrics_init();
 
     ogs_sbi_context_init(OpenAPI_nf_type_UDM);
     udm_context_init();
 
     rv = ogs_sbi_context_parse_config("udm", "nrf", "scp");
+    if (rv != OGS_OK) return rv;
+
+    rv = ogs_metrics_context_parse_config("udm");
     if (rv != OGS_OK) return rv;
 
     rv = udm_context_parse_config();
@@ -39,6 +44,8 @@ int udm_initialize(void)
     rv = ogs_log_config_domain(
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
+
+    ogs_metrics_context_open(ogs_metrics_self());
 
     rv = udm_sbi_open();
     if (rv != OGS_OK) return rv;
@@ -82,9 +89,11 @@ void udm_terminate(void)
     ogs_timer_delete(t_termination_holding);
 
     udm_sbi_close();
+    ogs_metrics_context_close(ogs_metrics_self());
 
     udm_context_final();
     ogs_sbi_context_final();
+    udm_metrics_final();
 }
 
 static void udm_main(void *data)
