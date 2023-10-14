@@ -504,7 +504,7 @@ amf:
         ciphering_order : [ NEA0, NEA1, NEA2 ]
     network_name:
         full: 5G Core Network
-        short：5GC
+        short: 5GC
     amf_name: 5gc-amf0
 
 #

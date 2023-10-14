@@ -148,7 +148,6 @@ class Form extends Component {
   state = {};
 
   componentWillReceiveProps(nextProps) {
-    console.log("form componentWillReceiveProps,visiable:",this.props.visible,"nextvisiable",nextProps.visible)
     if (this.props.visible === false && nextProps.visible === true) {
       // Initialize State Variable when form view is visible for the first time
       this.setState({ 

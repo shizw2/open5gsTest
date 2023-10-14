@@ -103,8 +103,7 @@ class Collection extends Component {
 
   documentHandler = {
     show: (action, payload) => {
-      console.log("show:this.state.view:",this.state.view)
-      this.setState({       
+      this.setState({
         document: {
           action,
           visible: true,
@@ -118,7 +117,6 @@ class Collection extends Component {
       })
     },
     hide: () => {
-      console.log("documentHandler,hide.")
       this.setState({
         document: {
           action: '',
@@ -136,7 +134,6 @@ class Collection extends Component {
         this.documentHandler.show('create');
       },
       update: (_id) => {
-        console.log("documentHandler,update:"+_id)
         this.documentHandler.show('update', { _id });
       }
     }
@@ -156,7 +153,6 @@ class Collection extends Component {
       })
     },
     hide: () => {
-      console.log("confirmHandler,hide.")
       this.setState({
         confirm: {
           ...this.state.confirm,
@@ -185,7 +181,6 @@ class Collection extends Component {
 
   viewHandler = {
     show: (_id) => {
-      console.log("viewHandler, show")
       this.setState({
         view: {
           _id,
@@ -195,7 +190,6 @@ class Collection extends Component {
       });
     },
     hide: () => {
-      console.log("viewHandler,hide.")
       this.setState({
         view: {
           ...this.state.view,
@@ -254,20 +248,12 @@ class Collection extends Component {
           nfconfig={data.filter(nfconfig => 
             nfconfig._id === this.state.view._id)[0]}
           disableOnClickOutside={this.state.view.disableOnClickOutside}
-          //onEdit={documentHandler.actions.update}
-          onEdit={( _id ) => {
-            console.log("Document Edit action clicked", _id);
-            documentHandler.actions.update(_id);
-          }}
+          onEdit={documentHandler.actions.update}
           onDelete={confirmHandler.show}
           onHide={viewHandler.hide}/>
         <Document 
           { ...document }
-          //onEdit={ documentHandler.actions.update}
-          onEdit={() => {
-            console.log("Document Edit action clicked");
-            documentHandler.actions.update();
-          }}
+          onEdit={documentHandler.actions.update}
           onDelete={confirmHandler.show}
           onHide={documentHandler.hide} />
         <Dimmed visible={document.dimmed} />

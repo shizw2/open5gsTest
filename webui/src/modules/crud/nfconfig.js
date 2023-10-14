@@ -14,7 +14,6 @@ export const fetchNFConfigs = (params = {}) => {
 }
 
 export const fetchNFConfig = (_id, params = {}) => {
-  console.log("fetchNFConfig:"+_id)
   return fetchDocument(MODEL, _id, `${URL}/${_id}`, params);
 }
 

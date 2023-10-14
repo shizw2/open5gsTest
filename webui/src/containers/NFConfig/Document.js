@@ -72,7 +72,6 @@ class Document extends Component {
     const { nfconfig, dispatch } = this.props
 
     if (nfconfig.needsFetch) {
-      console.log("componentWillMount nfconfig.needsFetch.")
       dispatch(nfconfig.fetch)
     }
   }
@@ -82,7 +81,6 @@ class Document extends Component {
     const { dispatch, action, onHide } = this.props
 
     if (nfconfig.needsFetch) {
-      console.log("componentWillReceiveProps nfconfig.needsFetch.")
       dispatch(nfconfig.fetch)
     }
 
@@ -112,10 +110,8 @@ class Document extends Component {
           nfconfig.data.security.op_value = nfconfig.data.security.op;
         }
       }*/
-      console.log("componentWillReceiveProps has data")
       this.setState({ formData: nfconfig.data })
     } else {
-      console.log("componentWillReceiveProps no data")
       this.setState({ formData });
     }
 
@@ -172,7 +168,6 @@ class Document extends Component {
 
   validate = (formData, errors) => {
     const { nfconfigs, action, status } = this.props;
-    console.log("validate")
 /*
     if (formData.msisdn) {
       const { msisdn } = formData;
@@ -244,8 +239,6 @@ class Document extends Component {
       trickleSpeed: 5
     });
     NProgress.start();
-
-    console.log("handleSubmit,action:"+action)
 
     if (action === 'create') {
       dispatch(createNFConfig({}, formData));

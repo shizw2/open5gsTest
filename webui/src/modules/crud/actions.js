@@ -37,7 +37,6 @@ export const fetchCollection = (model, url, params = {}, options = {}) => {
 }
 
 export const fetchDocument = (model, id, url, params = {}, options = {}) => {
-  console.log("fetchDocument,id:"+id+",url:"+url)
   const idProperty = options.idProperty || '_id';
   return {
     type: CRUD.FETCH_ONE, 
