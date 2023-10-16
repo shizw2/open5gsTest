@@ -2463,7 +2463,7 @@ amf_sess_t *amf_sess_cycle(amf_sess_t *sess)
 }
 
 static bool check_smf_info(ogs_sbi_nf_info_t *nf_info, void *context);
-static bool check_udm_info(ogs_sbi_nf_info_t *nf_info, void *context);
+static bool check_udm_info(ogs_sbi_nf_info_t *nf_info, void *context, ogs_sbi_obj_type_e type);
 
 void amf_sbi_select_nf(
         ogs_sbi_object_t *sbi_object,
@@ -2475,6 +2475,7 @@ void amf_sbi_select_nf(
     ogs_sbi_nf_instance_t *nf_instance = NULL;
     ogs_sbi_nf_info_t *nf_info = NULL;
     amf_sess_t *sess = NULL;
+    amf_ue_t *ue =  NULL;
 
     ogs_assert(sbi_object);
     ogs_assert(service_type);
@@ -2486,7 +2487,7 @@ void amf_sbi_select_nf(
 
     switch(sbi_object->type) {
     case OGS_SBI_OBJ_UE_TYPE:        
-        if (target_nf_type == OpenAPI_nf_type_UDM || target_nf_type == OpenAPI_nf_type_PCF || target_nf_type == OpenAPI_nf_type_AUSF || target_nf_type == OpenAPI_nf_type_UDR){            
+        /*if (target_nf_type == OpenAPI_nf_type_UDM || target_nf_type == OpenAPI_nf_type_PCF || target_nf_type == OpenAPI_nf_type_AUSF || target_nf_type == OpenAPI_nf_type_UDR){            
             nf_instance = ogs_sbi_nf_instance_find_by_select_key(
                         target_nf_type, requester_nf_type, discovery_option,g_select_key); 
         }else{
@@ -2496,7 +2497,39 @@ void amf_sbi_select_nf(
 
         if (nf_instance)
             OGS_SBI_SETUP_NF_INSTANCE(
+                    sbi_object->service_type_array[service_type], nf_instance);*/
+        ue = (amf_ue_t *)sbi_object;
+        ogs_assert(ue);
+
+        ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
+            if (ogs_sbi_discovery_param_is_matched(
+                    nf_instance,
+                    target_nf_type, requester_nf_type, discovery_option) ==
+                        false)
+                continue;
+
+            ogs_info("amf_sbi_select_nf,nf_instance->nf_type:%d,supi:%s.", nf_instance->nf_type,ue->supi);    
+            
+            if ((nf_instance->nf_type == OpenAPI_nf_type_UDM) &&
+                (ogs_list_count(&nf_instance->nf_info_list) > 0)) {
+
+                ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
+                    if (nf_info->nf_type != nf_instance->nf_type)
+                        continue;
+                    if (check_udm_info(nf_info, ue, sbi_object->type) == false)
+                        continue;
+
+                    break;
+                }
+
+                if (!nf_info)
+                    continue;
+            }
+
+            OGS_SBI_SETUP_NF_INSTANCE(
                     sbi_object->service_type_array[service_type], nf_instance);
+            break;
+        }                    
         break;
     case OGS_SBI_OBJ_SESS_TYPE:
         sess = (amf_sess_t *)sbi_object;
@@ -2531,7 +2564,7 @@ void amf_sbi_select_nf(
                 ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
                     if (nf_info->nf_type != nf_instance->nf_type)
                         continue;
-                    if (check_udm_info(nf_info, sess) == false)
+                    if (check_udm_info(nf_info, sess, sbi_object->type) == false)
                         continue;
 
                     break;
@@ -2976,36 +3009,54 @@ static bool check_smf_info_nr_tai(
 }
 
 static bool check_udm_info_supi(
-        ogs_sbi_udm_info_t *udm_info, amf_sess_t *sess);
+        ogs_sbi_udm_info_t *udm_info, char *supi);
         
-static bool check_udm_info(ogs_sbi_nf_info_t *nf_info, void *context)
+static bool check_udm_info(ogs_sbi_nf_info_t *nf_info, void *context,ogs_sbi_obj_type_e type)
 {
     amf_sess_t *sess = NULL;
+    amf_ue_t *ue = NULL;
+    char *supi = NULL;
 
     ogs_assert(nf_info);
     ogs_assert(nf_info->nf_type == OpenAPI_nf_type_UDM);
-    sess = context;
-    ogs_assert(sess);
+    if (type == OGS_SBI_OBJ_SESS_TYPE){
+        sess = context;
+        ogs_assert(sess);
+        supi = sess->amf_ue->supi;
+    }else if (type == OGS_SBI_OBJ_UE_TYPE){
+        ue = context;
+        ogs_assert(ue);
+        supi = ue->supi;
+    }else{
+        ogs_error("check_udm_info, unknown sbi obj type:%d.",type);
+        return false;
+    }
 
-    if (check_udm_info_supi(&nf_info->udm, sess) == false)
+    if (check_udm_info_supi(&nf_info->udm, supi) == false)
         return false;
 
     return true;
 }
 
 static bool check_udm_info_supi(
-        ogs_sbi_udm_info_t *udm_info, amf_sess_t *sess)
-{
-    amf_ue_t *amf_ue = NULL;
-    int i, j;
-
-    ogs_assert(sess);
-    amf_ue = sess->amf_ue;
-    ogs_assert(amf_ue);
+        ogs_sbi_udm_info_t *udm_info, char *supi)
+{      
     ogs_assert(udm_info);
+
+    ogs_info("check_udm_info_supi,num_of_supi_range:%d, supi:%s.",udm_info->num_of_supi_range,supi);
 
     if (udm_info->num_of_supi_range == 0)
         return true;
+
+    int max_length = 0;
+    for (int i = 0; i < udm_info->num_of_supi_range; i++) {
+        int length = strlen(udm_info->supi_ranges[i].start);
+        if (strncmp(supi, udm_info->supi_ranges[i].start, length) == 0 && length > max_length) {
+            max_length = length;
+            selected_range.start = udm_info->supi_ranges[i].start;
+            selected_range.end = udm_info->supi_ranges[i].end;
+        }
+    }  
 
     /*for (i = 0; i < udm_info->num_of_supi_range; i++) {   
         for (j = 0; j < udm_info->nr_tai_range[i].num_of_tac_range; j++) {

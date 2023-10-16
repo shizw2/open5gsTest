@@ -1304,9 +1304,15 @@ static void scp_info_free(ogs_sbi_scp_info_t *scp_info)
 
 static void udm_info_free(ogs_sbi_udm_info_t *udm_info)
 {
+    int i;
     ogs_assert(udm_info);
     
     ogs_info("udm_info_free, num_of_supi_range:%d.",udm_info->num_of_supi_range);
+    for (i = 0; i < udm_info->num_of_supi_range; i++) {     
+        ogs_info("udm_info_free, start:%s.",udm_info->supi_ranges[i].start);    
+        ogs_free(udm_info->supi_ranges[i].start);
+        ogs_free(udm_info->supi_ranges[i].end);
+    }
     udm_info->num_of_supi_range = 0;
 }
 

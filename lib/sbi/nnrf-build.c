@@ -1227,9 +1227,6 @@ static OpenAPI_udm_info_t *build_udm_info(ogs_sbi_nf_info_t *nf_info)
     OpenAPI_list_t *SupiRangeList = NULL;
     OpenAPI_supi_range_t *SupiRangeItem = NULL;
 
-    OpenAPI_list_t *TacRangeList = NULL;
-    OpenAPI_tac_range_t *TacRangeItem = NULL;
-
     ogs_assert(nf_info);
 
     UdmInfo = ogs_calloc(1, sizeof(*UdmInfo));
