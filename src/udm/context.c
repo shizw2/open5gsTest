@@ -337,7 +337,6 @@ udm_ue_t *udm_ue_add(char *suci)
 
     ogs_list_add(&self.udm_ue_list, udm_ue);
 
-    ogs_warn("add udm ue:%s.",udm_ue->supi);
     return udm_ue;
 }
 
