@@ -2464,6 +2464,7 @@ amf_sess_t *amf_sess_cycle(amf_sess_t *sess)
 
 static bool check_smf_info(ogs_sbi_nf_info_t *nf_info, void *context);
 static bool check_udm_info(ogs_sbi_nf_info_t *nf_info, void *context, ogs_sbi_obj_type_e type);
+static int check_udm_info_supi(ogs_sbi_udm_info_t *udm_info, char *supi);
 
 void amf_sbi_select_nf(
         ogs_sbi_object_t *sbi_object,
@@ -2498,38 +2499,96 @@ void amf_sbi_select_nf(
         if (nf_instance)
             OGS_SBI_SETUP_NF_INSTANCE(
                     sbi_object->service_type_array[service_type], nf_instance);*/
+                    
         ue = (amf_ue_t *)sbi_object;
         ogs_assert(ue);
+        char *supi_id = NULL;
+        if (ue->supi != NULL){
+            supi_id = ogs_id_get_value(ue->supi);
+        }
+
+        ogs_sbi_nf_instance_t *selected_nf_instance = NULL;
+        int max_prefix_length = 0;
+
+        ogs_sbi_nf_instance_t *optional_nf_list[16];
+        int optional_nf_count = 0;
 
         ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
             if (ogs_sbi_discovery_param_is_matched(
                     nf_instance,
-                    target_nf_type, requester_nf_type, discovery_option) ==
-                        false)
+                    target_nf_type, requester_nf_type, discovery_option) == false)
                 continue;
 
-            ogs_info("amf_sbi_select_nf,nf_instance->nf_type:%d,supi:%s.", nf_instance->nf_type,ue->supi);    
-            
+            ogs_info("amf_sbi_select_nf, nf_instance->nf_type:%d, supi:%s.", nf_instance->nf_type, ue->supi);
+
             if ((nf_instance->nf_type == OpenAPI_nf_type_UDM) &&
                 (ogs_list_count(&nf_instance->nf_info_list) > 0)) {
+
+                ogs_sbi_nf_info_t *nf_info = NULL;
+                int prefix_length = 0;
+                
 
                 ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
                     if (nf_info->nf_type != nf_instance->nf_type)
                         continue;
-                    if (check_udm_info(nf_info, ue, sbi_object->type) == false)
+                    
+                    prefix_length = check_udm_info_supi(&nf_info->udm, supi_id);
+                    if (0 == prefix_length)
                         continue;
+
+                    if (prefix_length > max_prefix_length) {
+                        max_prefix_length = prefix_length;
+                        optional_nf_count = 0;
+                        optional_nf_list[optional_nf_count++] = nf_instance;
+                    } else if (prefix_length == max_prefix_length) {
+                        optional_nf_list[optional_nf_count++] = nf_instance;
+                    }
 
                     break;
                 }
 
                 if (!nf_info)
                     continue;
+            }else{//其他先按照之前的处理流程
+                OGS_SBI_SETUP_NF_INSTANCE(
+                    sbi_object->service_type_array[service_type], nf_instance);
+                break;
+            }
+        }
+        
+         // 从可选NF列表中选择目标NF
+        if (optional_nf_count > 0) {        
+            ogs_info("optional_nf_count:%d.", optional_nf_count);
+       
+            // 计算总容量权重
+            int total_capacity = 0;
+            ogs_sbi_nf_instance_t *selected_nf_instance = NULL;
+
+            for (int i = 0; i < optional_nf_count; i++) {
+                total_capacity += optional_nf_list[i]->capacity;
             }
 
+            // 根据容量权重选择目标NF
+            int random_value = rand() % total_capacity;
+            int accumulated_weight = 0;
+
+            for (int i = 0; i < optional_nf_count; i++) {
+                accumulated_weight += optional_nf_list[i]->capacity;
+                if (random_value < accumulated_weight) {
+                    selected_nf_instance = optional_nf_list[i];
+                    break;
+                }
+            }                
+
+            ogs_info("selected_nf_instance, nf_type:%d, supi:%s.", selected_nf_instance->nf_type, ue->supi);
             OGS_SBI_SETUP_NF_INSTANCE(
-                    sbi_object->service_type_array[service_type], nf_instance);
-            break;
-        }                    
+                    sbi_object->service_type_array[service_type], selected_nf_instance);   
+        }
+        
+        if (supi_id != NULL){
+            ogs_free(supi_id);
+        }
+        
         break;
     case OGS_SBI_OBJ_SESS_TYPE:
         sess = (amf_sess_t *)sbi_object;
@@ -3008,8 +3067,7 @@ static bool check_smf_info_nr_tai(
     return false;
 }
 
-static bool check_udm_info_supi(
-        ogs_sbi_udm_info_t *udm_info, char *supi);
+
         
 static bool check_udm_info(ogs_sbi_nf_info_t *nf_info, void *context,ogs_sbi_obj_type_e type)
 {
@@ -3038,38 +3096,50 @@ static bool check_udm_info(ogs_sbi_nf_info_t *nf_info, void *context,ogs_sbi_obj
     return true;
 }
 
-static bool check_udm_info_supi(
+static unsigned long long convertToNumber(char supi[], int length) {  
+    char supiSubstring[16];
+    if (supi == NULL || length <= 0 || length > 15) {   
+        ogs_error("invalid supi %s  or length %d.",supi,length);
+        return 0;
+    }
+    strncpy(supiSubstring, supi, length);
+    supiSubstring[length] = '\0';  
+    unsigned long long number = strtoull(supiSubstring, NULL, 10);
+    return number;
+}
+
+static int check_udm_info_supi(
         ogs_sbi_udm_info_t *udm_info, char *supi)
 {      
     ogs_assert(udm_info);
-
+    int bestMatchLength = 0;
+    
     ogs_info("check_udm_info_supi,num_of_supi_range:%d, supi:%s.",udm_info->num_of_supi_range,supi);
 
     if (udm_info->num_of_supi_range == 0)
         return true;
+    
+    int supiLength = strlen(supi);
 
-    int max_length = 0;
     for (int i = 0; i < udm_info->num_of_supi_range; i++) {
-        int length = strlen(udm_info->supi_ranges[i].start);
-        if (strncmp(supi, udm_info->supi_ranges[i].start, length) == 0 && length > max_length) {
-            max_length = length;
-            selected_range.start = udm_info->supi_ranges[i].start;
-            selected_range.end = udm_info->supi_ranges[i].end;
-        }
-    }  
+        int startLength = strlen(udm_info->supi_ranges[i].start);
 
-    /*for (i = 0; i < udm_info->num_of_supi_range; i++) {   
-        for (j = 0; j < udm_info->nr_tai_range[i].num_of_tac_range; j++) {
-            if (amf_ue->nr_tai.tac.v >=
-                udm_info->nr_tai_range[i].start[j].v &&
-                amf_ue->nr_tai.tac.v <=
-                udm_info->nr_tai_range[i].end[j].v) {
-                return true;
+        if (supiLength >= startLength) {
+            unsigned long long supiNumber = convertToNumber(supi, startLength);
+
+            unsigned long long startNumber = strtoull(udm_info->supi_ranges[i].start, NULL, 10);
+            unsigned long long endNumber = strtoull(udm_info->supi_ranges[i].end, NULL, 10);
+            ogs_info("check_udm_info_supi,supiNumber:%llu, startNumber:%llu,endNumber:%llu.",supiNumber,startNumber,endNumber);
+            if (supiNumber >= startNumber && supiNumber <= endNumber) {
+                int matchLength = startLength;
+
+                if (matchLength > bestMatchLength) {
+                    bestMatchLength = matchLength;                    
+                }
             }
-        }     
-    }*/
-
-    return false;
+        }
+    }
+    return bestMatchLength;
 }
 
 
