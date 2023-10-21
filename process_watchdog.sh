@@ -4,7 +4,8 @@ sps_num=${1:-1}
 process_list=()
 
 cd /home/5gc
-
+./misc/netconf.sh 
+./misc/udp_ini_conf.sh 
 # 根据 sps_num 动态生成 process_list 数组
 for ((i=1; i<=sps_num; i++))
 do
