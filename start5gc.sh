@@ -28,6 +28,6 @@ fi
 
 for ((i=1; i<=$spsno; i++))
 do
-    ./install/bin/5gc-amf-spsd -i ${i} -e $level -l ./install/var/log/5gc/amf_sps${i}.log &
+    ./install/bin/5gc-amf-spsd -i ${i} -l ./install/var/log/5gc/amf_sps${i}.log -e $level &
 done
 
