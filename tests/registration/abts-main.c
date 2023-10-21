@@ -41,7 +41,6 @@ const struct testlist {
     abts_suite *(*func)(abts_suite *suite);
 } alltests[] = {
     {test_simple},
-#if 0
     {test_guti},
     {test_auth},
     {test_ecc},
@@ -52,11 +51,10 @@ const struct testlist {
     {test_gmm_status},
     {test_ue_context},
     {test_reset},
-#endif
-#if 1
-    //{test_multi_ue},
-#endif
 
+#if 0
+    {test_multi_ue},
+#endif
     //{single_ue_multi_test},
     //{test_multi_ue_multi_test},
     //{test_multi_ue_multi_test2},

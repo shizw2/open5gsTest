@@ -211,8 +211,6 @@ static void sess_5gc_timeout(ogs_pfcp_xact_t *xact, void *data)
     uint8_t type;
     int trigger;
     char *strerror = NULL;
-    smf_event_t *e = NULL;
-    int rv;
 
     ogs_assert(xact);
     ogs_assert(data);
@@ -227,19 +225,7 @@ static void sess_5gc_timeout(ogs_pfcp_xact_t *xact, void *data)
 
     switch (type) {
     case OGS_PFCP_SESSION_ESTABLISHMENT_REQUEST_TYPE:
-        ogs_warn("No PFCP session establishment response");
-
-        e = smf_event_new(SMF_EVT_N4_TIMER);
-        ogs_assert(e);
-        e->sess = sess;
-        e->h.timer_id = SMF_TIMER_PFCP_NO_ESTABLISHMENT_RESPONSE;
-        e->pfcp_node = sess->pfcp_node;
-
-        rv = ogs_queue_push(ogs_app()->queue, e);
-        if (rv != OGS_OK) {
-            ogs_error("ogs_queue_push() failed:%d", (int)rv);
-            ogs_event_free(e);
-        }
+        ogs_error("No PFCP session establishment response");
         break;
     case OGS_PFCP_SESSION_MODIFICATION_REQUEST_TYPE:
         strerror = ogs_msprintf("[%s:%d] No PFCP session modification response",
@@ -248,8 +234,9 @@ static void sess_5gc_timeout(ogs_pfcp_xact_t *xact, void *data)
 
         ogs_error("%s", strerror);
         if (stream) {
-            smf_sbi_send_sm_context_update_error_log(
-                stream, OGS_SBI_HTTP_STATUS_GATEWAY_TIMEOUT, strerror, NULL);
+            smf_sbi_send_sm_context_update_error(stream,
+                    OGS_SBI_HTTP_STATUS_GATEWAY_TIMEOUT,
+                    strerror, NULL, NULL, NULL);
         }
         ogs_free(strerror);
         break;

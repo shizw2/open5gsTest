@@ -99,22 +99,9 @@ void nrf_state_operational(ogs_fsm_t *s, nrf_event_t *e)
                     }
                     break;
 
-                CASE(OGS_SBI_HTTP_METHOD_OPTIONS)
-                    ogs_assert(
-                        true ==
-                        ogs_sbi_server_send_error(
-                            stream,
-                            OGS_SBI_HTTP_STATUS_NOT_IMPLEMENTED,
-                            &message, "OPTIONS method is not implemented yet",
-                            NULL));
-                    break;
-
                 DEFAULT
-                    if (message.h.resource.component[1]) {
                     nf_instance = ogs_sbi_nf_instance_find(
                             message.h.resource.component[1]);
-                    }
-
                     if (!nf_instance) {
                         SWITCH(message.h.method)
                         CASE(OGS_SBI_HTTP_METHOD_PUT)

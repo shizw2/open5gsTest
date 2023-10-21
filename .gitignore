@@ -7,6 +7,5 @@ build/
 core*
 *.pcap
 version/
-*.docx
 install*/
 webui/.next

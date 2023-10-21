@@ -17,7 +17,6 @@
 
 libudm_sources = files('''
     context.c
-    metrics.c
     event.c
 
     nnrf-handler.c
@@ -35,14 +34,12 @@ libudm_sources = files('''
 
 libudm = static_library('udm',
     sources : libudm_sources,
-    dependencies : [libsbi_dep,
-                    libmetrics_dep],
+    dependencies : libsbi_dep,
     install : false)
 
 libudm_dep = declare_dependency(
     link_with : libudm,
-    dependencies : [libsbi_dep,
-                    libmetrics_dep])
+    dependencies : libsbi_dep)
 
 udm_sources = files('''
     app.c

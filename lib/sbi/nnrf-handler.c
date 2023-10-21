@@ -23,8 +23,6 @@ static void handle_nf_service(
         ogs_sbi_nf_service_t *nf_service, OpenAPI_nf_service_t *NFService);
 static void handle_smf_info(
         ogs_sbi_nf_instance_t *nf_instance, OpenAPI_smf_info_t *SmfInfo);
-static void handle_udm_info(
-        ogs_sbi_nf_instance_t *nf_instance, OpenAPI_udm_info_t *SmfInfo);
 
 void ogs_nnrf_nfm_handle_nf_register(
         ogs_sbi_nf_instance_t *nf_instance, ogs_sbi_message_t *recvmsg)
@@ -220,15 +218,6 @@ void ogs_nnrf_nfm_handle_nf_profile(
         OpenAPI_map_t *SmfInfoMap = node->data;
         if (SmfInfoMap && SmfInfoMap->value)
             handle_smf_info(nf_instance, SmfInfoMap->value);
-    }
-
-    if (NFProfile->udm_info)
-        handle_udm_info(nf_instance, NFProfile->udm_info);
-
-    OpenAPI_list_for_each(NFProfile->udm_info_list, node) {
-        OpenAPI_map_t *UdmInfoMap = node->data;
-        if (UdmInfoMap && UdmInfoMap->value)
-            handle_udm_info(nf_instance, UdmInfoMap->value);
     }
 }
 
@@ -460,39 +449,6 @@ static void handle_smf_info(
             }
 
             nf_info->smf.num_of_nr_tai_range++;
-        }
-    }
-}
-
-static void handle_udm_info(
-        ogs_sbi_nf_instance_t *nf_instance, OpenAPI_udm_info_t *UdmInfo)
-{
-    ogs_sbi_nf_info_t *nf_info = NULL;
-   
-    OpenAPI_list_t *SupiRangeList = NULL;
-    OpenAPI_supi_range_t *SupiRangeItem = NULL;
-
-    OpenAPI_lnode_t *node = NULL;
-
-    ogs_assert(nf_instance);
-    ogs_assert(UdmInfo);
-
-    nf_info = ogs_sbi_nf_info_add(
-            &nf_instance->nf_info_list, OpenAPI_nf_type_UDM);
-    ogs_assert(nf_info);
-   
-    SupiRangeList = UdmInfo->supi_ranges;
-    OpenAPI_list_for_each(SupiRangeList, node) {
-        SupiRangeItem = node->data;
-        if (SupiRangeItem && SupiRangeItem->start &&
-                SupiRangeItem->end) {
-            ogs_assert(nf_info->udm.num_of_supi_range <
-                    OGS_MAX_NUM_OF_SUPI);
-
-            nf_info->udm.supi_ranges[nf_info->udm.num_of_supi_range].start = ogs_strdup(SupiRangeItem->start);
-            nf_info->udm.supi_ranges[nf_info->udm.num_of_supi_range].end = ogs_strdup(SupiRangeItem->end);
-
-            nf_info->udm.num_of_supi_range++;
         }
     }
 }

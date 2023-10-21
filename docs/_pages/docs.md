@@ -12,11 +12,10 @@ head_inline: "<style> ul { padding-bottom: 1em; } </style>"
 
 - Tutorials
   - [Your First LTE](tutorial/01-your-first-lte)
-  - [5G SA COTS UE](https://docs.srsran.com/projects/project/en/latest/tutorials/source/cotsUE/source/index.html) from [SRS](https://srs.io)
+  - [5G SA COTS UE](https://docs.srsran.com/en/latest/app_notes/source/5g_sa_COTS/source/index.html) from [SRS](https://srs.io)
   - [Metrics with Prometheus](tutorial/04-metrics-prometheus)
   - [VoLTE Setup with Kamailio IMS and Open5GS](tutorial/02-VoLTE-setup)
   - [Dockerized VoLTE Setup](tutorial/03-VoLTE-dockerized)
-  - [Roaming](tutorial/05-roaming)
 
 - Inside Source Code
   - [UPF Code Explanation](https://medium.com/@aditya.koranga/open5gs-upf-code-explanation-with-flow-c-79c50f253dd1)
@@ -43,7 +42,6 @@ head_inline: "<style> ul { padding-bottom: 1em; } </style>"
   - [Kubernetes Open5GS Deployment](https://dev.to/infinitydon/virtual-4g-simulation-using-kubernetes-and-gns3-3b7k?fbclid=IwAR1p99h13a-mCfejanbBQe0H0-jp5grXkn5mWf1WrTHf47UtegB2-UHGGZQ)
   - [5G Core SBI mTLS Using External Certificate PKI](https://futuredon.medium.com/5g-core-sbi-mtls-using-external-certificate-pki-4ffc02ac7728)
   - [5G Frame Routing](https://futuredon.medium.com/5g-frame-routing-6e34d8587123)
-  - [5G SCTP LoadBalancer Using LoxiLB](https://futuredon.medium.com/5g-sctp-loadbalancer-using-loxilb-b525198a9103)([Video Link](https://youtu.be/k3ICc7MXcC8))
 
 - @nickvsnetworking
   - [My first 5G Core : Open5GS and UERANSIM](http://nickvsnetworking.com/my-first-5g-core-open5gs-and-ueransim/)
@@ -65,4 +63,3 @@ head_inline: "<style> ul { padding-bottom: 1em; } </style>"
   - [SCP Indirect communication Model C](https://github.com/s5uishida/open5gs_5gc_ueransim_scp_model_c_sample_config)
   - [Monitoring Metrics with Prometheus](https://github.com/s5uishida/open5gs_5gc_ueransim_metrics_sample_config)
   - [Frame Routing](https://github.com/s5uishida/open5gs_5gc_ueransim_framed_routing_sample_config)
-  - [VPP-UPF with DPDK](https://github.com/s5uishida/open5gs_5gc_ueransim_vpp_upf_dpdk_sample_config)

@@ -152,7 +152,6 @@ typedef struct amf_gnb_s {
     ogs_fsm_t       sm;         /* A state machine */
 
     uint32_t        gnb_id;     /* gNB_ID received from gNB */
-    ogs_plmn_id_t   plmn_id;    /* gNB PLMN-ID received from gNB */
     ogs_sctp_sock_t sctp;       /* SCTP socket */
 
     struct {
@@ -843,7 +842,7 @@ amf_sess_t *amf_sess_add(amf_ue_t *amf_ue, uint8_t psi);
     do { \
         ogs_sbi_object_t *sbi_object = NULL; \
         ogs_assert(__sESS); \
-        sbi_object = &(__sESS)->sbi; \
+        sbi_object = &sess->sbi; \
         ogs_assert(sbi_object); \
         \
         ogs_error("AMF_SESS_CLEAR"); \

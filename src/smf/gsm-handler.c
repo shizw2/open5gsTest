@@ -192,6 +192,8 @@ int gsm_handle_pdu_session_modification_request(
         ogs_nas_5gs_pdu_session_modification_request_t *
             pdu_session_modification_request)
 {
+    char *strerror = NULL;
+
     int i, j;
 
     uint64_t pfcp_flags = 0;
@@ -475,17 +477,20 @@ int gsm_handle_pdu_session_modification_request(
     }
 
     if (ogs_list_count(&sess->qos_flow_to_modify_list) != 1) {
-        ogs_error("[%s:%d] Invalid modification request [modify:%d]",
-                smf_ue->supi, sess->psi,
+        strerror = ogs_msprintf("[%s:%d] Invalid modification request "
+                "[modify:%d]", smf_ue->supi, sess->psi,
                 ogs_list_count(&sess->qos_flow_to_modify_list));
+        ogs_assert(strerror);
 
+        ogs_error("%s", strerror);
         n1smbuf = gsm_build_pdu_session_modification_reject(sess,
             OGS_5GSM_CAUSE_INVALID_MANDATORY_INFORMATION);
         ogs_assert(n1smbuf);
 
-        smf_sbi_send_sm_context_update_error_n1_n2_message(
-                stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                n1smbuf, OpenAPI_n2_sm_info_type_NULL, NULL);
+        smf_sbi_send_sm_context_update_error(stream,
+                OGS_SBI_HTTP_STATUS_BAD_REQUEST,
+                strerror, smf_ue->supi, n1smbuf, NULL);
+        ogs_free(strerror);
 
         return OGS_ERROR;
     }

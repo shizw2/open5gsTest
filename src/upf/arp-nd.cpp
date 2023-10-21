@@ -17,8 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <cstdint>
-
 #include <tins/arp.h>
 #include <tins/ethernetII.h>
 #include <tins/hw_address.h>
@@ -50,16 +48,6 @@ bool is_arp_req(uint8_t *data, uint len)
 {
     EthernetII pdu(data, len);
     return _parse_arp(pdu);
-}
-
-uint32_t arp_parse_target_addr(uint8_t *data, uint len)
-{
-    EthernetII pdu(data, len);
-    if (pdu.payload_type() == ETHERTYPE_ARP) {
-        const ARP& arp = pdu.rfind_pdu<ARP>();
-        return arp.target_ip_addr();
-    }
-    return 0x0;
 }
 
 uint8_t arp_reply(uint8_t *reply_data, uint8_t *request_data, uint len,

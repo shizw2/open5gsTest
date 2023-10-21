@@ -26,15 +26,11 @@ static int initialized = 0;
 int ausf_initialize(void)
 {
     int rv;
-    ausf_metrics_init();
 
     ogs_sbi_context_init(OpenAPI_nf_type_AUSF);
     ausf_context_init();
 
     rv = ogs_sbi_context_parse_config("ausf", "nrf", "scp");
-    if (rv != OGS_OK) return rv;
-
-    rv = ogs_metrics_context_parse_config("ausf");
     if (rv != OGS_OK) return rv;
 
     rv = ausf_context_parse_config();
@@ -43,8 +39,6 @@ int ausf_initialize(void)
     rv = ogs_log_config_domain(
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
-
-    ogs_metrics_context_open(ogs_metrics_self());
 
     rv = ausf_sbi_open();
     if (rv != OGS_OK) return rv;
@@ -88,11 +82,9 @@ void ausf_terminate(void)
     ogs_timer_delete(t_termination_holding);
 
     ausf_sbi_close();
-    ogs_metrics_context_close(ogs_metrics_self());
 
     ausf_context_final();
     ogs_sbi_context_final();
-    ausf_metrics_final();
 }
 
 static void ausf_main(void *data)

@@ -28,7 +28,6 @@ abts_suite *test_emm_status(abts_suite *suite);
 abts_suite *test_ue_context(abts_suite *suite);
 abts_suite *test_reset(abts_suite *suite);
 abts_suite *test_issues(abts_suite *suite);
-abts_suite *test_crash(abts_suite *suite);
 
 const struct testlist {
     abts_suite *(*func)(abts_suite *suite);
@@ -42,7 +41,6 @@ const struct testlist {
     {test_ue_context},
     {test_reset},
     {test_issues},
-    {test_crash},
     {NULL},
 };
 

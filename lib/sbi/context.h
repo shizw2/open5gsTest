@@ -337,17 +337,6 @@ typedef struct ogs_sbi_amf_info_s {
     } nr_tai_range[OGS_MAX_NUM_OF_TAI];
 } ogs_sbi_amf_info_t;
 
-
-#define OGS_MAX_NUM_OF_SUPI              16
-typedef struct ogs_sbi_udm_info_s {   
-    int num_of_supi_range;
-   
-    struct {
-        const char *start;
-        const char *end;
-    } supi_ranges[OGS_MAX_NUM_OF_SUPI];
-} ogs_sbi_udm_info_t;
-
 typedef struct ogs_sbi_nf_info_s {
     ogs_lnode_t lnode;
 
@@ -356,7 +345,6 @@ typedef struct ogs_sbi_nf_info_s {
         ogs_sbi_smf_info_t smf;
         ogs_sbi_amf_info_t amf;
         ogs_sbi_scp_info_t scp;
-        ogs_sbi_udm_info_t udm;
     };
 } ogs_sbi_nf_info_t;
 

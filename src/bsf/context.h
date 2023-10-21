@@ -24,8 +24,6 @@
 #include "ogs-app.h"
 
 #include "bsf-sm.h"
-#include "metrics.h"
-
 
 #ifdef __cplusplus
 extern "C" {
