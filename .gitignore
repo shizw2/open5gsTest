@@ -9,4 +9,8 @@ core*
 version/
 install*/
 omm/
+5gcommgra.tar
+5gcommpro.tar
+grafana*
+prometheus*
 webui/.next
