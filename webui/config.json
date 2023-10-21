@@ -1,5 +1,5 @@
 {
-  "directoryPath": "/home/test/config",
+  "directoryPath": "/home/5gc/install/etc/5gc",
   "desiredFileNames": [
     "amf.yaml",
     "ausf.yaml",
