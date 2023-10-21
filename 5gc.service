@@ -1,0 +1,8 @@
+[Unit]
+Description=5gcdog
+
+[Service]
+ExecStart=/bin/bash /home/5gc/process_watchdog.sh
+
+[Install]
+WantedBy=multi-user.target
