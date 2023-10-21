@@ -6,6 +6,9 @@ import { Form } from 'components';
 
 import traverse from 'traverse';
 
+const subnetipv4Regex = /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})$/;
+const subnetipv6Regex = /^([a-f0-9]{1,4}(:[a-f0-9]{1,4}){7}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){0,7}::[a-f0-9]{0,4}(:[a-f0-9]{1,4}){0,7})(?:\/\d{1,3})$/
+
 const schema = {
   "title": "Subscriber Configuration",
   "type": "object",
@@ -22,14 +25,14 @@ const schema = {
     },
     "msisdn": {
       "type": "array",
-      "title": "",
+      "title": "MSISDN",
       "maxItems": 2,
       "messages": {
         "maxItems": "2 MSISDN are supported"
       },
       "items": {
         "type": "string",
-        "title": "MSISDN",
+        "title": "",
         "maxLength": 15,
         "required": true,
         "pattern": "^\\d+$",
@@ -39,7 +42,7 @@ const schema = {
       }
     },
     "security": {
-      "title": "",
+      "title": "Security",
       "type": "object",
       "properties": {
         "k": {
@@ -80,7 +83,7 @@ const schema = {
     },
     "ambr": {
       "type": "object",
-      "title": "",
+      "title": "AMBR",
       "properties": {
         "downlink": {
           "type": "object",
@@ -178,7 +181,7 @@ const schema = {
                 },
                 "qos": {
                   "type": "object",
-                  "title": "",
+                  "title": "QoS Configuration",
                   "properties": {
                     "index": {
                       "type": "number",
@@ -188,11 +191,11 @@ const schema = {
                     },
                     "arp" : {
                       "type": "object",
-                      "title": "",
+                      "title": "ARP",
                       "properties": {
                         "priority_level": {
                           "type": "number",
-                          "title": "ARP Priority Level (1-15)*",
+                          "title": "Priority Level*",
                           "enum": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
                           "default": 1,
                         },
@@ -216,7 +219,7 @@ const schema = {
                 },
                 "ambr": {
                   "type": "object",
-                  "title": "",
+                  "title": "AMBR",
                   "properties": {
                     "downlink": {
                       "type": "object",
@@ -260,7 +263,7 @@ const schema = {
                 },
                 "ue": {
                   "type": "object",
-                  "title": "",
+                  "title": "UE Address",
                   "properties": {
                     "addr": {
                       "type": "string",
@@ -276,7 +279,7 @@ const schema = {
                 },
                 "smf": {
                   "type": "object",
-                  "title": "",
+                  "title": "SMF Address",
                   "properties": {
                     "addr": {
                       "type": "string",
@@ -287,6 +290,43 @@ const schema = {
                       "type": "string",
                       "title": "SMF IPv6 Address",
                       "format" : "ipv6"
+                    },
+                  }
+                },
+                "ipv4_framed_routes": {
+                  "type": "array",
+                  "title": "IPv4 Framed Routes",
+                  "maxItems": 8,
+                  "messages": {
+                    "maxItems": "8 routes are supported"
+                  },
+                  "items": {
+                    "type": "string",
+                    "title": "",
+                    "anyOf": [
+                      { pattern: subnetipv4Regex.source },
+                    ],
+                    "messages": {
+                      "anyOf": "IPv4 allowed"
+                    },
+                    "default": "10.45.0.1/16"
+                  }
+                },
+                "ipv6_framed_routes": {
+                  "type": "array",
+                  "title": "IPv6 Framed Routes",
+                  "maxItems": 8,
+                  "messages": {
+                    "maxItems": "8 routes are supported"
+                  },
+                  "items": {
+                    "type": "string",
+                    "title": "",
+                    "anyOf": [
+                      { pattern: subnetipv6Regex.source },
+                    ],
+                    "messages": {
+                      "anyOf": "IPv6 allowed"
                     },
                   }
                 },
@@ -302,7 +342,7 @@ const schema = {
                     "properties": {
                       "flow": {
                         "type": "array",
-                        "title": "",
+                        "title": "Flows",
                         "maxItems": 8,
                         "messages": {
                           "maxItems": "8 Flows are supported"
@@ -332,7 +372,7 @@ const schema = {
                       },
                       "qos": {
                         "type": "object",
-                        "title": "",
+                        "title": "QoS Configuration",
                         "properties": {
                           "index": {
                             "type": "number",
@@ -346,7 +386,7 @@ const schema = {
                             "properties": {
                               "priority_level": {
                                 "type": "number",
-                                "title": "ARP Priority Level (1-15)*",
+                                "title": "Priority Level*",
                                 "enum": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
                                 "default": 2,
                               },
@@ -368,7 +408,7 @@ const schema = {
                           },
                           "mbr": {
                             "type": "object",
-                            "title": "",
+                            "title": "MBR",
                             "properties": {
                               "downlink": {
                                 "type": "object",
@@ -408,7 +448,7 @@ const schema = {
                           },
                           "gbr": {
                             "type": "object",
-                            "title": "",
+                            "title": "GBR",
                             "properties": {
                               "downlink": {
                                 "type": "object",
@@ -460,12 +500,46 @@ const schema = {
   }
 };
 
+function CustomTitle20({ title }) {
+  return (
+    <div>
+      <label
+        style={{
+          fontWeight: "700",
+          fontSize: "20px",
+        }}
+      >
+        {title}
+      </label>
+    </div>
+  );
+}
+
+function CustomTitle14({ title }) {
+  return (
+    <div>
+      <label
+        style={{
+          fontWeight: "700",
+          fontSize: "14px",
+        }}
+      >
+        {title}
+      </label>
+    </div>
+  );
+}
+
 const uiSchema = {
   "imsi" : {
     classNames: "col-xs-12",
+    "ui:title": <CustomTitle20 title="IMSI*" />,
   },
   "msisdn" : {
-    classNames: "col-xs-7",
+    classNames: "col-xs-12",
+    "items": {
+      classNames: "col-xs-9",
+    }
   },
   "security" : {
     classNames: "col-xs-12",
@@ -529,15 +603,19 @@ const uiSchema = {
           "qos": {
             classNames: "col-xs-12",
             "index": {
+              classNames: "col-xs-12",
             },
             "arp": {
+              classNames: "col-xs-12",
+              "ui:title": <CustomTitle14 title="ARP" />,
               "priority_level": {
+                classNames: "col-xs-4",
               },
               "pre_emption_capability": {
-                classNames: "col-xs-6"
+                classNames: "col-xs-4"
               },
               "pre_emption_vulnerability": {
-                classNames: "col-xs-6"
+                classNames: "col-xs-4"
               }
             }
           },
@@ -578,22 +656,41 @@ const uiSchema = {
               classNames: "col-xs-6"
             },
           },
+          "ipv4_framed_routes": {
+            classNames: "col-xs-12",
+            "items": {
+               classNames: "col-xs-12",
+            }
+          },
+          "ipv6_framed_routes": {
+            classNames: "col-xs-12",
+            "items": {
+               classNames: "col-xs-12",
+            }
+          },
           "pcc_rule": {
             classNames: "col-xs-12",
             "items": {
               "flow": {
+                classNames: "col-xs-12",
                 "items": {
                   "direction": {
+                    classNames: "col-xs-12",
                   },
                   "description": {
+                    classNames: "col-xs-12",
                     "ui:help": "Hint: 5.4.2 Flow-Description in TS29.212",
                   },
                 },
               },
               "qos": {
+                classNames: "col-xs-12",
                 "index": {
+                  classNames: "col-xs-12",
                 },
                 "arp": {
+                  classNames: "col-xs-12",
+                  "ui:title": <CustomTitle14 title="ARP" />,
                   "priority_level": {
                     classNames: "col-xs-12"
                   },
@@ -605,38 +702,42 @@ const uiSchema = {
                   }
                 },
                 "mbr": {
+                  classNames: "col-xs-12",
+                  "ui:title": <CustomTitle14 title="MBR" />,
                   "downlink": {
                     "value": {
-                      classNames: "col-xs-8"
+                      classNames: "col-xs-7"
                     },
                     "unit": {
-                      classNames: "col-xs-4"
+                      classNames: "col-xs-5"
                     },
                   },
                   "uplink": {
                     "value": {
-                      classNames: "col-xs-8"
+                      classNames: "col-xs-7"
                     },
                     "unit": {
-                      classNames: "col-xs-4"
+                      classNames: "col-xs-5"
                     },
                   }
                 },
                 "gbr": {
+                  classNames: "col-xs-12",
+                  "ui:title": <CustomTitle14 title="GBR" />,
                   "downlink": {
                     "value": {
-                      classNames: "col-xs-8"
+                      classNames: "col-xs-7"
                     },
                     "unit": {
-                      classNames: "col-xs-4"
+                      classNames: "col-xs-5"
                     },
                   },
                   "uplink": {
                     "value": {
-                      classNames: "col-xs-8"
+                      classNames: "col-xs-7"
                     },
                     "unit": {
-                      classNames: "col-xs-4"
+                      classNames: "col-xs-5"
                     },
                   }
                 }
@@ -717,7 +818,14 @@ class Edit extends Component {
         formData : this.getFormDataFromProfile(state.profile)
       })
 
-      delete state.uiSchema.profile;
+      state.uiSchema = Object.assign(state.uiSchema, {
+        "profile": {
+          classNames: "col-xs-12",
+          "ui:title": <CustomTitle20 title="Profile*" />,
+        }
+      });
+
+      //delete state.uiSchema.profile;
     } else {
       delete state.schema.properties.profile;
     }
@@ -725,13 +833,17 @@ class Edit extends Component {
     if (action === 'update') {
       state.uiSchema = Object.assign(state.uiSchema, {
         "imsi": {
-          "ui:disabled": true
+          "ui:disabled": true,
+          classNames: "col-xs-12",
+          "ui:title": <CustomTitle20 title="IMSI*" />,
         }
       });
     } else if (width !== SMALL) {
       state.uiSchema = Object.assign(state.uiSchema, {
         "imsi": {
-          "ui:autofocus": true
+          "ui:autofocus": true,
+          classNames: "col-xs-12",
+          "ui:title": <CustomTitle20 title="IMSI*" />,
         }
       });
     }

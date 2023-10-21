@@ -8,4 +8,5 @@ core*
 *.pcap
 version/
 install*/
+omm/
 webui/.next
