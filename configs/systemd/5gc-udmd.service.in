@@ -5,8 +5,8 @@ After=network-online.target
 [Service]
 Type=simple
 
-User=@project_name@
-Group=@project_name@
+User=@5g_user@
+Group=@5g_usere@
 
 Restart=always
 ExecStart=@bindir@/@project_name@-udmd -c @sysconfdir@/@project_name@/udm.yaml
