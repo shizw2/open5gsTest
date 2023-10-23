@@ -5,8 +5,8 @@ Wants=mongodb.service mongod.service
 [Service]
 Type=simple
 
-User=@project_name@
-Group=@project_name@
+User=@5g_user@
+Group=@5g_usere@
 
 Restart=always
 ExecStart=@bindir@/@project_name@-nrfd -c @sysconfdir@/@project_name@/nrf.yaml
