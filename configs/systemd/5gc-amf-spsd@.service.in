@@ -1,5 +1,5 @@
 [Unit]
-Description=@project_name@ AMF Daemon
+Description=5gc AMF Daemon
 After=network-online.target
 
 [Service]
@@ -9,7 +9,7 @@ User=@5g_user@
 Group=@5g_usere@
 
 Restart=always
-ExecStart=@bindir@/@project_name@-amfd -c @sysconfdir@/@project_name@/amf.yaml
+ExecStart=@bindir@/@project_name@-amf-spsd -i %i -c @sysconfdir@/@project_name@/amf.yaml -l @localstatedir@/log/@project_name@/amf_sps%i.log 
 RestartSec=2
 RestartPreventExitStatus=1
 ExecReload=/bin/kill -HUP $MAINPID
