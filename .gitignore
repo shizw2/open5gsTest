@@ -13,4 +13,5 @@ omm/
 5gcommpro.tar
 grafana*
 prometheus*
+*.docx
 webui/.next

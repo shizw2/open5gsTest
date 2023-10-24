@@ -4,8 +4,7 @@ action=$1
 # 设置 sps_num 的默认值为 1
 sps_num=${2:-1}
 
-#process_list=("5gc-amfd" "5gc-amf-spsd" "5gc-ausfd" "5gc-bsfd" "5gc-nrfd" "5gc-nssfd" "5gc-pcfd" "5gc-smfd" "5gc-udmd" "5gc-udrd" "5gc-upfd")
-process_list=("5gc-amf-spsd" "5gc-nrfd")
+process_list=("5gc-amfd" "5gc-amf-spsd" "5gc-ausfd" "5gc-bsfd" "5gc-nrfd" "5gc-nssfd" "5gc-pcfd" "5gc-smfd" "5gc-udmd" "5gc-udrd" "5gc-upfd")
 
 start_processes() {
     echo "Starting processes..."
