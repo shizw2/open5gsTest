@@ -201,7 +201,8 @@ static int amf_context_validation(void)
         return OGS_ERROR;
     }
 
-    if (self.served_tai[0].list0.tai[0].num == 0 &&
+    if (self.served_tai[0].list0.tai[0].num == 0 && 
+        self.served_tai[0].list1.tai[0].num == 0 &&
         self.served_tai[0].list2.num == 0) {
         ogs_error("No amf.tai.plmn_id|tac in '%s'", ogs_app()->file);
         return OGS_ERROR;
@@ -689,6 +690,7 @@ int amf_context_parse_config(void)
                                             low = NULL;
 
                                         high = v;
+                                        ogs_error("low:%s, high:%s", low,high);
                                         if (high && strlen(high) == 0)
                                             high = NULL;
 
@@ -743,6 +745,7 @@ int amf_context_parse_config(void)
 
                             } else {
                                 int tac, count = 0;
+                                ogs_info("num_of_tac:%d.",num_of_tac);
                                 for (tac = 0; tac < num_of_tac; tac++) {
                                     ogs_assert(end[tac].v >= start[tac].v);
                                     if (start[tac].v == end[tac].v) {
@@ -783,6 +786,8 @@ int amf_context_parse_config(void)
 
                                 if (count)
                                     num_of_list0++;
+                                
+                                ogs_info("num_of_tac:%d num_of_list0:%d,num_of_list1:%d.",num_of_tac,num_of_list0,num_of_list1);
                             }
                         } else {
                             ogs_warn("Ignore tai : mcc(%p), mnc(%p), "

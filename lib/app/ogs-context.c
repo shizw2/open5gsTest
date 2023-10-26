@@ -360,6 +360,9 @@ int ogs_app_context_parse_config(void)
 #else
                     self.use_mongodb_change_stream = false;
 #endif
+                } else if (!strcmp(parameter_key, "capacity")) {                        
+                    const char *v = ogs_yaml_iter_value(&parameter_iter);
+                    if (v) self.parameter.capacity = atoi(v);
                 } else
                     ogs_warn("unknown key `%s`", parameter_key);
             }
