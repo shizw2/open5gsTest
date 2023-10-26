@@ -215,6 +215,12 @@ export const nrfUiSchema = {
 export const nf_sbi_Schema = {
   type: "array",
   title:"SBI Interface",
+  "minItems": 1,
+  "maxItems": 4,
+  "messages": {
+    "minItems": "At least 1 Interface is required",
+    "maxItems": "4 Interfaces are supported"
+  },
   items: {
     type: "object",
     properties: {
@@ -261,6 +267,12 @@ export const nf_sbi_UiSchema = {
 export const nf_sbi_shortSchema = {
   type: "array",
   title:"SBI Interface",
+  "minItems": 1,
+  "maxItems": 4,
+  "messages": {
+    "minItems": "At least 1 Interface is required",
+    "maxItems": "4 Interfaces are supported"
+  },
   items: {
     type: "object",
     properties: {
@@ -294,12 +306,12 @@ export const nf_sbi_shortUiSchema = {
   "ui:title": <CustomTitle18 title="SBI Interface" />,
   items: {
     addr: {
-      classNames: "col-xs-8",
+      classNames: "col-xs-7",
       //"ui:help": "Enter a valid IPv4/IPv6 Address",
       //"ui:placeholder": "Enter a valid IPv4/IPv6 Address",
     },
     port: {
-      classNames: "col-xs-4"
+      classNames: "col-xs-5"
     }
   }
 };
@@ -403,6 +415,12 @@ export const icpsUiSchema = {
 export const ngapSchema = {
   type: "array",
   title: "NGAP",
+  "minItems": 1,
+  "maxItems": 4,
+  "messages": {
+    "minItems": "At least 1 IP is required",
+    "maxItems": "4 IPs are supported"
+  },
   items: {
     type: "object",
     properties: {
@@ -437,6 +455,12 @@ export const ngapUiSchema = {
 export const metricsSchema = {
   type: "array",
   title: "Metrics",
+  "minItems": 1,
+  "maxItems": 4,
+  "messages": {
+    "minItems": "At least 1 Interface is required",
+    "maxItems": "4 Interfaces are supported"
+  },
   items: {
     type: "object",
     properties: {
@@ -531,6 +555,12 @@ export const metricsShortUiSchema = {
 export const guamiSchema = {
   type: "array",
   title: "GUAMI",
+  "minItems": 1,
+  "maxItems": 4,
+  "messages": {
+    "minItems": "At least 1 Item is required",
+    "maxItems": "4 Items are supported"
+  },
   items: {
     type: "object",
     properties: {
@@ -559,7 +589,7 @@ export const guamiSchema = {
             }
           }
         },
-        required: ["mcc", "mnc"]
+        //required: ["mcc", "mnc"]
       },
       amf_id: {
         type: "object",
@@ -573,8 +603,8 @@ export const guamiSchema = {
             messages: {
               minimum: "must >= 1",
               maximum: "must <= 255",
-            }
-
+            },
+            required: true,
           },
           set: {
             type: "integer",
@@ -584,10 +614,11 @@ export const guamiSchema = {
             messages: {
               minimum: "must >= 1",
               maximum: "must <= 1023",
-            }
+            },
+            required: true,
           }
         },
-        required: ["region", "set"]
+        //required: ["region", "set"]
       }
     },
     //required: ["plmn_id", "amf_id"]
@@ -624,6 +655,12 @@ export const guamiUiSchema = {
 export const taiSchema = {
   type: "array",
   title: "TAI",
+  "minItems": 1,
+  "maxItems": 8,
+  "messages": {
+    "minItems": "At least 1 Item is required",
+    "maxItems": "8 Items are supported"
+  },
   items: {
     type: "object",
     properties: {
@@ -652,11 +689,16 @@ export const taiSchema = {
             }
           }
         },
-        required: ["mcc", "mnc"]
+        //required: ["mcc", "mnc"]
       },
       tac: {
-        type: "integer",
+        type: "string",
         title: "TAC",
+        pattern: /^(\d+|\[\d+(?:-\d+)?(?:, \d+(?:-\d+)?)*])$/,
+        required: true,
+        messages: {
+          pattern: "Like 1 or [1, 3-8, 10, 12-15]"
+        }
       }
     },
     //required: ["plmn_id", "tac"]
@@ -668,7 +710,7 @@ export const taiUiSchema = {
   "ui:title": <CustomTitle18 title="TAI" />,
   items: {
     plmn_id: {
-      classNames: "col-xs-6", //增加这个，体现层次感
+      classNames: "col-xs-7", //增加这个，体现层次感
       "ui:title": <CustomTitle18 title="PLMN_ID" />,
       mcc: {
         classNames: "col-xs-6"
@@ -678,9 +720,10 @@ export const taiUiSchema = {
       }
     },
     tac: {
-      classNames: "col-xs-6",
+      classNames: "col-xs-5",
       //"ui:title": <CustomTitle18 title="TAC" />,
       "ui:title": <CustomTitle18Border39 title="TAC" />,
+      "ui:placeholder": "单个示例:1或一组:[1, 3-8, 10, 12-15]",
     }
   }
 };

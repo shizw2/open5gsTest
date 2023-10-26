@@ -581,15 +581,15 @@ const uiSchema = {
     classNames: "col-xs-12",
     "items": {
       "sst": {
-        classNames: "col-xs-3",
+        classNames: "col-xs-4",
         "ui:widget": "radio",
         "ui:options": { "inline": true },
       },
       "sd": {
-        classNames: "col-xs-6",
+        classNames: "col-xs-4",
       },
       "default_indicator": {
-        classNames: "col-xs-3",
+        classNames: "col-xs-4",
       },
       "session": {
         classNames: "col-xs-12",
