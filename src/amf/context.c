@@ -912,6 +912,8 @@ int amf_context_parse_config(void)
                                             self.num_of_plmn_support].
                                                 num_of_s_nssai++;
                                     }
+                                    
+                                    ogs_info("have s_nssai sst: %d, sd:0x%x ", s_nssai->sst,s_nssai->sd.v);        
 
                                 } while (ogs_yaml_iter_type(&s_nssai_array) ==
                                         YAML_SEQUENCE_NODE);
@@ -922,6 +924,11 @@ int amf_context_parse_config(void)
                         if (self.plmn_support[
                                 self.num_of_plmn_support].num_of_s_nssai &&
                                 mcc && mnc) {
+                            ogs_info("have plmn : "
+                                    "s_nssai(%d) mcc(%s), mnc(%s)",
+                                self.plmn_support[
+                                    self.num_of_plmn_support].num_of_s_nssai,
+                                    mcc, mnc);        
                             self.num_of_plmn_support++;
                         } else {
                             ogs_warn("Ignore plmn : "

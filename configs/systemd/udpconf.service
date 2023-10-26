@@ -1,0 +1,11 @@
+[Unit]
+Description=Create subinterfaces for amf internel interface
+After=network.target
+
+[Service]
+ExecStart=/home/5gc/misc/udp_ini_conf.sh %i 
+#Type=oneshot
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
