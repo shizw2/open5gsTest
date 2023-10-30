@@ -49,13 +49,37 @@ const NFConfig = {
           const yamlFileNames = fileNames.filter((fileName) =>
             path.extname(fileName).toLowerCase() === '.yaml' && desiredFileNames.includes(fileName)
           );
+          
+            const options = {
+              schema: yaml.DEFAULT_SCHEMA.extend({
+                implicit: [
+                  new yaml.Type('tag:yaml.org,2002:int', {
+                    kind: 'scalar',
+                    construct: data => {
+                      if (typeof data === 'string' && data.startsWith('0')) {
+                        console.log("trun to string:",data)
+                        return String(data);
+                      }
+                      if (!isNaN(data)){
+                          console.log("trun to number:",data)
+                          return Number(data);
+                      }
+                      return data;
+                    },
+                  }),
+                ],
+              }),
+            };
+
 
           for (const fileName of yamlFileNames) {
             const filePath = path.join(directoryPath, fileName);
 
             const yamlData = fs.readFileSync(filePath, 'utf8');
-            const configData = yaml.load(yamlData);
-
+            
+            const configData = yaml.load(yamlData,options);
+            //const configData = yaml.load(yamlData);
+            console.log("read config data:",configData);
             // 提取纯文件名作为 _id（不包括目录和扩展名）
             const fileId = path.parse(fileName).name;
 
@@ -107,9 +131,10 @@ const NFConfig = {
         console.log(nfconfigId); // 打印 nfconfigId 的值到控制台
 
         const fileName = path.join(directoryPath, `${nfconfigId}.yaml`);// 根据 nfconfigId 构造文件路径
-        const yamlData = fs.readFileSync(fileName, 'utf8'); // 读取 YAML 文件的内容
+        const yamlData = fs.readFileSync(fileName, 'utf8'); // 读取 YAML 文件的内容        
+        
         const configData = yaml.load(yamlData); // 解析 YAML 数据为 JavaScript 对象
-
+        
         // 将新数据合并到现有数据中
         const updatedConfigData = {
           ...configData,
