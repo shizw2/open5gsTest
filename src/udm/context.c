@@ -219,75 +219,28 @@ int udm_context_parse_config(void)
                                             } while (
                                                 ogs_yaml_iter_type(&range_iter) ==
                                                 YAML_SEQUENCE_NODE);
-                                            /*
-                                            ogs_yaml_iter_t range_iter;
-                                            ogs_yaml_iter_recurse(
-                                                    &tai_iter, &range_iter);
-                                            ogs_assert(ogs_yaml_iter_type(
-                                                        &range_iter) !=
-                                                        YAML_MAPPING_NODE);
-                                            do {
-                                                char *v = NULL;
-                                                char *low = NULL, *high = NULL;
-
-                                                if (ogs_yaml_iter_type(
-                                                        &range_iter) ==
-                                                        YAML_SEQUENCE_NODE) {
-                                                    if (!ogs_yaml_iter_next(
-                                                                &range_iter))
-                                                        break;
-                                                }
-
-                                                v = (char *)ogs_yaml_iter_value(
-                                                            &range_iter);
-                                                if (v) {
-                                                    low = strsep(&v, "~");
-                                                    if (low && strlen(low) == 0)
-                                                        low = NULL;
-
-                                                    high = v;
-                                                    if (high &&
-                                                            strlen(high) == 0)
-                                                        high = NULL;
-
-                                                    if (low && high) {
-                                                        ogs_assert(
-                                                            num_of_range <
-                                                            OGS_MAX_NUM_OF_SUPI);
-                                                        start[num_of_range].v =
-                                                            atoi(low);
-                                                        end[num_of_range].v =
-                                                            atoi(high);
-                                                        num_of_range++;
-                                                    }
-                                                }
-                                            } while (
-                                                ogs_yaml_iter_type(
-                                                    &range_iter) ==
-                                                    YAML_SEQUENCE_NODE);*/
-
                                         } else
                                             ogs_warn("unknown key `%s`",
                                                     tai_key);
-                                    }
-
-                                    if (num_of_range) {
-                                        int i;
-                              
-                                        for (i = 0; i < num_of_range; i++) {                     
-                                            udm_info->supi_ranges[i].start = low[i];
-                                            udm_info->supi_ranges[i].end = high[i];
-                                            ogs_warn("start %s, end %s, num %d.",low[i],high[i],num_of_range);
-                                        }
-                                        udm_info->num_of_supi_range =
-                                                    num_of_range;
-                                                    
-                                    } else {
-                                        ogs_warn("No supi range info");
-                                    }
+                                    }                                   
                                     
                                 } while (ogs_yaml_iter_type(&tai_array) ==
                                         YAML_SEQUENCE_NODE);
+
+                                if (num_of_range) {
+                                        int i;
+                              
+                                        for (i = 0; i < num_of_range; i++) {                     
+                                            udm_info->supiRanges.supi_ranges[i].start = ogs_strdup(low[i]);
+                                            udm_info->supiRanges.supi_ranges[i].end = ogs_strdup(high[i]);
+                                            ogs_warn("start %s, end %s, num %d.",low[i],high[i],num_of_range);
+                                        }
+                                        udm_info->supiRanges.num_of_supi_range =
+                                                    num_of_range;
+                                                    
+                                } else {
+                                    ogs_warn("No supi range info");
+                                }        
 
                             } else
                                 ogs_warn("unknown key `%s`", info_key);

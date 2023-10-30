@@ -1306,20 +1306,35 @@ static void scp_info_free(ogs_sbi_scp_info_t *scp_info)
     scp_info->num_of_domain = 0;
 }
 
+static void supiRange_free(ogs_supi_range_t *supiRanges)
+{
+    int i;
+    ogs_assert(supiRanges);
+    
+    ogs_info("num_of_supi_range:%d.",supiRanges->num_of_supi_range);
+    for (i = 0; i < supiRanges->num_of_supi_range; i++) {     
+        ogs_info("supiRange_free, start:%s,end:%s",supiRanges->supi_ranges[i].start,supiRanges->supi_ranges[i].end);    
+        ogs_free(supiRanges->supi_ranges[i].start);
+        ogs_free(supiRanges->supi_ranges[i].end);
+    }
+    supiRanges->num_of_supi_range = 0;
+}
+
 static void udm_info_free(ogs_sbi_udm_info_t *udm_info)
 {
     int i;
     ogs_assert(udm_info);
-    
-    ogs_info("udm_info_free, num_of_supi_range:%d.",udm_info->num_of_supi_range);
-    for (i = 0; i < udm_info->num_of_supi_range; i++) {     
-        ogs_info("udm_info_free, start:%s.",udm_info->supi_ranges[i].start);    
-        ogs_free(udm_info->supi_ranges[i].start);
-        ogs_free(udm_info->supi_ranges[i].end);
-    }
-    udm_info->num_of_supi_range = 0;
-}
 
+    supiRange_free(&udm_info->supiRanges);
+    
+    /*ogs_info("udm_info_free, num_of_supi_range:%d.",udm_info->supiRanges.num_of_supi_range);
+    for (i = 0; i < udm_info->supiRanges.num_of_supi_range; i++) {     
+        ogs_info("udm_info_free, start:%s.",udm_info->supiRanges.supi_ranges[i].start);    
+        ogs_free(udm_info->supiRanges.supi_ranges[i].start);
+        ogs_free(udm_info->supiRanges.supi_ranges[i].end);
+    }
+    udm_info->supiRanges.num_of_supi_range = 0;*/
+}
 
 void ogs_sbi_nf_info_remove(ogs_list_t *list, ogs_sbi_nf_info_t *nf_info)
 {

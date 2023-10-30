@@ -2469,7 +2469,7 @@ amf_sess_t *amf_sess_cycle(amf_sess_t *sess)
 
 static bool check_smf_info(ogs_sbi_nf_info_t *nf_info, void *context);
 static bool check_udm_info(ogs_sbi_nf_info_t *nf_info, void *context, ogs_sbi_obj_type_e type);
-static int check_udm_info_supi(ogs_sbi_udm_info_t *udm_info, char *supi);
+static int check_supi_ranges(ogs_supi_range_t *supi_ranges, char *supi);
 
 void amf_sbi_select_nf(
         ogs_sbi_object_t *sbi_object,
@@ -2537,7 +2537,7 @@ void amf_sbi_select_nf(
                     if (nf_info->nf_type != nf_instance->nf_type)
                         continue;
                     
-                    prefix_length = check_udm_info_supi(&nf_info->udm, supi_id);
+                    prefix_length = check_supi_ranges(&nf_info->udm.supiRanges, supi_id);
                     if (0 == prefix_length)
                         continue;
 
@@ -2554,16 +2554,14 @@ void amf_sbi_select_nf(
 
                 if (!nf_info)
                     continue;
-            }else{//其他先按照之前的处理流程
-                OGS_SBI_SETUP_NF_INSTANCE(
-                    sbi_object->service_type_array[service_type], nf_instance);
-                break;
+            }else{//不需要特别check的,则都是可选的nf
+                optional_nf_list[optional_nf_count++] = nf_instance;
             }
         }
         
-         // 从可选NF列表中选择目标NF
+        // 从可选NF列表中选择目标NF
         if (optional_nf_count > 0) {        
-            ogs_info("optional_nf_count:%d.", optional_nf_count);
+            ogs_info("target_nf_type:%d, optional_nf_count:%d.", target_nf_type, optional_nf_count);
        
             // 计算总容量权重
             int total_capacity = 0;
@@ -2588,6 +2586,8 @@ void amf_sbi_select_nf(
             ogs_info("selected_nf_instance, nf_type:%d, supi:%s.", selected_nf_instance->nf_type, ue->supi);
             OGS_SBI_SETUP_NF_INSTANCE(
                     sbi_object->service_type_array[service_type], selected_nf_instance);   
+        }else{
+            ogs_error("selected_nf_instance, no valid instance, supi:%s.", ue->supi);
         }
         
         if (supi_id != NULL){
@@ -3095,7 +3095,7 @@ static bool check_udm_info(ogs_sbi_nf_info_t *nf_info, void *context,ogs_sbi_obj
         return false;
     }
 
-    if (check_udm_info_supi(&nf_info->udm, supi) == false)
+    if (check_supi_ranges(&nf_info->udm.supiRanges, supi) == false)
         return false;
 
     return true;
@@ -3113,7 +3113,7 @@ static unsigned long long convertToNumber(char supi[], int length) {
     return number;
 }
 
-static int check_udm_info_supi(
+/*static int check_udm_info_supi(
         ogs_sbi_udm_info_t *udm_info, char *supi)
 {      
     ogs_assert(udm_info);
@@ -3139,6 +3139,41 @@ static int check_udm_info_supi(
                 int matchLength = startLength;
 
                 if (matchLength > bestMatchLength) {
+                    bestMatchLength = matchLength;                    
+                }
+            }
+        }
+    }
+    return bestMatchLength;
+}*/
+
+static int check_supi_ranges(
+        ogs_supi_range_t *supi_ranges, char *supi)
+{      
+    ogs_assert(supi_ranges);
+    int bestMatchLength = 0;    
+    
+    if (supi_ranges->num_of_supi_range == 0){
+        ogs_info("no supi range, check ok, supi:%s",supi);
+        return true;
+    }
+    
+    int supiLength = strlen(supi);
+
+    for (int i = 0; i < supi_ranges->num_of_supi_range; i++) {
+        int startLength = strlen(supi_ranges->supi_ranges[i].start);
+
+        if (supiLength >= startLength) {
+            unsigned long long supiNumber = convertToNumber(supi, startLength);
+
+            unsigned long long startNumber = strtoull(supi_ranges->supi_ranges[i].start, NULL, 10);
+            unsigned long long endNumber = strtoull(supi_ranges->supi_ranges[i].end, NULL, 10);
+            ogs_info("check_supi_ranges,supiNumber:%llu, startNumber:%llu,endNumber:%llu.",supiNumber,startNumber,endNumber);
+            
+            if (supiNumber >= startNumber && supiNumber <= endNumber) {
+                int matchLength = startLength;
+                if (matchLength > bestMatchLength) {
+                    ogs_info("check_supi_ranges matched, supiNumber:%llu, startNumber:%llu,endNumber:%llu.",supiNumber,startNumber,endNumber);
                     bestMatchLength = matchLength;                    
                 }
             }

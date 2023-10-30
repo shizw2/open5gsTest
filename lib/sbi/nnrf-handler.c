@@ -486,13 +486,13 @@ static void handle_udm_info(
         SupiRangeItem = node->data;
         if (SupiRangeItem && SupiRangeItem->start &&
                 SupiRangeItem->end) {
-            ogs_assert(nf_info->udm.num_of_supi_range <
+            ogs_assert(nf_info->udm.supiRanges.num_of_supi_range <
                     OGS_MAX_NUM_OF_SUPI);
 
-            nf_info->udm.supi_ranges[nf_info->udm.num_of_supi_range].start = ogs_strdup(SupiRangeItem->start);
-            nf_info->udm.supi_ranges[nf_info->udm.num_of_supi_range].end = ogs_strdup(SupiRangeItem->end);
+            nf_info->udm.supiRanges.supi_ranges[nf_info->udm.supiRanges.num_of_supi_range].start = ogs_strdup(SupiRangeItem->start);
+            nf_info->udm.supiRanges.supi_ranges[nf_info->udm.supiRanges.num_of_supi_range].end = ogs_strdup(SupiRangeItem->end);
 
-            nf_info->udm.num_of_supi_range++;
+            nf_info->udm.supiRanges.num_of_supi_range++;
         }
     }
 }

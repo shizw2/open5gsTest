@@ -1219,6 +1219,44 @@ static OpenAPI_scp_info_t *build_scp_info(ogs_sbi_nf_info_t *nf_info)
     return ScpInfo;
 }
 
+static OpenAPI_list_t * build_supi_ranges(ogs_supi_range_t *supiRanges)
+{
+    int i;
+  
+    OpenAPI_list_t *SupiRangeList = NULL;
+    OpenAPI_supi_range_t *SupiRangeItem = NULL;
+
+    ogs_assert(supiRanges);
+
+    SupiRangeList = OpenAPI_list_create();
+    if (!SupiRangeList) {
+        ogs_error("No SupiRangeList");
+        OpenAPI_list_free(SupiRangeList);
+        return NULL;
+    }
+
+    for (i = 0;i < supiRanges->num_of_supi_range;i++) {
+        SupiRangeItem = ogs_calloc(1, sizeof(*SupiRangeItem));
+        ogs_assert(SupiRangeItem);
+
+        SupiRangeItem->start = ogs_strdup(supiRanges->supi_ranges[i].start);
+        ogs_assert(SupiRangeItem->start);
+        SupiRangeItem->end = ogs_strdup(supiRanges->supi_ranges[i].end);
+        ogs_assert(SupiRangeItem->end);
+        
+        ogs_warn("build_supi_ranges,start %s, end %s, num %d.",SupiRangeItem->start,SupiRangeItem->end,supiRanges->num_of_supi_range);
+
+        OpenAPI_list_add(SupiRangeList, SupiRangeItem);
+    }  
+
+    if (SupiRangeList->count)
+        return SupiRangeList;
+    else
+        OpenAPI_list_free(SupiRangeList);
+
+    return NULL;
+}
+
 static OpenAPI_udm_info_t *build_udm_info(ogs_sbi_nf_info_t *nf_info)
 {
     int i;
@@ -1227,7 +1265,7 @@ static OpenAPI_udm_info_t *build_udm_info(ogs_sbi_nf_info_t *nf_info)
     OpenAPI_list_t *SupiRangeList = NULL;
     OpenAPI_supi_range_t *SupiRangeItem = NULL;
 
-    ogs_assert(nf_info);
+    ogs_assert(nf_info);  
 
     UdmInfo = ogs_calloc(1, sizeof(*UdmInfo));
     if (!UdmInfo) {
@@ -1235,7 +1273,17 @@ static OpenAPI_udm_info_t *build_udm_info(ogs_sbi_nf_info_t *nf_info)
         return NULL;
     }
 
-    SupiRangeList = OpenAPI_list_create();
+    SupiRangeList = build_supi_ranges(&nf_info->udm.supiRanges);
+
+    if (!SupiRangeList) {
+        ogs_error("No SupiRangeList");
+        free_udm_info(UdmInfo);
+        return NULL;
+    }
+
+    UdmInfo->supi_ranges = SupiRangeList;
+
+    /*SupiRangeList = OpenAPI_list_create();
     if (!SupiRangeList) {
         ogs_error("No SupiRangeList");
         free_udm_info(UdmInfo);
@@ -1244,17 +1292,17 @@ static OpenAPI_udm_info_t *build_udm_info(ogs_sbi_nf_info_t *nf_info)
     }
 
     for (i = 0;
-            i < nf_info->udm.num_of_supi_range;
+            i < nf_info->udm.supiRanges.num_of_supi_range;
             i++) {
         SupiRangeItem = ogs_calloc(1, sizeof(*SupiRangeItem));
         ogs_assert(SupiRangeItem);
 
-        SupiRangeItem->start = ogs_strdup(nf_info->udm.supi_ranges[i].start);
+        SupiRangeItem->start = ogs_strdup(nf_info->udm.supiRanges.supi_ranges[i].start);
         ogs_assert(SupiRangeItem->start);
-        SupiRangeItem->end = ogs_strdup(nf_info->udm.supi_ranges[i].end);
+        SupiRangeItem->end = ogs_strdup(nf_info->udm.supiRanges.supi_ranges[i].end);
         ogs_assert(SupiRangeItem->end);
         
-        ogs_warn("build_udm_info,start %s, end %s, num %d.",SupiRangeItem->start,SupiRangeItem->end,nf_info->udm.num_of_supi_range);
+        ogs_warn("build_udm_info,start %s, end %s, num %d.",SupiRangeItem->start,SupiRangeItem->end,nf_info->udm.supiRanges.num_of_supi_range);
 
         OpenAPI_list_add(SupiRangeList, SupiRangeItem);
     }  
@@ -1262,7 +1310,7 @@ static OpenAPI_udm_info_t *build_udm_info(ogs_sbi_nf_info_t *nf_info)
     if (SupiRangeList->count)
         UdmInfo->supi_ranges = SupiRangeList;
     else
-        OpenAPI_list_free(SupiRangeList);
+        OpenAPI_list_free(SupiRangeList);*/
 
     return UdmInfo;
 }
