@@ -54,7 +54,7 @@ const struct testlist {
     {test_reset},
 #endif
 #if 1
-    //{test_multi_ue},
+    {test_multi_ue},
 #endif
 
     //{single_ue_multi_test},

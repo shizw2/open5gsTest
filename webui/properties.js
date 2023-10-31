@@ -1,12 +1,12 @@
 const properties = {
-  base_title: '5GC综合网管',
-  base_nfconfig: '配置管理',
-  base_operation: '运营管理',
-  base_subscriber: '用户管理',
-  base_profile: '签约模板',
-  base_alert: '告警监控',
-  base_performance: '性能监控',
-  base_account: '账号管理',
+  base_title: 'test',
+  base_nfconfig: 'test',
+  base_operation: 'test',
+  base_subscriber: 'test',
+  base_profile: 'test',
+  base_alert: 'test',
+  base_performance: 'test',
+  base_account: 'test',
 };
 
 export default properties;
