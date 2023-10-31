@@ -464,6 +464,23 @@ static void handle_smf_info(
     }
 }
 
+static void handle_supiRanges(ogs_supi_range_t *supiRanges, OpenAPI_list_t *supi_ranges) {
+    OpenAPI_lnode_t *node = NULL;
+    OpenAPI_supi_range_t *supi_range = NULL;
+
+    OpenAPI_list_for_each(supi_ranges, node) {
+        supi_range = node->data;
+        if (supi_range && supi_range->start && supi_range->end) {
+            ogs_assert(supiRanges->num_of_supi_range < OGS_MAX_NUM_OF_SUPI);
+
+            supiRanges->supi_ranges[supiRanges->num_of_supi_range].start = ogs_strdup(supi_range->start);
+            supiRanges->supi_ranges[supiRanges->num_of_supi_range].end = ogs_strdup(supi_range->end);
+
+            supiRanges->num_of_supi_range++;
+        }
+    }
+}
+
 static void handle_udm_info(
         ogs_sbi_nf_instance_t *nf_instance, OpenAPI_udm_info_t *UdmInfo)
 {
@@ -480,8 +497,10 @@ static void handle_udm_info(
     nf_info = ogs_sbi_nf_info_add(
             &nf_instance->nf_info_list, OpenAPI_nf_type_UDM);
     ogs_assert(nf_info);
+    
+    handle_supiRanges(&nf_info->udm.supiRanges,UdmInfo->supi_ranges);
    
-    SupiRangeList = UdmInfo->supi_ranges;
+    /*SupiRangeList = UdmInfo->supi_ranges;
     OpenAPI_list_for_each(SupiRangeList, node) {
         SupiRangeItem = node->data;
         if (SupiRangeItem && SupiRangeItem->start &&
@@ -494,7 +513,7 @@ static void handle_udm_info(
 
             nf_info->udm.supiRanges.num_of_supi_range++;
         }
-    }
+    }*/
 }
 
 static void handle_validity_time(
