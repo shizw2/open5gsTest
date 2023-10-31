@@ -9,8 +9,10 @@ import {
   FreeDiameterSection,
   MetricsSection,
   PfcpSection,
+  SubnetSection,
   GtpcSection,
   GtpuSection,
+  DnsSection,
   MtuSection,
   CtfSection,
   FreeDiameterFileSection,
@@ -32,9 +34,11 @@ export const ViewSMF = ({ nfconfig }) => {
             <div className="nf-header">smf:</div>
             <NF_SBI_Section sbi={smf.sbi} />
             <PfcpSection pfcp={smf.pfcp} />
+            <SubnetSection subnet={smf.subnet} />
             <GtpcSection gtpc={smf.gtpc} />
             <GtpuSection gtpu={smf.gtpu} />
             <MetricsSection metrics={smf.metrics} />
+            <DnsSection dns={smf.dns} />
             <MtuSection mtu={smf.mtu} />
             <CtfSection ctf={smf.ctf} />
             <FreeDiameterFileSection freediameter={smf.freediameter} />
