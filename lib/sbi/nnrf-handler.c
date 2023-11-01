@@ -24,8 +24,14 @@ static void handle_nf_service(
 static void handle_smf_info(
         ogs_sbi_nf_instance_t *nf_instance, OpenAPI_smf_info_t *SmfInfo);
 static void handle_udm_info(
-        ogs_sbi_nf_instance_t *nf_instance, OpenAPI_udm_info_t *SmfInfo);
-
+        ogs_sbi_nf_instance_t *nf_instance, OpenAPI_udm_info_t *UdmInfo);
+static void handle_udr_info(
+        ogs_sbi_nf_instance_t *nf_instance, OpenAPI_udr_info_t *UdrInfo);
+static void handle_pcf_info(
+        ogs_sbi_nf_instance_t *nf_instance, OpenAPI_pcf_info_t *PcfInfo);        
+static void handle_ausf_info(
+        ogs_sbi_nf_instance_t *nf_instance, OpenAPI_ausf_info_t *AusfInfo);    
+        
 void ogs_nnrf_nfm_handle_nf_register(
         ogs_sbi_nf_instance_t *nf_instance, ogs_sbi_message_t *recvmsg)
 {
@@ -229,6 +235,33 @@ void ogs_nnrf_nfm_handle_nf_profile(
         OpenAPI_map_t *UdmInfoMap = node->data;
         if (UdmInfoMap && UdmInfoMap->value)
             handle_udm_info(nf_instance, UdmInfoMap->value);
+    }
+    
+    if (NFProfile->udr_info)
+        handle_udr_info(nf_instance, NFProfile->udr_info);
+
+    OpenAPI_list_for_each(NFProfile->udr_info_list, node) {
+        OpenAPI_map_t *UdrInfoMap = node->data;
+        if (UdrInfoMap && UdrInfoMap->value)
+            handle_udr_info(nf_instance, UdrInfoMap->value);
+    }
+    
+    if (NFProfile->pcf_info)
+        handle_pcf_info(nf_instance, NFProfile->pcf_info);
+
+    OpenAPI_list_for_each(NFProfile->pcf_info_list, node) {
+        OpenAPI_map_t *PcfInfoMap = node->data;
+        if (PcfInfoMap && PcfInfoMap->value)
+            handle_pcf_info(nf_instance, PcfInfoMap->value);
+    }
+    
+    if (NFProfile->ausf_info)
+        handle_ausf_info(nf_instance, NFProfile->ausf_info);
+
+    OpenAPI_list_for_each(NFProfile->ausf_info_list, node) {
+        OpenAPI_map_t *AusfInfoMap = node->data;
+        if (AusfInfoMap && AusfInfoMap->value)
+            handle_ausf_info(nf_instance, AusfInfoMap->value);
     }
 }
 
@@ -484,13 +517,8 @@ static void handle_supiRanges(ogs_supi_range_t *supiRanges, OpenAPI_list_t *supi
 static void handle_udm_info(
         ogs_sbi_nf_instance_t *nf_instance, OpenAPI_udm_info_t *UdmInfo)
 {
-    ogs_sbi_nf_info_t *nf_info = NULL;
-   
-    OpenAPI_list_t *SupiRangeList = NULL;
-    OpenAPI_supi_range_t *SupiRangeItem = NULL;
-
-    OpenAPI_lnode_t *node = NULL;
-
+    ogs_sbi_nf_info_t *nf_info = NULL;   
+  
     ogs_assert(nf_instance);
     ogs_assert(UdmInfo);
 
@@ -498,22 +526,52 @@ static void handle_udm_info(
             &nf_instance->nf_info_list, OpenAPI_nf_type_UDM);
     ogs_assert(nf_info);
     
-    handle_supiRanges(&nf_info->udm.supiRanges,UdmInfo->supi_ranges);
-   
-    /*SupiRangeList = UdmInfo->supi_ranges;
-    OpenAPI_list_for_each(SupiRangeList, node) {
-        SupiRangeItem = node->data;
-        if (SupiRangeItem && SupiRangeItem->start &&
-                SupiRangeItem->end) {
-            ogs_assert(nf_info->udm.supiRanges.num_of_supi_range <
-                    OGS_MAX_NUM_OF_SUPI);
+    handle_supiRanges(&nf_info->udm.supiRanges,UdmInfo->supi_ranges);   
+}
 
-            nf_info->udm.supiRanges.supi_ranges[nf_info->udm.supiRanges.num_of_supi_range].start = ogs_strdup(SupiRangeItem->start);
-            nf_info->udm.supiRanges.supi_ranges[nf_info->udm.supiRanges.num_of_supi_range].end = ogs_strdup(SupiRangeItem->end);
+static void handle_udr_info(
+        ogs_sbi_nf_instance_t *nf_instance, OpenAPI_udr_info_t *UdrInfo)
+{
+    ogs_sbi_nf_info_t *nf_info = NULL;
+ 
+    ogs_assert(nf_instance);
+    ogs_assert(UdrInfo);
 
-            nf_info->udm.supiRanges.num_of_supi_range++;
-        }
-    }*/
+    nf_info = ogs_sbi_nf_info_add(
+            &nf_instance->nf_info_list, OpenAPI_nf_type_UDR);
+    ogs_assert(nf_info);
+    
+    handle_supiRanges(&nf_info->udm.supiRanges,UdrInfo->supi_ranges);  
+}
+
+static void handle_pcf_info(
+        ogs_sbi_nf_instance_t *nf_instance, OpenAPI_pcf_info_t *PcfInfo)
+{
+    ogs_sbi_nf_info_t *nf_info = NULL;
+ 
+    ogs_assert(nf_instance);
+    ogs_assert(PcfInfo);
+
+    nf_info = ogs_sbi_nf_info_add(
+            &nf_instance->nf_info_list, OpenAPI_nf_type_UDR);
+    ogs_assert(nf_info);
+    
+    handle_supiRanges(&nf_info->pcf.supiRanges,PcfInfo->supi_ranges);  
+}
+
+static void handle_ausf_info(
+        ogs_sbi_nf_instance_t *nf_instance, OpenAPI_ausf_info_t *AusfInfo)
+{
+    ogs_sbi_nf_info_t *nf_info = NULL;
+ 
+    ogs_assert(nf_instance);
+    ogs_assert(AusfInfo);
+
+    nf_info = ogs_sbi_nf_info_add(
+            &nf_instance->nf_info_list, OpenAPI_nf_type_AUSF);
+    ogs_assert(nf_info);
+    
+    handle_supiRanges(&nf_info->ausf.supiRanges,AusfInfo->supi_ranges);  
 }
 
 static void handle_validity_time(

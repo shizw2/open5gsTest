@@ -1336,6 +1336,24 @@ static void udm_info_free(ogs_sbi_udm_info_t *udm_info)
     udm_info->supiRanges.num_of_supi_range = 0;*/
 }
 
+static void udr_info_free(ogs_sbi_udr_info_t *udr_info)
+{
+    ogs_assert(udr_info);
+    supiRange_free(&udr_info->supiRanges);
+}
+
+static void pcf_info_free(ogs_sbi_pcf_info_t *pcf_info)
+{
+    ogs_assert(pcf_info);
+    supiRange_free(&pcf_info->supiRanges);
+}
+
+static void ausf_info_free(ogs_sbi_ausf_info_t *ausf_info)
+{
+    ogs_assert(ausf_info);
+    supiRange_free(&ausf_info->supiRanges);
+}
+
 void ogs_sbi_nf_info_remove(ogs_list_t *list, ogs_sbi_nf_info_t *nf_info)
 {
     ogs_assert(list);
@@ -1356,6 +1374,15 @@ void ogs_sbi_nf_info_remove(ogs_list_t *list, ogs_sbi_nf_info_t *nf_info)
     case OpenAPI_nf_type_UDM:
         udm_info_free(&nf_info->udm);
         break;
+    case OpenAPI_nf_type_UDR:
+        udr_info_free(&nf_info->udr);
+        break;
+    case OpenAPI_nf_type_PCF:
+        pcf_info_free(&nf_info->pcf);
+        break;
+    case OpenAPI_nf_type_AUSF:
+        ausf_info_free(&nf_info->ausf);
+        break;        
     default:
         ogs_fatal("Not implemented NF-type[%s]",
                 OpenAPI_nf_type_ToString(nf_info->nf_type));

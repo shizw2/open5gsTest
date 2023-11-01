@@ -351,6 +351,18 @@ typedef struct ogs_sbi_udm_info_s {
     ogs_supi_range_t supiRanges;
 } ogs_sbi_udm_info_t;
 
+typedef struct ogs_sbi_udr_info_s {
+    ogs_supi_range_t supiRanges;
+} ogs_sbi_udr_info_t;
+
+typedef struct ogs_sbi_pcf_info_s {
+    ogs_supi_range_t supiRanges;
+} ogs_sbi_pcf_info_t;
+
+typedef struct ogs_sbi_ausf_info_s {
+    ogs_supi_range_t supiRanges;
+} ogs_sbi_ausf_info_t;
+
 typedef struct ogs_sbi_nf_info_s {
     ogs_lnode_t lnode;
 
@@ -360,6 +372,9 @@ typedef struct ogs_sbi_nf_info_s {
         ogs_sbi_amf_info_t amf;
         ogs_sbi_scp_info_t scp;
         ogs_sbi_udm_info_t udm;
+        ogs_sbi_udr_info_t udr;
+        ogs_sbi_pcf_info_t pcf;
+        ogs_sbi_ausf_info_t ausf;
     };
 } ogs_sbi_nf_info_t;
 

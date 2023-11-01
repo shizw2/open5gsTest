@@ -2512,73 +2512,88 @@ void amf_sbi_select_nf(
             supi_id = ogs_id_get_value(ue->supi);
         }
 
-        ogs_sbi_nf_instance_t *selected_nf_instance = NULL;
+        ogs_sbi_nf_instance_t *matched_nf_instances[16];
+        int matched_nf_count = 0;
         int max_prefix_length = 0;
 
-        ogs_sbi_nf_instance_t *optional_nf_list[16];
-        int optional_nf_count = 0;
-
         ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
-            if (ogs_sbi_discovery_param_is_matched(
-                    nf_instance,
-                    target_nf_type, requester_nf_type, discovery_option) == false)
+            if (!ogs_sbi_discovery_param_is_matched(nf_instance, target_nf_type, requester_nf_type, discovery_option)) {
                 continue;
+            }
 
             ogs_info("amf_sbi_select_nf, nf_instance->nf_type:%d, supi:%s.", nf_instance->nf_type, ue->supi);
 
-            if ((nf_instance->nf_type == OpenAPI_nf_type_UDM) &&
-                (ogs_list_count(&nf_instance->nf_info_list) > 0)) {
+            switch (nf_instance->nf_type) {
+                case OpenAPI_nf_type_UDM:
+                case OpenAPI_nf_type_PCF:
+                case OpenAPI_nf_type_UDR:
+                    if (ogs_list_count(&nf_instance->nf_info_list) > 0) {
+                        ogs_sbi_nf_info_t *nf_info = NULL;
+                        int prefix_length = 0;
 
-                ogs_sbi_nf_info_t *nf_info = NULL;
-                int prefix_length = 0;
-                
+                        ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
+                            if (nf_info->nf_type != nf_instance->nf_type) {
+                                continue;
+                            }
 
-                ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
-                    if (nf_info->nf_type != nf_instance->nf_type)
-                        continue;
-                    
-                    prefix_length = check_supi_ranges(&nf_info->udm.supiRanges, supi_id);
-                    if (0 == prefix_length)
-                        continue;
+                            switch (nf_instance->nf_type) {
+                                case OpenAPI_nf_type_UDM:
+                                    prefix_length = check_supi_ranges(&nf_info->udm.supiRanges, supi_id);
+                                    break;
+                                case OpenAPI_nf_type_PCF:
+                                    prefix_length = check_supi_ranges(&nf_info->pcf.supiRanges, supi_id);
+                                    break;
+                                case OpenAPI_nf_type_UDR:
+                                    prefix_length = check_supi_ranges(&nf_info->udr.supiRanges, supi_id);
+                                    break;
+                                default:
+                                    break;
+                            }
 
-                    if (prefix_length > max_prefix_length) {
-                        max_prefix_length = prefix_length;
-                        optional_nf_count = 0;
-                        optional_nf_list[optional_nf_count++] = nf_instance;
-                    } else if (prefix_length == max_prefix_length) {
-                        optional_nf_list[optional_nf_count++] = nf_instance;
+                            if (prefix_length == 0) {
+                                continue;
+                            }
+
+                            if (prefix_length > max_prefix_length) {
+                                max_prefix_length = prefix_length;
+                                matched_nf_count = 0;
+                                matched_nf_instances[matched_nf_count++] = nf_instance;
+                            } else if (prefix_length == max_prefix_length) {
+                                matched_nf_instances[matched_nf_count++] = nf_instance;
+                            }
+                        }
+                    } else{
+                        matched_nf_instances[matched_nf_count++] = nf_instance;//兼容当前，如果没配置info,则也匹配成功
                     }
-
                     break;
-                }
 
-                if (!nf_info)
-                    continue;
-            }else{//不需要特别check的,则都是可选的nf
-                optional_nf_list[optional_nf_count++] = nf_instance;
+                default:
+                    matched_nf_instances[matched_nf_count++] = nf_instance;//兼容当前，不需要匹配info,则也匹配成功
+                    break;
             }
         }
+
         
         // 从可选NF列表中选择目标NF
-        if (optional_nf_count > 0) {        
-            ogs_info("target_nf_type:%d, optional_nf_count:%d.", target_nf_type, optional_nf_count);
+        if (matched_nf_count > 0) {        
+            ogs_info("target_nf_type:%d, matched_nf_count:%d.", target_nf_type, matched_nf_count);
        
             // 计算总容量权重
             int total_capacity = 0;
             ogs_sbi_nf_instance_t *selected_nf_instance = NULL;
 
-            for (int i = 0; i < optional_nf_count; i++) {
-                total_capacity += optional_nf_list[i]->capacity;
+            for (int i = 0; i < matched_nf_count; i++) {
+                total_capacity += matched_nf_instances[i]->capacity;
             }
 
             // 根据容量权重选择目标NF
             int random_value = rand() % total_capacity;
             int accumulated_weight = 0;
 
-            for (int i = 0; i < optional_nf_count; i++) {
-                accumulated_weight += optional_nf_list[i]->capacity;
+            for (int i = 0; i < matched_nf_count; i++) {
+                accumulated_weight += matched_nf_instances[i]->capacity;
                 if (random_value < accumulated_weight) {
-                    selected_nf_instance = optional_nf_list[i];
+                    selected_nf_instance = matched_nf_instances[i];
                     break;
                 }
             }                
@@ -3155,7 +3170,7 @@ static int check_supi_ranges(
     
     if (supi_ranges->num_of_supi_range == 0){
         ogs_info("no supi range, check ok, supi:%s",supi);
-        return true;
+        return MAX_SUPI_LENGTH;//没有配置，则认为校验成功，返回最大匹配长度
     }
     
     int supiLength = strlen(supi);

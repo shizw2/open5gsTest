@@ -108,7 +108,7 @@ int udm_context_parse_config(void)
                     /* handle config in sbi library */
                 } else if (!strcmp(udm_key, "metrics")) {
                     /* handle config in metrics library */
-                }else if (!strcmp(udm_key, "hnet")) {
+                } else if (!strcmp(udm_key, "hnet")) {
                     rv = ogs_sbi_context_parse_hnet_config(&udm_iter);
                     if (rv != OGS_OK) return rv;
                 } else if (!strcmp(udm_key, "info")) {
@@ -158,34 +158,34 @@ int udm_context_parse_config(void)
                             ogs_assert(info_key);
                             if (!strcmp(info_key, "supi")) {
                                 ogs_warn("has udm supi");
-                                ogs_yaml_iter_t tai_array, tai_iter;
-                                ogs_yaml_iter_recurse(&info_iter, &tai_array);
+                                ogs_yaml_iter_t supi_array, supi_iter;
+                                ogs_yaml_iter_recurse(&info_iter, &supi_array);
                                 do {                                  
-                                    if (ogs_yaml_iter_type(&tai_array) ==
+                                    if (ogs_yaml_iter_type(&supi_array) ==
                                             YAML_MAPPING_NODE) {
-                                        memcpy(&tai_iter, &tai_array,
+                                        memcpy(&supi_iter, &supi_array,
                                                 sizeof(ogs_yaml_iter_t));
-                                    } else if (ogs_yaml_iter_type(&tai_array) ==
+                                    } else if (ogs_yaml_iter_type(&supi_array) ==
                                             YAML_SEQUENCE_NODE) {
-                                        if (!ogs_yaml_iter_next(&tai_array))
+                                        if (!ogs_yaml_iter_next(&supi_array))
                                             break;
-                                        ogs_yaml_iter_recurse(&tai_array,
-                                                &tai_iter);
-                                    } else if (ogs_yaml_iter_type(&tai_array) ==
+                                        ogs_yaml_iter_recurse(&supi_array,
+                                                &supi_iter);
+                                    } else if (ogs_yaml_iter_type(&supi_array) ==
                                             YAML_SCALAR_NODE) {
                                         break;
                                     } else
                                         ogs_assert_if_reached();
 
-                                    while (ogs_yaml_iter_next(&tai_iter)) {
+                                    while (ogs_yaml_iter_next(&supi_iter)) {
                                         const char *tai_key =
-                                            ogs_yaml_iter_key(&tai_iter);
+                                            ogs_yaml_iter_key(&supi_iter);
                                         ogs_assert(tai_key);
                                         if (!strcmp(tai_key, "range")) {
                                             ogs_warn("has udm range %d.",num_of_range);              
                                             ogs_yaml_iter_t range_iter;
                                             ogs_yaml_iter_recurse(
-                                                    &tai_iter, &range_iter);
+                                                    &supi_iter, &range_iter);
                                             ogs_assert(ogs_yaml_iter_type(&range_iter) !=
                                                 YAML_MAPPING_NODE);
                                             do {
@@ -224,7 +224,7 @@ int udm_context_parse_config(void)
                                                     tai_key);
                                     }                                   
                                     
-                                } while (ogs_yaml_iter_type(&tai_array) ==
+                                } while (ogs_yaml_iter_type(&supi_array) ==
                                         YAML_SEQUENCE_NODE);
 
                                 if (num_of_range) {
