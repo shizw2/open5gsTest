@@ -272,6 +272,37 @@ cleanup:
     return supi;
 }
 
+char *ogs_routing_indicator_from_suci(char *suci)
+{
+#define MAX_SUCI_TOKEN 16
+    char *array[MAX_SUCI_TOKEN];
+    char *p, *tmp;
+    int i;
+    char *routing_indicator = NULL;
+
+    ogs_assert(suci);
+    tmp = ogs_strdup(suci);
+    if (!tmp) {
+        ogs_error("ogs_strdup() failed");
+        return NULL;
+    }
+
+    p = tmp;
+    i = 0;
+    while((array[i++] = strsep(&p, "-"))) {
+        /* Empty Body */
+    }
+    
+    if (i <=4){
+        return NULL;
+    }
+    
+    routing_indicator = ogs_strdup(array[4]);
+
+    ogs_free(tmp);
+    return routing_indicator;
+}
+
 char *ogs_uridup(bool https, ogs_sockaddr_t *addr, ogs_sbi_header_t *h)
 {
     char buf[OGS_ADDRSTRLEN];
