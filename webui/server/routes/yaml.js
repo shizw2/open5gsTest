@@ -49,12 +49,37 @@ const NFConfig = {
           const yamlFileNames = fileNames.filter((fileName) =>
             path.extname(fileName).toLowerCase() === '.yaml' && desiredFileNames.includes(fileName)
           );
+          
+          //测试发现,'tag:yaml.org,2002:int'可以匹配到数字和字段名。		  
+          //检查数据是否以 '0' 开头并且是字符串类型，如果是，则将其转换为字符串类型	
+          //否则，检查数据是否可以转换为数字类型，如果可以，则将其转换为数字类型。
+          //如果都不满足，则保持原始数据不变。
+          const options = {
+            schema: yaml.DEFAULT_SCHEMA.extend({
+              implicit: [
+                new yaml.Type('tag:yaml.org,2002:int', {
+                  kind: 'scalar',
+                  construct: data => {
+                    if (typeof data === 'string' && data.startsWith('0')) {
+                      console.log("trun to string:",data)
+                      return String(data);
+                    }
+                    if (!isNaN(data)){
+                      return Number(data);
+                    }
+                    return data;
+                  },
+                }),
+              ],
+            }),
+          };
+
 
           for (const fileName of yamlFileNames) {
             const filePath = path.join(directoryPath, fileName);
 
             const yamlData = fs.readFileSync(filePath, 'utf8');
-            const configData = yaml.load(yamlData);
+            const configData = yaml.load(yamlData,options);
 
             // 提取纯文件名作为 _id（不包括目录和扩展名）
             const fileId = path.parse(fileName).name;

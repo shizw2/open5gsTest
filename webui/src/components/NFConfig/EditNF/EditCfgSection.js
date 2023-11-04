@@ -697,7 +697,7 @@ export const taiSchema = {
         pattern: /^(\d+|\[\d+(?:-\d+)?(?:, \d+(?:-\d+)?)*])$/,
         required: true,
         messages: {
-          pattern: "Like 1 or [1, 3-8, 10, 12-15]"
+          pattern: "Format like 1 or [1, 3-8, 10, 12-15]"
         }
       }
     },
@@ -723,7 +723,7 @@ export const taiUiSchema = {
       classNames: "col-xs-5",
       //"ui:title": <CustomTitle18 title="TAC" />,
       "ui:title": <CustomTitle18Border39 title="TAC" />,
-      "ui:placeholder": "单个示例:1或一组:[1, 3-8, 10, 12-15]",
+      "ui:placeholder": "Format like 1 or [1, 3-8, 10, 12-15]",
     }
   }
 };
@@ -742,7 +742,7 @@ export const plmn_supportSchema = {
             type: "string",
             title: "MCC",
             maxLength: 3,
-            required: true,
+            //required: true,
             pattern: "^\\d+$",
             messages: {
               pattern: "Only digits are allowed"
@@ -752,7 +752,7 @@ export const plmn_supportSchema = {
             type: "string",
             title: "MNC",
             maxLength: 3,
-            required: true,
+            //required: true,
             pattern: "^\\d+$",
             messages: {
               pattern: "Only digits are allowed"
@@ -764,6 +764,8 @@ export const plmn_supportSchema = {
       s_nssai: {
         type: "array",
         title: "S-NSSAI",
+        minItems: 1,
+        maxItems: 8,
         items: {
           type: "object",
           properties: {
@@ -772,6 +774,7 @@ export const plmn_supportSchema = {
               title: "SST*",
               enum: [ 1, 2, 3, 4 ],
               required:true,
+              default: 1,
             },
             sd: {
               type: "string",
@@ -786,10 +789,9 @@ export const plmn_supportSchema = {
           },
           //required: ["sst"]
         },
-      }
+      },
     },
-    //required: ["plmn_id"]
-  }
+  },
 };
 
 export const plmn_supportUiSchema = {
@@ -817,7 +819,6 @@ export const plmn_supportUiSchema = {
         },
         sd: {
           classNames: "col-xs-5",
-          //"ui:widget": "updown"
         },
       }
     }
