@@ -12,12 +12,12 @@ export const NRFSection = ({ nfconfig }) => (
                 <div key={index}>
                   {item.addr && item.addr.map((addrItem, addrIndex) => (
                     <div className="forty-spaces" key={addrIndex}>
-                      -addr: {addrItem}
+                      - addr: {addrItem}
                     </div>
                   ))}
                   {item.port && (
                     <div className="forty-spaces">
-                      &nbsp;port: {item.port}
+                      &nbsp;&nbsp;port: {item.port}
                     </div>
                   )}
                 </div>
@@ -105,8 +105,8 @@ export const MetricsSection = ({ metrics }) => (
         <div className="forty-spaces">
           {metrics.map((item, index) => (
             <div key={index}>
-              <div>-addr: {item.addr}</div>
-              <div>&nbsp;port: {item.port}</div>
+              <div>- addr: {item.addr}</div>
+              <div>&nbsp;&nbsp;port: {item.port}</div>
             </div>
           ))}
         </div>
@@ -124,8 +124,8 @@ export const NF_SBI_Section = ({ sbi }) => (
         <div className="forty-spaces">
           {sbi.map((item, index) => (
             <div key={index}>
-              <div>-addr: {item.addr}</div>
-              <div>&nbsp;port: {item.port}</div>
+              <div>- addr: {item.addr}</div>
+              <div>&nbsp;&nbsp;port: {item.port}</div>
             </div>
           ))}
         </div>
@@ -142,10 +142,10 @@ export const GuamiSection = ({ guamis }) => (
         <div className="forty-spaces">
           {guamis.map((item, index) => (
             <div key={index}>
-              <div>-plmn_id:</div>
+              <div>- plmn_id:</div>
               <div className="twenty-spaces">mcc: {item.plmn_id.mcc}</div>
               <div className="twenty-spaces">mnc: {item.plmn_id.mnc}</div>
-              <div>&nbsp;amf_id:</div>
+              <div>&nbsp;&nbsp;amf_id:</div>
               <div className="twenty-spaces">region: {item.amf_id.region}</div>
               <div className="twenty-spaces">set: {item.amf_id.set}</div>
             </div>
@@ -164,10 +164,10 @@ export const TaiSection = ({ tais }) => (
         <div className="forty-spaces">
           {tais.map((item, index) => (
             <div key={index}>
-              <div>-plmn_id:</div>
+              <div>- plmn_id:</div>
               <div className="twenty-spaces">mcc: {item.plmn_id.mcc}</div>
               <div className="twenty-spaces">mnc: {item.plmn_id.mnc}</div>
-              <div>&nbsp;tac: {item.tac}</div>
+              <div>&nbsp;&nbsp;tac: {item.tac}</div>
             </div>
           ))}
         </div>
@@ -184,15 +184,16 @@ export const PlmnSupportSection = ({ plmnSupport }) => (
         <div className="forty-spaces">
           {plmnSupport.map((item, index) => (
             <div key={index}>
-              <div>-plmn_id:</div>
+              <div>- plmn_id:</div>
               <div className="twenty-spaces">mcc: {item.plmn_id.mcc}</div>
               <div className="twenty-spaces">mnc: {item.plmn_id.mnc}</div>
               {item.s_nssai && (
                 <div>
-                  <div>&nbsp;s_nssai:</div>
+                  <div>&nbsp;&nbsp;s_nssai:</div>
                   {item.s_nssai.map((nssai, nssaiIndex) => (
                     <div className="twenty-spaces" key={nssaiIndex}>
-                      -sst: {nssai.sst}
+                      - sst: {nssai.sst}<br></br>
+                      &nbsp;&nbsp;sd: {nssai.sd}
                     </div>
                   ))}
                 </div>
@@ -256,9 +257,9 @@ export const HnetSection = ({ hnet }) => (
         <div className="hnet-body">
           {hnet.map((entry) => (
             <div className="hnet-entry" key={entry.id}>
-              <div className="twenty-spaces">-id: {entry.id}</div>
-              <div className="twenty-spaces">&nbsp;scheme: {entry.scheme}</div>
-              <div className="twenty-spaces">&nbsp;key: {entry.key}</div>
+              <div className="twenty-spaces">- id: {entry.id}</div>
+              <div className="twenty-spaces">&nbsp;&nbsp;scheme: {entry.scheme}</div>
+              <div className="twenty-spaces">&nbsp;&nbsp;key: {entry.key}</div>
             </div>
           ))}
         </div>
@@ -308,11 +309,12 @@ export const NSIComponent = ({ nsi }) => {
           <div className="twenty-spaces">nsi:</div>
           {nsi.map((item, index) => (
             <div key={index} className="twenty-spaces">
-              <div className="twenty-spaces">-addr: {item.addr}</div>
-              <div className="twenty-spaces">&nbsp;port: {item.port}</div>
+              <div className="twenty-spaces">- addr: {item.addr}</div>
+              <div className="twenty-spaces">&nbsp;&nbsp;port: {item.port}</div>
               <div className="twenty-spaces">
-                &nbsp;s_nssai:
+                &nbsp;&nbsp;s_nssai:
                 <div className="twenty-spaces">sst: {item.s_nssai && item.s_nssai.sst}</div>
+                <div className="twenty-spaces">sd: {item.s_nssai && item.s_nssai.sd}</div>
               </div>
             </div>
           ))}
@@ -350,8 +352,8 @@ export const FreeDiameterSection = ({ freeDiameter }) => {
 			  connect:
 			  {freeDiameter.connect.map((connection, index) => (
 				<div key={index} className="connect">
-				  <div className="twenty-spaces">-identity: {connection.identity}</div>
-				  <div className="twenty-spaces">&nbsp;addr: {connection.addr}</div>
+				  <div className="twenty-spaces">- identity: {connection.identity}</div>
+				  <div className="twenty-spaces">&nbsp;&nbsp;addr: {connection.addr}</div>
 				</div>
 			  ))}
 			</div>
@@ -370,7 +372,7 @@ export const PfcpSection = ({ pfcp }) => {
           <div className="twenty-spaces">pfcp:</div>
           {pfcp.map((item, index) => (
             <div key={index} className="twenty-spaces">
-              <div className="twenty-spaces">-addr: {item.addr}</div>          
+              <div className="twenty-spaces">- addr: {item.addr}</div>          
             </div>
           ))}
         </div>
@@ -387,7 +389,7 @@ export const GtpcSection = ({ gtpc }) => {
           <div className="twenty-spaces">gtpc:</div>
           {gtpc.map((item, index) => (
             <div key={index} className="twenty-spaces">
-              <div className="twenty-spaces">-addr: {item.addr}</div>          
+              <div className="twenty-spaces">- addr: {item.addr}</div>          
             </div>
           ))}
         </div>
@@ -404,7 +406,7 @@ export const GtpuSection = ({ gtpu }) => {
           <div className="twenty-spaces">gtpu:</div>
           {gtpu.map((item, index) => (
             <div key={index} className="twenty-spaces">
-              <div className="twenty-spaces">-addr: {item.addr}</div>          
+              <div className="twenty-spaces">- addr: {item.addr}</div>          
             </div>
           ))}
         </div>
@@ -421,7 +423,7 @@ export const SubnetSection = ({ subnet }) => {
           <div className="twenty-spaces">subnet:</div>
           {subnet.map((item, index) => (
             <div key={index} className="twenty-spaces">
-              <div className="twenty-spaces">-addr: {item.addr}</div>          
+              <div className="twenty-spaces">- addr: {item.addr}</div>          
             </div>
           ))}
         </div>
@@ -438,7 +440,7 @@ export const DnsSection = ({ dns }) => {
           <div className="twenty-spaces">dns:</div>
           {dns.map((item, index) => (
             <div key={index} className="twenty-spaces">
-              <div className="twenty-spaces">-addr: {item.addr}</div>          
+              <div className="twenty-spaces">- {item}</div>          
             </div>
           ))}
         </div>
@@ -498,6 +500,7 @@ export const InfoSection = ({ info }) => {
                   {item.s_nssai.map((s_item, s_index) => (
                     <div key={s_index} className="twenty-spaces">
                       <div className="twenty-spaces">- sst: {s_item.sst}</div>
+                      <div className="twenty-spaces">&nbsp;&nbsp;sd: {s_item.sd}</div>
                       {s_item.dnn && (
                         <div className="twenty-spaces">
                           <div className="twenty-spaces">dnn:</div>
@@ -522,7 +525,7 @@ export const InfoSection = ({ info }) => {
                         <div className="twenty-spaces">mcc: {tai_item.plmn_id.mcc}</div>
                         <div className="twenty-spaces">mnc: {tai_item.plmn_id.mnc}</div>
                       </div>
-                      <div className="twenty-spaces">&nbsp;tac: {tai_item.tac}</div>
+                      <div className="twenty-spaces">&nbsp;&nbsp;tac: {tai_item.tac}</div>
                     </div>
                   ))}
                 </div>

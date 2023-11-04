@@ -951,6 +951,7 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
                                session teardown, so as to not leave stale
                                sessions. */
 
+                            //TODO:新版本可能已经解决了这个bug，先注释掉 
                             //add at 20230403 smf收到pcf的404,给amf返回404错误  
                             /*                         
                             ogs_sbi_server_send_error(

@@ -22,7 +22,7 @@ export const ViewAMF = ({ nfconfig }) => {
               <div className="forty-spaces">
               {nfconfig.amf.ngap.map((item, index) => (
                 <div key={index}>
-                  <div>-addr: {item.addr}</div>
+                  <div>- addr: {item.addr}</div>
                 </div>
               ))}
               </div>          

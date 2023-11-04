@@ -50,6 +50,8 @@ const Subscriber = new Schema({
         downlink: { value: Number, unit: Number },
         uplink: { value: Number, unit: Number }
       },
+      ipv4_framed_routes: [ String ],
+      ipv6_framed_routes: [ String ],
       ue: {
         addr: String,
         addr6: String
