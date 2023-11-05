@@ -168,6 +168,12 @@ static int amf_context_prepare(void)
 
     self.icps_port = 9777;  /*没配置时采用的默认值*/
     self.spsnum    = 16;    /*没配置时采用的默认值*/
+
+    /*由于配置可能重读,需要复位*/
+    self.num_of_served_guami    = 0;
+    self.num_of_served_tai      = 0;
+    self.num_of_plmn_support    = 0;
+    self.num_of_access_control  = 0;
     return OGS_OK;
 }
 
@@ -242,7 +248,8 @@ static int amf_context_validation(void)
     return OGS_OK;
 }
 
-int amf_context_parse_config(void)
+//reloading:是否是重读标识, 当reloading为true时,有些配置不需要重读
+int amf_context_parse_config(bool reloading)
 {
     int rv;
     yaml_document_t *document = NULL;
@@ -268,6 +275,9 @@ int amf_context_parse_config(void)
                     const char *v = ogs_yaml_iter_value(&amf_iter);
                     if (v) self.relative_capacity = atoi(v);
                 } else if (!strcmp(amf_key, "ngap")) {
+                    if (reloading == true){//重新加载时不读取
+                        continue;
+                    }
                     ogs_yaml_iter_t ngap_array, ngap_iter;
                     ogs_yaml_iter_recurse(&amf_iter, &ngap_array);
                     do {
@@ -527,6 +537,7 @@ int amf_context_parse_config(void)
                         const char *pointer = NULL;
                         ogs_assert(self.num_of_served_guami <
                                 OGS_MAX_NUM_OF_SERVED_GUAMI);
+                        ogs_info("self.num_of_served_guami:%d.",self.num_of_served_guami);
 
                         if (ogs_yaml_iter_type(&guami_array) ==
                                 YAML_MAPPING_NODE) {
@@ -1227,7 +1238,7 @@ int amf_context_parse_config(void)
     return OGS_OK;
 }
 
-int amf_context_nf_info(void)
+int amf_context_nf_info(bool reloading)
 {
     ogs_sbi_nf_instance_t *nf_instance = NULL;
     ogs_sbi_nf_info_t *nf_info = NULL;
@@ -1240,6 +1251,11 @@ int amf_context_nf_info(void)
     do {
         nf_instance = ogs_sbi_self()->nf_instance;
         ogs_assert(nf_instance);
+
+        //如果是重新加载,则需要先删除老的nf_info,再重新添加
+        if (reloading == true){
+            ogs_sbi_nf_info_remove_all(&nf_instance->nf_info_list);
+        }
 
         nf_info = ogs_sbi_nf_info_add(
                 &nf_instance->nf_info_list, OpenAPI_nf_type_AMF);
@@ -1315,6 +1331,8 @@ int amf_context_nf_info(void)
         }
     } while (next_found);
 
+    
+    ogs_info("nf_info_list count:%d.",  ogs_list_count(&ogs_sbi_self()->nf_instance->nf_info_list));
     return OGS_OK;
 }
 
@@ -3870,4 +3888,68 @@ void icps_ue_remove_all()
         icps_ue=icps_ue_cycle(icps_ue);
         if(icps_ue)icps_ue_remove(icps_ue);
     }
+}
+
+static ogs_timer_t     *t_yaml_check;
+int yaml_check_init(void)
+{  
+    //set timer
+    t_yaml_check = ogs_timer_add(ogs_app()->timer_mgr,ogs_timer_yaml_config_check,0);
+    ogs_timer_start(t_yaml_check,ogs_time_from_sec(5));
+
+    ogs_info("yaml_check_init sucess.");
+    return OGS_OK;
+}
+
+int yaml_check_close(void)
+{  
+    if (t_yaml_check != NULL){
+        ogs_timer_delete(t_yaml_check);
+        t_yaml_check = NULL;
+    }
+    return OGS_OK;
+}
+
+int yaml_check_timeout(void)
+{  
+    yaml_check_proc();
+     
+    //重设定时器
+    ogs_timer_start(t_yaml_check,ogs_time_from_sec(5));
+    return OGS_OK;
+}
+
+int yaml_check_proc(void)
+{
+    int rv;    
+    ogs_info("check yaml config.");
+
+    if (!osg_app_is_config_modified()) {
+        return 0;//如果文件未修改,则返回
+    }
+
+    ogs_info("yaml config file changed,reloading......");
+
+    //0、读配置
+    rv = ogs_app_config_read();
+    if (rv != OGS_OK) return rv;
+
+    //1、app级配置    
+    rv = ogs_app_context_parse_config();
+    if (rv != OGS_OK) return rv;
+
+    //1.1重新设置日志级别
+    rv = ogs_log_config_domain(
+            ogs_app()->logger.domain, ogs_app()->logger.level);
+    if (rv != OGS_OK) return rv;
+
+    //2、NF级配置
+    rv = amf_context_parse_config(true);
+    if (rv != OGS_OK) return rv;
+
+    //2.1 重新更新nf_info
+    rv = amf_context_nf_info(true);
+    if (rv != OGS_OK) return rv;
+   
+    return 0;
 }

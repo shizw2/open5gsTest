@@ -811,6 +811,20 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
         }
         break;
 
+    case OGS_EVENT_YAML_CONFIG_CHECK_TIMER:
+        ogs_assert(e);
+
+        switch(e->h.timer_id) {
+        case OGS_TIMER_YAML_CONFIG_CHECK:
+            yaml_check_timeout();
+            break;
+
+        default:
+            ogs_error("Unknown timer[%s:%d]",
+                    ogs_timer_get_name(e->h.timer_id), e->h.timer_id);
+        }
+        break;
+
     case AMF_EVENT_NGAP_LO_ACCEPT:
         sock = e->ngap.sock;
         ogs_assert(sock);

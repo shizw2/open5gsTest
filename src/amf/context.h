@@ -734,8 +734,8 @@ void amf_context_init(void);
 void amf_context_final(void);
 amf_context_t *amf_self(void);
 
-int amf_context_parse_config(void);
-int amf_context_nf_info(void);
+int amf_context_parse_config(bool reloading);
+int amf_context_nf_info(bool reloading);
 
 amf_gnb_t *amf_gnb_add(ogs_sock_t *sock, ogs_sockaddr_t *addr);
 void amf_gnb_remove(amf_gnb_t *gnb);
@@ -925,6 +925,11 @@ icps_ue_spsno_t* icps_ue_add(char *supi);
 icps_ue_spsno_t* icps_ue_find_by_supi(char *supi);
 icps_ue_spsno_t *icps_ue_cycle(icps_ue_spsno_t *icps_ue);
 void icps_ue_remove_all(void);
+
+int yaml_check_init(void);
+int yaml_check_timeout(void);
+int yaml_check_proc(void);
+int yaml_check_close(void);
 
 #ifdef __cplusplus
 }

@@ -33,6 +33,8 @@ const char *OGS_TIMER_NAME_SUBSCRIPTION_PATCH =
     "OGS_TIMER_SUBSCRIPTION_PATCH";
 const char *OGS_TIMER_NAME_SBI_CLIENT_WAIT =
     "OGS_TIMER_SBI_CLIENT_WAIT";
+const char *OGS_TIMER_NAME_YAML_CONFIG_CHECK = 
+    "OGS_TIMER_YAML_CONFIG_CHECK";
 
 const char *ogs_timer_get_name(int timer_id)
 {
@@ -53,6 +55,8 @@ const char *ogs_timer_get_name(int timer_id)
         return OGS_TIMER_NAME_SBI_CLIENT_WAIT;
     case OGS_TIMER_DBI_POLL_CHANGE_STREAM:
         return "OGS_TIMER_DBI_POLL_CHANGE_STREAM";
+    case OGS_TIMER_YAML_CONFIG_CHECK:
+        return OGS_TIMER_NAME_YAML_CONFIG_CHECK;
     default: 
        break;
     }

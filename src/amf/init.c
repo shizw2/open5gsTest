@@ -42,10 +42,10 @@ int amf_initialize(void)
     rv = ogs_metrics_context_parse_config("amf");
     if (rv != OGS_OK) return rv;
 
-    rv = amf_context_parse_config();
+    rv = amf_context_parse_config(false);
     if (rv != OGS_OK) return rv;
 
-    rv = amf_context_nf_info();
+    rv = amf_context_nf_info(false);
     if (rv != OGS_OK) return rv;
 
     rv = ogs_log_config_domain(
@@ -62,6 +62,10 @@ int amf_initialize(void)
 
     /*增加UDP_IN_open，初始化ICPS和SPS直接的通信接口*/
     rv = udp_ini_open();
+    if (rv != OGS_OK) return rv;
+
+    /*启动yaml配置检测定时器*/
+    rv = yaml_check_init();
     if (rv != OGS_OK) return rv;
 
     thread = ogs_thread_create(amf_main, NULL);
@@ -87,10 +91,10 @@ int amf_sps_initialize()
     rv = ogs_metrics_context_parse_config("amf");
     if (rv != OGS_OK) return rv;
 
-    rv = amf_context_parse_config();
+    rv = amf_context_parse_config(false);
     if (rv != OGS_OK) return rv;
 
-    rv = amf_context_nf_info();
+    rv = amf_context_nf_info(false);
     if (rv != OGS_OK) return rv;
 
     //rv = amf_m_tmsi_pool_generate();

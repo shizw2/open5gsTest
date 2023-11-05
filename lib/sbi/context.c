@@ -1055,6 +1055,73 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_service_type(
     return nf_instance;
 }
 
+ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_supi(
+        OpenAPI_nf_type_e target_nf_type,
+        OpenAPI_nf_type_e requester_nf_type,
+        ogs_sbi_discovery_option_t *discovery_option, char *supi_id)
+{
+    ogs_sbi_nf_instance_t *nf_instance = NULL;
+
+    ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
+        if (!ogs_sbi_discovery_param_is_matched(nf_instance, target_nf_type, requester_nf_type, discovery_option)) {
+            continue;
+        }
+
+        ogs_info("ogs_sbi_nf_instance_find_by_supi, nf_instance->nf_type:%d, supi:%s.", nf_instance->nf_type, ue->supi);
+
+        switch (nf_instance->nf_type) {
+            case OpenAPI_nf_type_UDM:
+            case OpenAPI_nf_type_PCF:
+            case OpenAPI_nf_type_UDR:
+                if (ogs_list_count(&nf_instance->nf_info_list) > 0) {
+                    ogs_sbi_nf_info_t *nf_info = NULL;
+                    int prefix_length = 0;
+
+                    ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
+                        if (nf_info->nf_type != nf_instance->nf_type) {
+                            continue;
+                        }
+
+                        switch (nf_instance->nf_type) {
+                            case OpenAPI_nf_type_UDM:
+                                prefix_length = check_supi_ranges(&nf_info->udm.supiRanges, supi_id);
+                                break;
+                            case OpenAPI_nf_type_PCF:
+                                prefix_length = check_supi_ranges(&nf_info->pcf.supiRanges, supi_id);
+                                break;
+                            case OpenAPI_nf_type_UDR:
+                                prefix_length = check_supi_ranges(&nf_info->udr.supiRanges, supi_id);
+                                break;
+                            default:
+                                break;
+                        }
+
+                        if (prefix_length == 0) {
+                            continue;
+                        }
+
+                        if (prefix_length > max_prefix_length) {
+                            max_prefix_length = prefix_length;
+                            matched_nf_count = 0;
+                            matched_nf_instances[matched_nf_count++] = nf_instance;
+                        } else if (prefix_length == max_prefix_length) {
+                            matched_nf_instances[matched_nf_count++] = nf_instance;
+                        }
+                    }
+                } else{
+                    matched_nf_instances[matched_nf_count++] = nf_instance;//兼容当前，如果没配置info,则也匹配成功
+                }
+                break;
+
+            default:
+                matched_nf_instances[matched_nf_count++] = nf_instance;//兼容当前，不需要匹配info,则也匹配成功
+                break;
+        }
+    }
+
+}
+
+
 bool ogs_sbi_nf_instance_maximum_number_is_reached(void)
 {
     return nf_instance_pool.avail <= 0;

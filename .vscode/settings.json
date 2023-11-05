@@ -76,6 +76,21 @@
         "stack": "c",
         "cinttypes": "c",
         "cstdbool": "c",
-        "ssl.h": "c"
+        "ssl.h": "c",
+        "ogs-timer.h": "c",
+        "ogs-dbi.h": "c",
+        "timer.h": "c",
+        "path.h": "c",
+        "subscription.h": "c",
+        "session.h": "c",
+        "ogs-mongoc.h": "c",
+        "ogs-app.h": "c",
+        "ogs-init.h": "c",
+        "ogs-crypt.h": "c",
+        "ims.h": "c",
+        "ogs-context.h": "c",
+        "ogs-config.h": "c",
+        "ogs-proto.h": "c",
+        "stat.h": "c"
     }
 }

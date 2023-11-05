@@ -42,6 +42,8 @@ typedef enum {
     OGS_EVENT_DBI_POLL_TIMER,
     OGS_EVENT_DBI_MESSAGE,
 
+    OGS_EVENT_YAML_CONFIG_CHECK_TIMER,
+
     OGS_MAX_NUM_OF_PROTO_EVENT,
 
 } ogs_event_e;

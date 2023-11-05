@@ -35,7 +35,7 @@ void ogs_app_terminate(void);
 
 int ogs_app_config_read(void);
 void ogs_app_setup_log(void);
-
+int osg_app_is_config_modified(void);
 #ifdef __cplusplus
 }
 #endif

@@ -50,6 +50,8 @@ typedef enum {
 
     OGS_TIMER_DBI_POLL_CHANGE_STREAM,
 
+    OGS_TIMER_YAML_CONFIG_CHECK,
+
     OGS_MAX_NUM_OF_PROTO_TIMER,
 
 } ogs_timer_e;

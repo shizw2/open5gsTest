@@ -18,6 +18,7 @@
  */
 
 #include "ogs-app.h"
+#include <sys/stat.h>
 
 int __ogs_app_domain;
 
@@ -158,6 +159,22 @@ void ogs_app_terminate(void)
     ogs_core_terminate();
 }
 
+// 检测文件是否被修改
+int osg_app_is_config_modified(void) {
+    struct stat file_stat;
+    if (stat(ogs_app()->file, &file_stat) != 0) {
+        perror("Failed to get file status");
+        return 0;
+    }
+
+    if (file_stat.st_mtime > ogs_app()->file_last_modified_time) {
+        ogs_app()->file_last_modified_time = file_stat.st_mtime;
+        return 1;
+    }
+
+    return 0;
+}
+
 int ogs_app_config_read(void)
 {
     FILE *file;
@@ -171,6 +188,8 @@ int ogs_app_config_read(void)
         ogs_fatal("cannot open file `%s`", ogs_app()->file);
         return OGS_ERROR;
     }
+
+    osg_app_is_config_modified();
 
     ogs_assert(yaml_parser_initialize(&parser));
     yaml_parser_set_input_file(&parser, file);

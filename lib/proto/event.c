@@ -69,6 +69,8 @@ const char *ogs_event_get_name(ogs_event_t *e)
         return "OGS_EVENT_DBI_POLL_TIMER";
     case OGS_EVENT_DBI_MESSAGE:
         return "OGS_EVENT_DBI_MESSAGE";
+    case OGS_EVENT_YAML_CONFIG_CHECK_TIMER:
+        return "OGS_EVENT_YAML_CONFIG_CHECK_TIMER";
 
     default:
         break;

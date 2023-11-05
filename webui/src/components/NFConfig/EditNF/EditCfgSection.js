@@ -5,7 +5,7 @@ export const loggerSchema = {
     level: {
       type: "string",
       title: "Log Level",
-      enum: ["debug", "info", "warning", "error"],
+      enum: ["fatal", "error", "warn", "info", "debug", "trace"],
       default: "info",
     },
     file: {

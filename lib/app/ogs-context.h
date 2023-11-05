@@ -38,6 +38,9 @@ typedef struct ogs_app_context_s {
     const char *version;
 
     const char *file;
+    // 保存文件的最后修改时间
+    time_t file_last_modified_time;
+
     void *document;
 
     const char *db_uri;
