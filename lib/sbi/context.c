@@ -1055,19 +1055,74 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_service_type(
     return nf_instance;
 }
 
-ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_supi(
+static unsigned long long convertToNumber(char supi[], int length) {  
+    char supiSubstring[16];
+    if (supi == NULL || length <= 0 || length > 15) {   
+        ogs_error("invalid supi %s  or length %d.",supi,length);
+        return 0;
+    }
+    strncpy(supiSubstring, supi, length);
+    supiSubstring[length] = '\0';  
+    unsigned long long number = strtoull(supiSubstring, NULL, 10);
+    return number;
+}
+
+static int check_supi_ranges(
+        ogs_supi_range_t *supi_ranges, char *supi)
+{      
+    ogs_assert(supi_ranges);
+    int bestMatchLength = 0;    
+    int i;
+    
+    if (supi_ranges->num_of_supi_range == 0){
+        ogs_info("no supi range, check ok, supi:%s",supi);
+        return 16;//MAX_SUPI_LENGTH;//没有配置，则认为校验成功，返回最大匹配长度
+    }
+    
+    int supiLength = strlen(supi);
+
+    for (i = 0; i < supi_ranges->num_of_supi_range; i++) {
+        int startLength = strlen(supi_ranges->supi_ranges[i].start);
+
+        if (supiLength >= startLength) {
+            unsigned long long supiNumber = convertToNumber(supi, startLength);
+
+            unsigned long long startNumber = strtoull(supi_ranges->supi_ranges[i].start, NULL, 10);
+            unsigned long long endNumber = strtoull(supi_ranges->supi_ranges[i].end, NULL, 10);
+            ogs_info("check_supi_ranges,supiNumber:%llu, startNumber:%llu,endNumber:%llu.",supiNumber,startNumber,endNumber);
+            
+            if (supiNumber >= startNumber && supiNumber <= endNumber) {
+                int matchLength = startLength;
+                if (matchLength > bestMatchLength) {
+                    ogs_info("check_supi_ranges matched, supiNumber:%llu, startNumber:%llu,endNumber:%llu.",supiNumber,startNumber,endNumber);
+                    bestMatchLength = matchLength;                    
+                }
+            }
+        }
+    }
+    return bestMatchLength;
+}
+
+
+#if 1
+//本函数需要先执行
+void ogs_sbi_nf_instance_find_by_supi(ogs_sbi_nf_instance_t *matched_nf_instances[], int *matched_nf_count,
         OpenAPI_nf_type_e target_nf_type,
         OpenAPI_nf_type_e requester_nf_type,
         ogs_sbi_discovery_option_t *discovery_option, char *supi_id)
 {
     ogs_sbi_nf_instance_t *nf_instance = NULL;
-
+    ogs_sbi_nf_instance_t *tmp_matched_nf_instances[16];
+    int tmp_matched_nf_count = 0;
+    int max_prefix_length = 0;
+    int i;
+        
     ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
         if (!ogs_sbi_discovery_param_is_matched(nf_instance, target_nf_type, requester_nf_type, discovery_option)) {
             continue;
         }
 
-        ogs_info("ogs_sbi_nf_instance_find_by_supi, nf_instance->nf_type:%d, supi:%s.", nf_instance->nf_type, ue->supi);
+        ogs_info("ogs_sbi_nf_instance_find_by_supi, nf_instance->nf_type:%s, supi:%s.", OpenAPI_nf_type_ToString(nf_instance->nf_type), supi_id);
 
         switch (nf_instance->nf_type) {
             case OpenAPI_nf_type_UDM:
@@ -1102,25 +1157,90 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_supi(
 
                         if (prefix_length > max_prefix_length) {
                             max_prefix_length = prefix_length;
-                            matched_nf_count = 0;
-                            matched_nf_instances[matched_nf_count++] = nf_instance;
+                            tmp_matched_nf_count = 0;
+                            tmp_matched_nf_instances[tmp_matched_nf_count++] = nf_instance;
                         } else if (prefix_length == max_prefix_length) {
-                            matched_nf_instances[matched_nf_count++] = nf_instance;
+                            tmp_matched_nf_instances[tmp_matched_nf_count++] = nf_instance;
                         }
                     }
                 } else{
-                    matched_nf_instances[matched_nf_count++] = nf_instance;//兼容当前，如果没配置info,则也匹配成功
+                    tmp_matched_nf_instances[tmp_matched_nf_count++] = nf_instance;//兼容当前，如果没配置info,则也匹配成功
                 }
                 break;
 
             default:
-                matched_nf_instances[matched_nf_count++] = nf_instance;//兼容当前，不需要匹配info,则也匹配成功
+                tmp_matched_nf_instances[tmp_matched_nf_count++] = nf_instance;//兼容当前，不需要匹配info,则也匹配成功
                 break;
         }
     }
 
+    for (i = 0; i < tmp_matched_nf_count; i++) {
+        matched_nf_instances[i] = tmp_matched_nf_instances[i];
+    }
+    *matched_nf_count = tmp_matched_nf_count;
 }
+#endif
 
+#if 0
+void ogs_sbi_nf_instance_find_by_routing_indicator(ogs_sbi_nf_instance_t *matched_nf_instances[], int *matched_nf_count, char *desired_routing_indicator) {
+    int selected_nf_count = 0;
+    int i;
+    ogs_sbi_nf_instance_t *nf_instance;
+    ogs_sbi_nf_info_t *nf_info;
+
+    if (ogs_list_count(&nf_instance->nf_info_list) > 0) {
+        ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
+            if (nf_info->routing_indicator == NULL || strcmp(nf_info->routing_indicator, desired_routing_indicator) == 0) {
+                matched_nf_instances[selected_nf_count] = nf_instance;
+                selected_nf_count++;
+            }
+        }
+    } else{
+        
+    }
+
+    *matched_nf_count = selected_nf_count;
+
+    if (*matched_nf_count > 0) {
+        for (i = 0; i < *matched_nf_count; i++) {
+            ogs_info("matched_nf_instance, nf_type:%d.", matched_nf_instances[i]->nf_type);
+        }
+    } else {
+        ogs_error("matched_nf_instance, no valid instance.");
+    }
+}
+#endif
+void ogs_sbi_nf_instance_find_by_routing_indicator(ogs_sbi_nf_instance_t *matched_nf_instances[], int *matched_nf_count, char *desired_routing_indicator) {
+    int tmp_matched_nf_count = 0;
+    int i;
+    ogs_sbi_nf_instance_t *nf_instance;
+    ogs_sbi_nf_info_t *nf_info;
+
+    for (i = 0; i < *matched_nf_count; i++) {
+        nf_instance = matched_nf_instances[i];
+        if (ogs_list_count(&nf_instance->nf_info_list) > 0) {
+            ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
+                if (nf_info->routing_indicator == NULL || strcmp(nf_info->routing_indicator, desired_routing_indicator) == 0) {
+                    matched_nf_instances[tmp_matched_nf_count] = nf_instance;
+                    tmp_matched_nf_count++;
+                }
+            }
+        }else{//没有配置info的认为也满足
+            matched_nf_instances[tmp_matched_nf_count] = nf_instance;
+            tmp_matched_nf_count++;
+        }
+    }
+
+    *matched_nf_count = tmp_matched_nf_count;
+
+    if (*matched_nf_count > 0) {
+        for (i = 0; i < *matched_nf_count; i++) {
+            ogs_info("matched_nf_instance, nf_type:%s.", OpenAPI_nf_type_ToString(matched_nf_instances[i]->nf_type));
+        }
+    } else {
+        ogs_error("matched_nf_instance, no valid instance.");
+    }
+}
 
 bool ogs_sbi_nf_instance_maximum_number_is_reached(void)
 {
