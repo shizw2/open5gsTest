@@ -376,6 +376,7 @@ typedef struct ogs_sbi_nf_info_s {
         ogs_sbi_pcf_info_t pcf;
         ogs_sbi_ausf_info_t ausf;
     };
+    char *routing_indicator;//TODO
 } ogs_sbi_nf_info_t;
 
 void ogs_sbi_context_init(OpenAPI_nf_type_e nf_type);
@@ -444,6 +445,12 @@ ogs_sbi_client_t *ogs_sbi_client_find_by_service_name(
 ogs_sbi_client_t *ogs_sbi_client_find_by_service_type(
         ogs_sbi_nf_instance_t *nf_instance,
         ogs_sbi_service_type_e service_type);
+        
+void ogs_sbi_nf_instance_find_by_supi(ogs_sbi_nf_instance_t *matched_nf_instances[], int *matched_nf_count,
+        OpenAPI_nf_type_e target_nf_type,
+        OpenAPI_nf_type_e requester_nf_type,
+        ogs_sbi_discovery_option_t *discovery_option, char *supi_id);
+void ogs_sbi_nf_instance_find_by_routing_indicator(ogs_sbi_nf_instance_t *matched_nf_instances[], int *matched_nf_count, char * desired_routing_indicator);
 
 void ogs_sbi_client_associate(ogs_sbi_nf_instance_t *nf_instance);
 
