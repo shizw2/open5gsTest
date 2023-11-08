@@ -1,19 +1,14 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include "psMD5.h"
-typedef enum { false, true } bool;
+#include "license.h"
 
 #define MAX_SYS_INFO_LENGTH 4096
 
 
 char  m_szPrivateKey[32] = "pttptt_Security_2016-03-07";  /*存放私有密钥*/
 
-void dsGetSerialNumber(char *szSysInfo, int *piSystemInfoLen)
+void dsGetSerialNumber(unsigned char *szSysInfo, int *piSystemInfoLen)
 {
     //char szSysInfo[MAX_SYS_INFO_LENGTH] = { 0 };/*生成szSysInfo的算法可以修改*/
-	FILE  *MachineFile;
+	//FILE  *MachineFile;
 
     if (NULL == szSysInfo || NULL == piSystemInfoLen)
     {
@@ -63,7 +58,7 @@ int decrypt(int num) {
 
 void dsMakeMachineID()
 {
-    char szSysInfo[MAX_SYS_INFO_LENGTH] = { 0 };/*生成szSysInfo的算法可以修改*/
+    unsigned char szSysInfo[MAX_SYS_INFO_LENGTH] = { 0 };/*生成szSysInfo的算法可以修改*/
     int iSystemInfoLen = 0;
 	FILE  *MachineFile;
     char FilePathName[32] = "Machine.id";
@@ -103,8 +98,7 @@ void dsMakeLicense(int numUsers, int timeValue)
 
     BYTE   szSystemInfo[MAX_SYS_INFO_LENGTH + sizeof(int) + sizeof(int)];
     UINT   iSystemInfoLen=MAX_SYS_INFO_LENGTH;
-	UINT   iFileLength;
-	UINT   i;
+	UINT   iFileLength;	
 	FILE  *LicenseInputFile;    
     FILE           *LicenseOutputFile;
     unsigned char   digest[16];
@@ -196,22 +190,23 @@ bool isLicenseValid(int timeValue)
 
 void dsCheckLicense()
 { 
-    UINT            i;
     unsigned char   szDigest[16];
     unsigned char   szDigestFromFile[16];
     unsigned char   szSystemInfo[MAX_SYS_INFO_LENGTH];
     unsigned char   szSystemInfoFromFile[MAX_SYS_INFO_LENGTH];
+    unsigned char   szSystemInfoAll[MAX_SYS_INFO_LENGTH + sizeof(int) + sizeof(int)];
     char            FilePathName[32] = "License.dat";
     FILE           *LicenseInputFile;
-    UINT            iSystemInfoLen   = 0;
+    int             iSystemInfoLen   = 0;
     int numUsers;
     int timeValue;
+  
 
     memset(szDigest,0,16);
     memset(szDigestFromFile,0,16);
     memset(szSystemInfo,0,MAX_SYS_INFO_LENGTH);
     memset(szSystemInfoFromFile,0,MAX_SYS_INFO_LENGTH);
-
+    memset(szSystemInfoAll,0,MAX_SYS_INFO_LENGTH + sizeof(int) + sizeof(int));
 
 
     /* 读文件 */
@@ -229,12 +224,16 @@ void dsCheckLicense()
          return;
     }
     
+    memcpy(szSystemInfoAll, szSystemInfoFromFile, MAX_SYS_INFO_LENGTH);
+    
     if (fread(&numUsers, sizeof(int), 1, LicenseInputFile) != 1)
     {
         printf("License文件出错，无法读取用户数!\r\n");
         fclose(LicenseInputFile);
         return;
     }
+    
+    memcpy(szSystemInfoAll + MAX_SYS_INFO_LENGTH, &numUsers, sizeof(int));
     
     numUsers = decrypt(numUsers);
     printf("Decrypted numUsers: %d\n", numUsers);
@@ -245,6 +244,7 @@ void dsCheckLicense()
         fclose(LicenseInputFile);
         return;
     }
+    memcpy(szSystemInfoAll + MAX_SYS_INFO_LENGTH + sizeof(int), &timeValue, sizeof(int));
     
     timeValue = decrypt(timeValue);
     printf("Decrypted timeValue: %d\n", timeValue);
@@ -267,11 +267,11 @@ void dsCheckLicense()
     {
          printf("License文件信息与特征信息输入文件不一致!\r\n");
          return;
-    }
-
-
+    }    
+  
     /*算临时信息的MD5 digest */
-    dshmac_md5((unsigned char *)szSystemInfoFromFile,MAX_SYS_INFO_LENGTH + sizeof(int) + sizeof(int),(unsigned char *)m_szPrivateKey,32,szDigest);
+    dshmac_md5((unsigned char *)szSystemInfoAll,MAX_SYS_INFO_LENGTH + sizeof(int) + sizeof(int),(unsigned char *)m_szPrivateKey,32,szDigest);
+   
     if (memcmp(szDigest, szDigestFromFile, 16) != 0)  
     {
          printf("License文件信息被人为修改!\r\n");
@@ -284,41 +284,3 @@ void dsCheckLicense()
 
 }
 
-
-
-
-
-int main()
-{
-    int numUsers;
-    int year, month, day;
-    int timeValue;
-    time_t currentTime;
-    struct tm *localTime;
-    
-    printf("Enter the number of users: ");
-    scanf("%d", &numUsers);
-
-
-    // 获取当前日期
-    currentTime = time(NULL);
-    localTime = localtime(&currentTime);
-    int currentYear = localTime->tm_year + 1900;
-    int currentMonth = localTime->tm_mon + 1;
-    int currentDay = localTime->tm_mday;
-
-    printf("Enter a expiration date (YYYYMMDD): ");
-    scanf("%4d%2d%2d", &year, &month, &day);
-
-    // 检查输入日期是否小于当前日期
-    if (year < currentYear || (year == currentYear && month < currentMonth) || (year == currentYear && month == currentMonth && day < currentDay)) {
-        printf("Invalid date. Please enter a date not earlier than the current date.\n");
-        return 0;
-    }
-
-    timeValue = year * 10000 + month * 100 + day;
-    
-    dsMakeMachineID();
-    dsMakeLicense(numUsers,timeValue);
-    dsCheckLicense();
-}
