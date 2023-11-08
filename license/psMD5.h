@@ -3,14 +3,35 @@
 #ifndef _MD5_INCLUDE_H_
 #define _MD5_INCLUDE_H_
 
-#include "psPlat.h"
-#include "psDefOpr.h"
-
-#ifdef	PDS_VC_PROJECT
-#include "dsSPSInclude.h"
-#endif
+#include <stdlib.h>
 
 #pragma pack(1)
+
+typedef unsigned char   BYTE;
+typedef unsigned char   BITS;
+typedef unsigned char   BOOLEAN;
+typedef char            CHAR;
+
+
+typedef unsigned short  WORD16;
+typedef unsigned short  WORD;
+typedef signed short    SWORD16;
+
+typedef unsigned long   WORD32;
+typedef unsigned int   DWORD;
+typedef unsigned long   OSS_STATUS;
+typedef signed long     SWORD32;
+
+typedef int             INT;
+typedef int             BOOL;
+typedef long            LONG;
+typedef void            VOID;
+
+typedef unsigned int    UINT;
+
+typedef unsigned char*  PBYTE;
+typedef void*           LPVOID;
+#define        PACK_1  __attribute__ ((packed))
 
 /* Data structure for MD5 (Message-Digest) computation */
 typedef struct tagMD5_CTX 
