@@ -372,6 +372,12 @@ OpenAPI_nf_profile_t *ogs_nnrf_nfm_build_nf_profile(
             NFProfile->amf_info = AmfInfo;
         } else if (nf_instance->nf_type == OpenAPI_nf_type_UDM) {
             NFProfile->udm_info = UdmInfo;
+        } else if (nf_instance->nf_type == OpenAPI_nf_type_UDR) {
+            NFProfile->udr_info = UdrInfo;
+        } else if (nf_instance->nf_type == OpenAPI_nf_type_PCF) {
+            NFProfile->pcf_info = PcfInfo;
+        } else if (nf_instance->nf_type == OpenAPI_nf_type_AUSF) {
+            NFProfile->ausf_info = AusfInfo;
         } else {
             ogs_fatal("Not implemented NF-type[%s]",
                     OpenAPI_nf_type_ToString(nf_instance->nf_type));
@@ -421,7 +427,13 @@ void ogs_nnrf_nfm_free_nf_profile(OpenAPI_nf_profile_t *NFProfile)
     OpenAPI_lnode_t *node = NULL;
     OpenAPI_map_t *UdmInfoMap = NULL;
     OpenAPI_udm_info_t *UdmInfo = NULL;
-
+    OpenAPI_map_t *AusfInfoMap = NULL;
+    OpenAPI_ausf_info_t *AusfInfo = NULL;
+    OpenAPI_map_t *UdrInfoMap = NULL;
+    OpenAPI_udr_info_t *UdrInfo = NULL;
+    OpenAPI_map_t *PcfInfoMap = NULL;
+    OpenAPI_pcf_info_t *PcfInfo = NULL;
+    
     ogs_assert(NFProfile);
 
     if (NFProfile->fqdn)
@@ -470,6 +482,7 @@ void ogs_nnrf_nfm_free_nf_profile(OpenAPI_nf_profile_t *NFProfile)
     if (NFProfile->smf_info)
         free_smf_info(NFProfile->smf_info);
     
+    //udm
     OpenAPI_list_for_each(NFProfile->udm_info_list, node) {
         UdmInfoMap = node->data;
         if (UdmInfoMap) {
@@ -486,6 +499,7 @@ void ogs_nnrf_nfm_free_nf_profile(OpenAPI_nf_profile_t *NFProfile)
     if (NFProfile->udm_info)
         free_udm_info(NFProfile->udm_info);
 
+    //amf
     OpenAPI_list_for_each(NFProfile->amf_info_list, node) {
         AmfInfoMap = node->data;
         if (AmfInfoMap) {
@@ -504,7 +518,58 @@ void ogs_nnrf_nfm_free_nf_profile(OpenAPI_nf_profile_t *NFProfile)
 
     if (NFProfile->scp_info)
         free_scp_info(NFProfile->scp_info);
+    
+    //ausf
+    OpenAPI_list_for_each(NFProfile->ausf_info_list, node) {
+        AusfInfoMap = node->data;
+        if (AusfInfoMap) {
+            AusfInfo = AusfInfoMap->value;
+            if (AusfInfo)
+                free_ausf_info(AusfInfo);
+            if (AusfInfoMap->key)
+                ogs_free(AusfInfoMap->key);
+            ogs_free(AusfInfoMap);
+        }
+    }
+    OpenAPI_list_free(NFProfile->ausf_info_list);
 
+    if (NFProfile->ausf_info)
+        free_ausf_info(NFProfile->ausf_info);
+
+    //pcf
+    OpenAPI_list_for_each(NFProfile->pcf_info_list, node) {
+        PcfInfoMap = node->data;
+        if (PcfInfoMap) {
+            PcfInfo = PcfInfoMap->value;
+            if (PcfInfo)
+                free_pcf_info(PcfInfo);
+            if (AusfInfoMap->key)
+                ogs_free(PcfInfoMap->key);
+            ogs_free(PcfInfoMap);
+        }
+    }
+    OpenAPI_list_free(NFProfile->pcf_info_list);
+
+    if (NFProfile->pcf_info)
+        free_pcf_info(NFProfile->pcf_info);
+    
+    //udr
+    OpenAPI_list_for_each(NFProfile->udr_info_list, node) {
+        UdrInfoMap = node->data;
+        if (UdrInfoMap) {
+            UdrInfo = UdrInfoMap->value;
+            if (UdrInfo)
+                free_udr_info(UdrInfo);
+            if (UdrInfoMap->key)
+                ogs_free(UdrInfoMap->key);
+            ogs_free(UdrInfoMap);
+        }
+    }
+    OpenAPI_list_free(NFProfile->udr_info_list);
+
+    if (NFProfile->udr_info)
+        free_udr_info(NFProfile->udr_info);
+    
     ogs_free(NFProfile);
 }
 
@@ -1311,13 +1376,11 @@ static OpenAPI_udm_info_t *build_udm_info(ogs_sbi_nf_info_t *nf_info)
 
     SupiRangeList = build_supi_ranges(&nf_info->udm.supiRanges);
 
-    if (!SupiRangeList) {
-        ogs_error("No SupiRangeList");
-        free_udm_info(UdmInfo);
-        return NULL;
+    if (SupiRangeList) {
+        UdmInfo->supi_ranges = SupiRangeList;
     }
 
-    UdmInfo->supi_ranges = SupiRangeList;
+    
 
     /*SupiRangeList = OpenAPI_list_create();
     if (!SupiRangeList) {
@@ -1366,13 +1429,9 @@ static OpenAPI_udr_info_t *build_udr_info(ogs_sbi_nf_info_t *nf_info)
 
     SupiRangeList = build_supi_ranges(&nf_info->udr.supiRanges);
 
-    if (!SupiRangeList) {
-        ogs_error("No SupiRangeList");
-        free_udr_info(UdrInfo);
-        return NULL;
-    }
-
-    UdrInfo->supi_ranges = SupiRangeList;  
+    if (SupiRangeList) {
+        UdrInfo->supi_ranges = SupiRangeList;  
+    }    
 
     //udr的其他字段处理...
 
@@ -1394,13 +1453,11 @@ static OpenAPI_pcf_info_t *build_pcf_info(ogs_sbi_nf_info_t *nf_info)
 
     SupiRangeList = build_supi_ranges(&nf_info->pcf.supiRanges);
 
-    if (!SupiRangeList) {
-        ogs_error("No SupiRangeList");
-        free_pcf_info(PcfInfo);
-        return NULL;
+    if (SupiRangeList) {
+        PcfInfo->supi_ranges = SupiRangeList;  
     }
 
-    PcfInfo->supi_ranges = SupiRangeList;  
+    
 
     //pcf的其他字段处理...
 
@@ -1411,7 +1468,10 @@ static OpenAPI_ausf_info_t *build_ausf_info(ogs_sbi_nf_info_t *nf_info)
 {
     OpenAPI_ausf_info_t *AusfInfo = NULL;
     OpenAPI_list_t *SupiRangeList = NULL;
-
+    OpenAPI_list_t *RoutingIndicatorList = NULL;
+    char *RoutingIndicator = NULL;
+    int i;
+    
     ogs_assert(nf_info);  
 
     AusfInfo = ogs_calloc(1, sizeof(*AusfInfo));
@@ -1422,13 +1482,30 @@ static OpenAPI_ausf_info_t *build_ausf_info(ogs_sbi_nf_info_t *nf_info)
 
     SupiRangeList = build_supi_ranges(&nf_info->ausf.supiRanges);
 
-    if (!SupiRangeList) {
-        ogs_error("No SupiRangeList");
+    if (SupiRangeList) {
+        AusfInfo->supi_ranges = SupiRangeList;  
+    }   
+
+    RoutingIndicatorList = OpenAPI_list_create();
+    if (!RoutingIndicatorList) {
+        ogs_error("No RoutingIndicatorList");
         free_ausf_info(AusfInfo);
+        OpenAPI_list_free(RoutingIndicatorList);
         return NULL;
     }
 
-    AusfInfo->supi_ranges = SupiRangeList;  
+    for (i = 0;
+            i < nf_info->ausf.num_of_routing_indicator;
+            i++) {
+        RoutingIndicator = ogs_strdup(nf_info->ausf.routing_indicators[i]);
+
+        OpenAPI_list_add(RoutingIndicatorList, RoutingIndicator);
+    }  
+
+    if (RoutingIndicatorList->count)
+        AusfInfo->routing_indicators = RoutingIndicatorList;
+    else
+        OpenAPI_list_free(RoutingIndicatorList);
 
     //ausf的其他字段处理...
 
@@ -1685,7 +1762,8 @@ static void free_udm_info(OpenAPI_udm_info_t *UdmInfo)
     
     ogs_assert(UdmInfo);
     
-    free_supi_ranges(UdmInfo->supi_ranges);
+    if (UdmInfo->supi_ranges)
+        free_supi_ranges(UdmInfo->supi_ranges);
     ogs_free(UdmInfo);
 }
 
@@ -1693,7 +1771,8 @@ static void free_udr_info(OpenAPI_udr_info_t *UdrInfo)
 {        
     ogs_assert(UdrInfo);
     
-    free_supi_ranges(UdrInfo->supi_ranges);
+    if (UdrInfo->supi_ranges)
+        free_supi_ranges(UdrInfo->supi_ranges);
     ogs_free(UdrInfo);
 }
 
@@ -1701,16 +1780,26 @@ static void free_pcf_info(OpenAPI_pcf_info_t *PcfInfo)
 {        
     ogs_assert(PcfInfo);
     
-    free_supi_ranges(PcfInfo->supi_ranges);
+    if (PcfInfo->supi_ranges)
+        free_supi_ranges(PcfInfo->supi_ranges);
     ogs_free(PcfInfo);
 }
 
 static void free_ausf_info(OpenAPI_ausf_info_t *AusfInfo)
 {        
     ogs_assert(AusfInfo);
+    OpenAPI_lnode_t *node = NULL;
     
-    free_supi_ranges(AusfInfo->supi_ranges);
+    if (AusfInfo->supi_ranges)
+        free_supi_ranges(AusfInfo->supi_ranges);
     ogs_free(AusfInfo);
+    
+   
+    OpenAPI_list_for_each( AusfInfo->routing_indicators, node) {
+        ogs_info("free %s.",(char*)node->data);
+        ogs_free(node->data);
+    }
+    OpenAPI_list_free(AusfInfo->routing_indicators);
 }
 
 ogs_sbi_request_t *ogs_nnrf_nfm_build_update(void)

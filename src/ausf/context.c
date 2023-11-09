@@ -236,9 +236,35 @@ int ausf_context_parse_config(void)
                                     ogs_warn("No supi range info");
                                 }        
 
+                            } else if (!strcmp(info_key, "routing_indicator")) {
+                                ogs_yaml_iter_t routing_indicator_iter;
+                                ogs_yaml_iter_recurse(&info_iter,
+                                        &routing_indicator_iter);
+                                ogs_assert(ogs_yaml_iter_type(
+                                            &routing_indicator_iter) !=
+                                    YAML_MAPPING_NODE);
+
+                                do {
+                                    const char *v = NULL;
+
+                                    if (ogs_yaml_iter_type(&routing_indicator_iter) ==
+                                            YAML_SEQUENCE_NODE) {
+                                        if (!ogs_yaml_iter_next(
+                                                    &routing_indicator_iter))
+                                            break;
+                                    }
+
+                                    v = ogs_yaml_iter_value(&routing_indicator_iter);
+                                    if (v) {
+                                        ausf_info->routing_indicators[ausf_info->num_of_routing_indicator] = ogs_strdup(v);
+                                        ausf_info->num_of_routing_indicator++;                                        
+                                    }
+                                } while (
+                                    ogs_yaml_iter_type(&routing_indicator_iter) ==
+                                        YAML_SEQUENCE_NODE);
                             } else
-                                ogs_warn("unknown key `%s`", info_key);
-                        }
+                                    ogs_warn("unknown key `%s`", info_key);
+                            }
 
                     } while (ogs_yaml_iter_type(&info_array) ==
                             YAML_SEQUENCE_NODE);

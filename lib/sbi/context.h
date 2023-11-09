@@ -359,8 +359,12 @@ typedef struct ogs_sbi_pcf_info_s {
     ogs_supi_range_t supiRanges;
 } ogs_sbi_pcf_info_t;
 
+#define OGS_MAX_NUM_OF_ROUTING_INDICATOR    16
 typedef struct ogs_sbi_ausf_info_s {
     ogs_supi_range_t supiRanges;
+    
+    int num_of_routing_indicator;
+    char *routing_indicators[OGS_MAX_NUM_OF_ROUTING_INDICATOR];
 } ogs_sbi_ausf_info_t;
 
 typedef struct ogs_sbi_nf_info_s {

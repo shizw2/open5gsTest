@@ -1537,8 +1537,14 @@ static void pcf_info_free(ogs_sbi_pcf_info_t *pcf_info)
 
 static void ausf_info_free(ogs_sbi_ausf_info_t *ausf_info)
 {
+    int i;
     ogs_assert(ausf_info);
     supiRange_free(&ausf_info->supiRanges);
+    
+    for (i = 0; i < ausf_info->num_of_routing_indicator; i++) {     
+        ogs_free(ausf_info->routing_indicators[i]);
+    }
+    ausf_info->num_of_routing_indicator = 0;
 }
 
 void ogs_sbi_nf_info_remove(ogs_list_t *list, ogs_sbi_nf_info_t *nf_info)

@@ -563,7 +563,8 @@ static void handle_ausf_info(
         ogs_sbi_nf_instance_t *nf_instance, OpenAPI_ausf_info_t *AusfInfo)
 {
     ogs_sbi_nf_info_t *nf_info = NULL;
- 
+    OpenAPI_lnode_t *node = NULL;
+    
     ogs_assert(nf_instance);
     ogs_assert(AusfInfo);
 
@@ -571,7 +572,13 @@ static void handle_ausf_info(
             &nf_instance->nf_info_list, OpenAPI_nf_type_AUSF);
     ogs_assert(nf_info);
     
-    handle_supiRanges(&nf_info->ausf.supiRanges,AusfInfo->supi_ranges);  
+    handle_supiRanges(&nf_info->ausf.supiRanges,AusfInfo->supi_ranges);
+    
+
+    OpenAPI_list_for_each(AusfInfo->routing_indicators, node) {
+        nf_info->ausf.routing_indicators[nf_info->ausf.num_of_routing_indicator] = ogs_strdup(node->data);
+        nf_info->ausf.num_of_routing_indicator++;
+    }
 }
 
 static void handle_validity_time(
