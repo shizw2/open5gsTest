@@ -1212,23 +1212,40 @@ void ogs_sbi_nf_instance_find_by_routing_indicator(ogs_sbi_nf_instance_t *matche
 #endif
 void ogs_sbi_nf_instance_find_by_routing_indicator(ogs_sbi_nf_instance_t *matched_nf_instances[], int *matched_nf_count, char *desired_routing_indicator) {
     int tmp_matched_nf_count = 0;
-    int i;
+    int i,j;
     ogs_sbi_nf_instance_t *nf_instance;
-    ogs_sbi_nf_info_t *nf_info;
+    ogs_sbi_nf_info_t *nf_info;    
 
     for (i = 0; i < *matched_nf_count; i++) {
         nf_instance = matched_nf_instances[i];
-        if (ogs_list_count(&nf_instance->nf_info_list) > 0) {
-            ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
-                if (nf_info->routing_indicator == NULL || strcmp(nf_info->routing_indicator, desired_routing_indicator) == 0) {
-                    matched_nf_instances[tmp_matched_nf_count] = nf_instance;
-                    tmp_matched_nf_count++;
+        
+        switch (nf_instance->nf_type) {
+            case OpenAPI_nf_type_AUSF:
+                if (ogs_list_count(&nf_instance->nf_info_list) > 0) {
+                    bool has_routing_indicator = false;
+                    ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {                        
+                        for (j = 0; j < nf_info->ausf.num_of_routing_indicator; i++) { 
+                            has_routing_indicator = true;                        
+                            if (strcmp(nf_info->ausf.routing_indicators[j], desired_routing_indicator) == 0) {
+                                matched_nf_instances[tmp_matched_nf_count] = nf_instance;
+                                tmp_matched_nf_count++;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (has_routing_indicator == false){
+                        matched_nf_instances[tmp_matched_nf_count++] = nf_instance;//兼容当前，如果info下没配置routing_indicator，则认为匹配成功
+                    }
+                } else{
+                    matched_nf_instances[tmp_matched_nf_count++] = nf_instance;//兼容当前，如果没配置info,则也匹配成功
                 }
-            }
-        }else{//没有配置info的认为也满足
-            matched_nf_instances[tmp_matched_nf_count] = nf_instance;
-            tmp_matched_nf_count++;
-        }
+                break;
+
+            default:
+                matched_nf_instances[tmp_matched_nf_count++] = nf_instance;//兼容当前，不需要匹配info,则也匹配成功
+                break;
+        }     
     }
 
     *matched_nf_count = tmp_matched_nf_count;

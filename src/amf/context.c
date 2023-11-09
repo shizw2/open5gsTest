@@ -2538,8 +2538,10 @@ void amf_sbi_select_nf(
         ogs_sbi_nf_instance_find_by_supi(matched_nf_instances,&matched_nf_count,target_nf_type, requester_nf_type, discovery_option,supi_id);
         ogs_info("after ogs_sbi_nf_instance_find_by_supi, matched_nf_count:%d.", matched_nf_count);
         
-        ogs_sbi_nf_instance_find_by_routing_indicator(matched_nf_instances,&matched_nf_count,supi_id);
-        ogs_info("after ogs_sbi_nf_instance_find_by_routing_indicator, matched_nf_count:%d.", matched_nf_count);
+        if (routing_indicator != NULL){
+            ogs_sbi_nf_instance_find_by_routing_indicator(matched_nf_instances,&matched_nf_count,routing_indicator);
+            ogs_info("after ogs_sbi_nf_instance_find_by_routing_indicator, matched_nf_count:%d.", matched_nf_count);
+        }
         
         // 从可选NF列表中选择目标NF
         if (matched_nf_count > 0) {        
