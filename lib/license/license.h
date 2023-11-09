@@ -9,9 +9,9 @@ typedef enum { false, true } bool;
 void dsGetSerialNumber(unsigned char *szSysInfo, int *piSystemInfoLen);
 int encrypt(int num);
 int decrypt(int num);
-void dsMakeMachineID();
+void dsMakeMachineID(void);
 void dsMakeLicense(int numUsers, int timeValue);
 bool isLicenseValid(int timeValue);
-void dsCheckLicense();
+void dsCheckLicense(void);
 #endif /* End of _LICENSE_INCLUDE_H_ */
 

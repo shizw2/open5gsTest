@@ -56,7 +56,7 @@ int decrypt(int num) {
 }
 
 
-void dsMakeMachineID()
+void dsMakeMachineID(void)
 {
     unsigned char szSysInfo[MAX_SYS_INFO_LENGTH] = { 0 };/*生成szSysInfo的算法可以修改*/
     int iSystemInfoLen = 0;
@@ -190,7 +190,7 @@ bool isLicenseValid(int timeValue)
 }
 
 
-void dsCheckLicense()
+void dsCheckLicense(void)
 { 
     unsigned char   szDigest[16];
     unsigned char   szDigestFromFile[16];
