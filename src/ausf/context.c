@@ -263,8 +263,8 @@ int ausf_context_parse_config(void)
                                     ogs_yaml_iter_type(&routing_indicator_iter) ==
                                         YAML_SEQUENCE_NODE);
                             } else
-                                    ogs_warn("unknown key `%s`", info_key);
-                            }
+                                ogs_warn("unknown key `%s`", info_key);
+                        }
 
                     } while (ogs_yaml_iter_type(&info_array) ==
                             YAML_SEQUENCE_NODE);
