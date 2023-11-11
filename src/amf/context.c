@@ -2534,13 +2534,17 @@ void amf_sbi_select_nf(
         int matched_nf_count = 0;
         int max_prefix_length = 0;
         
-      
-        ogs_sbi_nf_instance_find_by_supi(matched_nf_instances,&matched_nf_count,target_nf_type, requester_nf_type, discovery_option,supi_id);
-        ogs_info("after ogs_sbi_nf_instance_find_by_supi, matched_nf_count:%d.", matched_nf_count);
+        ogs_sbi_nf_instances_find_by_discovery_param(matched_nf_instances,&matched_nf_count,target_nf_type, requester_nf_type, discovery_option);
+        ogs_info("after ogs_sbi_nf_instances_find_by_discovery_param, matched_nf_count:%d.", matched_nf_count);
+
+        if (supi_id != NULL){
+            ogs_sbi_nf_instances_find_by_supi(matched_nf_instances,&matched_nf_count,target_nf_type, requester_nf_type, discovery_option,supi_id);
+            ogs_info("after ogs_sbi_nf_instances_find_by_supi, matched_nf_count:%d.", matched_nf_count);
+        }
         
         if (routing_indicator != NULL){
-            ogs_sbi_nf_instance_find_by_routing_indicator(matched_nf_instances,&matched_nf_count,routing_indicator);
-            ogs_info("after ogs_sbi_nf_instance_find_by_routing_indicator, matched_nf_count:%d.", matched_nf_count);
+            ogs_sbi_nf_instances_find_by_routing_indicator(matched_nf_instances,&matched_nf_count,routing_indicator);
+            ogs_info("after ogs_sbi_nf_instances_find_by_routing_indicator, matched_nf_count:%d.", matched_nf_count);
         }
         
         // 从可选NF列表中选择目标NF
@@ -3882,7 +3886,7 @@ int yaml_check_timeout(void)
 int yaml_check_proc(void)
 {
     int rv;    
-    ogs_info("check yaml config.");
+    //ogs_info("check yaml config.");
 
     if (!osg_app_is_config_modified()) {
         return 0;//如果文件未修改,则返回

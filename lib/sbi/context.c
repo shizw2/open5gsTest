@@ -1076,7 +1076,7 @@ static int check_supi_ranges(
     
     if (supi_ranges->num_of_supi_range == 0){
         ogs_info("no supi range, check ok, supi:%s",supi);
-        return 16;//MAX_SUPI_LENGTH;//没有配置，则认为校验成功，返回最大匹配长度
+        return 0;//没有配置，则认为校验成功，返回的最大匹配长度为0
     }
     
     int supiLength = strlen(supi);
@@ -1103,10 +1103,33 @@ static int check_supi_ranges(
     return bestMatchLength;
 }
 
+//找到满足条件的NF集合
+void ogs_sbi_nf_instances_find_by_discovery_param(ogs_sbi_nf_instance_t *matched_nf_instances[], int *matched_nf_count,
+        OpenAPI_nf_type_e target_nf_type,
+        OpenAPI_nf_type_e requester_nf_type,
+        ogs_sbi_discovery_option_t *discovery_option)
+{
+    ogs_sbi_nf_instance_t *nf_instance = NULL;
 
-#if 1
-//本函数需要先执行
-void ogs_sbi_nf_instance_find_by_supi(ogs_sbi_nf_instance_t *matched_nf_instances[], int *matched_nf_count,
+    ogs_assert(target_nf_type);
+    ogs_assert(requester_nf_type);
+
+    ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
+        ogs_info("ogs_sbi_nf_instances_find_by_discovery_param,current_nf_type:%s,target_nf_type:%s,requester_nf_type:%s.",
+        OpenAPI_nf_type_ToString(nf_instance->nf_type),
+        OpenAPI_nf_type_ToString(target_nf_type),
+        OpenAPI_nf_type_ToString(requester_nf_type));
+        if (ogs_sbi_discovery_param_is_matched(
+                    nf_instance, target_nf_type, requester_nf_type,
+                    discovery_option) == true)
+        {
+            matched_nf_instances[(*matched_nf_count)++] = nf_instance;
+        }
+    }
+}
+
+//找到满足条件的NF集合
+void ogs_sbi_nf_instances_find_by_supi(ogs_sbi_nf_instance_t *matched_nf_instances[], int *matched_nf_count,
         OpenAPI_nf_type_e target_nf_type,
         OpenAPI_nf_type_e requester_nf_type,
         ogs_sbi_discovery_option_t *discovery_option, char *supi_id)
@@ -1117,17 +1140,16 @@ void ogs_sbi_nf_instance_find_by_supi(ogs_sbi_nf_instance_t *matched_nf_instance
     int max_prefix_length = 0;
     int i;
         
-    ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
-        if (!ogs_sbi_discovery_param_is_matched(nf_instance, target_nf_type, requester_nf_type, discovery_option)) {
-            continue;
-        }
+    for (i = 0; i < *matched_nf_count; i++) {
+        nf_instance = matched_nf_instances[i];
 
-        ogs_info("ogs_sbi_nf_instance_find_by_supi, nf_instance->nf_type:%s, supi:%s.", OpenAPI_nf_type_ToString(nf_instance->nf_type), supi_id);
+        ogs_info("ogs_sbi_nf_instances_find_by_supi, nf_instance->nf_type:%s, supi:%s.", OpenAPI_nf_type_ToString(nf_instance->nf_type), supi_id);
 
         switch (nf_instance->nf_type) {
             case OpenAPI_nf_type_UDM:
             case OpenAPI_nf_type_PCF:
             case OpenAPI_nf_type_UDR:
+            case OpenAPI_nf_type_AUSF:
                 if (ogs_list_count(&nf_instance->nf_info_list) > 0) {
                     ogs_sbi_nf_info_t *nf_info = NULL;
                     int prefix_length = 0;
@@ -1137,39 +1159,56 @@ void ogs_sbi_nf_instance_find_by_supi(ogs_sbi_nf_instance_t *matched_nf_instance
                             continue;
                         }
 
+                        ogs_supi_range_t supi_ranges;
+
                         switch (nf_instance->nf_type) {
                             case OpenAPI_nf_type_UDM:
-                                prefix_length = check_supi_ranges(&nf_info->udm.supiRanges, supi_id);
+                                supi_ranges = nf_info->udm.supiRanges;
                                 break;
                             case OpenAPI_nf_type_PCF:
-                                prefix_length = check_supi_ranges(&nf_info->pcf.supiRanges, supi_id);
+                                supi_ranges = nf_info->pcf.supiRanges;
                                 break;
                             case OpenAPI_nf_type_UDR:
-                                prefix_length = check_supi_ranges(&nf_info->udr.supiRanges, supi_id);
+                                supi_ranges = nf_info->udr.supiRanges;
+                                break;
+                            case OpenAPI_nf_type_AUSF:
+                                supi_ranges = nf_info->ausf.supiRanges;
                                 break;
                             default:
                                 break;
                         }
 
-                        if (prefix_length == 0) {
-                            continue;
-                        }
+                        if (supi_ranges.num_of_supi_range > 0){
+                            prefix_length = check_supi_ranges(&supi_ranges, supi_id);
 
-                        if (prefix_length > max_prefix_length) {
-                            max_prefix_length = prefix_length;
-                            tmp_matched_nf_count = 0;
-                            tmp_matched_nf_instances[tmp_matched_nf_count++] = nf_instance;
-                        } else if (prefix_length == max_prefix_length) {
-                            tmp_matched_nf_instances[tmp_matched_nf_count++] = nf_instance;
+                            if (prefix_length == 0) {
+                                continue;
+                            }
+
+                            if (prefix_length > max_prefix_length) {
+                                max_prefix_length = prefix_length;
+                                tmp_matched_nf_count = 0;
+                                tmp_matched_nf_instances[tmp_matched_nf_count++] = nf_instance;
+                            } else if (prefix_length == max_prefix_length) {
+                                tmp_matched_nf_instances[tmp_matched_nf_count++] = nf_instance;
+                            }
+                        } else {
+                            if (max_prefix_length == 0){
+                                tmp_matched_nf_instances[tmp_matched_nf_count++] = nf_instance;//兼容当前，如果没配置info,则也匹配成功
+                            }
                         }
                     }
                 } else{
-                    tmp_matched_nf_instances[tmp_matched_nf_count++] = nf_instance;//兼容当前，如果没配置info,则也匹配成功
+                    if (max_prefix_length == 0){
+                        tmp_matched_nf_instances[tmp_matched_nf_count++] = nf_instance;//兼容当前，如果没配置info,则也匹配成功
+                    }
                 }
                 break;
 
             default:
-                tmp_matched_nf_instances[tmp_matched_nf_count++] = nf_instance;//兼容当前，不需要匹配info,则也匹配成功
+                if (max_prefix_length == 0){
+                    tmp_matched_nf_instances[tmp_matched_nf_count++] = nf_instance;//兼容当前，不需要匹配info,则也匹配成功
+                }
                 break;
         }
     }
@@ -1179,38 +1218,9 @@ void ogs_sbi_nf_instance_find_by_supi(ogs_sbi_nf_instance_t *matched_nf_instance
     }
     *matched_nf_count = tmp_matched_nf_count;
 }
-#endif
 
-#if 0
-void ogs_sbi_nf_instance_find_by_routing_indicator(ogs_sbi_nf_instance_t *matched_nf_instances[], int *matched_nf_count, char *desired_routing_indicator) {
-    int selected_nf_count = 0;
-    int i;
-    ogs_sbi_nf_instance_t *nf_instance;
-    ogs_sbi_nf_info_t *nf_info;
-
-    if (ogs_list_count(&nf_instance->nf_info_list) > 0) {
-        ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
-            if (nf_info->routing_indicator == NULL || strcmp(nf_info->routing_indicator, desired_routing_indicator) == 0) {
-                matched_nf_instances[selected_nf_count] = nf_instance;
-                selected_nf_count++;
-            }
-        }
-    } else{
-        
-    }
-
-    *matched_nf_count = selected_nf_count;
-
-    if (*matched_nf_count > 0) {
-        for (i = 0; i < *matched_nf_count; i++) {
-            ogs_info("matched_nf_instance, nf_type:%d.", matched_nf_instances[i]->nf_type);
-        }
-    } else {
-        ogs_error("matched_nf_instance, no valid instance.");
-    }
-}
-#endif
-void ogs_sbi_nf_instance_find_by_routing_indicator(ogs_sbi_nf_instance_t *matched_nf_instances[], int *matched_nf_count, char *desired_routing_indicator) {
+//找到满足条件的NF集合
+void ogs_sbi_nf_instances_find_by_routing_indicator(ogs_sbi_nf_instance_t *matched_nf_instances[], int *matched_nf_count, char *desired_routing_indicator) {
     int tmp_matched_nf_count = 0;
     int i,j;
     ogs_sbi_nf_instance_t *nf_instance;
