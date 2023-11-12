@@ -61,10 +61,11 @@ const NFConfig = {
                   kind: 'scalar',
                   construct: data => {
                     if (typeof data === 'string' && data.startsWith('0')) {
-                      console.log("trun to string:",data)
+                      //console.log("trun to string:",data)
                       return String(data);
                     }
                     if (!isNaN(data)){
+                      //console.log("trun to number:",data)
                       return Number(data);
                     }
                     return data;
@@ -79,6 +80,7 @@ const NFConfig = {
             const filePath = path.join(directoryPath, fileName);
 
             const yamlData = fs.readFileSync(filePath, 'utf8');
+            //const updatedYamlData = yamlData.replace(/(\[[^\]]+\])/g, "'$1'");//原本想将[]表示的数组转成字符串的，后还是直接将其改成数组类型
             const configData = yaml.load(yamlData,options);
 
             // 提取纯文件名作为 _id（不包括目录和扩展名）

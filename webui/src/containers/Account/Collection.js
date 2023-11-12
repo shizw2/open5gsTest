@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
 import { MODEL, fetchAccounts, deleteAccount } from 'modules/crud/account';
+import { Ommlog} from 'modules/crud/ommlog';
 import { clearActionStatus } from 'modules/crud/actions';
 import { select, selectActionStatus } from 'modules/crud/selectors';
 import * as Notification from 'modules/notification/actions';
@@ -135,6 +136,7 @@ class Collection extends Component {
           this.documentHandler.hide();
 
           dispatch(deleteAccount(this.state.confirm.username));
+          dispatch(Ommlog.createOmmlog('delete',"账号管理",{},{},"账号名称:"+this.state.confirm.username));
         }
       }
     }

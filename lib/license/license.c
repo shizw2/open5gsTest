@@ -4,6 +4,8 @@
 
 
 char  m_szPrivateKey[32] = "pttptt_Security_2016-03-07";  /*存放私有密钥*/
+int numUsers;
+int timeValue;
 
 void dsGetSerialNumber(unsigned char *szSysInfo, int *piSystemInfoLen)
 {
@@ -169,7 +171,7 @@ void dsMakeLicense(int numUsers, int timeValue)
 	printf("成功生成License文件，可以拷贝给用户!\r\n");   
 }
 
-bool isLicenseValid(int timeValue)
+bool isLicenseExpired()
 {
     time_t currentTime;
     time(&currentTime);
@@ -189,8 +191,13 @@ bool isLicenseValid(int timeValue)
     }
 }
 
+int getLicenseUeNum()
+{
+    return numUsers;
+}
 
-void dsCheckLicense(void)
+
+bool dsCheckLicense(void)
 { 
     unsigned char   szDigest[16];
     unsigned char   szDigestFromFile[16];
@@ -200,9 +207,6 @@ void dsCheckLicense(void)
     char            FilePathName[32] = "License.dat";
     FILE           *LicenseInputFile;
     int             iSystemInfoLen   = 0;
-    int numUsers;
-    int timeValue;
-  
 
     memset(szDigest,0,16);
     memset(szDigestFromFile,0,16);
@@ -215,7 +219,7 @@ void dsCheckLicense(void)
     if ((LicenseInputFile = fopen(FilePathName, "rb")) == NULL)
     {
          printf("License文件不存在失败,请重新选择文件!\r\n");
-         return;
+         return false;
     }
     
     /* 读取系统信息 */
@@ -223,7 +227,7 @@ void dsCheckLicense(void)
     {
          printf("License文件出错，该文件被人为修改1!\r\n");
          fclose(LicenseInputFile);
-         return;
+         return false;
     }
     
     memcpy(szSystemInfoAll, szSystemInfoFromFile, MAX_SYS_INFO_LENGTH);
@@ -232,7 +236,7 @@ void dsCheckLicense(void)
     {
         printf("License文件出错，无法读取用户数!\r\n");
         fclose(LicenseInputFile);
-        return;
+        return false;
     }
     
     memcpy(szSystemInfoAll + MAX_SYS_INFO_LENGTH, &numUsers, sizeof(int));
@@ -244,7 +248,7 @@ void dsCheckLicense(void)
     {
         printf("License文件出错，无法读取时限!\r\n");
         fclose(LicenseInputFile);
-        return;
+        return false;
     }
     memcpy(szSystemInfoAll + MAX_SYS_INFO_LENGTH + sizeof(int), &timeValue, sizeof(int));
     
@@ -255,7 +259,7 @@ void dsCheckLicense(void)
     {
          printf("License文件出错，该文件被人为修改2!\r\n");
          fclose(LicenseInputFile);
-         return;
+         return false;
     }
     fclose(LicenseInputFile);
 
@@ -268,7 +272,7 @@ void dsCheckLicense(void)
     if (memcmp(szSystemInfo,szSystemInfoFromFile, MAX_SYS_INFO_LENGTH) != 0)  
     {
         printf("License文件信息与特征信息输入文件不一致!\r\n");
-        return;
+        return false ;
     }else{
         printf("硬件特征信息验证成功!\r\n"); 
     }
@@ -279,12 +283,15 @@ void dsCheckLicense(void)
     if (memcmp(szDigest, szDigestFromFile, 16) != 0)  
     {
          printf("License文件信息被人为修改!\r\n");
-         return;
+         return false;
     }
 
     printf("License文件正确!\r\n");
     
-    isLicenseValid(timeValue);
+    if (isLicenseExpired()){
+        return false;
+    }
 
+    return true;
 }
 

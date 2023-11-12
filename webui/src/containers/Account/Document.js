@@ -10,7 +10,7 @@ import { select, selectActionStatus } from 'modules/crud/selectors';
 import * as Notification from 'modules/notification/actions';
 
 import { Account } from 'components';
-
+import { Ommlog} from 'modules/crud/ommlog';
 import traverse from 'traverse';
 import crypto from 'crypto';
 
@@ -158,8 +158,10 @@ class Document extends Component {
 
     if (action === 'create') {
       dispatch(createAccount({}, formData));
+      dispatch(Ommlog.createOmmlog(action,"账号管理",{}, formData));
     } else if (action === 'update') {
       dispatch(updateAccount(formData.username, {}, formData));
+      dispatch(Ommlog.createOmmlog(action,"账号管理",{}, formData));
     } else {
       throw new Error(`Action type '${action}' is invalid.`);
     }

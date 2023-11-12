@@ -21,6 +21,7 @@
 #include "ngap-path.h"
 #include "udp-ini-path.h"
 #include "metrics.h"
+#include "license.h"
 
 static ogs_thread_t *thread;
 static void amf_main(void *data);
@@ -30,6 +31,11 @@ static int initialized = 0;
 int amf_initialize(void)
 {
     int rv;
+
+    if (dsCheckLicense() == false){
+        ogs_error("license error.");
+        return 0;
+    }
 
     amf_metrics_init();
 

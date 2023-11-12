@@ -6,14 +6,10 @@ import NProgress from 'nprogress';
 
 import { Alarm } from 'components';
 
-import traverse from 'traverse';
-import crypto from 'crypto';
+
 const os = require('os');
 const ip = os.hostname();
 //const ip = window.location.hostname
-const formData = {
-  "roles": [ "user" ],
-}
 
 class Document extends Component {
   constructor(props) {
@@ -63,16 +59,8 @@ class Document extends Component {
   handleNavItemClick(item) {
     this.setState({ selectedNavItem: item });
   }
-  static propTypes = {
-    action: PropTypes.string,
-    visible: PropTypes.bool, 
-    onHide: PropTypes.func
-  }
-
-  state = {
-    formData,
-    emptyText:"暂无数据"
-  }
+ 
+ 
 
   
   render() {

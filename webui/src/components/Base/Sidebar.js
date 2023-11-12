@@ -11,7 +11,7 @@ import AccountIcon from 'react-icons/lib/md/vpn-key';
 import ConfigIcon from 'react-icons/lib/md/settings';
 import AlertIcon from 'react-icons/lib/go/alert';
 import PerformanceIcon from 'react-icons/lib/go/graph';
-
+import OprlogIcon from 'react-icons/lib/go/steps';
 import properties from '../../../properties'; // 导入配置文件
 
 const Menu = styled.div`
@@ -119,6 +119,10 @@ const Sidebar = ({ isOpen, width, selectedView, onSelectView }) => (
     <Item name="performance" selected={selectedView} onSelect={onSelectView}>
       <Icon><PerformanceIcon/></Icon>
       <Title>{properties.base_performance}</Title>
+    </Item>
+    <Item name="oprlog" selected={selectedView} onSelect={onSelectView}>
+      <Icon><OprlogIcon/></Icon>
+      <Title>{properties.base_oprlog}</Title>
     </Item>
     <Item name="account" selected={selectedView} onSelect={onSelectView}>
       <Icon><AccountIcon/></Icon>

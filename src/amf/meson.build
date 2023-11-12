@@ -71,6 +71,7 @@ libamf = static_library('amf',
                     libsctp_dep,
                     libngap_dep,
                     libnas_5gs_dep,
+                    liblicense_dep,
                     libsbi_dep],
     install : false)
 
@@ -80,6 +81,7 @@ libamf_dep = declare_dependency(
                     libsctp_dep,
                     libngap_dep,
                     libnas_5gs_dep,
+                    liblicense_dep,
                     libsbi_dep])
 
 amf_sources = files('''

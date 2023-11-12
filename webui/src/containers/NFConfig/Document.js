@@ -10,7 +10,7 @@ import { select, selectActionStatus } from 'modules/crud/selectors';
 import * as Notification from 'modules/notification/actions';
 
 import { NFConfig } from 'components';
-
+import { Ommlog} from 'modules/crud/ommlog';
 import traverse from 'traverse';
 
 const formData = {
@@ -242,8 +242,10 @@ class Document extends Component {
 
     if (action === 'create') {
       dispatch(createNFConfig({}, formData));
+      dispatch(Ommlog.createOmmlog(action,"配置管理",{}, formData));
     } else if (action === 'update') {
       dispatch(updateNFConfig(formData._id, {}, formData));
+      dispatch(Ommlog.createOmmlog(action,"配置管理",{}, formData));
     } else {
       throw new Error(`Action type '${action}' is invalid.`);
     }

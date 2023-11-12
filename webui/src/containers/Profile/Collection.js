@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
 import { MODEL, fetchProfiles, deleteProfile } from 'modules/crud/profile';
+import { Ommlog} from 'modules/crud/ommlog';
 import { clearActionStatus } from 'modules/crud/actions';
 import { select, selectActionStatus } from 'modules/crud/selectors';
 import * as Notification from 'modules/notification/actions';
@@ -156,8 +157,18 @@ class Collection extends Component {
           this.confirmHandler.hide();
           this.documentHandler.hide();
           this.viewHandler.hide();
-
+          
           dispatch(deleteProfile(this.state.confirm._id));
+          let j=0;
+          for(let i=0;i<this.props.profiles.data.length;i++){
+            if(this.props.profiles.data[i]._id===this.state.confirm._id){
+              j=i;
+              break;
+            }            
+          }
+          console.log("stat============:",this.props.profiles);
+          console.log("stat============:",this.props.profiles.data[j].title);
+          dispatch(Ommlog.createOmmlog('delete',"签约模板",{},{},"被删除签约模板名称- "+this.props.profiles.data[j].title));
         }
       }
     }

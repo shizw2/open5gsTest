@@ -143,8 +143,8 @@ export const GuamiSection = ({ guamis }) => (
           {guamis.map((item, index) => (
             <div key={index}>
               <div>- plmn_id:</div>
-              <div className="twenty-spaces">mcc: {item.plmn_id.mcc}</div>
-              <div className="twenty-spaces">mnc: {item.plmn_id.mnc}</div>
+              <div className="twenty-spaces">mcc: {item.plmn_id.mcc.toString()}</div>
+              <div className="twenty-spaces">mnc: {item.plmn_id.mnc.toString()}</div>
               <div>&nbsp;&nbsp;amf_id:</div>
               <div className="twenty-spaces">region: {item.amf_id.region}</div>
               <div className="twenty-spaces">set: {item.amf_id.set}</div>
@@ -165,9 +165,9 @@ export const TaiSection = ({ tais }) => (
           {tais.map((item, index) => (
             <div key={index}>
               <div>- plmn_id:</div>
-              <div className="twenty-spaces">mcc: {item.plmn_id.mcc}</div>
-              <div className="twenty-spaces">mnc: {item.plmn_id.mnc}</div>
-              <div>&nbsp;&nbsp;tac: {item.tac}</div>
+              <div className="twenty-spaces">mcc: {item.plmn_id.mcc.toString()}</div>
+              <div className="twenty-spaces">mnc: {item.plmn_id.mnc.toString()}</div>
+              <div>&nbsp;&nbsp;tac: [{item.tac.join(', ')}]</div>
             </div>
           ))}
         </div>
@@ -185,8 +185,8 @@ export const PlmnSupportSection = ({ plmnSupport }) => (
           {plmnSupport.map((item, index) => (
             <div key={index}>
               <div>- plmn_id:</div>
-              <div className="twenty-spaces">mcc: {item.plmn_id.mcc}</div>
-              <div className="twenty-spaces">mnc: {item.plmn_id.mnc}</div>
+              <div className="twenty-spaces">mcc: {item.plmn_id.mcc.toString()}</div>
+              <div className="twenty-spaces">mnc: {item.plmn_id.mnc.toString()}</div>
               {item.s_nssai && (
                 <div>
                   <div>&nbsp;&nbsp;s_nssai:</div>

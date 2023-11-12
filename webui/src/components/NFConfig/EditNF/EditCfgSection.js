@@ -692,6 +692,20 @@ export const taiSchema = {
         //required: ["mcc", "mnc"]
       },
       tac: {
+        type: "array",
+        title: "TAC",
+        items: {
+          type: "string",
+          pattern: /^(?:\d+|\d+-\d+)$/,
+  	      messages: {
+            pattern: "Format like 1 or 3-5",
+            type: "Format like 1 or 3-5",
+          },
+          required: true,
+        }
+      }
+      /*
+      tac: {
         type: "string",
         title: "TAC",
         pattern: /^(\d+|\[\d+(?:-\d+)?(?:, \d+(?:-\d+)?)*])$/,
@@ -700,6 +714,7 @@ export const taiSchema = {
           pattern: "Format like 1 or [1, 3-8, 10, 12-15]"
         }
       }
+      */
     },
     //required: ["plmn_id", "tac"]
   }
@@ -721,9 +736,11 @@ export const taiUiSchema = {
     },
     tac: {
       classNames: "col-xs-5",
-      //"ui:title": <CustomTitle18 title="TAC" />,
-      "ui:title": <CustomTitle18Border39 title="TAC" />,
-      "ui:placeholder": "Format like 1 or [1, 3-8, 10, 12-15]",
+      "ui:title": <CustomTitle18 title="TAC" />,
+      //"ui:title": <CustomTitle18Margin45 title="TAC" />,
+      items:{
+        "ui:placeholder": "Format like 1 or 3-5",
+      }
     }
   }
 };
@@ -1562,6 +1579,27 @@ function CustomTitle18Border39({ title }) {
         {title}
       </label>
     </div>
+  );
+}
+
+function CustomTitle18Margin45({ title }) {
+  return (
+    <legend 
+      style={{
+              marginBottom: "45px",
+            }}
+     >
+      <div>
+        <label
+          style={{
+            fontWeight: "400",
+            fontSize: "18px",
+          }}
+        >
+        {title}
+        </label>
+      </div>
+    </legend>
   );
 }
 

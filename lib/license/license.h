@@ -5,13 +5,18 @@
 #include <string.h>
 #include <time.h>
 #include "psMD5.h"
-typedef enum { false, true } bool;
+#ifndef bool
+#define bool int
+#endif
+#define true 1
+#define false 0
+
 void dsGetSerialNumber(unsigned char *szSysInfo, int *piSystemInfoLen);
 int encrypt(int num);
 int decrypt(int num);
 void dsMakeMachineID(void);
 void dsMakeLicense(int numUsers, int timeValue);
-bool isLicenseValid(int timeValue);
-void dsCheckLicense(void);
+bool isLicenseExpired();
+bool dsCheckLicense(void);
 #endif /* End of _LICENSE_INCLUDE_H_ */
 

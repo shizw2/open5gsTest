@@ -13,7 +13,9 @@ import * as Profile from 'containers/Profile';
 import * as Account from 'containers/Account';
 import * as Alarm from 'containers/Alarm';
 import * as Performance from 'containers/Performance';
+import * as Oprlog from 'containers/Oprlog';
 import * as NFConfig from 'containers/NFConfig';
+import { Ommlog } from 'modules/crud/ommlog';
 
 class App extends Component {
   static propTypes = {
@@ -65,7 +67,11 @@ class App extends Component {
         <Layout.Container visible={view === "performance"}> 
           <Performance.Collection/>       
         </Layout.Container>
+        <Layout.Container visible={view === "oprlog"}> 
+          <Oprlog.Collection/>       
+        </Layout.Container>
         <Notification/>
+        <Ommlog session={session}/>
       </Layout>
     )
   }

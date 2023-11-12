@@ -63,7 +63,7 @@ class Edit extends Component {
       if (formData.amf&&formData.amf.guami&&Array.isArray(formData.amf.guami)) {
         formData.amf.guami.forEach(guami => {         
           if (typeof guami.plmn_id.mcc === 'number') {
-            guami.plmn_id.mcc = String(guami.plmn_id.mcc);           
+            guami.plmn_id.mcc = String(guami.plmn_id.mcc);
           }
           if (typeof guami.plmn_id.mnc === 'number') {
             guami.plmn_id.mnc = String(guami.plmn_id.mnc);
@@ -74,18 +74,21 @@ class Edit extends Component {
       if (formData.amf&&formData.amf.tai&&Array.isArray(formData.amf.tai)) {
         formData.amf.tai.forEach(tai => {         
           if (typeof tai.plmn_id.mcc === 'number') {
-            tai.plmn_id.mcc = String(tai.plmn_id.mcc);           
+            tai.plmn_id.mcc = String(tai.plmn_id.mcc);
           }
           if (typeof tai.plmn_id.mnc === 'number') {
             tai.plmn_id.mnc = String(tai.plmn_id.mnc);
           }
+          const tacArray = tai.tac;
+          const tacStringArray = tacArray.map(item => String(item));
+          tai.tac = tacStringArray;
         });
       }
 
       if (formData.amf&&formData.amf.plmn_support&&Array.isArray(formData.amf.plmn_support)) {
         formData.amf.plmn_support.forEach(plmn_support => {         
           if (typeof plmn_support.plmn_id.mcc === 'number') {
-            plmn_support.plmn_id.mcc = String(plmn_support.plmn_id.mcc);           
+            plmn_support.plmn_id.mcc = String(plmn_support.plmn_id.mcc);
           }
           if (typeof plmn_support.plmn_id.mnc === 'number') {
             plmn_support.plmn_id.mnc = String(plmn_support.plmn_id.mnc);

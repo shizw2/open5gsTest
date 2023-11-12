@@ -21,7 +21,7 @@ import * as Profile from './Profile';
 import * as Account from './Account';
 import * as Alarm from './Alarm';
 import * as NFConfig from './NFConfig';
-
+import * as Oprlog from './Oprlog';
 export {
   Layout,
   Header,
@@ -45,5 +45,6 @@ export {
   Profile,
   Account,
   NFConfig,
-  Alarm
+  Alarm,
+  Oprlog
 }

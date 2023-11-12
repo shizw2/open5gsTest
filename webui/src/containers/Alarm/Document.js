@@ -4,12 +4,8 @@ import { connect } from 'react-redux';
 import NProgress from 'nprogress';
 
 import { Alarm } from 'components';
-import traverse from 'traverse';
-import crypto from 'crypto';
 
-const formData = {
-  "roles": [ "user" ],
-}
+
 
 //const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>当前告警</title></head><body><iframe src="http://192.168.6.200:3002/d/eea-9_sik/prometheus-alerts?orgId=1&refresh=5s&theme=light&kiosk" width="100%" height="1000" frameborder="0"></iframe></body></html>'
 //const ip = window.location.hostname
@@ -45,15 +41,7 @@ class Document extends Component {
       iframe.src = html1
     }
   }
-  static propTypes = {
-    action: PropTypes.string,
-    visible: PropTypes.bool, 
-    onHide: PropTypes.func
-  }
 
-  state = {
-    formData
-  }
 
   
 

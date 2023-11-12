@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
 import { MODEL, fetchSubscribers, deleteSubscriber } from 'modules/crud/subscriber';
+import { Ommlog} from 'modules/crud/ommlog';
 import { clearActionStatus } from 'modules/crud/actions';
 import { select, selectActionStatus } from 'modules/crud/selectors';
 import * as Notification from 'modules/notification/actions';
@@ -170,6 +171,7 @@ class Collection extends Component {
           this.viewHandler.hide();
 
           dispatch(deleteSubscriber(this.state.confirm.imsi));
+          dispatch(Ommlog.createOmmlog('delete',"用户管理",{},{},"IMSI:"+this.state.confirm.imsi));
         }
       }
     }

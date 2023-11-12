@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import NProgress from 'nprogress';
 
 import { MODEL, fetchProfiles, fetchProfile, createProfile, updateProfile } from 'modules/crud/profile';
+import { Ommlog } from 'modules/crud/ommlog';
 import { clearActionStatus } from 'modules/crud/actions';
 import { select, selectActionStatus } from 'modules/crud/selectors';
 import * as Notification from 'modules/notification/actions';
@@ -168,6 +169,12 @@ class Document extends Component {
 
   validate = (formData, errors) => {
     const { profiles, action, status } = this.props;
+    const { title } = formData;
+
+    if (action === 'create' && profiles && profiles.data &&
+      profiles.data.filter(profile => profile.title === title).length > 0) {
+      errors.title.addError(`'${title}' is duplicated`);
+    }
 
 //    In Editing-mode, this is not working!
 //    More study is needed.
@@ -252,8 +259,10 @@ class Document extends Component {
 
     if (action === 'create') {
       dispatch(createProfile({}, formData));
+      dispatch(Ommlog.createOmmlog(action,"签约模板",{}, formData));
     } else if (action === 'update') {
       dispatch(updateProfile(formData._id, {}, formData));
+      dispatch(Ommlog.createOmmlog(action,"签约模板",{}, formData));
     } else {
       throw new Error(`Action type '${action}' is invalid.`);
     }

@@ -11,7 +11,7 @@ import { select, selectActionStatus } from 'modules/crud/selectors';
 import * as Notification from 'modules/notification/actions';
 
 import { Subscriber } from 'components';
-
+import { Ommlog} from 'modules/crud/ommlog';
 import traverse from 'traverse';
 
 const formData = {
@@ -264,8 +264,10 @@ class Document extends Component {
 
     if (action === 'create') {
       dispatch(createSubscriber({}, formData));
+      dispatch(Ommlog.createOmmlog(action,"用户管理",{}, formData));
     } else if (action === 'update') {
       dispatch(updateSubscriber(formData.imsi, {}, formData));
+      dispatch(Ommlog.createOmmlog(action,"用户管理",{}, formData));
     } else {
       throw new Error(`Action type '${action}' is invalid.`);
     }
