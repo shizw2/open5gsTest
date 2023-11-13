@@ -14,9 +14,18 @@
 void dsGetSerialNumber(unsigned char *szSysInfo, int *piSystemInfoLen);
 int encrypt(int num);
 int decrypt(int num);
+long encrypt_long(long num);
+long decrypt_long(long num);
+
 void dsMakeMachineID(void);
-void dsMakeLicense(int numUsers, int timeValue);
-bool isLicenseExpired();
+void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimestamp);
+bool isLicenseExpired(void);
 bool dsCheckLicense(void);
+int getLicenseUeNum(void);
+
+void saveRunningTimeToFile(const char* filePath);
+void saveRunningTimeToFiles(void);
+void loadRunningTimeFromFile(void);
+
 #endif /* End of _LICENSE_INCLUDE_H_ */
 
