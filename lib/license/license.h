@@ -10,6 +10,16 @@
 #endif
 #define true 1
 #define false 0
+#define MAX_SYS_INFO_LENGTH 4096
+
+typedef struct license_info_s{
+    BYTE   szSystemInfoFromFile[MAX_SYS_INFO_LENGTH];
+    int  numUsers;
+    long licenseExpireTime;
+    long licenseDuration;
+    //long totalRunningTime;
+    unsigned char   szDigestFromFile[16];
+}PACK_1 license_info_t;
 
 void dsGetSerialNumber(unsigned char *szSysInfo, int *piSystemInfoLen);
 int encrypt(int num);
