@@ -17,25 +17,17 @@ typedef struct license_info_s{
     int  numUsers;
     long licenseExpireTime;
     long licenseDuration;
-    //long totalRunningTime;
     unsigned char   szDigestFromFile[16];
 }PACK_1 license_info_t;
 
-void dsGetSerialNumber(unsigned char *szSysInfo, int *piSystemInfoLen);
-int encrypt(int num);
-int decrypt(int num);
-long encrypt_long(long num);
-long decrypt_long(long num);
 
 void dsMakeMachineID(void);
 void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimestamp);
-bool isLicenseExpired(void);
+bool isLicenseExpired(long runTime);
 bool dsCheckLicense(void);
 int getLicenseUeNum(void);
 
-void saveRunningTimeToFile(const char* filePath);
-void saveRunningTimeToFiles(void);
-void loadRunningTimeFromFile(void);
+
 
 #endif /* End of _LICENSE_INCLUDE_H_ */
 

@@ -1,7 +1,14 @@
 #include "license.h"
 
 
-
+static void dsGetSerialNumber(unsigned char *szSysInfo, int *piSystemInfoLen);
+static int encrypt(int num);
+static int decrypt(int num);
+static long encrypt_long(long num);
+static long decrypt_long(long num);
+static void saveRunningTimeToFile(const char* filePath);
+static void saveRunningTimeToFiles(void);
+static void loadRunningTimeFromFile(void);
 
 char  m_szPrivateKey[32] = "pttptt_Security_2016-03-07";  /*存放私有密钥*/
 //int numUsers;
@@ -15,7 +22,7 @@ const char* FILE_PATH_1 = "/var/run/running_time1.dat";
 const char* FILE_PATH_2 = "/var/log/running_time2.dat";
 
 // 加载已运行时间从文件
-void loadRunningTimeFromFile(void) {
+static void loadRunningTimeFromFile(void) {
     FILE* file = fopen(FILE_PATH_1, "r");
     if (file != NULL) {
         fscanf(file, "%ld", &totalRunningTime);        
@@ -36,7 +43,7 @@ void loadRunningTimeFromFile(void) {
 }
 
 // 保存已运行时间到文件
-void saveRunningTimeToFile(const char* filePath) {
+static void saveRunningTimeToFile(const char* filePath) {
     FILE* file = fopen(filePath, "wb");
     if (file == NULL) {
         printf("无法打开文件进行写入。\n");
@@ -46,12 +53,12 @@ void saveRunningTimeToFile(const char* filePath) {
     fclose(file);
 }
 
-void saveRunningTimeToFiles(void){
+static void saveRunningTimeToFiles(void){
     saveRunningTimeToFile(FILE_PATH_1);
     saveRunningTimeToFile(FILE_PATH_2);
 }
 
-void dsGetSerialNumber(unsigned char *szSysInfo, int *piSystemInfoLen)
+static void dsGetSerialNumber(unsigned char *szSysInfo, int *piSystemInfoLen)
 {
     //char szSysInfo[MAX_SYS_INFO_LENGTH] = { 0 };/*生成szSysInfo的算法可以修改*/
 	//FILE  *MachineFile;
@@ -72,7 +79,7 @@ void dsGetSerialNumber(unsigned char *szSysInfo, int *piSystemInfoLen)
 }
 
 // 加密函数
-int encrypt(int num) {
+static int encrypt(int num) {
     int encryptedNum = 0;
     int temp = num;
 
@@ -87,7 +94,7 @@ int encrypt(int num) {
 }
 
 // 解密函数
-int decrypt(int num) {
+static int decrypt(int num) {
     int decryptedNum = 0;
     int temp = num;
 
@@ -101,7 +108,7 @@ int decrypt(int num) {
     return decryptedNum;
 }
 
-long encrypt_long(long num) {
+static long encrypt_long(long num) {
     long encryptedNum = 0;
     long temp = num;
 
@@ -115,7 +122,7 @@ long encrypt_long(long num) {
     return encryptedNum;
 }
 
-long decrypt_long(long num) {
+static long decrypt_long(long num) {
     long decryptedNum = 0;
     long temp = num;
 
@@ -257,13 +264,17 @@ void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimestamp)
 }
 
 //半小时执行一次
-bool isLicenseExpired(void)
+bool isLicenseExpired(long runTime)
 {
     time_t currentTime;
     time(&currentTime);
     long licenseExpireTime;
     
-    totalRunningTime += 1800;
+    if (totalRunningTime == 0){
+        loadRunningTimeFromFile();
+    }
+    
+    totalRunningTime += runTime;
 
     long currentTimestamp = (long)currentTime; // 转换为整数时间戳
     
@@ -273,7 +284,7 @@ bool isLicenseExpired(void)
     if (licenseExpireTime != 0){
         strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&licenseExpireTime));
     }else{
-        strcpy(buffer,"未限制");
+        strcpy(buffer,"NA");
     }
   
     if ((g_license_info.licenseExpireTime >= currentTimestamp || g_license_info.licenseExpireTime == 0) && g_license_info.licenseDuration >= totalRunningTime ) {
@@ -355,8 +366,8 @@ bool dsCheckLicense(void)
 
     printf("License文件正确!\r\n");
     
-    loadRunningTimeFromFile();
-    if (isLicenseExpired()){
+    
+    if (isLicenseExpired(0)){
         return false;
     }
 
