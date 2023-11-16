@@ -7,7 +7,7 @@ executable(project_name + '-MakeLicense',
     include_directories : srcinc,
     dependencies : liblicense_dep,
     install_rpath : libdir,
-    install : true)
+    install : false)
 
 license_sources = files('''
     CheckLicense.c

@@ -21,6 +21,7 @@
 #include "ngap-handler.h"
 #include "ngap-handler-sps.h"
 #include "udp-ini-path.h"
+#include "license.h"
 
 static amf_context_t self;
 extern int g_sps_id;
@@ -1777,6 +1778,11 @@ amf_ue_t *amf_ue_add(ran_ue_t *ran_ue)
     ogs_assert(ran_ue);
    // gnb = ran_ue->gnb;//O3
    // ogs_assert(gnb);//O3
+   if (ogs_list_count(&self.amf_ue_list) >= getLicenseUeNum()){
+       ogs_error("Exceeded the licensed user limit(%d). Please upgrade your license to accommodate additional users.",getLicenseUeNum());
+       return NULL;
+   }
+   
 
     ogs_pool_alloc(&amf_ue_pool, &amf_ue);
     if (amf_ue == NULL) {

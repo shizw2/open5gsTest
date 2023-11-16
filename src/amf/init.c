@@ -31,17 +31,21 @@ static int initialized = 0;
 int amf_initialize(void)
 {
     int rv;
+    char errorMsg[100];
+    size_t errorMsgSize = sizeof(errorMsg);
 
-    if (dsCheckLicense() == false){
-        ogs_error("license error.");
-        return 0;
-    }
 
     amf_metrics_init();
 
     ogs_sbi_context_init(OpenAPI_nf_type_AMF);
-    amf_context_init();
+    amf_context_init();    
 
+    bool result = dsCheckLicense(errorMsg, errorMsgSize);
+    if (!result) {
+        printf("错误信息: %s\n", errorMsg);
+        return OGS_ERROR;
+    }
+    
     rv = ogs_sbi_context_parse_config("amf", "nrf", "scp");
     if (rv != OGS_OK) return rv;
 
@@ -57,6 +61,8 @@ int amf_initialize(void)
     rv = ogs_log_config_domain(
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
+
+
 
     ogs_metrics_context_open(ogs_metrics_self());
 
@@ -85,12 +91,20 @@ int amf_initialize(void)
 int amf_sps_initialize()
 {
     int rv;
-    //setAffinity(6);
+    char errorMsg[100];
+    size_t errorMsgSize = sizeof(errorMsg);
+    
     amf_metrics_init();
     ogs_sbi_context_init(OpenAPI_nf_type_AMF);
 
     amf_context_init();    
 
+    bool result = dsCheckLicense(errorMsg, errorMsgSize);
+    if (!result) {
+        printf("错误信息: %s\n", errorMsg);
+        return OGS_ERROR;
+    }
+    
     rv = ogs_sbi_context_parse_config("amf", "nrf", "scp");
     if (rv != OGS_OK) return rv;
 

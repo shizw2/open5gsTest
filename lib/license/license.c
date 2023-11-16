@@ -1,8 +1,16 @@
 #include "license.h"
+#include <unistd.h>
+#include <errno.h>
 
+typedef struct license_info_s{
+    BYTE   szSystemInfoFromFile[MAX_SYS_INFO_LENGTH];
+    int  maxUserNum;
+    long licenseExpireTime;
+    long licenseDuration;
+    unsigned char   szDigestFromFile[16];
+}PACK_1 license_info_t;
 
 static void dsGetSerialNumber(unsigned char *szSysInfo, int *piSystemInfoLen);
-static int encrypt(int num);
 static int decrypt(int num);
 static long encrypt_long(long num);
 static long decrypt_long(long num);
@@ -10,16 +18,20 @@ static void saveRunningTimeToFile(const char* filePath);
 static void saveRunningTimeToFiles(void);
 static void loadRunningTimeFromFile(void);
 
-char  m_szPrivateKey[32] = "pttptt_Security_2016-03-07";  /*存放私有密钥*/
-//int numUsers;
-//long licenseExpireTime;
-//long licenseDuration;
+static license_info_t g_license_info;
+
+int getProgramDirectory(char* programPath, size_t bufferSize);
+
+
+char  m_szPrivateKey[32] = "5gc_Security_2023-11-11";  /*存放私有密钥*/
 long totalRunningTime = 0;//半小时统计一次，并记录到文件
-license_info_t g_license_info;
+
 
 // 全局变量，存储文件名
 const char* FILE_PATH_1 = "/var/run/running_time1.dat";
 const char* FILE_PATH_2 = "/var/log/running_time2.dat";
+
+#define PATH_MAX 100
 
 // 加载已运行时间从文件
 static void loadRunningTimeFromFile(void) {
@@ -78,20 +90,7 @@ static void dsGetSerialNumber(unsigned char *szSysInfo, int *piSystemInfoLen)
 	pclose(fp);
 }
 
-// 加密函数
-static int encrypt(int num) {
-    int encryptedNum = 0;
-    int temp = num;
 
-    // 将数字每一位进行运算
-    while (temp != 0) {
-        int digit = temp % 10;
-        encryptedNum = encryptedNum * 10 + (digit + 5) % 10; // 进行复杂的运算
-        temp /= 10;
-    }
-
-    return encryptedNum;
-}
 
 // 解密函数
 static int decrypt(int num) {
@@ -136,6 +135,29 @@ static long decrypt_long(long num) {
     return decryptedNum;
 }
 
+int getProgramDirectory(char* programPath, size_t bufferSize) {
+    char path[PATH_MAX];
+    ssize_t pathLen = readlink("/proc/self/exe", path, sizeof(path) - 1);
+
+    if (pathLen == -1) {
+        perror("获取可执行文件路径失败");
+        return -1;
+    }
+
+    // 确保字符串以 null 结尾
+    path[pathLen] = '\0';
+
+    // 提取目录部分
+    char* lastSlash = strrchr(path, '/');
+    if (lastSlash != NULL) {
+        *lastSlash = '\0'; // 替换最后一个斜杠为 null
+    }
+
+    strncpy(programPath, path, bufferSize);
+
+    return 0;
+}
+
 void dsMakeMachineID(void)
 {
     unsigned char szSysInfo[MAX_SYS_INFO_LENGTH] = { 0 };/*生成szSysInfo的算法可以修改*/
@@ -168,100 +190,6 @@ void dsMakeMachineID(void)
 	fclose(MachineFile);
 }
 
-
-void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimestamp)
-{
-
-#ifdef _CN_VER_REL
-    return;
-#endif
-
-    BYTE   szSystemInfo[MAX_SYS_INFO_LENGTH + sizeof(int) + sizeof(long) + sizeof(long)];
-    UINT   iSystemInfoLen=MAX_SYS_INFO_LENGTH;
-	UINT   iFileLength;	
-	FILE  *LicenseInputFile;    
-    FILE           *LicenseOutputFile;
-    unsigned char   digest[16];
-    char FilePathName[32] = "Machine.id";
-    char OutFilePathName[32]="License.dat";
-    time_t currentTime;
-    time(&currentTime);
-    long licenseDuration;
-    
-	memset(szSystemInfo,0,MAX_SYS_INFO_LENGTH);
-
-	if ((LicenseInputFile = fopen(FilePathName, "rb")) == NULL)
-	{
-		 printf("打开机器特征码文件失败,请查看是否存在该文件!\r\n");
-		 return;
-	}
-
-
-    iFileLength = fread(szSystemInfo,sizeof(BYTE),iSystemInfoLen,LicenseInputFile);
-	if(iFileLength==0)
-	{
-		 printf("读入特征码失败，请确认文件内容!\r\n");
-		 return;
-	}else{
-        printf("读入特征码成功!\r\n");
-    }
-	fclose(LicenseInputFile);
-
-    numUsers = encrypt(numUsers);
-    printf("加密用户数成功.\r\n");	
-    
-    memcpy(szSystemInfo + MAX_SYS_INFO_LENGTH, &numUsers, sizeof(int));//增加用户数
-
-    if (expireTimestamp != 0){
-        if (expireTimestamp > (long)currentTime){
-            licenseDuration = expireTimestamp - (long)currentTime;
-        }else{
-            licenseDuration = 0;
-        }
-    }else{
-        licenseDuration = durationTimestamp;
-    }
-    
-    printf("截止时限:%ld,有效时长:%ld秒\r\n",expireTimestamp,licenseDuration);
-
-    expireTimestamp = encrypt_long(expireTimestamp);
-    printf("加密时限成功.\r\n");		
-	memcpy(szSystemInfo + MAX_SYS_INFO_LENGTH + sizeof(int), &expireTimestamp, sizeof(long));//增加时限
-    
-    licenseDuration = encrypt_long(licenseDuration);
-    printf("加密时长成功.\r\n");		
-	memcpy(szSystemInfo + MAX_SYS_INFO_LENGTH + sizeof(int) + sizeof(long), &licenseDuration, sizeof(long));//增加时长
-   
-    /* 写文件 */
-	if ((LicenseOutputFile = fopen(OutFilePathName, "wb")) == NULL)
-	{
-		 printf("创建License文件失败,请重试!\r\n");
-		 return;
-	}	
-   
-	if(fwrite(szSystemInfo,sizeof(BYTE),MAX_SYS_INFO_LENGTH + sizeof(int)+ sizeof(long) + sizeof(long), LicenseOutputFile)!=MAX_SYS_INFO_LENGTH + sizeof(int) + sizeof(long)+ sizeof(long))
-	{
-		 printf("生成License文件出错，请重试!\r\n");
-  	     fclose(LicenseOutputFile);
-		 return;
-	}
-    
-    memset(digest,0,16);    
-  
-	/*添加一个MD5 digest */
-    dshmac_md5((unsigned char *)szSystemInfo,MAX_SYS_INFO_LENGTH + sizeof(int) + sizeof(long)+ sizeof(long),(unsigned char *)m_szPrivateKey,32,digest);
-
-	if(fwrite(digest,sizeof(BYTE),16, LicenseOutputFile)!=16)
-	{
-		 printf("生成License文件出错，请重试!\r\n");
-  	     fclose(LicenseOutputFile);
-		 return;
-	}
-
-	fclose(LicenseOutputFile);
-
-	printf("成功生成License文件，可以拷贝给用户!\r\n");   
-}
 
 //半小时执行一次
 bool isLicenseExpired(long runTime)
@@ -300,77 +228,93 @@ bool isLicenseExpired(long runTime)
 
 int getLicenseUeNum(void)
 {
-    return g_license_info.numUsers;
+    return g_license_info.maxUserNum;
 }
 
-bool dsCheckLicense(void)
-{ 
-    unsigned char   szDigest[16];
-    unsigned char   szSystemInfo[MAX_SYS_INFO_LENGTH];
-    char            FilePathName[32] = "License.dat";
-    FILE           *LicenseInputFile;
-    int             iSystemInfoLen   = 0;
-    license_info_t  license_info;
-     
-    memset(szDigest,0,16);
-    memset(szSystemInfo,0,MAX_SYS_INFO_LENGTH);
+long getLicenseRunTime(void)
+{
+    return totalRunningTime;
+}
+
+long getLicenseExpireTime(void)
+{
+    return g_license_info.licenseExpireTime;
+}
+
+long getLicenseDurationTime(void)
+{
+    return g_license_info.licenseDuration;
+}
+
+bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
+    unsigned char szDigest[16];
+    unsigned char szSystemInfo[MAX_SYS_INFO_LENGTH];
+    char FilePathName[PATH_MAX+30] = {};
+    FILE *LicenseInputFile;
+    int iSystemInfoLen = 0;
+    license_info_t license_info;
+    char programDir[PATH_MAX];
+
+    memset(szDigest, 0, sizeof(szDigest));
+    memset(szSystemInfo, 0, sizeof(szSystemInfo));
+
+    if (getProgramDirectory(programDir, sizeof(programDir)) != 0) {
+        snprintf(errorMsg, errorMsgSize, "获取程序所在目录失败: %s", strerror(errno));
+        return false;
+    }
     
+    snprintf(FilePathName, sizeof(FilePathName), "%s/License.dat", programDir);
+
     /* 读文件 */
-    if ((LicenseInputFile = fopen(FilePathName, "rb")) == NULL)
-    {
-         printf("License文件不存在失败,请重新选择文件!\r\n");
-         return false;
+    if ((LicenseInputFile = fopen(FilePathName, "rb")) == NULL) {
+        snprintf(errorMsg, errorMsgSize, "打开License文件失败: %s", FilePathName);
+        return false;
     }
-    
+
     int readlen;
-    readlen = fread(&license_info,sizeof(license_info_t),1, LicenseInputFile);
-    if(readlen != 1)
-    {
-         printf("License文件出错，该文件被人为修改,readlen:%d,filelen:%ld.\r\n",readlen, sizeof(license_info_t));
-         fclose(LicenseInputFile);
-         return false;
+    readlen = fread(&license_info, sizeof(license_info_t), 1, LicenseInputFile);
+    if (readlen != 1) {
+        snprintf(errorMsg, errorMsgSize, "读取License文件失败，该文件被人为修改，readlen:%d, filelen:%ld.", readlen, sizeof(license_info_t));
+        fclose(LicenseInputFile);
+        return false;
     }
     
-    g_license_info.numUsers = decrypt(license_info.numUsers);
-    printf("用户数解密成功: %d\n", g_license_info.numUsers);
-    
-        
+    fclose(LicenseInputFile);        
+
+    g_license_info.maxUserNum = decrypt(license_info.maxUserNum);
+    printf("用户数解密成功: %d\n", g_license_info.maxUserNum);
+
     g_license_info.licenseExpireTime = decrypt_long(license_info.licenseExpireTime);
     printf("时限解密成功: %ld\n", g_license_info.licenseExpireTime);
-    
+
     g_license_info.licenseDuration = decrypt_long(license_info.licenseDuration);
     printf("时长解密成功: %ld\n", g_license_info.licenseDuration);
-    
 
     /*拷贝系统信息到临时变量中*/
     dsGetSerialNumber(szSystemInfo, &iSystemInfoLen);
 
-    
     /*比较文件中的特征码是否与原特征码文件中的信息一致*/
-    if (memcmp(szSystemInfo,license_info.szSystemInfoFromFile, MAX_SYS_INFO_LENGTH) != 0)  
-    {
-        printf("License文件信息与特征信息输入文件不一致!\r\n");
-        return false ;
-    }else{
-        printf("硬件特征信息验证成功!\r\n"); 
-    }
-  
-    /*算临时信息的MD5 digest */
-    dshmac_md5((unsigned char *)&license_info,MAX_SYS_INFO_LENGTH + sizeof(int) + sizeof(long) + sizeof(long),(unsigned char *)m_szPrivateKey,32,szDigest);
-   
-    if (memcmp(szDigest, license_info.szDigestFromFile, 16) != 0)  
-    {
-         printf("License文件信息被人为修改!\r\n");
-         return false;
+    if (memcmp(szSystemInfo, license_info.szSystemInfoFromFile, MAX_SYS_INFO_LENGTH) != 0) {
+        snprintf(errorMsg, errorMsgSize, "License文件信息与特征信息输入文件不一致!");
+        return false;
+    } else {
+        printf("硬件特征信息验证成功!\n");
     }
 
-    printf("License文件正确!\r\n");
-    
-    
-    if (isLicenseExpired(0)){
+    /*算临时信息的MD5 digest */
+    dshmac_md5((unsigned char*)&license_info, MAX_SYS_INFO_LENGTH + sizeof(int) + sizeof(long) + sizeof(long), (unsigned char*)m_szPrivateKey, 32, szDigest);
+
+    if (memcmp(szDigest, license_info.szDigestFromFile, sizeof(szDigest)) != 0) {
+        snprintf(errorMsg, errorMsgSize, "License文件信息被人为修改!");
+        return false;
+    }
+
+    printf("License文件正确!\n");
+
+    if (isLicenseExpired(0) == false) {
+        snprintf(errorMsg, errorMsgSize, "许可已过期!");
         return false;
     }
 
     return true;
 }
-

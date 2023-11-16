@@ -12,22 +12,14 @@
 #define false 0
 #define MAX_SYS_INFO_LENGTH 4096
 
-typedef struct license_info_s{
-    BYTE   szSystemInfoFromFile[MAX_SYS_INFO_LENGTH];
-    int  numUsers;
-    long licenseExpireTime;
-    long licenseDuration;
-    unsigned char   szDigestFromFile[16];
-}PACK_1 license_info_t;
-
 
 void dsMakeMachineID(void);
-void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimestamp);
+bool dsCheckLicense(char* errorMsg, size_t errorMsgSize);
 bool isLicenseExpired(long runTime);
-bool dsCheckLicense(void);
-int getLicenseUeNum(void);
-
-
+int  getLicenseUeNum(void);
+long getLicenseRunTime(void);
+long getLicenseExpireTime(void);
+long getLicenseDurationTime(void);
 
 #endif /* End of _LICENSE_INCLUDE_H_ */
 
