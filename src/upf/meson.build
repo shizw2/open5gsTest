@@ -91,6 +91,7 @@ libupf = static_library('upf',
         libmetrics_dep,
         libpfcp_dep,
         libtun_dep,
+        liblicense_dep,
         libarp_nd_dep,
     ],
     install : false)
@@ -101,6 +102,7 @@ libupf_dep = declare_dependency(
         libmetrics_dep,
         libpfcp_dep,
         libtun_dep,
+        liblicense_dep,
         libarp_nd_dep,
     ])
 

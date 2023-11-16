@@ -51,6 +51,7 @@ libpcf = static_library('pcf',
                     libmetrics_dep,
                     libsbi_dep,
                     libdiameter_rx_dep,
+                    liblicense_dep,
                     libdiameter_gx_dep],
     install : false)
 
@@ -60,6 +61,7 @@ libpcf_dep = declare_dependency(
                     libmetrics_dep,
                     libsbi_dep,
                     libdiameter_rx_dep,
+                    liblicense_dep,
                     libdiameter_gx_dep])
 
 pcf_sources = files('''

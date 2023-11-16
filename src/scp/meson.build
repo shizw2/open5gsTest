@@ -28,12 +28,14 @@ libscp_sources = files('''
 libscp = static_library('scp',
     sources : libscp_sources,
     dependencies : [libcrypt_dep,
+                    liblicense_dep,
                     libsbi_dep],
     install : false)
 
 libscp_dep = declare_dependency(
     link_with : libscp,
     dependencies : [libcrypt_dep,
+                    liblicense_dep,
                     libsbi_dep])
 
 scp_sources = files('''

@@ -34,13 +34,15 @@ libnrf_sources = files('''
 libnrf = static_library('nrf',
     sources : libnrf_sources,
     dependencies : [libsbi_dep,
-        		   libmetrics_dep],
+                    liblicense_dep,
+        		    libmetrics_dep],
     install : false)
 
 libnrf_dep = declare_dependency(
     link_with : libnrf,
     dependencies : [libsbi_dep,
-            	   libmetrics_dep])
+                    liblicense_dep,
+            	    libmetrics_dep])
 
 nrf_sources = files('''
     app.c

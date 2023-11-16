@@ -33,6 +33,7 @@ libbsf = static_library('bsf',
     sources : libbsf_sources,
     dependencies : [libcrypt_dep,
                     libmetrics_dep,
+                    liblicense_dep,
                     libsbi_dep],
     install : false)
 
@@ -40,6 +41,7 @@ libbsf_dep = declare_dependency(
     link_with : libbsf,
     dependencies : [libcrypt_dep,
                     libmetrics_dep,
+                    liblicense_dep,
                     libsbi_dep])
 
 bsf_sources = files('''

@@ -23,6 +23,7 @@
 #include "pfcp-path.h"
 #include "sbi-path.h"
 #include "metrics.h"
+#include "license.h"
 
 static ogs_thread_t *thread;
 static void smf_main(void *data);
@@ -41,6 +42,14 @@ int smf_initialize(void)
 
     smf_context_init();
 
+    char errorMsg[100];
+    size_t errorMsgSize = sizeof(errorMsg);
+    bool result = dsCheckLicense(errorMsg, errorMsgSize);
+    if (!result) {
+        ogs_fatal("License错误: %s\n", errorMsg);
+        return OGS_ERROR;
+    }   
+    
     rv = ogs_gtp_xact_init();
     if (rv != OGS_OK) return rv;
 

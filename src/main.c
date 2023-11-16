@@ -24,6 +24,7 @@
 #include "ogs-app.h"
 #include "version.h"
 
+
 int g_sps_id = 0;
 int g_select_key = 10;
 
@@ -229,7 +230,7 @@ int main(int argc, const char *const argv[])
         ogs_fatal("Open5GS initialization failed. Aborted");
         return OGS_ERROR;
     }
-
+    
     atexit(terminate);
     ogs_signal_thread(check_signal);
 
