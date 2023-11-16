@@ -31,11 +31,11 @@ static int initialized = 0;
 int amf_initialize(void)
 {
     int rv;
- 
+
     amf_metrics_init();
 
     ogs_sbi_context_init(OpenAPI_nf_type_AMF);
-    amf_context_init();    
+    amf_context_init();
 
     char errorMsg[100];
     size_t errorMsgSize = sizeof(errorMsg);
@@ -60,8 +60,6 @@ int amf_initialize(void)
     rv = ogs_log_config_domain(
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
-
-
 
     ogs_metrics_context_open(ogs_metrics_self());
 
@@ -90,7 +88,7 @@ int amf_initialize(void)
 int amf_sps_initialize()
 {
     int rv;
-      
+    //setAffinity(6);
     amf_metrics_init();
     ogs_sbi_context_init(OpenAPI_nf_type_AMF);
 
