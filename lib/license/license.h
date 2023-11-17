@@ -25,6 +25,7 @@ typedef struct runtime_info_s{
     long totalRunningTime;
 }PACK_1 runtime_info_t;
 
+char* timestampToString(time_t timestamp);
 void dsMakeMachineID(void);
 bool dsCheckLicense(char* errorMsg, size_t errorMsgSize);
 bool isLicenseExpired(long runTime);

@@ -27,9 +27,23 @@ const char* FILE_PATH_2 = "/var/log/running_time2.dat";
 
 #define PATH_MAX 100
 
+char* timestampToString(time_t timestamp) {  
+    static char buffer[4][20]; 
+    static int index = 0; 
+    index++;
+    index = index%4;
+    if (timestamp == 0) {  
+        strcpy(buffer[index], "NA");         
+    } else {  
+        struct tm *timeInfo = localtime(&timestamp);  
+        strftime(buffer[index], sizeof(buffer[0]), "%Y-%m-%d %H:%M:%S", timeInfo);         
+    }  
+
+    return buffer[index]; 
+}
+
 // 加载已运行时间从文件
 static void loadRunningTimeFromFile(void) {
-    char buffer[30],buffer1[30];
     time_t tempTime;
     FILE* file = fopen(FILE_PATH_1, "rb"); // 注意这里应为"rb"
     if (file != NULL) {
@@ -50,18 +64,12 @@ static void loadRunningTimeFromFile(void) {
     g_runtime_info.licenseCreateTime = decrypt_long(g_runtime_info.licenseCreateTime);
     
     if (g_runtime_info.licenseCreateTime != g_license_info.licenseCreateTime){
-        tempTime = g_runtime_info.licenseCreateTime;
-        strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&tempTime));
-        tempTime = g_license_info.licenseCreateTime;
-        strftime(buffer1, sizeof(buffer1), "%Y-%m-%d %H:%M:%S", localtime(&tempTime));
-        printf("license已更新,运行时间清0. %s %s.\r\n",buffer , buffer1);
+        printf("license已更新,旧license创建时间:%s,新license创建时间:%s,运行时间清0.\r\n",timestampToString(g_runtime_info.licenseCreateTime) , timestampToString(g_license_info.licenseCreateTime));
         g_runtime_info.licenseCreateTime = g_license_info.licenseCreateTime;
         g_runtime_info.totalRunningTime = 0;
     }
-    
-    tempTime = g_runtime_info.licenseCreateTime;
-    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&tempTime));
-    printf("运行信息:license创建时间: %s,系统已运行时间:%ld秒,.\r\n",buffer,g_runtime_info.totalRunningTime);
+
+    printf("加载系统信息,系统已运行时间:%ld秒.\r\n",g_runtime_info.totalRunningTime);
 }
 
 // 保存已运行时间和许可创建时间到文件
@@ -225,23 +233,14 @@ bool isLicenseExpired(long runTime)
     g_runtime_info.totalRunningTime += runTime;
 
     long currentTimestamp = (long)currentTime; // 转换为整数时间戳
-    
-    char buffer[80];
-    
-    tempTime = g_license_info.licenseExpireTime;
-    if (tempTime != 0){
-        strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&tempTime));
-    }else{
-        strcpy(buffer,"NA");
-    }
-  
+ 
     if ((g_license_info.licenseExpireTime >= currentTimestamp || g_license_info.licenseExpireTime == 0) && g_license_info.licenseDuration >= g_runtime_info.totalRunningTime ) {
-        printf("License未过期,系统已运行:%ld秒,截止时间:%s, 有效时长:%ld秒.\n",g_runtime_info.totalRunningTime,buffer, g_license_info.licenseDuration);
+        printf("License未过期,系统已运行:%ld秒,截止时间:%s, 有效时长:%ld秒.\n",g_runtime_info.totalRunningTime,timestampToString(g_license_info.licenseExpireTime), g_license_info.licenseDuration);
         saveRunningTimeToFiles();
         return true;
     } else {
         g_runtime_info.totalRunningTime -= 1800;
-        printf("License已过期,系统已运行:%ld秒,截止时间:%s, 有效时长:%ld秒.\n",g_runtime_info.totalRunningTime,buffer, g_license_info.licenseDuration);
+        printf("License已过期,系统已运行:%ld秒,截止时间:%s, 有效时长:%ld秒.\n",g_runtime_info.totalRunningTime,timestampToString(g_license_info.licenseExpireTime), g_license_info.licenseDuration);
         return false;
     }
 }
@@ -273,8 +272,7 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
     FILE *LicenseInputFile;
     int iSystemInfoLen = 0;
     license_info_t license_info;
-    char programDir[PATH_MAX];
-    char buffer[80];
+    char programDir[PATH_MAX];   
 
     memset(szDigest, 0, sizeof(szDigest));
     memset(szSystemInfo, 0, sizeof(szSystemInfo));
@@ -303,25 +301,17 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
     fclose(LicenseInputFile);        
 
     g_license_info.maxUserNum = decrypt(license_info.maxUserNum);
-    printf("用户数解密成功: %d\n", g_license_info.maxUserNum);
+    printf("license最大用户数: %d\n", g_license_info.maxUserNum);
 
     g_license_info.licenseExpireTime = decrypt_long(license_info.licenseExpireTime);
-    time_t tempTime = g_license_info.licenseExpireTime;
-    if (tempTime != 0){
-        strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&tempTime));
-    }else{
-        strcpy(buffer,"NA");
-    }
-    printf("license截止时间: %s\n", buffer);
+
+    printf("license截止时间: %s\n", timestampToString(g_license_info.licenseExpireTime));
     
     g_license_info.licenseDuration = decrypt_long(license_info.licenseDuration);
     printf("license有效时长: %ld(秒)\n", g_license_info.licenseDuration);
    
-    g_license_info.licenseCreateTime = decrypt_long(license_info.licenseCreateTime);
-  
-    tempTime = g_license_info.licenseCreateTime;
-    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&tempTime));
-    printf("license创建时间: %s\n", buffer);
+    g_license_info.licenseCreateTime = decrypt_long(license_info.licenseCreateTime); 
+    printf("license创建时间: %s\n", timestampToString(g_license_info.licenseCreateTime));
 
     /*拷贝系统信息到临时变量中*/
     dsGetSerialNumber(szSystemInfo, &iSystemInfoLen);
