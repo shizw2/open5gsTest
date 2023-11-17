@@ -77,6 +77,7 @@ void amf_timer_internel_heart_beat_timer_expire(void *data);
 void amf_timer_internel_heart_beat_check_expire(void *data);
 
 void ogs_timer_yaml_config_check(void *data);
+void ogs_timer_license_check(void *data);
 
 #ifdef __cplusplus
 }
