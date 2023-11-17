@@ -11,7 +11,19 @@
 #define true 1
 #define false 0
 #define MAX_SYS_INFO_LENGTH 4096
+typedef struct license_info_s{
+    BYTE   szSystemInfoFromFile[MAX_SYS_INFO_LENGTH];
+    int  maxUserNum;
+    long licenseExpireTime;
+    long licenseDuration;
+    long licenseCreateTime;
+    unsigned char   szDigestFromFile[16];
+}PACK_1 license_info_t;
 
+typedef struct runtime_info_s{    
+    long licenseCreateTime;
+    long totalRunningTime;
+}PACK_1 runtime_info_t;
 
 void dsMakeMachineID(void);
 bool dsCheckLicense(char* errorMsg, size_t errorMsgSize);

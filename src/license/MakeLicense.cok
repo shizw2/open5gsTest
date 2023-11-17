@@ -4,7 +4,9 @@ static long encrypt_long(long num);
 static int encrypt(int num);
 static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimestamp)
 {
-    UINT   iFileLength;	
+    BYTE   szSystemInfo[MAX_SYS_INFO_LENGTH + sizeof(int) + sizeof(long) + sizeof(long)];
+    UINT   iSystemInfoLen=MAX_SYS_INFO_LENGTH;
+	UINT   iFileLength;	
 	FILE  *LicenseInputFile;    
     FILE           *LicenseOutputFile;
     unsigned char   digest[16];
@@ -13,9 +15,8 @@ static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimes
     time_t currentTime;
     time(&currentTime);
     long licenseDuration;
-    license_info_t license_info;
     
-	memset(&license_info,0,sizeof(license_info_t));
+	memset(szSystemInfo,0,MAX_SYS_INFO_LENGTH);
 
 	if ((LicenseInputFile = fopen(FilePathName, "rb")) == NULL)
 	{
@@ -24,7 +25,7 @@ static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimes
 	}
 
 
-    iFileLength = fread(license_info.szSystemInfoFromFile,sizeof(BYTE),MAX_SYS_INFO_LENGTH,LicenseInputFile);
+    iFileLength = fread(szSystemInfo,sizeof(BYTE),iSystemInfoLen,LicenseInputFile);
 	if(iFileLength==0)
 	{
 		 printf("读入特征码失败，请确认文件内容!\r\n");
@@ -34,9 +35,11 @@ static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimes
     }
 	fclose(LicenseInputFile);
 
-    license_info.maxUserNum = encrypt(numUsers);
+    numUsers = encrypt(numUsers);
     printf("加密用户数成功.\r\n");	
- 
+    
+    memcpy(szSystemInfo + MAX_SYS_INFO_LENGTH, &numUsers, sizeof(int));//增加用户数
+
     if (expireTimestamp != 0){
         if (expireTimestamp > (long)currentTime){
             licenseDuration = expireTimestamp - (long)currentTime;
@@ -49,13 +52,13 @@ static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimes
     
     printf("截止时限:%ld,有效时长:%ld秒\r\n",expireTimestamp,licenseDuration);
 
-    license_info.licenseExpireTime = encrypt_long(expireTimestamp);
+    expireTimestamp = encrypt_long(expireTimestamp);
     printf("加密时限成功.\r\n");		
-
-    license_info.licenseDuration = encrypt_long(licenseDuration);
-    printf("加密时长成功.\r\n");		
+	memcpy(szSystemInfo + MAX_SYS_INFO_LENGTH + sizeof(int), &expireTimestamp, sizeof(long));//增加时限
     
-    license_info.licenseCreateTime = encrypt_long(currentTime);
+    licenseDuration = encrypt_long(licenseDuration);
+    printf("加密时长成功.\r\n");		
+	memcpy(szSystemInfo + MAX_SYS_INFO_LENGTH + sizeof(int) + sizeof(long), &licenseDuration, sizeof(long));//增加时长
    
     /* 写文件 */
 	if ((LicenseOutputFile = fopen(OutFilePathName, "wb")) == NULL)
@@ -64,17 +67,17 @@ static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimes
 		 return;
 	}	
    
-	if(fwrite((unsigned char *)&license_info,sizeof(BYTE),sizeof(license_info)-16, LicenseOutputFile)!= sizeof(license_info)-16)
+	if(fwrite(szSystemInfo,sizeof(BYTE),MAX_SYS_INFO_LENGTH + sizeof(int)+ sizeof(long) + sizeof(long), LicenseOutputFile)!=MAX_SYS_INFO_LENGTH + sizeof(int) + sizeof(long)+ sizeof(long))
 	{
 		 printf("生成License文件出错，请重试!\r\n");
   	     fclose(LicenseOutputFile);
 		 return;
 	}
     
-    memset(digest,0,16);   
+    memset(digest,0,16);    
   
 	/*添加一个MD5 digest */
-    dshmac_md5((unsigned char *)&license_info,sizeof(license_info)-16,(unsigned char *)m_szPrivateKey,32,digest);
+    dshmac_md5((unsigned char *)szSystemInfo,MAX_SYS_INFO_LENGTH + sizeof(int) + sizeof(long)+ sizeof(long),(unsigned char *)m_szPrivateKey,32,digest);
 
 	if(fwrite(digest,sizeof(BYTE),16, LicenseOutputFile)!=16)
 	{
