@@ -22,6 +22,7 @@
 #include "ngap-handler-sps.h"
 #include "udp-ini-path.h"
 #include "license.h"
+#include "ogs-app-timer.h"
 
 static amf_context_t self;
 extern int g_sps_id;
@@ -3874,35 +3875,6 @@ void icps_ue_remove_all()
         icps_ue=icps_ue_cycle(icps_ue);
         if(icps_ue)icps_ue_remove(icps_ue);
     }
-}
-
-static ogs_timer_t     *t_yaml_check;
-int yaml_check_init(void)
-{  
-    //set timer
-    t_yaml_check = ogs_timer_add(ogs_app()->timer_mgr,ogs_timer_yaml_config_check,0);
-    ogs_timer_start(t_yaml_check,ogs_time_from_sec(5));
-
-    ogs_info("yaml_check_init sucess.");
-    return OGS_OK;
-}
-
-int yaml_check_close(void)
-{  
-    if (t_yaml_check != NULL){
-        ogs_timer_delete(t_yaml_check);
-        t_yaml_check = NULL;
-    }
-    return OGS_OK;
-}
-
-int yaml_check_timeout(void)
-{  
-    yaml_check_proc();
-     
-    //重设定时器
-    ogs_timer_start(t_yaml_check,ogs_time_from_sec(5));
-    return OGS_OK;
 }
 
 int yaml_check_proc(void)

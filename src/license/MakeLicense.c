@@ -1,11 +1,12 @@
 #include "license.h"
-char  m_szPrivateKey[32] = "5gc_Security_2023-11-11";  /*存放私有密钥*/
+
 static long encrypt_long(long num);
 static int encrypt(int num);
 static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimestamp)
 {
-    UINT   iFileLength;	
-	FILE  *LicenseInputFile;    
+    char  m_szPrivateKey[32] = "5gc_Security_2023-11-11";  /*存放私有密钥*/
+    UINT   iFileLength;    
+    FILE  *LicenseInputFile;    
     FILE           *LicenseOutputFile;
     unsigned char   digest[16];
     char FilePathName[32] = "Machine.id";
@@ -15,27 +16,27 @@ static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimes
     long licenseDuration;
     license_info_t license_info;
     
-	memset(&license_info,0,sizeof(license_info_t));
+    memset(&license_info,0,sizeof(license_info_t));
 
-	if ((LicenseInputFile = fopen(FilePathName, "rb")) == NULL)
-	{
-		 printf("打开机器特征码文件失败,请查看是否存在该文件!\r\n");
-		 return;
-	}
+    if ((LicenseInputFile = fopen(FilePathName, "rb")) == NULL)
+    {
+         printf("打开机器特征码文件失败,请查看是否存在该文件!\r\n");
+         return;
+    }
 
 
     iFileLength = fread(license_info.szSystemInfoFromFile,sizeof(BYTE),MAX_SYS_INFO_LENGTH,LicenseInputFile);
-	if(iFileLength==0)
-	{
-		 printf("读入特征码失败，请确认文件内容!\r\n");
-		 return;
-	}else{
+    if(iFileLength==0)
+    {
+         printf("读入特征码失败，请确认文件内容!\r\n");
+         return;
+    }else{
         printf("读入特征码成功!\r\n");
     }
-	fclose(LicenseInputFile);
+    fclose(LicenseInputFile);
 
     license_info.maxUserNum = encrypt(numUsers);
-    printf("加密用户数成功.\r\n");	
+
  
     if (expireTimestamp != 0){
         if (expireTimestamp > (long)currentTime){
@@ -47,72 +48,52 @@ static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimes
         licenseDuration = durationTimestamp;
     }
     
-    printf("截止时限:%ld,有效时长:%ld秒\r\n",expireTimestamp,licenseDuration);
+    printf("license创建时间:%s(%ld), 截止时间:%s, 有效时长:%ld秒\r\n",timestampToString(currentTime),currentTime,timestampToString(expireTimestamp),licenseDuration);
 
-    license_info.licenseExpireTime = encrypt_long(expireTimestamp);
-    printf("加密时限成功.\r\n");		
+    license_info.licenseExpireTime = encrypt_long(expireTimestamp);   
 
-    license_info.licenseDuration = encrypt_long(licenseDuration);
-    printf("加密时长成功.\r\n");		
+    license_info.licenseDuration = encrypt_long(licenseDuration);        
     
     license_info.licenseCreateTime = encrypt_long(currentTime);
    
     /* 写文件 */
-	if ((LicenseOutputFile = fopen(OutFilePathName, "wb")) == NULL)
-	{
-		 printf("创建License文件失败,请重试!\r\n");
-		 return;
-	}	
+    if ((LicenseOutputFile = fopen(OutFilePathName, "wb")) == NULL)
+    {
+         printf("创建License文件失败,请重试!\r\n");
+         return;
+    }    
    
-	if(fwrite((unsigned char *)&license_info,sizeof(BYTE),sizeof(license_info)-16, LicenseOutputFile)!= sizeof(license_info)-16)
-	{
-		 printf("生成License文件出错，请重试!\r\n");
-  	     fclose(LicenseOutputFile);
-		 return;
-	}
+    if(fwrite((unsigned char *)&license_info,sizeof(BYTE),sizeof(license_info)-16, LicenseOutputFile)!= sizeof(license_info)-16)
+    {
+         printf("生成License文件出错，请重试!\r\n");
+           fclose(LicenseOutputFile);
+         return;
+    }
     
     memset(digest,0,16);   
   
-	/*添加一个MD5 digest */
+    /*添加一个MD5 digest */
     dshmac_md5((unsigned char *)&license_info,sizeof(license_info)-16,(unsigned char *)m_szPrivateKey,32,digest);
 
-	if(fwrite(digest,sizeof(BYTE),16, LicenseOutputFile)!=16)
-	{
-		 printf("生成License文件出错，请重试!\r\n");
-  	     fclose(LicenseOutputFile);
-		 return;
-	}
+    if(fwrite(digest,sizeof(BYTE),16, LicenseOutputFile)!=16)
+    {
+         printf("生成License文件出错，请重试!\r\n");
+           fclose(LicenseOutputFile);
+         return;
+    }
 
-	fclose(LicenseOutputFile);
+    fclose(LicenseOutputFile);
 
-	printf("成功生成License文件，可以拷贝给用户!\r\n");   
+    printf("成功生成License文件，可以拷贝给用户!\r\n");   
 }
 
 static int encrypt(int num) {
-    int encryptedNum = 0;
-    int temp = num;
-
-    // 将数字每一位进行运算
-    while (temp != 0) {
-        int digit = temp % 10;
-        encryptedNum = encryptedNum * 10 + (digit + 5) % 10; // 进行复杂的运算
-        temp /= 10;
-    }
-
-    return encryptedNum;
+    return (num ^ 0x55555555) + 3;
 }
 
 static long encrypt_long(long num) {
-    long encryptedNum = 0;
-    long temp = num;
-
-    // 将数字每一位进行运算
-    while (temp != 0) {
-        long digit = temp % 10;
-        encryptedNum = encryptedNum * 10 + (digit + 5) % 10; // 进行复杂的运算
-        temp /= 10;
-    }
-
+    long key = 123456789; // 选择一个密钥
+    long encryptedNum = num ^ key;
     return encryptedNum;
 }
 
@@ -128,7 +109,7 @@ int main(void)
     struct tm *localTime;
     time_t timestamp;
     
-    printf("输入最大用户数: ");
+    printf("输入在线用户数: ");
     scanf("%d", &numUsers);
 
     printf("请选择许可证类型:\n");
@@ -139,6 +120,11 @@ int main(void)
     if (timeChoice == 1) {
         printf("输入有效时长(天): ");
         scanf("%ld", &duration);
+
+        if (duration <= 0) {
+            printf("有效时长必须大于0.\n");
+            return 0;
+        }
 
         timestamp = 0;
         
@@ -176,11 +162,7 @@ int main(void)
 
             timestamp = mktime(&timeinfo);
 
-            // 将时间戳转换为日期时间字符串
-            char buffer[80];
-            strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&timestamp));
-
-            printf("截止时间: %s\n", buffer);
+            printf("截止时间: %s\n", timestampToString(timestamp));
         }
     }
     else {
@@ -199,5 +181,22 @@ int main(void)
     if (!result) {
         printf("错误信息: %s\n", errorMsg);
     }
+
+    result = isLicenseExpired(0);
+    if (!result) {
+        printf("license已过期,系统已运行:%lu秒, 有效时长:%lu秒, 截止时间:%s,创建时间:%s,在线用户数:%d\r\n", getLicenseRunTime(),
+                    getLicenseDurationTime(),
+                    timestampToString(getLicenseExpireTime()),
+                    timestampToString(getLicenseCreateTime()),
+                    getLicenseUeNum());
+        return 1;
+    }
+
+    printf("license未过期,系统已运行:%lu秒, 有效时长:%lu秒, 截止时间:%s,创建时间:%s,在线用户数:%d\r\n", getLicenseRunTime(),
+                    getLicenseDurationTime(),
+                    timestampToString(getLicenseExpireTime()),
+                    timestampToString(getLicenseCreateTime()),
+                    getLicenseUeNum());
+
     return 0;
 }

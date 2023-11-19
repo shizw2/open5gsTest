@@ -145,8 +145,8 @@ const View = ({ visible, disableOnClickOutside, oprlog , onHide }) => {
           </Header>
           <Body>
             <Oprlog>
-              <div className="opttime">操作时间： {opttime}</div>
-              <div className="opuser">操作账号： {opuser}</div>
+              <div className="opttime">操作时间：{opttime}</div>
+              <div className="opuser">操作账号：{opuser}</div>
               <div className="optype">操作类型：{optype}</div>          
               <div className="optfm">功能模块：{optfm}</div> 
               <div className="optcommand">{optcommand}</div>

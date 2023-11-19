@@ -1121,15 +1121,16 @@ export const mtuSchema = {
 
 export const mtuUiSchema = {
   classNames: "col-xs-3",
-  "ui:title": <CustomTitle18Border39 title="MTU" />,
+  "ui:title": <CustomTitle18Border15 title="MTU" />,
 };
 
 export const ctfSchema = {
   type: "object",
-  title: "CTF",
+  title: "CTF Gy Enabled",
   properties: {
     enabled: {
       type: "string",
+      title: "",
       enum: ["auto", "yes", "no"],
       default: "auto"
     }
@@ -1139,9 +1140,12 @@ export const ctfSchema = {
 
 export const ctfUiSchema = {
   classNames: "col-xs-3",
-  "ui:title": <CustomTitle18 title="CTF" />,
+  "ui:title": <CustomTitle18 title="CTF Gy Enabled" />,
   enabled: {
-    classNames:"col-xs-12"
+    classNames:"col-xs-12",
+    "ui:options": {
+      "label": false
+    }
   }
 };
 
@@ -1151,7 +1155,7 @@ export const freeDiameterSchema = {
 
 export const freeDiameterUiSchema = {
   classNames: "col-xs-6",
-  "ui:title": <CustomTitle18Border39 title="Diameter Config" />,
+  "ui:title": <CustomTitle18Border15 title="Diameter Config" />,
 };
 
 
@@ -1573,6 +1577,25 @@ function CustomTitle18Border39({ title }) {
           borderBottom: "1px solid #e5e5e5",
           width: "1000px",
           marginBottom: "39px",
+          lineHeight: "1.9",
+        }}
+      >
+        {title}
+      </label>
+    </div>
+  );
+}
+
+function CustomTitle18Border15({ title }) {
+  return (
+    <div>
+      <label
+        style={{
+          fontWeight: "400",
+          fontSize: "18px",
+          borderBottom: "1px solid #e5e5e5",
+          width: "1000px",
+          marginBottom: "15px",
           lineHeight: "1.9",
         }}
       >

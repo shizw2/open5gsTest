@@ -28,6 +28,8 @@
 #include "nas-security.h"
 #include "udp-ini-path.h"
 #include "ngap-handler-sps.h"
+#include "ogs-app-timer.h"
+#include "license.h"
 
 extern int g_sps_id;
 extern pkt_fwd_tbl_t *g_pt_pkt_fwd_tbl;
@@ -815,8 +817,21 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
         ogs_assert(e);
 
         switch(e->h.timer_id) {
+        case OGS_TIMER_LICENSE_CHECK:
+            ogs_info("license check.");
+            if (isLicenseExpired(5) == false){
+                ogs_info("license out of date.");
+                exit(0);
+            }
+            ogs_info("license info: runtime:%lu, durationtime:%lu, expireTime:%s,", getLicenseRunTime(),
+                    getLicenseDurationTime(),
+                    timestampToString(getLicenseExpireTime()));
+            license_check_restart();
+            break;
+
         case OGS_TIMER_YAML_CONFIG_CHECK:
-            yaml_check_timeout();
+            yaml_check_proc();
+            yaml_check_restart();
             break;
 
         default:

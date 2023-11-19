@@ -40,7 +40,6 @@ libhss = static_library('hss',
                     libdbi_dep,
                     libdiameter_s6a_dep,
                     libdiameter_cx_dep,
-                    liblicense_dep,
                     libdiameter_swx_dep],
     install : false)
 
@@ -50,7 +49,6 @@ libhss_dep = declare_dependency(
                     libdbi_dep,
                     libdiameter_s6a_dep,
                     libdiameter_cx_dep,
-                    liblicense_dep,
                     libdiameter_swx_dep])
 
 hss_sources = files('''

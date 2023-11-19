@@ -239,36 +239,3 @@ void amf_timer_internel_heart_beat_check_expire(void *data)
         ogs_event_free(e);
     }
 }
-
-//这个方法可以挪到lib库中，但目前没合适的lib库存放
-void ogs_timer_yaml_config_check(void *data)
-{
-    int rv;
-    ogs_event_t *e = NULL;
-
-    e = ogs_event_new(OGS_EVENT_YAML_CONFIG_CHECK_TIMER);
-    ogs_assert(e);
-    e->timer_id = OGS_TIMER_YAML_CONFIG_CHECK;
-
-    rv = ogs_queue_push(ogs_app()->queue, e);
-    if (rv != OGS_OK) {
-        ogs_error("ogs_queue_push() failed:%d", (int)rv);
-        ogs_event_free(e);
-    }
-}
-
-void ogs_timer_license_check(void *data)
-{
-    int rv;
-    ogs_event_t *e = NULL;
-
-    e = ogs_event_new(OGS_EVENT_YAML_CONFIG_CHECK_TIMER);
-    ogs_assert(e);
-    e->timer_id = OGS_TIMER_LICENSE_CHECK;
-
-    rv = ogs_queue_push(ogs_app()->queue, e);
-    if (rv != OGS_OK) {
-        ogs_error("ogs_queue_push() failed:%d", (int)rv);
-        ogs_event_free(e);
-    }
-}

@@ -91,6 +91,9 @@
         "ogs-context.h": "c",
         "ogs-config.h": "c",
         "ogs-proto.h": "c",
-        "stat.h": "c"
+        "stat.h": "c",
+        "sbi-path.h": "c",
+        "event.h": "c",
+        "ogs-app-timer.h": "c"
     }
 }

@@ -22,6 +22,7 @@
 #include "udp-ini-path.h"
 #include "metrics.h"
 #include "license.h"
+#include "ogs-app-timer.h"
 
 static ogs_thread_t *thread;
 static void amf_main(void *data);
@@ -37,14 +38,9 @@ int amf_initialize(void)
     ogs_sbi_context_init(OpenAPI_nf_type_AMF);
     amf_context_init();
 
-    char errorMsg[100];
-    size_t errorMsgSize = sizeof(errorMsg);
-    bool result = dsCheckLicense(errorMsg, errorMsgSize);
-    if (!result) {
-        ogs_fatal("License错误: %s\n", errorMsg);
-        return OGS_ERROR;
-    }   
-    
+    rv = license_check_init();
+    if (rv != OGS_OK) return rv;
+
     rv = ogs_sbi_context_parse_config("amf", "nrf", "scp");
     if (rv != OGS_OK) return rv;
 

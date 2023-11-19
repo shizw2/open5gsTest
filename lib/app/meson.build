@@ -22,11 +22,13 @@ libapp_sources = files('''
     ogs-context.h
     ogs-config.h
     ogs-init.h
+    ogs-app-timer.h
 
     ogs-yaml.c
     ogs-context.c
     ogs-config.c
     ogs-init.c
+    ogs-app-timer.c
 '''.split())
 
 yaml_dep = dependency('yaml-0.1')
@@ -38,11 +40,11 @@ libapp = library('ogsapp',
     version : libogslib_version,
     c_args : '-DOGS_APP_COMPILATION',
     include_directories : [libapp_inc, libinc],
-    dependencies : [libcore_dep, yaml_dep],
+    dependencies : [libcore_dep, yaml_dep, libproto_dep, liblicense_dep],
     install : true)
 
 libapp_dep = declare_dependency(
     link_with : libapp,
     include_directories : [libapp_inc, libinc],
-    dependencies : [libcore_dep, yaml_dep],
+    dependencies : [libcore_dep, yaml_dep, libproto_dep, liblicense_dep],
 )

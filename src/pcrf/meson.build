@@ -31,7 +31,6 @@ libpcrf = static_library('pcrf',
     dependencies : [libapp_dep,
                     libdbi_dep,
                     libdiameter_rx_dep,
-                    liblicense_dep,
                     libdiameter_gx_dep],
     install : false)
 
@@ -40,7 +39,6 @@ libpcrf_dep = declare_dependency(
     dependencies : [libapp_dep,
                     libdbi_dep,
                     libdiameter_rx_dep,
-                    liblicense_dep,
                     libdiameter_gx_dep])
 
 pcrf_sources = files('''

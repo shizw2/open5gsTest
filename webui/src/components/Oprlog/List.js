@@ -88,6 +88,23 @@ class List extends Component {
     const totalPages = Math.ceil(oprlogs.length / this.itemsPerPage);
     this.setState({ currentPage: totalPages });
   };
+
+  componentWillMount() {
+    this.checkFirstPage(this.props.oprlogs);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.oprlogs !== this.props.oprlogs) {
+      this.checkFirstPage(nextProps.oprlogs);
+    }
+  }
+
+  checkFirstPage(oprlogs) {
+    const { currentPage } = this.state;
+    if (currentPage !== 1) {
+      this.handleFirstPage();
+    }
+  }
   render() {
     const { oprlogs, onView } = this.props;
     const { currentPage } = this.state;
@@ -117,13 +134,13 @@ class List extends Component {
         <Wrapper>{oprlogList}</Wrapper>
         <Pagination>
           <Button
-            disabled={currentPage === 1}
+            disabled={currentPage === 1|| totalPages === 0}
             onClick={this.handleFirstPage} // 添加点击事件处理程序
           >
             首页
           </Button>
           <Button
-            disabled={currentPage === 1}
+            disabled={currentPage === 1|| totalPages === 0}
             onClick={this.handlePrevPage}
           >
             前一页
@@ -132,17 +149,20 @@ class List extends Component {
             当前页 {currentPage} 总页数 {totalPages}
           </PageInfo>
           <Button
-            disabled={currentPage === totalPages}
+            disabled={currentPage === totalPages|| totalPages === 0}
             onClick={this.handleNextPage}
           >
             后一页
           </Button>
           <Button
-          disabled={currentPage === totalPages}
+          disabled={totalPages===0}
           onClick={this.handleLastPage} // 添加点击事件处理程序
           >
           末页
           </Button>
+          <PageInfo>
+            总记录数 {reversedOprlogs.length} 
+          </PageInfo>
         </Pagination>
       </div>
     );

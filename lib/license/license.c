@@ -17,14 +17,6 @@ static runtime_info_t g_runtime_info;
 
 int getProgramDirectory(char* programPath, size_t bufferSize);
 
-
-char  m_szPrivateKey[32] = "5gc_Security_2023-11-11";  /*存放私有密钥*/
-
-
-// 全局变量，存储文件名
-const char* FILE_PATH_1 = "/var/run/running_time1.dat";
-const char* FILE_PATH_2 = "/var/log/running_time2.dat";
-
 #define PATH_MAX 100
 
 char* timestampToString(time_t timestamp) {  
@@ -42,35 +34,46 @@ char* timestampToString(time_t timestamp) {
     return buffer[index]; 
 }
 
-// 加载已运行时间从文件
+// 从三个文件中读取时间，并且最后选择最大的那个时间(防止被篡改)
 static void loadRunningTimeFromFile(void) {
-    time_t tempTime;
-    FILE* file = fopen(FILE_PATH_1, "rb"); // 注意这里应为"rb"
-    if (file != NULL) {
-        fread(&g_runtime_info, sizeof(runtime_info_t), 1, file);
-        fclose(file);
-    } else {
-        file = fopen(FILE_PATH_2, "rb");
-        if (file != NULL) {
-            fread(&g_runtime_info, sizeof(runtime_info_t), 1, file);
+    char FILE_PATH_1[100] = "/var/run/running_time.dat";
+    char FILE_PATH_2[100] = "/var/log/5gc_time.dat";
+    char FILE_PATH_3[100] = "/var/lib/run_seconds.dat";
+
+    runtime_info_t temp_runtime_info;
+    time_t maxRunningTime = 0;
+    int i;
+
+    // 创建一个数组包含所有的文件路径
+    char* files[] = {FILE_PATH_1, FILE_PATH_2, FILE_PATH_3};
+
+    for(i = 0; i < 3; i++) {
+        FILE* file = fopen(files[i], "rb");
+        if(file != NULL) {
+            fread(&temp_runtime_info, sizeof(runtime_info_t), 1, file);
             fclose(file);
+
+            temp_runtime_info.totalRunningTime = decrypt_long(temp_runtime_info.totalRunningTime);
+            temp_runtime_info.licenseCreateTime = decrypt_long(temp_runtime_info.licenseCreateTime);
+            
+            // 如果新的时间大于当前最大时间，则更新最大时间
+            if (temp_runtime_info.totalRunningTime >= maxRunningTime) {
+                maxRunningTime = temp_runtime_info.totalRunningTime;
+                g_runtime_info = temp_runtime_info; // Update the global variable with the new max time
+            }
+        }else{
+            printf("文件不存在:%s\r\n",files[i]);
         }
     }
 
-    if (g_runtime_info.totalRunningTime != 0){
-        g_runtime_info.totalRunningTime = decrypt_long(g_runtime_info.totalRunningTime);
-    }
-    
-    g_runtime_info.licenseCreateTime = decrypt_long(g_runtime_info.licenseCreateTime);
-    
-    if (g_runtime_info.licenseCreateTime != g_license_info.licenseCreateTime){
-        printf("license已更新,旧license创建时间:%s,新license创建时间:%s,运行时间清0.\r\n",timestampToString(g_runtime_info.licenseCreateTime) , timestampToString(g_license_info.licenseCreateTime));
+    if(g_runtime_info.licenseCreateTime != g_license_info.licenseCreateTime){
         g_runtime_info.licenseCreateTime = g_license_info.licenseCreateTime;
         g_runtime_info.totalRunningTime = 0;
     }
 
-    printf("加载系统信息,系统已运行时间:%ld秒.\r\n",g_runtime_info.totalRunningTime);
+    //printf("加载系统信息,系统已运行时间:%ld秒.\r\n",g_runtime_info.totalRunningTime);
 }
+
 
 // 保存已运行时间和许可创建时间到文件
 static void saveRunningTimeToFile(const char* filePath) {
@@ -80,12 +83,7 @@ static void saveRunningTimeToFile(const char* filePath) {
         printf("无法打开文件进行写入。\n");
         exit(1);
     }
-    
-    //char buffer[30];    
-    ///time_t tempTime = g_runtime_info.licenseCreateTime;//解决告警
-    //strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&tempTime));
-    //printf("保存运行信息:license创建时间: %s,系统已运行时间:%ld秒,.\r\n",buffer,g_runtime_info.totalRunningTime);
-    
+     
     enc_runtime_info.licenseCreateTime = encrypt_long(g_runtime_info.licenseCreateTime);
     enc_runtime_info.totalRunningTime  = encrypt_long(g_runtime_info.totalRunningTime);
     fwrite(&enc_runtime_info, sizeof(runtime_info_t), 1, file);
@@ -94,15 +92,16 @@ static void saveRunningTimeToFile(const char* filePath) {
 
 
 static void saveRunningTimeToFiles(void){
+    char FILE_PATH_1[100] = "/var/run/running_time.dat";
+    char FILE_PATH_2[100] = "/var/log/5gc_time.dat";
+    char FILE_PATH_3[100] = "/var/lib/run_seconds.dat";
     saveRunningTimeToFile(FILE_PATH_1);
     saveRunningTimeToFile(FILE_PATH_2);
+    saveRunningTimeToFile(FILE_PATH_3);
 }
 
 static void dsGetSerialNumber(unsigned char *szSysInfo, int *piSystemInfoLen)
 {
-    //char szSysInfo[MAX_SYS_INFO_LENGTH] = { 0 };/*生成szSysInfo的算法可以修改*/
-	//FILE  *MachineFile;
-
     if (NULL == szSysInfo || NULL == piSystemInfoLen)
     {
         return;
@@ -122,44 +121,18 @@ static void dsGetSerialNumber(unsigned char *szSysInfo, int *piSystemInfoLen)
 
 // 解密函数
 static int decrypt(int num) {
-    int decryptedNum = 0;
-    int temp = num;
-
-    // 将数字每一位进行运算
-    while (temp != 0) {
-        int digit = temp % 10;
-        decryptedNum = decryptedNum * 10 + (digit + 5) % 10; // 进行复杂的运算
-        temp /= 10;
-    }
-
-    return decryptedNum;
+    return (num - 3) ^ 0x55555555 ;
 }
 
 static long encrypt_long(long num) {
-    long encryptedNum = 0;
-    long temp = num;
-
-    // 将数字每一位进行运算
-    while (temp != 0) {
-        long digit = temp % 10;
-        encryptedNum = encryptedNum * 10 + (digit + 5) % 10; // 进行复杂的运算
-        temp /= 10;
-    }
-
+    long key = 123456789; // 选择一个密钥
+    long encryptedNum = num ^ key;
     return encryptedNum;
 }
 
 static long decrypt_long(long num) {
-    long decryptedNum = 0;
-    long temp = num;
-
-    // 将数字每一位进行运算
-    while (temp != 0) {
-        long digit = temp % 10;
-        decryptedNum = decryptedNum * 10 + (digit + 5) % 10; // 进行复杂的运算
-        temp /= 10;
-    }
-
+    long key = 123456789; // 使用相同的密钥进行解密
+    long decryptedNum = num ^ key; 
     return decryptedNum;
 }
 
@@ -188,6 +161,7 @@ int getProgramDirectory(char* programPath, size_t bufferSize) {
 
 void dsMakeMachineID(void)
 {
+    char  m_szPrivateKey[32] = "5gc_Security_2023-11-11";  /*存放私有密钥*/
     unsigned char szSysInfo[MAX_SYS_INFO_LENGTH] = { 0 };/*生成szSysInfo的算法可以修改*/
     int iSystemInfoLen = 0;
 	FILE  *MachineFile;
@@ -219,7 +193,7 @@ void dsMakeMachineID(void)
 }
 
 
-//半小时执行一次
+//建议每半小时判断一次
 bool isLicenseExpired(long runTime)
 {
     time_t currentTime;
@@ -235,12 +209,13 @@ bool isLicenseExpired(long runTime)
     long currentTimestamp = (long)currentTime; // 转换为整数时间戳
  
     if ((g_license_info.licenseExpireTime >= currentTimestamp || g_license_info.licenseExpireTime == 0) && g_license_info.licenseDuration >= g_runtime_info.totalRunningTime ) {
-        printf("License未过期,系统已运行:%ld秒,截止时间:%s, 有效时长:%ld秒.\n",g_runtime_info.totalRunningTime,timestampToString(g_license_info.licenseExpireTime), g_license_info.licenseDuration);
+        //printf("License未过期,系统已运行:%ld秒,截止时间:%s, 有效时长:%ld秒.\n",g_runtime_info.totalRunningTime,timestampToString(g_license_info.licenseExpireTime), g_license_info.licenseDuration);
         saveRunningTimeToFiles();
         return true;
     } else {
-        g_runtime_info.totalRunningTime -= 1800;
-        printf("License已过期,系统已运行:%ld秒,截止时间:%s, 有效时长:%ld秒.\n",g_runtime_info.totalRunningTime,timestampToString(g_license_info.licenseExpireTime), g_license_info.licenseDuration);
+        g_runtime_info.totalRunningTime = g_license_info.licenseDuration;
+        saveRunningTimeToFiles();
+        //printf("License已过期,系统已运行:%ld秒,截止时间:%s, 有效时长:%ld秒.\n",g_runtime_info.totalRunningTime,timestampToString(g_license_info.licenseExpireTime), g_license_info.licenseDuration);
         return false;
     }
 }
@@ -260,12 +235,18 @@ long getLicenseExpireTime(void)
     return g_license_info.licenseExpireTime;
 }
 
+long getLicenseCreateTime(void)
+{
+    return g_license_info.licenseCreateTime;
+}
+
 long getLicenseDurationTime(void)
 {
     return g_license_info.licenseDuration;
 }
 
 bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
+    char  m_szPrivateKey[32] = "5gc_Security_2023-11-11";  /*存放私有密钥*/
     unsigned char szDigest[16];
     unsigned char szSystemInfo[MAX_SYS_INFO_LENGTH];
     char FilePathName[PATH_MAX+30] = {};
@@ -301,18 +282,13 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
     fclose(LicenseInputFile);        
 
     g_license_info.maxUserNum = decrypt(license_info.maxUserNum);
-    printf("license最大用户数: %d\n", g_license_info.maxUserNum);
-
+   
     g_license_info.licenseExpireTime = decrypt_long(license_info.licenseExpireTime);
 
-    printf("license截止时间: %s\n", timestampToString(g_license_info.licenseExpireTime));
-    
     g_license_info.licenseDuration = decrypt_long(license_info.licenseDuration);
-    printf("license有效时长: %ld(秒)\n", g_license_info.licenseDuration);
    
     g_license_info.licenseCreateTime = decrypt_long(license_info.licenseCreateTime); 
-    printf("license创建时间: %s\n", timestampToString(g_license_info.licenseCreateTime));
-
+  
     /*拷贝系统信息到临时变量中*/
     dsGetSerialNumber(szSystemInfo, &iSystemInfoLen);
 
@@ -321,7 +297,7 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
         snprintf(errorMsg, errorMsgSize, "License文件信息与特征信息输入文件不一致!");
         return false;
     } else {
-        printf("硬件特征信息验证成功!\n");
+        //printf("硬件特征信息验证成功!\n");
     }
 
     /*算临时信息的MD5 digest */
@@ -332,7 +308,7 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
         return false;
     }
 
-    printf("License文件正确!\n");
+    //printf("License文件正确!\n");
 
     if (isLicenseExpired(0) == false) {
         snprintf(errorMsg, errorMsgSize, "许可已过期!");

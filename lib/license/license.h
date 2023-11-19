@@ -33,6 +33,6 @@ int  getLicenseUeNum(void);
 long getLicenseRunTime(void);
 long getLicenseExpireTime(void);
 long getLicenseDurationTime(void);
-
+long getLicenseCreateTime(void);
 #endif /* End of _LICENSE_INCLUDE_H_ */
 
