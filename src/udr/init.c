@@ -18,7 +18,6 @@
  */
 
 #include "sbi-path.h"
-#include "license.h"
 
 static ogs_thread_t *thread;
 static void udr_main(void *data);
@@ -31,14 +30,6 @@ int udr_initialize(void)
 
     ogs_sbi_context_init(OpenAPI_nf_type_UDR);
     udr_context_init();
-
-    char errorMsg[100];
-    size_t errorMsgSize = sizeof(errorMsg);
-    bool result = dsCheckLicense(errorMsg, errorMsgSize);
-    if (!result) {
-        ogs_fatal("License错误: %s\n", errorMsg);
-        return OGS_ERROR;
-    }  
     
     rv = ogs_sbi_context_parse_config("udr", "nrf", "scp");
     if (rv != OGS_OK) return rv;
