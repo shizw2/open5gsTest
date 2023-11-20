@@ -52,7 +52,8 @@ endforeach
 
 systemd_conf = '''
     99-5gc.netdev
-    99-5gc.network        
+    99-5gc.network   
+    udp_ini_conf.sh
 '''.split()
 
 foreach file : systemd_conf
