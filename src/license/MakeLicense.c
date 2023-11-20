@@ -1,7 +1,5 @@
 #include "license.h"
 
-static long encrypt_long(long num);
-static int encrypt(int num);
 static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimestamp)
 {
     char  m_szPrivateKey[32] = "5gc_Security_2023-11-11";  /*存放私有密钥*/
@@ -35,7 +33,7 @@ static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimes
     }
     fclose(LicenseInputFile);
 
-    license_info.maxUserNum = encrypt(numUsers);
+    license_info.maxUserNum = (int)encrypt_long(numUsers);
 
  
     if (expireTimestamp != 0){
@@ -86,18 +84,6 @@ static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimes
 
     printf("成功生成License文件，可以拷贝给用户!\r\n");   
 }
-
-static int encrypt(int num) {
-    return (num ^ 0x55555555) + 3;
-}
-
-static long encrypt_long(long num) {
-    long key = 123456789; // 选择一个密钥
-    long encryptedNum = num ^ key;
-    return encryptedNum;
-}
-
-
 
 int main(void)
 {

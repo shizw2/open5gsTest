@@ -25,6 +25,9 @@ typedef struct runtime_info_s{
     long totalRunningTime;
 }PACK_1 runtime_info_t;
 
+long encrypt_long(long num);
+long decrypt_long(long num);
+
 char* timestampToString(time_t timestamp);
 void dsMakeMachineID(void);
 bool dsCheckLicense(char* errorMsg, size_t errorMsgSize);

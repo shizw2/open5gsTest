@@ -5,9 +5,6 @@
 
 
 static void dsGetSerialNumber(unsigned char *szSysInfo, int *piSystemInfoLen);
-static int decrypt(int num);
-static long encrypt_long(long num);
-static long decrypt_long(long num);
 static void saveRunningTimeToFile(const char* filePath);
 static void saveRunningTimeToFiles(void);
 static void loadRunningTimeFromFile(void);
@@ -118,22 +115,20 @@ static void dsGetSerialNumber(unsigned char *szSysInfo, int *piSystemInfoLen)
 }
 
 
-
-// 解密函数
-static int decrypt(int num) {
-    return (num - 3) ^ 0x55555555 ;
+long encrypt_long(long num) {
+    long LONG_KEY = 0xABCDEFABCDEF;
+    long result = num ^ LONG_KEY; // 进行异或操作
+    result += 123456; // 加法操作
+    result *= 2; // 乘法操作
+    return result;
 }
 
-static long encrypt_long(long num) {
-    long key = 123456789; // 选择一个密钥
-    long encryptedNum = num ^ key;
-    return encryptedNum;
-}
-
-static long decrypt_long(long num) {
-    long key = 123456789; // 使用相同的密钥进行解密
-    long decryptedNum = num ^ key; 
-    return decryptedNum;
+long decrypt_long(long num) {
+    long LONG_KEY = 0xABCDEFABCDEF;
+    long result = num;
+    result /= 2; // 逆向乘法操作：除法
+    result -= 123456; // 逆向加法操作：减法
+    return result ^ LONG_KEY; // 逆向异或操作
 }
 
 int getProgramDirectory(char* programPath, size_t bufferSize) {
@@ -281,7 +276,7 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
     
     fclose(LicenseInputFile);        
 
-    g_license_info.maxUserNum = decrypt(license_info.maxUserNum);
+    g_license_info.maxUserNum = (int)decrypt_long(license_info.maxUserNum);
    
     g_license_info.licenseExpireTime = decrypt_long(license_info.licenseExpireTime);
 
