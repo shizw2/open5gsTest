@@ -813,13 +813,12 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
         }
         break;
 
-    case OGS_EVENT_YAML_CONFIG_CHECK_TIMER:
+    case OGS_EVENT_APP_CHECK_TIMER:
         ogs_assert(e);
 
         switch(e->h.timer_id) {
         case OGS_TIMER_LICENSE_CHECK:
-            ogs_info("license check.");
-            if (isLicenseExpired(5) == false){
+            if (isLicenseExpired(LICENSE_CHECK_INTERVAL) == false){
                 ogs_info("license out of date.");
                 exit(0);
             }

@@ -1,6 +1,7 @@
 #include "ogs-app-timer.h"
 #include "ogs-app.h"
 #include "ogs-proto.h"
+#include "license.h"
 
 
 //这个方法可以挪到lib库中，但目前没合适的lib库存放
@@ -9,7 +10,7 @@ void ogs_timer_yaml_config_check(void *data)
     int rv;
     ogs_event_t *e = NULL;
 
-    e = ogs_event_new(OGS_EVENT_YAML_CONFIG_CHECK_TIMER);
+    e = ogs_event_new(OGS_EVENT_APP_CHECK_TIMER);
     ogs_assert(e);
     e->timer_id = OGS_TIMER_YAML_CONFIG_CHECK;
 
@@ -25,7 +26,7 @@ void ogs_timer_license_check(void *data)
     int rv;
     ogs_event_t *e = NULL;
 
-    e = ogs_event_new(OGS_EVENT_YAML_CONFIG_CHECK_TIMER);
+    e = ogs_event_new(OGS_EVENT_APP_CHECK_TIMER);
     ogs_assert(e);
     e->timer_id = OGS_TIMER_LICENSE_CHECK;
 
@@ -41,7 +42,7 @@ int yaml_check_init(void)
 {  
     //set timer
     t_yaml_check = ogs_timer_add(ogs_app()->timer_mgr,ogs_timer_yaml_config_check,0);
-    ogs_timer_start(t_yaml_check,ogs_time_from_sec(5));
+    ogs_timer_start(t_yaml_check,ogs_time_from_sec(YAML_CONFIG_CHECK_INTERVAL));
 
     ogs_info("yaml_check_init sucess.");
     return OGS_OK;
@@ -60,7 +61,7 @@ int yaml_check_close(void)
 int yaml_check_restart(void)
 {  
     //重设定时器
-    ogs_timer_start(t_yaml_check,ogs_time_from_sec(5));
+    ogs_timer_start(t_yaml_check,ogs_time_from_sec(YAML_CONFIG_CHECK_INTERVAL));
     return OGS_OK;
 }
 
@@ -77,7 +78,7 @@ int license_check_init(void)
 
     //set timer
     t_license_check = ogs_timer_add(ogs_app()->timer_mgr,ogs_timer_license_check,0);
-    ogs_timer_start(t_license_check,ogs_time_from_sec(5));
+    ogs_timer_start(t_license_check,ogs_time_from_sec(LICENSE_CHECK_INTERVAL));
 
     ogs_info("license_check_init sucess.");
     return OGS_OK;
@@ -96,6 +97,6 @@ int license_check_close(void)
 int license_check_restart(void)
 {  
     //重设定时器
-    ogs_timer_start(t_license_check,ogs_time_from_sec(5));
+    ogs_timer_start(t_license_check,ogs_time_from_sec(LICENSE_CHECK_INTERVAL));
     return OGS_OK;
 }

@@ -14,6 +14,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+open5gs_sysconfdir = join_paths(sysconfdir, project_name)
+systemd_sysconfdir = join_paths(open5gs_sysconfdir, 'systemd')
+meson.add_install_script(python3_exe, '-c',
+        mkdir_p.format(systemd_sysconfdir))
+
 #这里不太好用变量替换，先写死
 systemd_conf_in = '''
     5gc-mmed.service
@@ -36,10 +42,12 @@ systemd_conf_in = '''
 '''.split()
 
 foreach file : systemd_conf_in
-    configure_file(
+    gen = configure_file(
             input : file + '.in',
             output : file,
             configuration : conf_data)
+    meson.add_install_script(python3_exe, '-c',
+            install_conf.format(gen, systemd_sysconfdir))
 endforeach
 
 systemd_conf = '''
@@ -48,8 +56,10 @@ systemd_conf = '''
 '''.split()
 
 foreach file : systemd_conf
-    configure_file(
+    gen = configure_file(
             input : file,
             output : file,
             configuration : conf_data)
+    meson.add_install_script(python3_exe, '-c',
+            install_conf.format(gen, systemd_sysconfdir))        
 endforeach
