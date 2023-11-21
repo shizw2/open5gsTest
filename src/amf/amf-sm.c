@@ -818,7 +818,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
         switch(e->h.timer_id) {
         case OGS_TIMER_LICENSE_CHECK:
-            if (isLicenseExpired(LICENSE_CHECK_INTERVAL) == false){
+            if (checkLicenseAfterRuntime(LICENSE_CHECK_INTERVAL,30) == false){
                 ogs_info("license out of date.");
                 exit(0);
             }

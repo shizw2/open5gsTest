@@ -1485,6 +1485,13 @@ ran_ue_t *ran_ue_add(amf_gnb_t *gnb, uint32_t ran_ue_ngap_id)
     ran_ue_t *ran_ue = NULL;
 
     ogs_assert(gnb);
+    
+    float limitPercentage = 1.2; // 超过许可数的百分比
+    
+    if (num_of_ran_ue >= limitPercentage*getLicenseUeNum()){
+       ogs_error("Exceeded the licensed user(%d) limit(%.0f%%) . Please upgrade your license to accommodate additional users.",getLicenseUeNum(),(limitPercentage - 1) * 100);
+       return NULL;
+    }
 
     ogs_pool_alloc(&ran_ue_pool, &ran_ue);
     if (ran_ue == NULL) {
@@ -1795,10 +1802,10 @@ amf_ue_t *amf_ue_add(ran_ue_t *ran_ue)
     ogs_assert(ran_ue);
    // gnb = ran_ue->gnb;//O3
    // ogs_assert(gnb);//O3
-   if (ogs_list_count(&self.amf_ue_list) >= getLicenseUeNum()){
-       ogs_error("Exceeded the licensed user limit(%d). Please upgrade your license to accommodate additional users.",getLicenseUeNum());
-       return NULL;
-   }
+   //if (ogs_list_count(&self.amf_ue_list) >= getLicenseUeNum()){
+   //    ogs_error("Exceeded the licensed user limit(%d). Please upgrade your license to accommodate additional users.",getLicenseUeNum());
+   //    return NULL;
+   //}
    
 
     ogs_pool_alloc(&amf_ue_pool, &amf_ue);

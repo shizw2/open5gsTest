@@ -187,9 +187,9 @@ void dsMakeMachineID(void)
 	fclose(MachineFile);
 }
 
-
+#if 0
 //建议每半小时判断一次
-bool isLicenseExpired(long runTime)
+bool isLicenseExpired1(long runTime)
 {
     time_t currentTime;
     time(&currentTime);
@@ -213,6 +213,47 @@ bool isLicenseExpired(long runTime)
         //printf("License已过期,系统已运行:%ld秒,截止时间:%s, 有效时长:%ld秒.\n",g_runtime_info.totalRunningTime,timestampToString(g_license_info.licenseExpireTime), g_license_info.licenseDuration);
         return false;
     }
+}
+#endif
+
+int checkLicenseAfterRuntime(long runTime, int remainingDays)
+{
+    time_t currentTime;
+    time(&currentTime);
+    time_t tempTime;
+    
+    addRuntime(runTime);
+    
+    long currentTimestamp = (long)currentTime; // 转换为整数时间戳
+    int remainingSeconds = remainingDays * 24 * 60 * 60; // 将剩余天数转换为剩余秒数
+ 
+    if ((g_license_info.licenseExpireTime >= currentTimestamp ) && g_license_info.licenseDuration >= g_runtime_info.totalRunningTime ) {
+        if ((g_license_info.licenseExpireTime - currentTimestamp < remainingSeconds) ||
+            (g_license_info.licenseDuration - g_runtime_info.totalRunningTime < remainingSeconds)) {
+            return 1; // 未到期但剩余时间小于指定天数或有效时长还剩余指定天数
+        } else {
+            return 0; // 未到期且剩余时间大于等于指定天数且有效时长还剩余指定天数以上
+        }
+    } else {        
+        return 2; // 已到期
+    }
+}
+
+bool addRuntime(long runTime)
+{
+    time_t currentTime;
+    time(&currentTime);
+    time_t tempTime;
+    
+    if (g_runtime_info.totalRunningTime == 0){
+        loadRunningTimeFromFile();
+    }
+    
+    g_runtime_info.totalRunningTime += runTime;
+
+    saveRunningTimeToFiles();
+    
+    return true;
 }
 
 int getLicenseUeNum(void)
@@ -304,8 +345,11 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
     }
 
     //printf("License文件正确!\n");
-
-    if (isLicenseExpired(0) == false) {
+    int ret = checkLicenseAfterRuntime(0,30);
+    if (ret == 1) {
+        snprintf(errorMsg, errorMsgSize, "许可即将过期!");
+        return false;
+    }else if (ret == 2) {
         snprintf(errorMsg, errorMsgSize, "许可已过期!");
         return false;
     }

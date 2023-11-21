@@ -31,11 +31,12 @@ long decrypt_long(long num);
 char* timestampToString(time_t timestamp);
 void dsMakeMachineID(void);
 bool dsCheckLicense(char* errorMsg, size_t errorMsgSize);
-bool isLicenseExpired(long runTime);
+int checkLicenseAfterRuntime(long runTime, int remainingDays);
 int  getLicenseUeNum(void);
 long getLicenseRunTime(void);
 long getLicenseExpireTime(void);
 long getLicenseDurationTime(void);
 long getLicenseCreateTime(void);
+bool addRuntime(long runTime);
 #endif /* End of _LICENSE_INCLUDE_H_ */
 

@@ -36,7 +36,7 @@ static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimes
     license_info.maxUserNum = (int)encrypt_long(numUsers);
 
  
-    if (expireTimestamp != 0){
+    if (durationTimestamp == 0){
         if (expireTimestamp > (long)currentTime){
             licenseDuration = expireTimestamp - (long)currentTime;
         }else{
@@ -112,13 +112,24 @@ int main(void)
             return 0;
         }
 
-        timestamp = 0;
+        struct tm timeinfo = {0};
+        timeinfo.tm_year = 9999 - 1900; // 年份需要减去1900
+        timeinfo.tm_mon = 12 - 1; // 月份需要减去1
+        timeinfo.tm_mday = 31;
+
+        timestamp = mktime(&timeinfo);
         
         printf("有效时长: %ld(天)，计%ld(秒)\n", duration,duration*86400);
     }
     else if (timeChoice == 2) {
         printf("输入截止日期 (YYYYMMDD): ");
         scanf("%4d%2d%2d", &year, &month, &day);
+        
+        // 检查是否超过最大日期99991231
+        if (year > 9999 || month > 12 || day > 31) {
+            printf("无效的日期,截止日期需小于9999年12月31日,且年月日需合法\n");
+            return 0;
+        }
 
         if (year == 0 && month == 0 && day == 0) {
             struct tm timeinfo = {0};
@@ -134,7 +145,7 @@ int main(void)
             localTime = localtime(&currentTime);
             int currentYear = localTime->tm_year + 1900;
             int currentMonth = localTime->tm_mon + 1;
-            int currentDay = localTime->tm_mday;
+            int currentDay = localTime->tm_mday;  
 
             if (year < currentYear || (year == currentYear && month < currentMonth) || (year == currentYear && month == currentMonth && day < currentDay)) {
                 printf("Invalid date. Please enter a date not earlier than the current date.\n");
@@ -168,8 +179,15 @@ int main(void)
         printf("错误信息: %s\n", errorMsg);
     }
 
-    result = isLicenseExpired(0);
-    if (!result) {
+    int ret = checkLicenseAfterRuntime(0,30);
+    if (ret == 1) {
+        printf("license即将过期,系统已运行:%lu秒, 有效时长:%lu秒, 截止时间:%s,创建时间:%s,在线用户数:%d\r\n", getLicenseRunTime(),
+                    getLicenseDurationTime(),
+                    timestampToString(getLicenseExpireTime()),
+                    timestampToString(getLicenseCreateTime()),
+                    getLicenseUeNum());
+        return 1;
+    }else if (ret == 2) {
         printf("license已过期,系统已运行:%lu秒, 有效时长:%lu秒, 截止时间:%s,创建时间:%s,在线用户数:%d\r\n", getLicenseRunTime(),
                     getLicenseDurationTime(),
                     timestampToString(getLicenseExpireTime()),
