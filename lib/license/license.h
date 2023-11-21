@@ -29,14 +29,32 @@ long encrypt_long(long num);
 long decrypt_long(long num);
 
 char* timestampToString(time_t timestamp);
+/*生成硬件特征码*/
 void dsMakeMachineID(void);
+
+/*检查许可证的有效性*/
 bool dsCheckLicense(char* errorMsg, size_t errorMsgSize);
+
+/*在运行时检查许可证的有效性。根据给定的运行时间和剩余天数判断
+0: 有效
+1：即将到期(根据remainingDays判断是否属于即将到期)
+2：已到期*/
 int checkLicenseAfterRuntime(long runTime, int remainingDays);
+
+/*获取许可证中最大用户数*/
 int  getLicenseUeNum(void);
+
+/*获取许可证的总运行时间*/
 long getLicenseRunTime(void);
+
+/*获取许可证的过期时间*/
 long getLicenseExpireTime(void);
+
+/*获取许可证的创建时间*/
 long getLicenseDurationTime(void);
+
+/*获取许可证的有效时长*/
 long getLicenseCreateTime(void);
-bool addRuntime(long runTime);
+
 #endif /* End of _LICENSE_INCLUDE_H_ */
 

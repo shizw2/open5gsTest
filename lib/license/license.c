@@ -8,6 +8,7 @@ static void dsGetSerialNumber(unsigned char *szSysInfo, int *piSystemInfoLen);
 static void saveRunningTimeToFile(const char* filePath);
 static void saveRunningTimeToFiles(void);
 static void loadRunningTimeFromFile(void);
+static bool addRuntime(long runTime);
 
 static license_info_t g_license_info;
 static runtime_info_t g_runtime_info;
@@ -239,7 +240,7 @@ int checkLicenseAfterRuntime(long runTime, int remainingDays)
     }
 }
 
-bool addRuntime(long runTime)
+static bool addRuntime(long runTime)
 {
     time_t currentTime;
     time(&currentTime);
