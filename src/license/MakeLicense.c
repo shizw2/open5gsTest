@@ -180,14 +180,14 @@ int main(void)
     }
 
     int ret = checkLicenseAfterRuntime(0,30);
-    if (ret == 1) {
+    if (ret == LICENSE_SOON_TO_EXPIRE) {
         printf("license即将过期,系统已运行:%lu秒, 有效时长:%lu秒, 截止时间:%s,创建时间:%s,在线用户数:%d\r\n", getLicenseRunTime(),
                     getLicenseDurationTime(),
                     timestampToString(getLicenseExpireTime()),
                     timestampToString(getLicenseCreateTime()),
                     getLicenseUeNum());
         return 1;
-    }else if (ret == 2) {
+    }else if (ret == LICENSE_EXPIRED) {
         printf("license已过期,系统已运行:%lu秒, 有效时长:%lu秒, 截止时间:%s,创建时间:%s,在线用户数:%d\r\n", getLicenseRunTime(),
                     getLicenseDurationTime(),
                     timestampToString(getLicenseExpireTime()),

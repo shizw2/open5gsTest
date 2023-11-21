@@ -16,12 +16,12 @@ int main(void)
 
     for (i = 0; i < 10; i++){
         ret = checkLicenseAfterRuntime(1000*(i+1),30);
-        if (ret == 1) {
+        if (ret == LICENSE_SOON_TO_EXPIRE) {
             printf("license即将过期,系统已运行:%lu秒, 有效时长:%lu秒, 截止时间:%s,在线用户数:%d\r\n", getLicenseRunTime(),
                         getLicenseDurationTime(),
                         timestampToString(getLicenseExpireTime()),
                         getLicenseUeNum());            
-        }else if (ret == 2) {
+        }else if (ret == LICENSE_EXPIRED) {
             printf("license已过期,系统已运行:%lu秒, 有效时长:%lu秒, 截止时间:%s,在线用户数:%d\r\n", getLicenseRunTime(),
                         getLicenseDurationTime(),
                         timestampToString(getLicenseExpireTime()),

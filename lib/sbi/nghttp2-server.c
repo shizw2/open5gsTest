@@ -600,7 +600,7 @@ static bool server_send_rspmem_persistent(
     add_header(&nva[i++], ":status", status_string[response->status]);
 
     ogs_snprintf(srv_version, sizeof(srv_version),
-            "Open5GS %s", ogs_app()->version ? ogs_app()->version : "TEST");
+            "5gc %s", ogs_app()->version ? ogs_app()->version : "TEST");
     add_header(&nva[i++], "server", srv_version);
     add_header(&nva[i++], "date", get_date_string(datebuf));
 

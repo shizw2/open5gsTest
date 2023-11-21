@@ -32,6 +32,22 @@ char* timestampToString(time_t timestamp) {
     return buffer[index]; 
 }
 
+char* formatRemainingTime(long remainingSeconds) {
+    static char buffer[4][20]; 
+    static int index = 0; 
+    index++;
+    index = index%4;
+    
+    int days = remainingSeconds / (24 * 60 * 60);
+    int hours = (remainingSeconds % (24 * 60 * 60)) / (60 * 60);
+    int minutes = (remainingSeconds % (60 * 60)) / 60;
+    int seconds = remainingSeconds % 60;
+
+    snprintf(buffer[index], 20, "%d天%d小时%d分钟%d秒", days, hours, minutes, seconds);
+    
+    return buffer[index]; 
+}
+
 // 从三个文件中读取时间，并且最后选择最大的那个时间(防止被篡改)
 static void loadRunningTimeFromFile(void) {
     char FILE_PATH_1[100] = "/var/run/running_time.dat";
@@ -347,10 +363,10 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
 
     //printf("License文件正确!\n");
     int ret = checkLicenseAfterRuntime(0,30);
-    if (ret == 1) {
+    if (ret == LICENSE_SOON_TO_EXPIRE) {
         snprintf(errorMsg, errorMsgSize, "许可即将过期!");
         return false;
-    }else if (ret == 2) {
+    }else if (ret == LICENSE_EXPIRED) {
         snprintf(errorMsg, errorMsgSize, "许可已过期!");
         return false;
     }

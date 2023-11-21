@@ -11,6 +11,12 @@
 #define true 1
 #define false 0
 #define MAX_SYS_INFO_LENGTH 4096
+
+#define LICENSE_NOT_EXPIRED     0
+#define LICENSE_SOON_TO_EXPIRE  1
+#define LICENSE_EXPIRED         2
+
+
 typedef struct license_info_s{
     BYTE   szSystemInfoFromFile[MAX_SYS_INFO_LENGTH];
     int  maxUserNum;

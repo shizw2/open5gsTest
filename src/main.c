@@ -29,7 +29,7 @@ int g_select_key = 10;
 
 static void show_version(void)
 {
-    printf("Open5GS %s\n\n", OPEN5GS_VERSION);
+    printf("5gc %s\n\n", OPEN5GS_VERSION);
 }
 
 static void show_help(const char *name)
@@ -217,7 +217,7 @@ int main(int argc, const char *const argv[])
         if (rv == OGS_RETRY)
             return EXIT_SUCCESS;
 
-        ogs_fatal("Open5GS initialization failed. Aborted");
+        ogs_fatal("5gc initialization failed. Aborted");
         return OGS_ERROR;
     }
 
@@ -226,14 +226,14 @@ int main(int argc, const char *const argv[])
         if (rv == OGS_RETRY)
             return EXIT_SUCCESS;
 
-        ogs_fatal("Open5GS initialization failed. Aborted");
+        ogs_fatal("5gc initialization failed. Aborted");
         return OGS_ERROR;
     }
 
     atexit(terminate);
     ogs_signal_thread(check_signal);
 
-    ogs_info("Open5GS daemon terminating...");
+    ogs_info("5gc daemon terminating...");
 
     return OGS_OK;
 }

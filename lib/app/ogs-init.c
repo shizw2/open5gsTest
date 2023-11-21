@@ -122,7 +122,7 @@ int ogs_app_initialize(
      */
     if (ogs_app()->version) {
         ogs_log_print(OGS_LOG_INFO,
-                "Open5GS daemon %s\n\n", ogs_app()->version);
+                "5gc daemon %s\n\n", ogs_app()->version);
 
         ogs_info("Configuration: '%s'", ogs_app()->file);
 

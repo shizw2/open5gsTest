@@ -87,6 +87,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
     uint8_t sps_id = 0;
     amf_internel_msg_header_t internel_msg;
     ssize_t sent;
+    int license_ret;
 
     
     
@@ -818,8 +819,12 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
         switch(e->h.timer_id) {
         case OGS_TIMER_LICENSE_CHECK:
-            if (checkLicenseAfterRuntime(LICENSE_CHECK_INTERVAL,30) == false){
-                ogs_info("license out of date.");
+            license_ret = checkLicenseAfterRuntime(LICENSE_CHECK_INTERVAL,30);
+            if (license_ret == LICENSE_SOON_TO_EXPIRE){
+                ogs_warn("license soon to expire.");  
+                //TODO:告警                
+            }else if (license_ret == LICENSE_EXPIRED){
+                ogs_fatal("license expired.");
                 exit(0);
             }
             ogs_info("license info: runtime:%lu, durationtime:%lu, expireTime:%s,", getLicenseRunTime(),
