@@ -370,11 +370,11 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
     int ret = checkLicenseAfterRuntime(0,30);
     if (ret == LICENSE_SOON_TO_EXPIRE) {
         snprintf(errorMsg, errorMsgSize, "许可即将过期!");
-        return false;
+        return true;
     }else if (ret == LICENSE_EXPIRED) {
         snprintf(errorMsg, errorMsgSize, "许可已过期!");
         return false;
+    }else{
+        return true;
     }
-
-    return true;
 }

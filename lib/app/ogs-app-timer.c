@@ -72,6 +72,10 @@ int license_check_init(void)
     size_t errorMsgSize = sizeof(errorMsg);
     bool result = dsCheckLicense(errorMsg, errorMsgSize);
     if (!result) {
+        ogs_info("系统已运行:%lu秒, 有效时长:%lu秒, 截止时间:%s,在线用户数:%d\r\n", getLicenseRunTime(),
+                        getLicenseDurationTime(),
+                        timestampToString(getLicenseExpireTime()),
+                        getLicenseUeNum());
         ogs_fatal("License错误: %s\n", errorMsg);
         return OGS_ERROR;
     } 
