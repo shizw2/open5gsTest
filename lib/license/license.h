@@ -35,6 +35,8 @@ long encrypt_long(long num);
 long decrypt_long(long num);
 
 char* timestampToString(time_t timestamp);
+char* convertSecondsToString(time_t timestamp);
+
 /*生成硬件特征码*/
 void dsMakeMachineID(void);
 
@@ -61,6 +63,9 @@ long getLicenseDurationTime(void);
 
 /*获取许可证的有效时长*/
 long getLicenseCreateTime(void);
+
+/*获取许可证的剩余时长*/
+long getLicenseRemainingTime(void);
 
 #endif /* End of _LICENSE_INCLUDE_H_ */
 

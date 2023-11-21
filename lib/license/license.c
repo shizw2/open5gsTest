@@ -32,18 +32,18 @@ char* timestampToString(time_t timestamp) {
     return buffer[index]; 
 }
 
-char* formatRemainingTime(long remainingSeconds) {
-    static char buffer[4][20]; 
+char* convertSecondsToString(time_t timestamp) {
+    static char buffer[4][50]; 
     static int index = 0; 
     index++;
     index = index%4;
     
-    int days = remainingSeconds / (24 * 60 * 60);
-    int hours = (remainingSeconds % (24 * 60 * 60)) / (60 * 60);
-    int minutes = (remainingSeconds % (60 * 60)) / 60;
-    int seconds = remainingSeconds % 60;
+    int days = timestamp / (24 * 60 * 60);
+    int hours = (timestamp % (24 * 60 * 60)) / (60 * 60);
+    int minutes = (timestamp % (60 * 60)) / 60;
+    int seconds = timestamp % 60;
 
-    snprintf(buffer[index], 20, "%d天%d小时%d分钟%d秒", days, hours, minutes, seconds);
+    snprintf(buffer[index], 50, "%d天%d小时%d分钟%d秒", days, hours, minutes, seconds);
     
     return buffer[index]; 
 }
@@ -296,6 +296,11 @@ long getLicenseCreateTime(void)
 long getLicenseDurationTime(void)
 {
     return g_license_info.licenseDuration;
+}
+
+long getLicenseRemainingTime(void)
+{
+    return g_license_info.licenseDuration - g_runtime_info.totalRunningTime;
 }
 
 bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
