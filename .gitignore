@@ -9,4 +9,5 @@ core*
 version/
 *.docx
 install*/
+omm/
 webui/.next
