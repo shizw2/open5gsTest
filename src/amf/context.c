@@ -1493,6 +1493,7 @@ ran_ue_t *ran_ue_add(amf_gnb_t *gnb, uint32_t ran_ue_ngap_id)
        return NULL;
     }
 
+
     ogs_pool_alloc(&ran_ue_pool, &ran_ue);
     if (ran_ue == NULL) {
         ogs_error("Could not allocate ran_ue context from pool");
@@ -1801,12 +1802,7 @@ amf_ue_t *amf_ue_add(ran_ue_t *ran_ue)
 
     ogs_assert(ran_ue);
    // gnb = ran_ue->gnb;//O3
-   // ogs_assert(gnb);//O3
-   //if (ogs_list_count(&self.amf_ue_list) >= getLicenseUeNum()){
-   //    ogs_error("Exceeded the licensed user limit(%d). Please upgrade your license to accommodate additional users.",getLicenseUeNum());
-   //    return NULL;
-   //}
-   
+   // ogs_assert(gnb);//O3   
 
     ogs_pool_alloc(&amf_ue_pool, &amf_ue);
     if (amf_ue == NULL) {

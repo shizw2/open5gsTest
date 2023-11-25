@@ -8,7 +8,6 @@ static void dsGetSerialNumber(unsigned char *szSysInfo, int *piSystemInfoLen);
 static void saveRunningTimeToFile(const char* filePath);
 static void saveRunningTimeToFiles(void);
 static void loadRunningTimeFromFile(void);
-static bool addRuntime(long runTime);
 
 static license_info_t g_license_info;
 static runtime_info_t g_runtime_info;
@@ -204,34 +203,22 @@ void dsMakeMachineID(void)
 	fclose(MachineFile);
 }
 
-#if 0
-//建议每半小时判断一次
-bool isLicenseExpired1(long runTime)
+const char *get_license_state_name(int state)
 {
-    time_t currentTime;
-    time(&currentTime);
-    time_t tempTime;
-    
-    if (g_runtime_info.totalRunningTime == 0){
-        loadRunningTimeFromFile();
+    switch (state) {
+    case LICENSE_STATE_NOT_EXPIRED:
+        return "not expired";
+    case LICENSE_STATE_SOON_TO_EXPIRE:
+        return "soon to expire";
+    case LICENSE_STATE_EXPIRED:
+        return "expired";
+    default:
+        break;
     }
-    
-    g_runtime_info.totalRunningTime += runTime;
 
-    long currentTimestamp = (long)currentTime; // 转换为整数时间戳
- 
-    if ((g_license_info.licenseExpireTime >= currentTimestamp || g_license_info.licenseExpireTime == 0) && g_license_info.licenseDuration >= g_runtime_info.totalRunningTime ) {
-        //printf("License未过期,系统已运行:%ld秒,截止时间:%s, 有效时长:%ld秒.\n",g_runtime_info.totalRunningTime,timestampToString(g_license_info.licenseExpireTime), g_license_info.licenseDuration);
-        saveRunningTimeToFiles();
-        return true;
-    } else {
-        g_runtime_info.totalRunningTime = g_license_info.licenseDuration;
-        saveRunningTimeToFiles();
-        //printf("License已过期,系统已运行:%ld秒,截止时间:%s, 有效时长:%ld秒.\n",g_runtime_info.totalRunningTime,timestampToString(g_license_info.licenseExpireTime), g_license_info.licenseDuration);
-        return false;
-    }
+    return "unknown state";
 }
-#endif
+
 
 int checkLicenseAfterRuntime(long runTime, int remainingDays)
 {
@@ -239,7 +226,11 @@ int checkLicenseAfterRuntime(long runTime, int remainingDays)
     time(&currentTime);
     time_t tempTime;
     
-    addRuntime(runTime);
+    if (g_runtime_info.totalRunningTime == 0){
+        loadRunningTimeFromFile();
+    }
+    
+    g_runtime_info.totalRunningTime += runTime;   
     
     long currentTimestamp = (long)currentTime; // 转换为整数时间戳
     int remainingSeconds = remainingDays * 24 * 60 * 60; // 将剩余天数转换为剩余秒数
@@ -247,30 +238,17 @@ int checkLicenseAfterRuntime(long runTime, int remainingDays)
     if ((g_license_info.licenseExpireTime >= currentTimestamp ) && g_license_info.licenseDuration >= g_runtime_info.totalRunningTime ) {
         if ((g_license_info.licenseExpireTime - currentTimestamp < remainingSeconds) ||
             (g_license_info.licenseDuration - g_runtime_info.totalRunningTime < remainingSeconds)) {
+            saveRunningTimeToFiles();
             return 1; // 未到期但剩余时间小于指定天数或有效时长还剩余指定天数
         } else {
+            saveRunningTimeToFiles();
             return 0; // 未到期且剩余时间大于等于指定天数且有效时长还剩余指定天数以上
         }
-    } else {        
+    } else {
+        g_runtime_info.totalRunningTime = g_license_info.licenseDuration;
+        saveRunningTimeToFiles(); 
         return 2; // 已到期
     }
-}
-
-static bool addRuntime(long runTime)
-{
-    time_t currentTime;
-    time(&currentTime);
-    time_t tempTime;
-    
-    if (g_runtime_info.totalRunningTime == 0){
-        loadRunningTimeFromFile();
-    }
-    
-    g_runtime_info.totalRunningTime += runTime;
-
-    saveRunningTimeToFiles();
-    
-    return true;
 }
 
 int getLicenseUeNum(void)
@@ -332,7 +310,7 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
     int readlen;
     readlen = fread(&license_info, sizeof(license_info_t), 1, LicenseInputFile);
     if (readlen != 1) {
-        snprintf(errorMsg, errorMsgSize, "读取License文件失败，该文件被人为修改，readlen:%d, filelen:%ld.", readlen, sizeof(license_info_t));
+        snprintf(errorMsg, errorMsgSize, "读取License文件失败,该文件被人为修改,readlen:%d, filelen:%ld.", readlen, sizeof(license_info_t));
         fclose(LicenseInputFile);
         return false;
     }
@@ -367,11 +345,11 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
     }
 
     //printf("License文件正确!\n");
-    int ret = checkLicenseAfterRuntime(0,30);
-    if (ret == LICENSE_SOON_TO_EXPIRE) {
+    int state = checkLicenseAfterRuntime(0,30);
+    if (state == LICENSE_STATE_SOON_TO_EXPIRE) {
         snprintf(errorMsg, errorMsgSize, "许可即将过期!");
         return true;
-    }else if (ret == LICENSE_EXPIRED) {
+    }else if (state == LICENSE_STATE_EXPIRED) {
         snprintf(errorMsg, errorMsgSize, "许可已过期!");
         return false;
     }else{
