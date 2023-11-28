@@ -20,6 +20,7 @@
 #include "context.h"
 #include "gtp-path.h"
 #include "pfcp-path.h"
+#include "ogs-app-timer.h"
 
 static smf_context_t self;
 static ogs_diam_config_t g_diam_conf;
@@ -3102,4 +3103,31 @@ int smf_maximum_integrity_protected_data_rate_downlink_value2enum(
 {
     ogs_assert(value);
     return smf_maximum_integrity_protected_data_rate_uplink_value2enum(value);
+}
+
+int yaml_check_proc(void)
+{
+    int rv;    
+    //ogs_info("check yaml config.");
+
+    if (!osg_app_is_config_modified()) {
+        return 0;//如果文件未修改,则返回
+    }
+
+    ogs_info("yaml config file changed,reloading......");
+
+    //0、读配置
+    rv = ogs_app_config_read();
+    if (rv != OGS_OK) return rv;
+
+    //1、app级配置    
+    rv = ogs_app_context_parse_config();
+    if (rv != OGS_OK) return rv;
+
+    //1.1重新设置日志级别
+    rv = ogs_log_config_domain(
+            ogs_app()->logger.domain, ogs_app()->logger.level);
+    if (rv != OGS_OK) return rv;
+    
+    return 0;
 }

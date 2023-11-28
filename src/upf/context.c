@@ -19,6 +19,7 @@
 
 #include "context.h"
 #include "pfcp-path.h"
+#include "ogs-app-timer.h"
 
 static upf_context_t self;
 
@@ -863,4 +864,31 @@ static void upf_sess_urr_acc_remove_all(upf_sess_t *sess)
             sess->urr_acc[i].t_time_threshold = NULL;
         }
     }
+}
+
+int yaml_check_proc(void)
+{
+    int rv;    
+    //ogs_info("check yaml config.");
+
+    if (!osg_app_is_config_modified()) {
+        return 0;//如果文件未修改,则返回
+    }
+
+    ogs_info("yaml config file changed,reloading......");
+
+    //0、读配置
+    rv = ogs_app_config_read();
+    if (rv != OGS_OK) return rv;
+
+    //1、app级配置    
+    rv = ogs_app_context_parse_config();
+    if (rv != OGS_OK) return rv;
+
+    //1.1重新设置日志级别
+    rv = ogs_log_config_domain(
+            ogs_app()->logger.domain, ogs_app()->logger.level);
+    if (rv != OGS_OK) return rv;
+    
+    return 0;
 }

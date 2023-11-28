@@ -835,7 +835,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
         case OGS_TIMER_YAML_CONFIG_CHECK:
             yaml_check_proc();
-            yaml_check_restart();
+            ogs_yaml_check_restart(); 
             break;
 
         default:

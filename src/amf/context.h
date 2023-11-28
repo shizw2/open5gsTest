@@ -926,8 +926,6 @@ icps_ue_spsno_t* icps_ue_find_by_supi(char *supi);
 icps_ue_spsno_t *icps_ue_cycle(icps_ue_spsno_t *icps_ue);
 void icps_ue_remove_all(void);
 
-int yaml_check_proc(void);
-
 #ifdef __cplusplus
 }
 #endif

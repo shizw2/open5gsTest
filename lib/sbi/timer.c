@@ -54,16 +54,19 @@ static void timer_send_event(int timer_id, void *data)
 
 void ogs_timer_nf_instance_registration_interval(void *data)
 {
+    ogs_info("ogs_timer_nf_instance_registration_interval");
     timer_send_event(OGS_TIMER_NF_INSTANCE_REGISTRATION_INTERVAL, data);
 }
 
 void ogs_timer_nf_instance_heartbeat_interval(void *data)
 {
+    ogs_info("ogs_timer_nf_instance_heartbeat_interval");
     timer_send_event(OGS_TIMER_NF_INSTANCE_HEARTBEAT_INTERVAL, data);
 }
 
 void ogs_timer_nf_instance_no_heartbeat(void *data)
 {
+    ogs_info("ogs_timer_nf_instance_no_heartbeat");
     timer_send_event(OGS_TIMER_NF_INSTANCE_NO_HEARTBEAT, data);
 }
 

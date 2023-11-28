@@ -76,6 +76,7 @@ void nrf_nf_state_final(ogs_fsm_t *s, nrf_event_t *e)
     nf_instance = e->nf_instance;
     ogs_assert(nf_instance);
 
+    ogs_info("test:nrf_nf_state_final, delete t_no_heartbeat nftype:%d %s", nf_instance->nf_type,OpenAPI_nf_type_ToString(nf_instance->nf_type));
     ogs_timer_delete(nf_instance->t_no_heartbeat);
 }
 

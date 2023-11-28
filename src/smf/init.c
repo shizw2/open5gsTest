@@ -23,6 +23,7 @@
 #include "pfcp-path.h"
 #include "sbi-path.h"
 #include "metrics.h"
+#include "ogs-app-timer.h"
 
 static ogs_thread_t *thread;
 static void smf_main(void *data);
@@ -83,6 +84,10 @@ int smf_initialize(void)
     rv = smf_sbi_open();
     if (rv != 0) return OGS_ERROR;
 
+    /*启动yaml配置检测定时器*/
+    rv = ogs_yaml_check_init();
+    if (rv != OGS_OK) return rv;
+    
     thread = ogs_thread_create(smf_main, NULL);
     if (!thread) return OGS_ERROR;
 

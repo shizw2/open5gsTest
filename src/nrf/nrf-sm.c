@@ -19,6 +19,7 @@
 
 #include "sbi-path.h"
 #include "nnrf-handler.h"
+#include "ogs-app-timer.h"
 
 void nrf_state_initial(ogs_fsm_t *s, nrf_event_t *e)
 {
@@ -282,6 +283,21 @@ void nrf_state_operational(ogs_fsm_t *s, nrf_event_t *e)
         }
         break;
 
+    case OGS_EVENT_APP_CHECK_TIMER:
+        ogs_assert(e);
+
+        switch(e->h.timer_id) {
+        case OGS_TIMER_YAML_CONFIG_CHECK:
+            yaml_check_proc();
+            ogs_yaml_check_restart();
+            break;
+
+        default:
+            ogs_error("Unknown timer[%s:%d]",
+                    ogs_timer_get_name(e->h.timer_id), e->h.timer_id);
+        }
+        break;
+        
     default:
         ogs_error("No handler for event %s", nrf_event_get_name(e));
         break;

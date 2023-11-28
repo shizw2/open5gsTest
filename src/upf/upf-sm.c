@@ -22,6 +22,7 @@
 #include "event.h"
 #include "pfcp-path.h"
 #include "gtp-path.h"
+#include "ogs-app-timer.h"
 
 void upf_state_initial(ogs_fsm_t *s, upf_event_t *e)
 {
@@ -103,6 +104,20 @@ void upf_state_operational(ogs_fsm_t *s, upf_event_t *e)
         ogs_assert(OGS_FSM_STATE(&node->sm));
 
         ogs_fsm_dispatch(&node->sm, e);
+        break;
+    case OGS_EVENT_APP_CHECK_TIMER:
+        ogs_assert(e);
+
+        switch(e->timer_id) {
+        case OGS_TIMER_YAML_CONFIG_CHECK:
+            yaml_check_proc();
+            ogs_yaml_check_restart();
+            break;
+
+        default:
+            ogs_error("Unknown timer[%s:%d]",
+                    ogs_timer_get_name(e->timer_id), e->timer_id);
+        }
         break;
     default:
         ogs_error("No handler for event %s", upf_event_get_name(e));

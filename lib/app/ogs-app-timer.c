@@ -38,7 +38,7 @@ void ogs_timer_license_check(void *data)
 }
 
 static ogs_timer_t     *t_yaml_check;
-int yaml_check_init(void)
+int ogs_yaml_check_init(void)
 {  
     //set timer
     t_yaml_check = ogs_timer_add(ogs_app()->timer_mgr,ogs_timer_yaml_config_check,0);
@@ -48,7 +48,7 @@ int yaml_check_init(void)
     return OGS_OK;
 }
 
-int yaml_check_close(void)
+int ogs_yaml_check_close(void)
 {  
     if (t_yaml_check != NULL){
         ogs_timer_delete(t_yaml_check);
@@ -58,7 +58,7 @@ int yaml_check_close(void)
 }
 
 
-int yaml_check_restart(void)
+int ogs_yaml_check_restart(void)
 {  
     //重设定时器
     ogs_timer_start(t_yaml_check,ogs_time_from_sec(YAML_CONFIG_CHECK_INTERVAL));

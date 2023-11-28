@@ -70,7 +70,7 @@ int amf_initialize(void)
     if (rv != OGS_OK) return rv;
 
     /*启动yaml配置检测定时器*/
-    rv = yaml_check_init();
+    rv = ogs_yaml_check_init();
     if (rv != OGS_OK) return rv;
 
     thread = ogs_thread_create(amf_main, NULL);
