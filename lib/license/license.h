@@ -12,11 +12,6 @@
 #define false 0
 #define MAX_SYS_INFO_LENGTH 4096
 
-#define LICENSE_NOT_EXPIRED     0
-#define LICENSE_SOON_TO_EXPIRE  1
-#define LICENSE_EXPIRED         2
-
-
 typedef struct license_info_s{
     BYTE   szSystemInfoFromFile[MAX_SYS_INFO_LENGTH];
     int  maxUserNum;
@@ -48,6 +43,12 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize);
 1：即将到期(根据remainingDays判断是否属于即将到期)
 2：已到期*/
 int checkLicenseAfterRuntime(long runTime, int remainingDays);
+
+#define LICENSE_STATE_NOT_EXPIRED     0
+#define LICENSE_STATE_SOON_TO_EXPIRE  1
+#define LICENSE_STATE_EXPIRED         2
+/*查看license状态*/
+const char *get_license_state_name(int state);
 
 /*获取许可证中最大用户数*/
 int  getLicenseUeNum(void);
