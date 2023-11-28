@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
 import styled from 'styled-components';
@@ -13,7 +13,7 @@ import { Tooltip, Spinner } from 'components';
 const Card = styled.div`
   position: relative;
   display: flex;
-  padding : 0.5rem;  
+  padding : 0.2rem 0.5rem 0.2rem 0.5rem;  
   cursor: pointer;
 
   ${p => p.disabled && 'opacity: 0.5; cursor: not-allowed; pointer-events: none;'}
@@ -29,14 +29,6 @@ const Card = styled.div`
     justify-content: center;
 
     opacity: 0;
-  }
-
-  &:hover {
-    background: ${oc.gray[1]};
-    margin: 0px 0px 0px 20px;
-    .actions {
-      ${p => p.disabled ? 'opacity: 0;' : 'opacity: 1;'};
-    }
   }
 `;
 
@@ -63,13 +55,18 @@ const CircleButton = styled.div`
     }
   }
 `
-
+const Scroll = styled.div`
+  &.fixed-background {
+    /* 添加滚动时需要的样式 */
+    background-color: ${oc.gray[1]};   
+  }
+`;
 const Oprlog = styled.div`
   display: flex;
   flex-direction: row;
   flex:1;
   line-height: 2.5rem;
-  margin : 0 2rem;
+  margin : 0 4.1rem 0rem 2rem;
 
   .opttime {
     font-size: 1.1rem;
@@ -79,12 +76,12 @@ const Oprlog = styled.div`
   .opuser {
     font-size: 1.1rem;
     color: ${oc.gray[6]};
-    width: 240px;
+    width: 220px;
   }
   .optype {
     font-size: 1.1rem;
     color: ${oc.gray[6]};
-    width: 120px;
+    width: 220px;
   }
   .optcommand {
     font-size: 1.1rem;
@@ -95,6 +92,11 @@ const Oprlog = styled.div`
     font-size: 1.1rem;
     color: ${oc.gray[6]};
     width: 120px;
+  }
+  .optorder {
+    font-size: 1.1rem;
+    color: ${oc.gray[6]};
+    width: 120px;    
   }
 `;
 
@@ -117,6 +119,30 @@ const propTypes = {
 }
 
 class Item extends Component {
+  constructor(props) {
+    super(props);
+    this.itemRef = null;
+    this.state = {
+      isHovered: false
+    };
+  }
+
+  componentDidMount() {
+    window.addEventListener('scroll', this.handleScroll); // 添加滚动事件监听器
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('scroll', this.handleScroll); // 移除滚动事件监听器
+  }
+  
+  handleScroll = () => {
+    const item = this.itemRef;
+    if (item && item.getBoundingClientRect().top < window.innerHeight) {
+      this.setState({ isHovered: true });
+    } else {
+      this.setState({ isHovered: false });
+    }
+  }
   static propTypes = {
     oprlog: PropTypes.shape({
       oprtime: PropTypes.string
@@ -146,16 +172,23 @@ class Item extends Component {
       optfm,
       opttime
     } = oprlog;
-
+    const { isHovered } = this.state;
     return (
       <Card disabled={disabled} onClick={() => onView(_id)}>
+        <Scroll // 使用 Scroll 组件来包装 Oprlog 组件
+          ref={(element) => (this.itemRef = element)}
+          className={`scroll ${isHovered ? 'fixed-background' : ''}`}
+          onMouseEnter={() => this.setState({ isHovered: true })}
+          onMouseLeave={() => this.setState({ isHovered: false })}
+        >
         <Oprlog>
-          <div className="optfm">{index}</div>
+          <div className="optorder">{index}</div>
           <div className="opttime">{opttime}</div>
           <div className="opuser">{opuser}</div>
           <div className="optype">{optype}</div>          
           <div className="optfm">{optfm}</div>           
         </Oprlog>        
+        </Scroll>       
         {disabled && <SpinnerWrapper><Spinner sm/></SpinnerWrapper>}
       </Card>      
     )

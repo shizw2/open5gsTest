@@ -3,18 +3,11 @@ const Schema = mongoose.Schema;
 require('mongoose-long')(mongoose);
 
 const OmmlogSchema = new Schema({
-
-  schema_version: {
-    $type: Number,
-    default: 1  // Current Schema Version
-  },
-
+  opttime:[String],
   opuser: [String],
   optype: [String],
+  optfm: [String],  
   optcommand: [String],
-  optfm: [String],
-  opttime:[String]
-
 }, { typeKey: '$type' });
 let isOverwriting = false;
 console.log(' write log://' +isOverwriting );

@@ -180,6 +180,7 @@ int ogs_app_config_read(void)
     FILE *file;
     yaml_parser_t parser;
     yaml_document_t *document = NULL;
+    struct stat file_stat;
 
     ogs_assert(ogs_app()->file);
 
@@ -189,7 +190,11 @@ int ogs_app_config_read(void)
         return OGS_ERROR;
     }
 
-    osg_app_is_config_modified();
+    if (stat(ogs_app()->file, &file_stat) == 0) {
+        ogs_app()->file_last_modified_time = file_stat.st_mtime;
+    }else{
+        ogs_error("Failed to get file status");
+    }
 
     ogs_assert(yaml_parser_initialize(&parser));
     yaml_parser_set_input_file(&parser, file);

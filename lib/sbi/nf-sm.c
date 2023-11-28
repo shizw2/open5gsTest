@@ -208,7 +208,6 @@ void ogs_sbi_nf_state_registered(ogs_fsm_t *s, ogs_event_t *e)
 
     switch (e->id) {
     case OGS_FSM_ENTRY_SIG:
-        ogs_info("test:OGS_FSM_ENTRY_SIG,nftype:%d %s", nf_instance->nf_type,OpenAPI_nf_type_ToString(nf_instance->nf_type));
         if (NF_INSTANCE_TYPE_IS_NRF(nf_instance)) {
             ogs_sbi_subscription_spec_t *subscription_spec = NULL;
 
@@ -297,7 +296,6 @@ void ogs_sbi_nf_state_registered(ogs_fsm_t *s, ogs_event_t *e)
     case OGS_EVENT_SBI_TIMER:
         switch(e->timer_id) {
         case OGS_TIMER_NF_INSTANCE_HEARTBEAT_INTERVAL:
-            ogs_info("test:OGS_TIMER_NF_INSTANCE_HEARTBEAT_INTERVAL,nftype:%s", OpenAPI_nf_type_ToString(nf_instance->nf_type));
             if (nf_instance->time.heartbeat_interval)
                 ogs_timer_start(nf_instance->t_heartbeat_interval,
                     ogs_time_from_sec(nf_instance->time.heartbeat_interval));

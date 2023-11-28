@@ -34,25 +34,48 @@ export const ViewUPF = ({ nfconfig }) => {
           <SubnetSection subnet={upf.subnet} />
           <MetricsSection metrics={upf.metrics} /> 
       </div>
+
+      {/* 
+      <div className="smf-section">
+      <div className="smf-header">smf:</div>
+      {smf && smf.pfcp && smf.pfcp.addr && (
+        <div>
+          <div className="twenty-spaces">pfcp: </div> 
+          <div className="twenty-spaces">&nbsp;&nbsp;addr: {smf.pfcp.addr}</div>
+        </div>
+      )}
+      </div>
       
-      <div>  
+            
+      <div className="smf-section">
+          <div className="smf-header">smf:</div>          
+          <div className="smf-section">
+            {smf && (
+              <div className="twenty-spaces">pfcp: </div> 
+              <div className="twenty-spaces">&nbsp;&nbsp;addr: {smf.pfcp.addr}</div>
+            )}
+          </div>
+      </div>
+      
+      <div>
         <div className="nf-section">
           <div className="nf-header">smf:</div>
           <div className="smf-section">
             {smf && (
               <div>
                 <NF_SBI_Section sbi={smf.sbi} />
-                <PfcpSection pfcp={smf.pfcp} />               
+                <PfcpSection pfcp={smf.pfcp} />
               </div>
             )}
           </div>
         </div>
       </div> 
-      
-      
+
       <ParameterSection parameter={parameter} />
       <MaxSection max={max} />
       <TimeSection time={time} />
+      */}
+   
     </div>
   );
 };

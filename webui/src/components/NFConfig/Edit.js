@@ -93,12 +93,42 @@ class Edit extends Component {
           if (typeof plmn_support.plmn_id.mnc === 'number') {
             plmn_support.plmn_id.mnc = String(plmn_support.plmn_id.mnc);
           }
+          plmn_support.s_nssai.forEach(s_nssai => {  
+            s_nssai.sd =  String(s_nssai.sd);
+          })
         });
       }
 
       selectedSchema = amfschema;
       selectedUiSchema = amfuiSchema;
     }else if (formData._id === 'smf') {
+      //初始配置文件会按数字读取mcc,mnc,将读取到的mcc,mnc的类型改为string
+      if (formData.smf&&formData.smf.info&&Array.isArray(formData.smf.info)) {
+        formData.smf.info.forEach(info => {
+          if (info.s_nssai&&Array.isArray(info.s_nssai)){
+            info.s_nssai.forEach(s_nssai => {
+              if (typeof s_nssai.sd === 'number') {
+                s_nssai.sd = String(s_nssai.sd);
+              }
+            })
+          }
+
+          if (info.tai&&Array.isArray(info.tai)){
+            info.tai.forEach(tai => {
+              if (typeof tai.plmn_id.mcc === 'number') {
+                tai.plmn_id.mcc = String(tai.plmn_id.mcc);
+              }
+              if (typeof tai.plmn_id.mnc === 'number') {
+                tai.plmn_id.mnc = String(tai.plmn_id.mnc);
+              }
+              const tacArray = tai.tac;
+              const tacStringArray = tacArray.map(item => String(item));
+              tai.tac = tacStringArray;
+            })
+          }
+        })
+      };
+
       selectedSchema = smfschema;
       selectedUiSchema = smfuiSchema;
     }else if (formData._id === 'nssf') {

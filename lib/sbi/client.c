@@ -688,8 +688,7 @@ bool ogs_sbi_client_send_request(
         ogs_assert(request->h.uri);
     }
     ogs_debug("[%s] %s", request->h.method, request->h.uri);
-    ogs_info("test:[%s] %s", request->h.method, request->h.uri);
-
+   
     conn = connection_add(client, client_cb, request, data);
     if (!conn) {
         ogs_error("connection_add() failed");

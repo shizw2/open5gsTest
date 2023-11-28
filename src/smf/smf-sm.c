@@ -914,7 +914,7 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
             ogs_error("Unknown timer[%s:%d]",
                     ogs_timer_get_name(e->h.timer_id), e->h.timer_id);
         }
-        break;      
+        break;
 
     case SMF_EVT_5GSM_MESSAGE:
         sess = e->sess;

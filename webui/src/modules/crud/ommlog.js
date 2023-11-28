@@ -123,5 +123,5 @@ class Ommlog extends Component{
     return fetchCollection(MODEL, URL, params);
   }
 }
-export { Ommlog };
+export { Ommlog , globalUsername };
 
