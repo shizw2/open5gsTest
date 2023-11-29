@@ -22,6 +22,7 @@
 #include "pfcp-path.h"
 #include "metrics.h"
 #include "license.h"
+#include "ogs-app-timer.h"
 
 static ogs_thread_t *thread;
 static void upf_main(void *data);
@@ -79,6 +80,10 @@ int upf_initialize(void)
     rv = upf_gtp_open();
     if (rv != OGS_OK) return rv;
 
+    /*启动yaml配置检测定时器*/
+    rv = ogs_yaml_check_init();
+    if (rv != OGS_OK) return rv;
+    
     thread = ogs_thread_create(upf_main, NULL);
     if (!thread) return OGS_ERROR;
 

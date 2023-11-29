@@ -18,6 +18,7 @@
  */
 
 #include "sbi-path.h"
+#include "ogs-app-timer.h"
 
 static ogs_thread_t *thread;
 static void nssf_main(void *data);
@@ -49,6 +50,10 @@ int nssf_initialize(void)
     
     ogs_metrics_context_open(ogs_metrics_self());
 
+    /*启动yaml配置检测定时器*/
+    rv = ogs_yaml_check_init();
+    if (rv != OGS_OK) return rv;
+    
     thread = ogs_thread_create(nssf_main, NULL);
     if (!thread) return OGS_ERROR;
 

@@ -18,6 +18,7 @@
  */
 
 #include "sbi-path.h"
+#include "ogs-app-timer.h"
 
 static ogs_thread_t *thread;
 static void udm_main(void *data);
@@ -50,6 +51,10 @@ int udm_initialize(void)
     rv = udm_sbi_open();
     if (rv != OGS_OK) return rv;
 
+    /*启动yaml配置检测定时器*/
+    rv = ogs_yaml_check_init();
+    if (rv != OGS_OK) return rv;
+    
     thread = ogs_thread_create(udm_main, NULL);
     if (!thread) return OGS_ERROR;
 

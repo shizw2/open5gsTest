@@ -19,6 +19,7 @@
 
 #include "sbi-path.h"
 #include "pcf-fd-path.h"
+#include "ogs-app-timer.h"
 
 static ogs_thread_t *thread;
 static void pcf_main(void *data);
@@ -57,6 +58,10 @@ int pcf_initialize(void)
     //add at 20221210
     rv = pcf_fd_init();
     if (rv != OGS_OK) return OGS_ERROR;
+
+    /*启动yaml配置检测定时器*/
+    rv = ogs_yaml_check_init();
+    if (rv != OGS_OK) return rv;
     
     thread = ogs_thread_create(pcf_main, NULL);
     if (!thread) return OGS_ERROR;
