@@ -285,6 +285,9 @@ pcf:
       - addr: 127.0.0.13
         port: 9090
 
+    info:
+        supi:
+           - range:
 #
 # scp:
 #
@@ -408,6 +411,7 @@ nrf:
 #    prefer_ipv4: true
 #
 parameter:
+    capacity: 100
 
 #
 #  o Maximum Number of UE

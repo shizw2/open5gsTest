@@ -473,6 +473,7 @@ nrf:
 #    prefer_ipv4: true
 #
 parameter:
+    capacity: 100
 
 #
 #  o Maximum Number of UE

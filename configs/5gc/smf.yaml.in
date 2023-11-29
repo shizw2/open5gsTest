@@ -833,6 +833,7 @@ upf:
 #    no_ipv4v6_local_addr_in_packet_filter: true
 #
 parameter:
+    capacity: 100
 
 #
 # o Maximum Number of UE
