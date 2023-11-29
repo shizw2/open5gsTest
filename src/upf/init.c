@@ -17,6 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#define _GNU_SOURCE
 #include "context.h"
 #include "gtp-path.h"
 #include "pfcp-path.h"
@@ -24,10 +25,35 @@
 #include "license.h"
 #include "ogs-app-timer.h"
 
+#if defined(USE_DPDK)
+#include <unistd.h>
+#include <sched.h>
+#include "upf-dpdk.h"
+#include "ctrl-path.h"
+#endif
+
 static ogs_thread_t *thread;
 static void upf_main(void *data);
 
 static int initialized = 0;
+
+#if defined(USE_DPDK)
+static void bind_core(int core)
+{
+    int cpus = 0;
+    cpu_set_t mask;
+
+    cpus = sysconf(_SC_NPROCESSORS_ONLN);
+    printf("cpus: %d\n", cpus);
+
+    CPU_ZERO(&mask);
+    CPU_SET(core, &mask);
+    if (sched_setaffinity(core, sizeof(mask), &mask) == -1) {
+        printf("Set CPU affinity failue, ERROR:%s\n", strerror(errno));
+        return ;
+    }
+}
+#endif
 
 int upf_initialize(void)
 {
@@ -65,6 +91,11 @@ int upf_initialize(void)
     rv = upf_context_parse_config();
     if (rv != OGS_OK) return rv;
 
+#if defined(USE_DPDK)
+    rv = upf_dpdk_context_parse_config();
+    if (rv != OGS_OK) return rv;
+#endif
+
     rv = ogs_log_config_domain(
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
@@ -77,7 +108,11 @@ int upf_initialize(void)
     rv = upf_pfcp_open();
     if (rv != OGS_OK) return rv;
 
+#if defined(USE_DPDK)
+    rv = upf_dpdk_open();
+#else
     rv = upf_gtp_open();
+#endif
     if (rv != OGS_OK) return rv;
 
     /*启动yaml配置检测定时器*/
@@ -101,7 +136,12 @@ void upf_terminate(void)
     ogs_thread_destroy(thread);
 
     upf_pfcp_close();
+
+#if defined(USE_DPDK)
+    upf_dpdk_close();
+#else
     upf_gtp_close();
+#endif
 
     ogs_metrics_context_close(ogs_metrics_self());
 
@@ -118,14 +158,43 @@ void upf_terminate(void)
     upf_metrics_final();
 }
 
+#if defined(USE_DPDK)
+static void dkuf_update_time(void)
+{
+    static uint8_t init = 1;
+    static uint64_t last_sec = 0;
+    if (init) {
+        last_sec = dkuf.sys_up_sec;
+        init = 0;
+    }
+
+    dkuf.sys_up_ms = rte_rdtsc() / dkuf.ticks_per_ms;
+    dkuf.sys_up_sec = dkuf.sys_up_ms >> 10;
+    if (unlikely(dkuf.sys_up_sec - last_sec >= 10)) {
+        print_stat();
+        send_garp();
+        last_sec = dkuf.sys_up_sec;
+    }
+}
+#endif
+
 static void upf_main(void *data)
 {
     ogs_fsm_t upf_sm;
     int rv;
 
+#if defined(USE_DPDK)
+    //bind core pfcp;
+    bind_core(dkuf.pfcp_lcore);
+#endif
+
     ogs_fsm_init(&upf_sm, upf_state_initial, upf_state_final, 0);
 
     for ( ;; ) {
+#if defined(USE_DPDK)
+        dkuf_update_time();
+#endif
+
         ogs_pollset_poll(ogs_app()->pollset,
                 ogs_timer_mgr_next(ogs_app()->timer_mgr));
 
@@ -162,6 +231,11 @@ static void upf_main(void *data)
                 ogs_event_free(e);//OGS_EVENT_APP_CHECK_TIMER 统一使用ogs_event_new生成
             }
         }
+
+#if defined(USE_DPDK)
+        // handle dpdk event
+        upf_dpdk_loop_event();
+#endif
     }
 done:
 

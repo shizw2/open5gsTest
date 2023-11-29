@@ -156,6 +156,8 @@ int upf_context_parse_config(void)
                     /* handle config in pfcp library */
                 } else if (!strcmp(upf_key, "metrics")) {
                     /* handle config in metrics library */
+                } else if (!strcmp(upf_key, "dpdk")) {
+                    /* handle config in dpdk library */
                 } else
                     ogs_warn("unknown key `%s`", upf_key);
             }

@@ -72,3 +72,19 @@ libpfcp_dep = declare_dependency(
     link_with : libpfcp,
     include_directories : [libpfcp_inc, libinc],
     dependencies : libgtp_dep)
+
+# ------------------ UPF DPDK VERSION ------------------
+
+libpfcp_dpdk = library('ogspfcp-dpdk',
+    sources : libpfcp_sources,
+    version : libogslib_version,
+    c_args : ['-DUSE_DPDK', '-DOGS_PFCP_COMPILATION'],
+    include_directories : [libpfcp_inc, libinc],
+    dependencies : [libcore_dep, libgtp_dep],
+    install_rpath : libdir,
+    install : true)
+
+libpfcp_dpdk_dep = declare_dependency(
+    link_with : libpfcp_dpdk,
+    include_directories : [libpfcp_inc, libinc],
+    dependencies : [libcore_dep, libgtp_dep])

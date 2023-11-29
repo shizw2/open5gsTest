@@ -117,8 +117,8 @@ typedef struct upf_sess_s {
     ogs_ipsubnet_t   *ipv4_framed_routes;
     ogs_ipsubnet_t   *ipv6_framed_routes;
 
-    char            *gx_sid;            /* Gx Session ID */
-    ogs_pfcp_node_t *pfcp_node;
+    char            *gx_sid;            /* Gx Session ID */ /* DPDK_UP_NO_USE */
+    ogs_pfcp_node_t *pfcp_node;         /* DPDK_UP_NO_USE */
 
     /* Accounting: */
     upf_sess_urr_acc_t urr_acc[OGS_MAX_NUM_OF_URR]; /* FIXME: This probably needs to be mved to a hashtable or alike */

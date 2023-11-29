@@ -192,7 +192,7 @@ typedef struct ogs_pfcp_pdr_s {
 
     /* Related Context */
     ogs_pfcp_sess_t         *sess;
-    void                    *gnode;         /* For CP-Function */
+    void                    *gnode;         /* For CP-Function */ /* DPDK_UP_NO_USE */
 } ogs_pfcp_pdr_t;
 
 typedef struct ogs_pfcp_far_hash_f_teid_s {
@@ -220,7 +220,7 @@ typedef struct ogs_pfcp_far_s {
         char *dnn;
     };
 
-    uint8_t                 *id_node;      /* Pool-Node for ID */
+    uint8_t                 *id_node;      /* Pool-Node for ID */ /* DPDK_UP_NO_USE */
     ogs_pfcp_far_id_t       id;
     ogs_pfcp_apply_action_t apply_action;
     ogs_pfcp_interface_t    dst_if;
@@ -229,8 +229,8 @@ typedef struct ogs_pfcp_far_s {
 
     ogs_pfcp_smreq_flags_t  smreq_flags;
 
-    uint32_t                num_of_buffered_packet;
-    ogs_pkbuf_t             *buffered_packet[OGS_MAX_NUM_OF_PACKET_BUFFER];
+    uint32_t                num_of_buffered_packet;  /* DPDK_UP_NO_USE */
+    ogs_pkbuf_t             *buffered_packet[OGS_MAX_NUM_OF_PACKET_BUFFER]; /* DPDK_UP_NO_USE */
 
     struct {
         bool prepared;
@@ -244,7 +244,7 @@ typedef struct ogs_pfcp_far_s {
 typedef struct ogs_pfcp_urr_s {
     ogs_lnode_t             lnode;
 
-    uint8_t                 *id_node;      /* Pool-Node for ID */
+    uint8_t                 *id_node;      /* Pool-Node for ID */ /* DPDK_UP_NO_USE */
     ogs_pfcp_urr_id_t       id;
 
     ogs_pfcp_measurement_method_t meas_method;
@@ -273,7 +273,7 @@ typedef struct ogs_pfcp_urr_s {
 typedef struct ogs_pfcp_qer_s {
     ogs_lnode_t             lnode;
 
-    uint8_t                 *id_node;      /* Pool-Node for ID */
+    uint8_t                 *id_node;      /* Pool-Node for ID */ /* DPDK_UP_NO_USE */
     ogs_pfcp_qer_id_t       id;
 
     ogs_pfcp_gate_status_t  gate_status;
@@ -288,7 +288,7 @@ typedef struct ogs_pfcp_qer_s {
 typedef struct ogs_pfcp_bar_s {
     ogs_lnode_t             lnode;
 
-    uint8_t                 *id_node;      /* Pool-Node for ID */
+    uint8_t                 *id_node;      /* Pool-Node for ID */ /* DPDK_UP_NO_USE */
     ogs_pfcp_bar_id_t       id;
 
     ogs_pfcp_sess_t         *sess;
