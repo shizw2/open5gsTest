@@ -221,7 +221,7 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
 {
     struct packet *pkt = (struct packet *)(m->buf_addr);
     struct rte_ether_hdr *eth_h = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
-    ogs_gtp_header_t *gtp_h = (ogs_gtp_header_t *)((char *)eth_h + pkt->l2_len + pkt->l3_len + pkt->l4_len);
+    ogs_gtp2_header_t *gtp_h = (ogs_gtp2_header_t *)((char *)eth_h + pkt->l2_len + pkt->l3_len + pkt->l4_len);
 
     ogs_debug("[RECV] GPU-U Type [%d] from [%s] : TEID[0x%x]",
             gtp_h->type, ip_printf((char *)eth_h + pkt->l2_len, 0), be32toh(gtp_h->teid));
@@ -317,7 +317,7 @@ static int32_t handle_n6_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
 
         ogs_debug("%s, pkt first buffered, reports downlink notifications.\n", __func__);
         lconf->lstat.sess_report[m->port]++;
-        fwd_handle_gtp_session_report(lconf->f2p_ring, pdr, sess->index);
+        fwd_handle_gtp_session_report(lconf->f2p_ring, pdr, *sess->upf_n4_seid_node);
     }
 
     return 0;
@@ -413,7 +413,7 @@ static int upf_local_sess_update(struct lcore_conf *lconf, upf_sess_t *sess)
 
 static int upf_local_sess_del(struct lcore_conf *lconf, void *body)
 {
-    uint32_t ip = (uint32_t)body;
+    uint32_t ip = (uint32_t)(uintptr_t)body;
     ogs_debug("forward local sess try to delete ipv4= "FORMAT_IPV4, FORMAT_IPV4_ARGS(ip));
     upf_sess_t *sess = NULL;
 

@@ -100,7 +100,7 @@ typedef struct upf_sess_urr_acc_s {
 #define UPF_SESS(pfcp_sess) ogs_container_of(pfcp_sess, upf_sess_t, pfcp)
 typedef struct upf_sess_s {
     ogs_lnode_t     lnode;
-    ogs_pool_id_t   *upf_n4_seid_node;  /* A node of UPF-N4-SEID */
+    ogs_pool_id_t   *upf_n4_seid_node;  /* A node of UPF-N4-SEID */  //TODO: 确认是不是原来的index
 
     ogs_pfcp_sess_t pfcp;
 

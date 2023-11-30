@@ -211,7 +211,7 @@ int gtpu_hdr_len(ogs_gtp2_header_t *gtp_h, int remain_len)
         return -1;
     }
 
-    if (gtp_h->version != OGS_GTP_VERSION_1) {
+    if (gtp_h->version != OGS_GTP2_VERSION_1) {
         ogs_error("[DROP] Invalid GTPU version [%d]", gtp_h->version);
         return -1;
     }

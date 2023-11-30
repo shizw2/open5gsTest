@@ -45,9 +45,10 @@ static int copy_pfcp_pdr(ogs_pfcp_pdr_t *new, ogs_pfcp_pdr_t *old, ogs_pfcp_sess
         copy_pfcp_far(new->far, old->far, pfcp_sess);
     }
 
+    //TODO:urr变为数组了
     if (old->urr) {
-        new->urr = dpdk_malloc(sizeof(ogs_pfcp_urr_t));
-        copy_pfcp_urr(new->urr, old->urr, pfcp_sess);
+        new->urr[0] = dpdk_malloc(sizeof(ogs_pfcp_urr_t));
+        copy_pfcp_urr(new->urr[0], old->urr[0], pfcp_sess);
     }
 
     if (old->qer) {
@@ -116,9 +117,9 @@ static void *copy_upf_sess(upf_sess_t *old_sess) {
         goto cleanup;
     }
 
-    new_sess->index = old_sess->index;
+    new_sess->upf_n4_seid_node = old_sess->upf_n4_seid_node;
     new_sess->upf_n4_seid = old_sess->upf_n4_seid;
-    new_sess->smf_n4_seid = old_sess->smf_n4_seid;
+    new_sess->smf_n4_f_seid.seid = old_sess->smf_n4_f_seid.seid;
 
     ret = copy_pfcp_sess(&new_sess->pfcp, &old_sess->pfcp);
     if (ret)
@@ -265,7 +266,7 @@ static void handle_event(upf_dpdk_event_t *event) {
 
     switch (event->subtype) {
         case SESS_REPORT_NORMAL:
-            upf_sess = upf_sess_find(event_report->sess_index);
+            upf_sess = upf_sess_find_by_upf_n4_seid(event_report->sess_index);//TODO:确认
             if (!upf_sess)
                 goto cleanup;
 
@@ -280,7 +281,7 @@ static void handle_event(upf_dpdk_event_t *event) {
         case SESS_REPORT_ERR_IND:
             frame = event_report->paylod;
             pkbuf.data = frame;
-            far = ogs_pfcp_far_find_by_error_indication(&pkbuf);
+            far = ogs_pfcp_far_find_by_gtpu_error_indication(&pkbuf);
             if (far) {
                 ogs_assert(true == ogs_pfcp_up_handle_error_indication(far, &up_report));
 
@@ -341,7 +342,7 @@ static int send_p2f_event(upf_dpdk_event_t *event, upf_sess_t *sess) {
         dpdk_free(event);
         return OGS_ERROR;
     }
-    ogs_debug("CP send event type=%d, sess index=%d, upf seid=%ld", event->event_type, sess->index, sess->upf_n4_seid);
+    ogs_debug("CP send event type=%d, sess index=%d, upf seid=%ld", event->event_type, *sess->upf_n4_seid_node, sess->upf_n4_seid);
     return OGS_OK;
 }
 
@@ -375,7 +376,7 @@ int upf_dpdk_sess_delete(upf_sess_t *sess) {
 
     event->event_type = UPF_DPDK_SESS_DEL;
     // TODO: dispatch ipv6
-    event->event_body = (void *) sess->ipv4->addr[0];
+    event->event_body = (void *) (uintptr_t)sess->ipv4->addr[0];
 
     return send_p2f_event(event, sess);
 }

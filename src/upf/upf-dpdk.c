@@ -696,6 +696,7 @@ static int auto_set_lcore(void)
 {
     uint16_t nb_lcores = rte_lcore_count();
     //todo: get numa 0 core list;
+    printf("\nb_lcores num: %d\n", nb_lcores);
     if (nb_lcores < 3) {
          return OGS_ERROR;
     } else if (nb_lcores < 7) {
@@ -756,6 +757,8 @@ int upf_dpdk_context_parse_config(void)
 
     rv = upf_dpdk_context_prepare();
     if (rv != OGS_OK) return rv;
+    
+    printf("upf_dpdk_context_parse_config.\r\n");
 
     ogs_yaml_iter_init(&root_iter, document);
     while (ogs_yaml_iter_next(&root_iter)) {
@@ -763,12 +766,15 @@ int upf_dpdk_context_parse_config(void)
         if (strcmp(root_key, "upf")) {
             continue;
         }
+        printf("upf_dpdk_context_parse_config,has upf.\r\n");
         ogs_yaml_iter_t upf_iter;
         ogs_yaml_iter_recurse(&root_iter, &upf_iter);
         while (ogs_yaml_iter_next(&upf_iter)) {
             if (strcmp(ogs_yaml_iter_key(&upf_iter), "dpdk")) {
                 continue;
             }
+            
+            printf("upf_dpdk_context_parse_config,has dpdk.\r\n");
             dkuf.enable = 1;
             ogs_yaml_iter_t upf_array, dpdk_iter;
             ogs_yaml_iter_recurse(&upf_iter, &upf_array);

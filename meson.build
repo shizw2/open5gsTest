@@ -108,6 +108,7 @@ if cc.get_id() == 'gcc' or cc.get_id() == 'clang'
         '-Wno-unused-but-set-variable',
         '-Wno-int-conversion',
         '-Wno-implicit-function-declaration',
+        '-Wno-address-of-packed-member',
     ]
 
     if cc.get_id() == 'clang'

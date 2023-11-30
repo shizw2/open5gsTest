@@ -255,7 +255,7 @@ int gtp_send_user_plane(
         ext_h->len = 1;
         ext_h->pdu_type = ext_hdesc->pdu_type;
         ext_h->qos_flow_identifier = ext_hdesc->qos_flow_identifier;
-        ext_h->next_type = OGS_GTP_EXTENSION_HEADER_TYPE_NO_MORE_EXTENSION_HEADERS;
+        ext_h->next_type = OGS_GTP2_EXTENSION_HEADER_TYPE_NO_MORE_EXTENSION_HEADERS;
     }
 
     struct rte_udp_hdr *udp_h = (struct rte_udp_hdr *)((char *)gtp_h - UDP_HDR_LEN);
@@ -548,7 +548,7 @@ ogs_pfcp_pdr_t *n3_pdr_find_by_local_sess(upf_sess_t *sess, ogs_gtp2_header_t *g
         ogs_gtp2_extension_header_t *ext_header =
             (ogs_gtp2_extension_header_t *)((char *)gtp_h + OGS_GTPV1U_HEADER_LEN);
         if (ext_header->type == OGS_GTP2_EXTENSION_HEADER_TYPE_PDU_SESSION_CONTAINER &&
-                ext_header->pdu_type == OGS_GTP_EXTENSION_HEADER_PDU_TYPE_UL_PDU_SESSION_INFORMATION) {
+                ext_header->pdu_type == OGS_GTP2_EXTENSION_HEADER_PDU_TYPE_UL_PDU_SESSION_INFORMATION) {
             ogs_debug("   QFI [0x%x]", ext_header->qos_flow_identifier);
             qfi = ext_header->qos_flow_identifier;
         }
@@ -689,7 +689,7 @@ int process_dst_if_interface_access(struct lcore_conf *lconf, struct rte_mbuf *m
     if (downlink_data_report) {
         ogs_error("Indirect Data Fowarding Buffered");
         lconf->lstat.sess_report[m->port]++;
-        fwd_handle_gtp_session_report(lconf->f2p_ring, pdr, (UPF_SESS(pdr->sess))->index);
+        fwd_handle_gtp_session_report(lconf->f2p_ring, pdr, *(UPF_SESS(pdr->sess))->upf_n4_seid_node);
     }
 
     return 0;
