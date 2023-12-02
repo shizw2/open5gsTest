@@ -31,6 +31,7 @@ extern "C" {
 extern const char *OGS_EVENT_NAME_SBI_SERVER;
 extern const char *OGS_EVENT_NAME_SBI_CLIENT;
 extern const char *OGS_EVENT_NAME_SBI_TIMER;
+extern const char *OGS_EVENT_NAME_APP_CHECK_TIMER;
 
 typedef enum {
     OGS_EVENT_BASE = OGS_FSM_USER_SIG,

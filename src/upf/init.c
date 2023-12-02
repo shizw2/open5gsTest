@@ -156,7 +156,11 @@ static void upf_main(void *data)
 
             ogs_assert(e);
             ogs_fsm_dispatch(&upf_sm, e);
-            upf_event_free(e);
+            if (e->id != OGS_EVENT_APP_CHECK_TIMER){
+                upf_event_free(e);
+            }else{
+                ogs_event_free(e);//OGS_EVENT_APP_CHECK_TIMER 统一使用ogs_event_new生成
+            }
         }
     }
 done:

@@ -49,7 +49,9 @@ const char *af_event_get_name(af_event_t *e)
         return OGS_EVENT_NAME_SBI_CLIENT;
     case OGS_EVENT_SBI_TIMER:
         return OGS_EVENT_NAME_SBI_TIMER;
-
+    case OGS_EVENT_APP_CHECK_TIMER:
+        return OGS_EVENT_NAME_APP_CHECK_TIMER;
+        
     case AF_EVENT_SBI_LOCAL:
         return "AF_EVENT_SBI_LOCAL";
 

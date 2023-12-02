@@ -49,7 +49,9 @@ const char *scp_event_get_name(scp_event_t *e)
         return OGS_EVENT_NAME_SBI_CLIENT;
     case OGS_EVENT_SBI_TIMER:
         return OGS_EVENT_NAME_SBI_TIMER;
-
+    case OGS_EVENT_APP_CHECK_TIMER:
+        return OGS_EVENT_NAME_APP_CHECK_TIMER;
+        
     default:
         break;
     }

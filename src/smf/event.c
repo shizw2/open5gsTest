@@ -78,7 +78,7 @@ const char *smf_event_get_name(smf_event_t *e)
         return "SMF_EVT_5GSM_TIMER";
         
     case OGS_EVENT_APP_CHECK_TIMER:
-        return "OGS_EVENT_APP_CHECK_TIMER";
+        return OGS_EVENT_NAME_APP_CHECK_TIMER;
     default:
        break;
     }
