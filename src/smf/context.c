@@ -290,7 +290,7 @@ static int smf_context_validation(void)
     return OGS_OK;
 }
 
-int smf_context_parse_config(void)
+int smf_context_parse_config(bool reloading)
 {
     int rv;
     yaml_document_t *document = NULL;
@@ -313,6 +313,9 @@ int smf_context_parse_config(void)
                 const char *smf_key = ogs_yaml_iter_key(&smf_iter);
                 ogs_assert(smf_key);
                 if (!strcmp(smf_key, "freeDiameter")) {
+                    if (reloading == true){
+                        continue;
+                    }
                     yaml_node_t *node =
                         yaml_document_get_node(document, smf_iter.pair->value);
                     ogs_assert(node);
@@ -3129,5 +3132,11 @@ int yaml_check_proc(void)
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
     
+    //2、NF级配置
+    rv = smf_context_parse_config(true);
+    if (rv != OGS_OK) return rv;
+
+    //ogs_nnrf_nfm_send_nf_register(ogs_sbi_self()->nrf_instance);
+
     return 0;
 }

@@ -18,6 +18,7 @@
  */
 
 #include "nnrf-handler.h"
+#include "sbi-path.h"
 
 bool nrf_nnrf_handle_nf_register(ogs_sbi_nf_instance_t *nf_instance,
         ogs_sbi_stream_t *stream, ogs_sbi_message_t *recvmsg)
@@ -114,6 +115,7 @@ bool nrf_nnrf_handle_nf_update(ogs_sbi_nf_instance_t *nf_instance,
     ogs_sbi_response_t *response = NULL;
     OpenAPI_list_t *PatchItemList = NULL;
     OpenAPI_lnode_t *node;
+    bool ret;
 
     ogs_assert(nf_instance);
     ogs_assert(stream);
@@ -121,8 +123,17 @@ bool nrf_nnrf_handle_nf_update(ogs_sbi_nf_instance_t *nf_instance,
 
     SWITCH(recvmsg->h.method)
     CASE(OGS_SBI_HTTP_METHOD_PUT)
-        return nrf_nnrf_handle_nf_register(
+    { 
+        ret = nrf_nnrf_handle_nf_register(
                 nf_instance, stream, recvmsg);
+
+        if (ret == true){
+            ogs_assert(true ==
+            nrf_nnrf_nfm_send_nf_status_notify_all(
+                OpenAPI_notification_event_type_NF_PROFILE_CHANGED, nf_instance));
+        }
+        return ret;
+    }
 
     CASE(OGS_SBI_HTTP_METHOD_PATCH)
         PatchItemList = recvmsg->PatchItemList;

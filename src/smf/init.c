@@ -60,7 +60,7 @@ int smf_initialize(void)
     rv = ogs_metrics_context_parse_config("smf");
     if (rv != OGS_OK) return rv;
 
-    rv = smf_context_parse_config();
+    rv = smf_context_parse_config(false);
     if (rv != OGS_OK) return rv;
 
     rv = ogs_log_config_domain(

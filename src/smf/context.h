@@ -427,7 +427,7 @@ void smf_context_init(void);
 void smf_context_final(void);
 smf_context_t *smf_self(void);
 
-int smf_context_parse_config(void);
+int smf_context_parse_config(bool reloading);
 
 int smf_use_gy_iface(void);
 

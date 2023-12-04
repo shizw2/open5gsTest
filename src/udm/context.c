@@ -388,7 +388,7 @@ int get_ue_load(void)
 int yaml_check_proc(void)
 {
     int rv;    
-    ogs_info("check yaml config.");
+    //ogs_info("check yaml config.");
 
     if (!osg_app_is_config_modified()) {
         return 0;//如果文件未修改,则返回
@@ -414,7 +414,7 @@ int yaml_check_proc(void)
     if (ogs_app()->parameter.capacity != ogs_sbi_self()->nrf_instance->capacity){
         ogs_info("capacity changed from %d to %d.",ogs_sbi_self()->nrf_instance->capacity,ogs_app()->parameter.capacity);
         ogs_sbi_self()->nf_instance->capacity = ogs_app()->parameter.capacity;
-        ogs_nnrf_nfm_send_nf_register(ogs_sbi_self()->nf_instance);
+        ogs_nnrf_nfm_send_nf_register(ogs_sbi_self()->nrf_instance);
     }
     
     return 0;
