@@ -413,8 +413,8 @@ int yaml_check_proc(void)
     
     if (ogs_app()->parameter.capacity != ogs_sbi_self()->nrf_instance->capacity){
         ogs_info("capacity changed from %d to %d.",ogs_sbi_self()->nrf_instance->capacity,ogs_app()->parameter.capacity);
-        ogs_sbi_self()->nrf_instance->capacity = ogs_app()->parameter.capacity;
-        ogs_nnrf_nfm_send_nf_register(ogs_sbi_self()->nrf_instance);
+        ogs_sbi_self()->nf_instance->capacity = ogs_app()->parameter.capacity;
+        ogs_nnrf_nfm_send_nf_register(ogs_sbi_self()->nf_instance);
     }
     
     return 0;
