@@ -78,8 +78,26 @@ enable_processes() {
     done
 }
 
+disable_processes() {
+    echo "Disabling processes..."
+    for process in "${process_list[@]}"
+    do
+        if [ "$process" == "5gc-amf-spsd" ]; then
+            echo "Disabling $sps_num instances of $process..."
+            for ((i=1; i<=$sps_num; i++))
+            do
+                echo "Disabling $process@$i..."
+                sudo systemctl disable $process@$i
+            done
+        else
+            echo "Disabling $process..."
+            sudo systemctl disable $process
+        fi
+    done
+}
+
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 '<start|stop|restart|enable>'"
+    echo "Usage: $0 '<start|stop|restart|enable|disable>'"
     exit 1
 fi
 
@@ -96,8 +114,11 @@ case $action in
     enable)
         enable_processes
         ;;
+    disable)
+        disable_processes
+        ;;
     *)
-        echo "Invalid action. Use 'start', 'stop', 'restart', or 'enable'."
+        echo "Invalid action. Use 'start', 'stop', 'restart', 'enable', or 'disable'."
         exit 1
         ;;
 esac

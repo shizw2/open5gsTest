@@ -1107,14 +1107,7 @@ static int on_frame_recv(nghttp2_session *session,
             if (request->http.content_length && request->http.content) {
                 ogs_log_message(level, 0,
                         "RECEIVED: %d", (int)request->http.content_length);
-                ogs_log_message(level, 0, "%s", request->http.content);
-                if (request->http.content_length == 788){
-                    ogs_info("test:content1:%s", request->http.content);
-                }        
-                ogs_log_message(level, 0, "%s", request->http.content); 
-                if (request->http.content_length == 788){
-                    ogs_info("test:content2:%s", request->http.content);
-                }
+                ogs_log_message(level, 0, "%s", request->http.content);                
             }
 
             if (stream->memory_overflow == true) {

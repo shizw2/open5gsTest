@@ -866,6 +866,68 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
         ogs_sbi_client_associate(nf_instance);
 
     } else if (NotificationData->event ==
+            OpenAPI_notification_event_type_NF_PROFILE_CHANGED) {
+
+        OpenAPI_nf_profile_t *NFProfile = NULL;
+
+        NFProfile = NotificationData->nf_profile;
+        if (!NFProfile) {
+            ogs_error("No NFProfile");
+            ogs_assert(true ==
+                ogs_sbi_server_send_error(
+                    stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
+                    recvmsg, "No NFProfile", NULL));
+            ogs_sbi_header_free(&header);
+            return false;
+        }
+
+        if (!NFProfile->nf_instance_id) {
+            ogs_error("No NFProfile.NFInstanceId");
+            ogs_assert(true ==
+                ogs_sbi_server_send_error(
+                    stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
+                    recvmsg, "No NFProfile.NFInstanceId", NULL));
+            ogs_sbi_header_free(&header);
+            return false;
+        }
+
+        if (!NFProfile->nf_type) {
+            ogs_error("No NFProfile.NFType");
+            ogs_assert(true ==
+                ogs_sbi_server_send_error(
+                    stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
+                    recvmsg, "No NFProfile.NFType", NULL));
+            ogs_sbi_header_free(&header);
+            return false;
+        }
+
+        if (!NFProfile->nf_status) {
+            ogs_error("No NFProfile.NFStatus");
+            ogs_assert(true ==
+                ogs_sbi_server_send_error(
+                    stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
+                    recvmsg, "No NFProfile.NFStatus", NULL));
+            ogs_sbi_header_free(&header);
+            return false;
+        }
+
+        nf_instance = ogs_sbi_nf_instance_find(message.h.resource.component[1]);
+        if (!nf_instance) {           
+            ogs_warn("[%s] (NRF-notify) NF Profile Changed, No Instance",
+                    message.h.resource.component[1]);
+            return false;
+        } else {            
+            ogs_info("[%s] (NRF-notify) NF Profile Changed,nftype:%s",
+                    message.h.resource.component[1],OpenAPI_nf_type_ToString(nf_instance->nf_type));
+        }
+
+        ogs_nnrf_nfm_handle_nf_profile(nf_instance, NFProfile);
+
+        ogs_info("[%s] (NRF-notify) NF Profile updated,nftype:%s", nf_instance->id, OpenAPI_nf_type_ToString(nf_instance->nf_type));
+
+        ogs_sbi_client_associate(nf_instance);
+
+    } else if (NotificationData->event ==
             OpenAPI_notification_event_type_NF_DEREGISTERED) {
         nf_instance = ogs_sbi_nf_instance_find(message.h.resource.component[1]);
         if (nf_instance) {

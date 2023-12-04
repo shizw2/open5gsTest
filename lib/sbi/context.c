@@ -861,6 +861,15 @@ void ogs_sbi_nf_instance_set_status(
     nf_instance->nf_status = nf_status;
 }
 
+void ogs_sbi_nf_instance_set_capacity(
+        ogs_sbi_nf_instance_t *nf_instance, int capacity)
+{
+    ogs_assert(nf_instance);  
+
+    nf_instance->capacity = capacity;
+    ogs_warn("test:ogs_sbi_nf_instance_set_capacity:%d[%s], capacity:%d.",nf_instance->nf_type,OpenAPI_nf_type_ToString(nf_instance->nf_type),capacity);
+}
+
 void ogs_sbi_nf_instance_add_allowed_nf_type(
         ogs_sbi_nf_instance_t *nf_instance, OpenAPI_nf_type_e allowed_nf_type)
 {

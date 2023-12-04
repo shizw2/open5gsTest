@@ -398,6 +398,8 @@ void ogs_sbi_nf_instance_set_type(
         ogs_sbi_nf_instance_t *nf_instance, OpenAPI_nf_type_e nf_type);
 void ogs_sbi_nf_instance_set_status(
         ogs_sbi_nf_instance_t *nf_instance, OpenAPI_nf_status_e nf_status);
+void ogs_sbi_nf_instance_set_capacity(
+        ogs_sbi_nf_instance_t *nf_instance, int capacity);        
 void ogs_sbi_nf_instance_add_allowed_nf_type(
         ogs_sbi_nf_instance_t *nf_instance, OpenAPI_nf_type_e allowed_nf_type);
 bool ogs_sbi_nf_instance_is_allowed_nf_type(
@@ -525,6 +527,7 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_select_key(
         OpenAPI_nf_type_e requester_nf_type,
         ogs_sbi_discovery_option_t *discovery_option,
         int select_key);
+
 #ifdef __cplusplus
 }
 #endif

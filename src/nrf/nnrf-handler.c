@@ -26,6 +26,8 @@ bool nrf_nnrf_handle_nf_register(ogs_sbi_nf_instance_t *nf_instance,
     ogs_sbi_response_t *response = NULL;
 
     OpenAPI_nf_profile_t *NFProfile = NULL;
+    
+    ogs_info("nrf_nnrf_handle_nf_register");
 
     ogs_assert(nf_instance);
     ogs_assert(stream);
