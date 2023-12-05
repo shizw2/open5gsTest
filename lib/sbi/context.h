@@ -389,7 +389,7 @@ ogs_sbi_context_t *ogs_sbi_self(void);
 int ogs_sbi_context_parse_config(
         const char *local, const char *nrf, const char *scp);
 int ogs_sbi_context_parse_hnet_config(ogs_yaml_iter_t *root_iter);
-
+int ogs_sbi_context_parse_supi_config(ogs_yaml_iter_t *root_iter, ogs_supi_range_t *supiRanges);
 bool ogs_sbi_nf_service_is_available(const char *name);
 
 ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_add(void);
