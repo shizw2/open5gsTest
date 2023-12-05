@@ -234,7 +234,7 @@ void nrf_nf_state_registered(ogs_fsm_t *s, nrf_event_t *e)
                                 ogs_app()->time.nf_instance.
                                     no_heartbeat_margin));
                     }
-                    ogs_info("nrf_nnrf_handle_nf_update.message->h.method:%s.",message->h.method);
+
                     handled = nrf_nnrf_handle_nf_update(
                             nf_instance, stream, message);
                     if (handled == false)

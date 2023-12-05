@@ -3135,8 +3135,6 @@ int yaml_check_proc(void)
     //2、NF级配置
     rv = smf_context_parse_config(true);
     if (rv != OGS_OK) return rv;
-
-    //ogs_nnrf_nfm_send_nf_register(ogs_sbi_self()->nrf_instance);
-
+   
     return 0;
 }
