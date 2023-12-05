@@ -79,6 +79,7 @@ static int udm_context_validation(void)
     return OGS_OK;
 }
 
+static bool isSupiRangeChanged = false;
 int udm_context_parse_config(void)
 {
     int rv;
@@ -140,10 +141,18 @@ int udm_context_parse_config(void)
                             break;
                         } else
                             ogs_assert_if_reached();
-
-                        nf_info = ogs_sbi_nf_info_add(
+                        
+                        ogs_info("nf_info_list:%d.",ogs_list_count(&nf_instance->nf_info_list));
+                        
+                        nf_info = ogs_sbi_nf_info_find(
                                     &nf_instance->nf_info_list,
                                         OpenAPI_nf_type_UDM);
+                        
+                        if (nf_info == NULL){
+                            nf_info = ogs_sbi_nf_info_add(
+                                        &nf_instance->nf_info_list,
+                                            OpenAPI_nf_type_UDM);
+                        }
                         ogs_assert(nf_info);
 
                         udm_info = &nf_info->udm;
@@ -229,19 +238,36 @@ int udm_context_parse_config(void)
                                         YAML_SEQUENCE_NODE);
 
                                 if (num_of_range) {
-                                        int i;
-                              
-                                        for (i = 0; i < num_of_range; i++) {                     
-                                            udm_info->supiRanges.supi_ranges[i].start = ogs_strdup(low[i]);
-                                            udm_info->supiRanges.supi_ranges[i].end = ogs_strdup(high[i]);
-                                            ogs_warn("start %s, end %s, num %d.",low[i],high[i],num_of_range);
+                                    int i;
+                                    isSupiRangeChanged = false;
+                                    for (i = 0; i < num_of_range; i++) {
+                                        if ((udm_info->supiRanges.supi_ranges[i].start != NULL &&
+                                            strcmp(udm_info->supiRanges.supi_ranges[i].start, low[i]) != 0) ||
+                                            (udm_info->supiRanges.supi_ranges[i].end != NULL &&
+                                            strcmp(udm_info->supiRanges.supi_ranges[i].end, high[i]) != 0)) {
+                                            isSupiRangeChanged = true;
+                                            ogs_info("supiRange changed from %s-%s to %s-%s.", 
+                                                udm_info->supiRanges.supi_ranges[i].start,
+                                                udm_info->supiRanges.supi_ranges[i].end,
+                                                low[i],
+                                                high[i]);
                                         }
-                                        udm_info->supiRanges.num_of_supi_range =
-                                                    num_of_range;
-                                                    
+                                        
+                                        if (udm_info->supiRanges.supi_ranges[i].start != NULL){
+                                            ogs_free((void *)udm_info->supiRanges.supi_ranges[i].start);
+                                        }
+                                        if (udm_info->supiRanges.supi_ranges[i].end != NULL){
+                                            ogs_free((void *)udm_info->supiRanges.supi_ranges[i].end);
+                                        }
+                                        udm_info->supiRanges.supi_ranges[i].start = ogs_strdup(low[i]);
+                                        udm_info->supiRanges.supi_ranges[i].end = ogs_strdup(high[i]);
+                                        ogs_info("start %s, end %s, num %d.", low[i], high[i], num_of_range);
+                                    }
+
+                                    udm_info->supiRanges.num_of_supi_range = num_of_range;
                                 } else {
                                     ogs_warn("No supi range info");
-                                }        
+                                }    
 
                             } else
                                 ogs_warn("unknown key `%s`", info_key);
@@ -409,13 +435,23 @@ int yaml_check_proc(void)
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
     
+    rv = udm_context_parse_config();
+    if (rv != OGS_OK) return rv;
     
-    
+    bool needReRegister = false;
     if (ogs_app()->parameter.capacity != ogs_sbi_self()->nrf_instance->capacity){
         ogs_info("capacity changed from %d to %d.",ogs_sbi_self()->nrf_instance->capacity,ogs_app()->parameter.capacity);
         ogs_sbi_self()->nf_instance->capacity = ogs_app()->parameter.capacity;
-        ogs_nnrf_nfm_send_nf_register(ogs_sbi_self()->nrf_instance);
+        needReRegister = true;
     }
     
+    if (isSupiRangeChanged){
+        needReRegister = true;
+    }
+    
+    if (needReRegister){
+        ogs_nnrf_nfm_send_nf_register(ogs_sbi_self()->nrf_instance);
+    }
+
     return 0;
 }
