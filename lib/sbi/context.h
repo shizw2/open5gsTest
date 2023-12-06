@@ -340,7 +340,7 @@ typedef struct ogs_sbi_amf_info_s {
 #define OGS_MAX_NUM_OF_SUPI              16
 typedef struct supi_range_s {   
     int num_of_supi_range;
-    bool isChanged; 
+   
     struct {
         const char *start;
         const char *end;
@@ -389,7 +389,7 @@ ogs_sbi_context_t *ogs_sbi_self(void);
 int ogs_sbi_context_parse_config(
         const char *local, const char *nrf, const char *scp);
 int ogs_sbi_context_parse_hnet_config(ogs_yaml_iter_t *root_iter);
-int ogs_sbi_context_parse_supi_config(ogs_yaml_iter_t *root_iter, ogs_supi_range_t *supiRanges);
+int ogs_sbi_context_parse_supi_ranges(ogs_yaml_iter_t *root_iter, ogs_supi_range_t *supiRanges);
 bool ogs_sbi_nf_service_is_available(const char *name);
 
 ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_add(void);
@@ -527,7 +527,6 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_select_key(
         OpenAPI_nf_type_e requester_nf_type,
         ogs_sbi_discovery_option_t *discovery_option,
         int select_key);
-
 #ifdef __cplusplus
 }
 #endif

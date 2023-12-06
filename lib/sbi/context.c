@@ -782,13 +782,15 @@ int ogs_sbi_context_parse_hnet_config(ogs_yaml_iter_t *root_iter)
     return OGS_OK;
 }
 
-int ogs_sbi_context_parse_supi_config(ogs_yaml_iter_t *root_iter, ogs_supi_range_t *supiRanges)
+int ogs_sbi_context_parse_supi_ranges(ogs_yaml_iter_t *root_iter, ogs_supi_range_t *supiRanges)
 {
     const char *low[OGS_MAX_NUM_OF_SUPI];
     const char *high[OGS_MAX_NUM_OF_SUPI];
     int i, num_of_range = 0;
     ogs_yaml_iter_t supi_array, supi_iter;
     ogs_yaml_iter_recurse(root_iter, &supi_array);
+    bool isCfgChanged;
+
     do {                                  
         if (ogs_yaml_iter_type(&supi_array) ==
                 YAML_MAPPING_NODE) {
@@ -855,21 +857,42 @@ int ogs_sbi_context_parse_supi_config(ogs_yaml_iter_t *root_iter, ogs_supi_range
     } while (ogs_yaml_iter_type(&supi_array) ==
             YAML_SEQUENCE_NODE);
 
+    isCfgChanged = false;
     if (num_of_range) {
-        int i;
+        for (i = 0; i < num_of_range; i++) {
+            if (supiRanges->supi_ranges[i].start != NULL){
+                if (strcmp(supiRanges->supi_ranges[i].start, low[i]) != 0) {
+                    isCfgChanged = true;
+                    ogs_info("supiRange  start changed from %s to %s.", 
+                        supiRanges->supi_ranges[i].start,low[i]);
+                }
+                ogs_free((void *)supiRanges->supi_ranges[i].start);
+            }else{
+                isCfgChanged = true;//说明是新增了一个start
+            }
+            
+            if (supiRanges->supi_ranges[i].end != NULL){
+                if (strcmp(supiRanges->supi_ranges[i].end, high[i]) != 0) {
+                    isCfgChanged = true;
+                    ogs_info("supiRange  end changed from %s to %s.", 
+                        supiRanges->supi_ranges[i].end,high[i]);
+                }
+                ogs_free((void *)supiRanges->supi_ranges[i].end);
+            }else{
+                isCfgChanged = true;//说明是新增了一个end
+            }
 
-        for (i = 0; i < num_of_range; i++) {                     
             supiRanges->supi_ranges[i].start = ogs_strdup(low[i]);
             supiRanges->supi_ranges[i].end = ogs_strdup(high[i]);
-            ogs_warn("start %s, end %s, num %d.",low[i],high[i],num_of_range);
+            ogs_info("supiRange,start %s, end %s.", low[i], high[i]);
         }
-        supiRanges->num_of_supi_range =
-                    num_of_range;
+
+        supiRanges->num_of_supi_range = num_of_range;
                         
     } else {
         ogs_warn("No supi range info");
     }
-    return OGS_OK;    
+    return isCfgChanged;    
 }
 
 bool ogs_sbi_nf_service_is_available(const char *name)
@@ -957,7 +980,7 @@ void ogs_sbi_nf_instance_set_capacity(
     ogs_assert(nf_instance);  
 
     nf_instance->capacity = capacity;
-    ogs_warn("test:ogs_sbi_nf_instance_set_capacity:%d[%s], capacity:%d.",nf_instance->nf_type,OpenAPI_nf_type_ToString(nf_instance->nf_type),capacity);
+    ogs_info("ogs_sbi_nf_instance_set_capacity:%d[%s], capacity:%d.",nf_instance->nf_type,OpenAPI_nf_type_ToString(nf_instance->nf_type),capacity);
 }
 
 void ogs_sbi_nf_instance_add_allowed_nf_type(

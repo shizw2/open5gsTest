@@ -264,17 +264,12 @@ void ogs_sbi_nf_state_registered(ogs_fsm_t *s, ogs_event_t *e)
 
                 if (message->res_status == OGS_SBI_HTTP_STATUS_NO_CONTENT ||
                     message->res_status == OGS_SBI_HTTP_STATUS_OK) {
-                    if (nf_instance->time.heartbeat_interval){
-                        ogs_info("receive http ok.status:%d. restart heartbeat, interval:%d,id:%s,nftype:%d.",message->res_status, nf_instance->time.heartbeat_interval +
-                                ogs_app()->time.nf_instance.
-                                    no_heartbeat_margin,nf_instance->id,
-                                    nf_instance->nf_type);
+                    if (nf_instance->time.heartbeat_interval)
                         ogs_timer_start(nf_instance->t_no_heartbeat,
                             ogs_time_from_sec(
                                 nf_instance->time.heartbeat_interval +
                                 ogs_app()->time.nf_instance.
                                     no_heartbeat_margin));
-                    }
                 } else {
                     ogs_warn("[%s] HTTP response error [%d]",
                             NF_INSTANCE_ID(ogs_sbi_self()->nf_instance),
