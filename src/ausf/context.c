@@ -160,6 +160,7 @@ int ausf_context_parse_config(void)
                                 isCfgChanged = ogs_sbi_context_parse_supi_ranges(&info_iter, &ausf_info->supiRanges); 
                             } else if (!strcmp(info_key, "routing_indicator")) {
                                 ogs_yaml_iter_t routing_indicator_iter;
+                                int num_of_routing_indicator = 0;
                                 ogs_yaml_iter_recurse(&info_iter,
                                         &routing_indicator_iter);
                                 ogs_assert(ogs_yaml_iter_type(
@@ -177,13 +178,24 @@ int ausf_context_parse_config(void)
                                     }
 
                                     v = ogs_yaml_iter_value(&routing_indicator_iter);
-                                    if (v) {
-                                        ausf_info->routing_indicators[ausf_info->num_of_routing_indicator] = ogs_strdup(v);
-                                        ausf_info->num_of_routing_indicator++;                                        
+                                    if (v && strlen(v) > 0) {
+                                        ogs_info("new routing_indicator %s ",v);
+                                        if (ausf_info->routing_indicators[num_of_routing_indicator] != NULL){
+                                            if ( strcmp(ausf_info->routing_indicators[num_of_routing_indicator],v) != 0){
+                                                ogs_info("routing_indicator changed from %s to %s.",ausf_info->routing_indicators[num_of_routing_indicator],v);
+                                                isCfgChanged = true;
+                                            }
+                                            ogs_info("routing_indicator %s already exit.",ausf_info->routing_indicators[num_of_routing_indicator]);
+                                            ogs_free(ausf_info->routing_indicators[num_of_routing_indicator]);//先释放老的
+                                        }
+                                        ausf_info->routing_indicators[num_of_routing_indicator] = ogs_strdup(v);
+                                        num_of_routing_indicator++;                                        
                                     }
                                 } while (
                                     ogs_yaml_iter_type(&routing_indicator_iter) ==
                                         YAML_SEQUENCE_NODE);
+                                        
+                                ausf_info->num_of_routing_indicator = num_of_routing_indicator;
                             } else
                                 ogs_warn("unknown key `%s`", info_key);
                         }

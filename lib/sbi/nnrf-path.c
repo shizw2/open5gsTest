@@ -50,8 +50,6 @@ bool ogs_nnrf_nfm_send_nf_update(ogs_sbi_nf_instance_t *nf_instance)
 
     ogs_assert(nf_instance);
 
-    ogs_info("send ogs_nnrf_nfm_send_nf_update to:%d.",nf_instance->nf_type);
-
     request = ogs_nnrf_nfm_build_update();
     if (!request) {
         ogs_error("No Request");

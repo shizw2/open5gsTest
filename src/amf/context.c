@@ -2561,16 +2561,16 @@ void amf_sbi_select_nf(
         int max_prefix_length = 0;
         
         ogs_sbi_nf_instances_find_by_discovery_param(matched_nf_instances,&matched_nf_count,target_nf_type, requester_nf_type, discovery_option);
-        ogs_info("after ogs_sbi_nf_instances_find_by_discovery_param, matched_nf_count:%d.", matched_nf_count);
+        ogs_info("after ogs_sbi_nf_instances_find_by_discovery_param,target_nf_type:%s, matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type),matched_nf_count);
 
         if (supi_id != NULL){
             ogs_sbi_nf_instances_find_by_supi(matched_nf_instances,&matched_nf_count,target_nf_type, requester_nf_type, discovery_option,supi_id);
-            ogs_info("after ogs_sbi_nf_instances_find_by_supi, matched_nf_count:%d.", matched_nf_count);
+            ogs_info("after ogs_sbi_nf_instances_find_by_supi,target_nf_type:%s, supi:%s, matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type),supi_id, matched_nf_count);
         }
         
-        if (routing_indicator != NULL){
+        if (routing_indicator != NULL && target_nf_type == OpenAPI_nf_type_AUSF){
             ogs_sbi_nf_instances_find_by_routing_indicator(matched_nf_instances,&matched_nf_count,routing_indicator);
-            ogs_info("after ogs_sbi_nf_instances_find_by_routing_indicator, matched_nf_count:%d.", matched_nf_count);
+            ogs_info("after ogs_sbi_nf_instances_find_by_routing_indicator,target_nf_type:%s ,routing_indicator:%s,matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type),routing_indicator, matched_nf_count);
         }
         
         // 从可选NF列表中选择目标NF
@@ -2597,11 +2597,11 @@ void amf_sbi_select_nf(
                 }
             }                
 
-            ogs_info("selected_nf_instance, nf_type:%s, supi:%s.", OpenAPI_nf_type_ToString(selected_nf_instance->nf_type), ue->supi);
+            ogs_info("selected_nf_instance, target_nf_type:%s, id:%s, supi:%s.", OpenAPI_nf_type_ToString(target_nf_type),selected_nf_instance->id, ue->supi);
             OGS_SBI_SETUP_NF_INSTANCE(
                     sbi_object->service_type_array[service_type], selected_nf_instance);   
         }else{
-            ogs_error("selected_nf_instance, no valid instance, supi:%s.", ue->supi);
+            ogs_error("selected_nf_instance, target_nf_type:%s,no valid instance, supi:%s.", OpenAPI_nf_type_ToString(target_nf_type),ue->supi);
         }
         
         if (supi_id != NULL){
