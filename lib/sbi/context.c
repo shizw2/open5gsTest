@@ -1393,6 +1393,37 @@ void ogs_sbi_nf_instances_find_by_routing_indicator(ogs_sbi_nf_instance_t *match
     }
 }
 
+ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_capacity(ogs_sbi_nf_instance_t *matched_nf_instances[], int matched_nf_count)
+{
+    int i;
+    if (matched_nf_instances == NULL){
+        return NULL;
+    }
+    // 计算总容量权重
+    int total_capacity = 0;
+    ogs_sbi_nf_instance_t *selected_nf_instance = NULL;
+
+    for (i = 0; i < matched_nf_count; i++) {
+        total_capacity += matched_nf_instances[i]->capacity;
+    }
+
+    // 根据容量权重选择目标NF
+    int random_value = rand() % total_capacity;
+    int accumulated_weight = 0;
+
+    for (i = 0; i < matched_nf_count; i++) {
+        accumulated_weight += matched_nf_instances[i]->capacity;
+        if (random_value < accumulated_weight) {
+            selected_nf_instance = matched_nf_instances[i];
+            break;
+        }
+    }                
+
+    ogs_info("ogs_sbi_nf_instance_find_by_capacity, target_nf_type:%s, id:%s.", OpenAPI_nf_type_ToString(selected_nf_instance->nf_type),selected_nf_instance->id);
+
+    return selected_nf_instance;
+}
+
 bool ogs_sbi_nf_instance_maximum_number_is_reached(void)
 {
     return nf_instance_pool.avail <= 0;
@@ -2283,6 +2314,9 @@ void ogs_sbi_xact_remove(ogs_sbi_xact_t *xact)
 
     if (xact->request)
         ogs_sbi_request_free(xact->request);
+    
+    if (xact->supi_id)
+        ogs_free(xact->supi_id);
 
     ogs_list_remove(&sbi_object->xact_list, xact);
     ogs_pool_free(&xact_pool, xact);

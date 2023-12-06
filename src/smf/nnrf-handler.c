@@ -67,13 +67,36 @@ void smf_nnrf_handle_nf_discover(
 */
 
     if (target_nf_type == OpenAPI_nf_type_UDM || target_nf_type == OpenAPI_nf_type_PCF){
-        nf_instance = ogs_sbi_nf_instance_find_by_select_key(
-                        target_nf_type, requester_nf_type, discovery_option, ogs_sbi_self()->nf_instance->time.heartbeat_interval);
-        if (!nf_instance) {
+        ogs_sbi_nf_instance_t *matched_nf_instances[16];
+        int matched_nf_count = 0;
+        int max_prefix_length = 0;
+        
+        ogs_sbi_nf_instances_find_by_discovery_param(matched_nf_instances,&matched_nf_count,target_nf_type, requester_nf_type, discovery_option);
+        ogs_info("after ogs_sbi_nf_instances_find_by_discovery_param,target_nf_type:%s, matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type),matched_nf_count);
+
+        //if (supi_id != NULL){
+        //    ogs_sbi_nf_instances_find_by_supi(matched_nf_instances,&matched_nf_count,target_nf_type, requester_nf_type, discovery_option,supi_id);
+        //    ogs_info("after ogs_sbi_nf_instances_find_by_supi,target_nf_type:%s, supi:%s, matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type),supi_id, matched_nf_count);
+        //}
+        
+        ogs_info("test:sbi_object->type:%d.",sbi_object->type);
+        
+        // 从可选NF列表中选择目标NF
+        if (matched_nf_count > 0) {        
+            nf_instance = ogs_sbi_nf_instance_find_by_capacity(matched_nf_instances, matched_nf_count);
+            
+            if (nf_instance){
+                OGS_SBI_SETUP_NF_INSTANCE(
+                        sbi_object->service_type_array[service_type], nf_instance);
+            }else{
+                ogs_error("(NF discover) No [%s:%s]",
+                        ogs_sbi_service_type_to_name(service_type),
+                        OpenAPI_nf_type_ToString(requester_nf_type));
+            }
+        }else{
             ogs_error("(NF discover) No [%s:%s]",
                         ogs_sbi_service_type_to_name(service_type),
                         OpenAPI_nf_type_ToString(requester_nf_type));
-            return;
         }
     }else{        
         nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(

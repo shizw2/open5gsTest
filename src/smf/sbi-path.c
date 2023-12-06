@@ -119,7 +119,8 @@ int smf_sbi_discover_and_send(
     xact->state = state;
     xact->assoc_stream = stream;
     xact->select_key = ogs_sbi_self()->nf_instance->time.heartbeat_interval;
-
+    xact->supi_id = ogs_id_get_value(smf_ue->supi);
+    
     r = ogs_sbi_discover_and_send(xact);
     if (r != OGS_OK) {
         ogs_error("smf_sbi_discover_and_send() failed");
@@ -168,7 +169,8 @@ void smf_namf_comm_send_n1_n2_message_transfer(
     }
 
     xact->state = param->state;
-
+    xact->supi_id = ogs_id_get_value(smf_ue->supi);
+    
     r = ogs_sbi_discover_and_send(xact);
     if (r != OGS_OK) {
         ogs_error("smf_namf_comm_send_n1_n2_message_transfer() failed");

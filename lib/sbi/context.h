@@ -196,6 +196,7 @@ typedef struct ogs_sbi_xact_s {
     ogs_sbi_object_t *sbi_object;
     
     int select_key;//目前,amf sps从入参获取；其他模块暂时用heartbeat替代,后续从yaml获取
+    char *supi_id;
 } ogs_sbi_xact_t;
 
 typedef struct ogs_sbi_nf_service_s {
@@ -527,6 +528,7 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_select_key(
         OpenAPI_nf_type_e requester_nf_type,
         ogs_sbi_discovery_option_t *discovery_option,
         int select_key);
+ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_capacity(ogs_sbi_nf_instance_t *matched_nf_instances[], int matched_nf_count);        
 #ifdef __cplusplus
 }
 #endif

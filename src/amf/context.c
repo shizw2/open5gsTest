@@ -2507,8 +2507,7 @@ amf_sess_t *amf_sess_cycle(amf_sess_t *sess)
 }
 
 static bool check_smf_info(ogs_sbi_nf_info_t *nf_info, void *context);
-static bool check_udm_info(ogs_sbi_nf_info_t *nf_info, void *context, ogs_sbi_obj_type_e type);
-static int check_supi_ranges(ogs_supi_range_t *supi_ranges, char *supi);
+
 
 void amf_sbi_select_nf(
         ogs_sbi_object_t *sbi_object,
@@ -2575,33 +2574,16 @@ void amf_sbi_select_nf(
         
         // 从可选NF列表中选择目标NF
         if (matched_nf_count > 0) {        
-            ogs_info("target_nf_type:%s, matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type), matched_nf_count);
-       
-            // 计算总容量权重
-            int total_capacity = 0;
-            ogs_sbi_nf_instance_t *selected_nf_instance = NULL;
-
-            for (int i = 0; i < matched_nf_count; i++) {
-                total_capacity += matched_nf_instances[i]->capacity;
+            nf_instance = ogs_sbi_nf_instance_find_by_capacity(matched_nf_instances, matched_nf_count);
+            
+            if (nf_instance){
+                OGS_SBI_SETUP_NF_INSTANCE(
+                        sbi_object->service_type_array[service_type], nf_instance);
+            }else{
+                ogs_error("ogs_sbi_nf_instance_find_by_capacity, target_nf_type:%s,no valid instance, supi:%s.", OpenAPI_nf_type_ToString(target_nf_type),ue->supi);
             }
-
-            // 根据容量权重选择目标NF
-            int random_value = rand() % total_capacity;
-            int accumulated_weight = 0;
-
-            for (int i = 0; i < matched_nf_count; i++) {
-                accumulated_weight += matched_nf_instances[i]->capacity;
-                if (random_value < accumulated_weight) {
-                    selected_nf_instance = matched_nf_instances[i];
-                    break;
-                }
-            }                
-
-            ogs_info("selected_nf_instance, target_nf_type:%s, id:%s, supi:%s.", OpenAPI_nf_type_ToString(target_nf_type),selected_nf_instance->id, ue->supi);
-            OGS_SBI_SETUP_NF_INSTANCE(
-                    sbi_object->service_type_array[service_type], selected_nf_instance);   
         }else{
-            ogs_error("selected_nf_instance, target_nf_type:%s,no valid instance, supi:%s.", OpenAPI_nf_type_ToString(target_nf_type),ue->supi);
+            ogs_error("ogs_sbi_nf_instance_find_by_capacity, target_nf_type:%s,no valid instance, supi:%s.", OpenAPI_nf_type_ToString(target_nf_type),ue->supi);
         }
         
         if (supi_id != NULL){
@@ -2638,9 +2620,11 @@ void amf_sbi_select_nf(
 
                 if (!nf_info)
                     continue;
+            }else{
+                ogs_warn("test: SESS_TYPE,get nf_instance id:%s, nf_instance_name:%s.",nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type));
             }
             
-            if ((nf_instance->nf_type == OpenAPI_nf_type_UDM) &&
+            /*if ((nf_instance->nf_type == OpenAPI_nf_type_UDM) &&
                 (ogs_list_count(&nf_instance->nf_info_list) > 0)) {
 
                 ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
@@ -2663,7 +2647,7 @@ void amf_sbi_select_nf(
                 }else{
                     ogs_warn("SESS_TYPE,select_key:%d, get nf_instance id:%s, nf_instance_name:%s.",g_select_key,nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type));
                 }
-            }
+            }*/
 
             OGS_SBI_SETUP_NF_INSTANCE(
                     sbi_object->service_type_array[service_type], nf_instance);
@@ -3091,7 +3075,7 @@ static bool check_smf_info_nr_tai(
 }
 
 
-        
+/*        
 static bool check_udm_info(ogs_sbi_nf_info_t *nf_info, void *context,ogs_sbi_obj_type_e type)
 {
     amf_sess_t *sess = NULL;
@@ -3117,8 +3101,8 @@ static bool check_udm_info(ogs_sbi_nf_info_t *nf_info, void *context,ogs_sbi_obj
         return false;
 
     return true;
-}
-
+}*/
+/*
 static unsigned long long convertToNumber(char supi[], int length) {  
     char supiSubstring[16];
     if (supi == NULL || length <= 0 || length > 15) {   
@@ -3131,7 +3115,7 @@ static unsigned long long convertToNumber(char supi[], int length) {
     return number;
 }
 
-/*static int check_udm_info_supi(
+static int check_udm_info_supi(
         ogs_sbi_udm_info_t *udm_info, char *supi)
 {      
     ogs_assert(udm_info);
@@ -3163,7 +3147,7 @@ static unsigned long long convertToNumber(char supi[], int length) {
         }
     }
     return bestMatchLength;
-}*/
+}
 
 static int check_supi_ranges(
         ogs_supi_range_t *supi_ranges, char *supi)
@@ -3198,7 +3182,7 @@ static int check_supi_ranges(
         }
     }
     return bestMatchLength;
-}
+}*/
 
 
 /*

@@ -924,9 +924,6 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
         ogs_nnrf_nfm_handle_nf_profile(nf_instance, NFProfile);
 
         ogs_info("[%s] (NRF-notify) NF Profile updated,nftype:%s", nf_instance->id, OpenAPI_nf_type_ToString(nf_instance->nf_type));
-
-        ogs_sbi_client_associate(nf_instance);
-
     } else if (NotificationData->event ==
             OpenAPI_notification_event_type_NF_DEREGISTERED) {
         nf_instance = ogs_sbi_nf_instance_find(message.h.resource.component[1]);
