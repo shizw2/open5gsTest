@@ -236,8 +236,8 @@ int ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
         
         nf_instance = ogs_sbi_nf_instance_find_by_conditions(target_nf_type, requester_nf_type, discovery_option,xact->supi_id, NULL);
         if (nf_instance)
-                OGS_SBI_SETUP_NF_INSTANCE(
-                        sbi_object->service_type_array[service_type], nf_instance);       
+            OGS_SBI_SETUP_NF_INSTANCE(
+                    sbi_object->service_type_array[service_type], nf_instance);
     }
 
     if (nf_instance){

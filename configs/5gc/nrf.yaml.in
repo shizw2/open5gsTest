@@ -194,7 +194,9 @@ nrf:
         - 127.0.0.10
 #        - ::1
         port: 7777
-
+    metrics:
+      - addr: 127.0.0.10
+        port: 9083
 #
 #  <SBI Client>>
 #

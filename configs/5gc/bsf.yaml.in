@@ -255,6 +255,9 @@ bsf:
     sbi:
       - addr: 127.0.0.15
         port: 7777
+    metrics:
+      - addr: 127.0.0.15
+        port: 9085
 
 #
 #  <SBI Client>>

@@ -929,11 +929,12 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_add(void)
             ogs_app()->time.nf_instance.heartbeat_interval;
 
     nf_instance->priority = OGS_SBI_DEFAULT_PRIORITY;
-    if (ogs_app()->parameter.capacity > 0){//TODO:这里矛盾
+    nf_instance->capacity = ogs_app()->parameter.capacity;//capacity支持为0的配置
+    /*if (ogs_app()->parameter.capacity > 0){
         nf_instance->capacity = ogs_app()->parameter.capacity;
     } else{
         nf_instance->capacity = OGS_SBI_DEFAULT_CAPACITY;
-    }
+    }*/
     nf_instance->load = OGS_SBI_DEFAULT_LOAD;
 
     ogs_list_add(&ogs_sbi_self()->nf_instance_list, nf_instance);
@@ -1325,10 +1326,8 @@ void ogs_sbi_nf_instances_find_by_routing_indicator(ogs_sbi_nf_instance_t *match
         switch (nf_instance->nf_type) {
             case OpenAPI_nf_type_AUSF:
                 if (ogs_list_count(&nf_instance->nf_info_list) > 0) {
-                    ogs_info("test:nf_instance->nf_info_list:%d",ogs_list_count(&nf_instance->nf_info_list));
                     bool has_routing_indicator = false;
-                    ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {     
-                        ogs_info("test:num_of_routing_indicator:%d",nf_info->ausf.num_of_routing_indicator);                    
+                    ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
                         for (j = 0; j < nf_info->ausf.num_of_routing_indicator; j++) { 
                             has_routing_indicator = true;                        
                             if (strcmp(nf_info->ausf.routing_indicators[j], desired_routing_indicator) == 0) {
