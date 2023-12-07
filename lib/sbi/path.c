@@ -206,8 +206,8 @@ int ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
     /* Target NF-Instance */
     nf_instance = sbi_object->service_type_array[service_type].nf_instance;
     if (!nf_instance) {
-        if (target_nf_type == OpenAPI_nf_type_UDM || target_nf_type == OpenAPI_nf_type_PCF || target_nf_type == OpenAPI_nf_type_AUSF || target_nf_type == OpenAPI_nf_type_UDR){
-            /*ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
+        /*if (target_nf_type == OpenAPI_nf_type_UDM || target_nf_type == OpenAPI_nf_type_PCF || target_nf_type == OpenAPI_nf_type_AUSF || target_nf_type == OpenAPI_nf_type_UDR){
+            ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
                 if (ogs_sbi_discovery_param_is_matched(
                         nf_instance,
                         target_nf_type, requester_nf_type, discovery_option) ==
@@ -225,29 +225,6 @@ int ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
                 OGS_SBI_SETUP_NF_INSTANCE(
                         sbi_object->service_type_array[service_type], nf_instance);
                 break;
-            }*/
-            ogs_sbi_nf_instance_t *matched_nf_instances[16];
-            int matched_nf_count = 0;
-            int max_prefix_length = 0;
-            
-            ogs_sbi_nf_instances_find_by_discovery_param(matched_nf_instances,&matched_nf_count,target_nf_type, requester_nf_type, discovery_option);
-            ogs_info("after ogs_sbi_nf_instances_find_by_discovery_param,target_nf_type:%s, matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type),matched_nf_count);
-
-            if (xact->supi_id != NULL){
-                ogs_sbi_nf_instances_find_by_supi(matched_nf_instances,&matched_nf_count,target_nf_type, requester_nf_type, discovery_option,xact->supi_id);
-                ogs_info("after ogs_sbi_nf_instances_find_by_supi,target_nf_type:%s, supi:%s, matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type),xact->supi_id, matched_nf_count);
-            }
-            
-            ogs_info("test:ogs_sbi_discover_and_send,sbi_object->type:%d.",sbi_object->type);
-            
-            // 从可选NF列表中选择目标NF
-            if (matched_nf_count > 0) {        
-                nf_instance = ogs_sbi_nf_instance_find_by_capacity(matched_nf_instances, matched_nf_count);
-                
-                if (nf_instance){
-                    OGS_SBI_SETUP_NF_INSTANCE(
-                            sbi_object->service_type_array[service_type], nf_instance);
-                }
             }
         }else{
             nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
@@ -255,7 +232,12 @@ int ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
             if (nf_instance)
                 OGS_SBI_SETUP_NF_INSTANCE(
                         sbi_object->service_type_array[service_type], nf_instance);
-        }
+        }*/
+        
+        nf_instance = ogs_sbi_nf_instance_find_by_conditions(target_nf_type, requester_nf_type, discovery_option,xact->supi_id, NULL);
+        if (nf_instance)
+                OGS_SBI_SETUP_NF_INSTANCE(
+                        sbi_object->service_type_array[service_type], nf_instance);       
     }
 
     if (nf_instance){

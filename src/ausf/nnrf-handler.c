@@ -53,8 +53,11 @@ void ausf_nnrf_handle_nf_discover(
 
     ogs_nnrf_disc_handle_nf_discover_search_result(SearchResult);
 
-    nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
-                    target_nf_type, requester_nf_type, discovery_option);
+    /*nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
+                    target_nf_type, requester_nf_type, discovery_option);*/
+    ogs_info("test:ausf_nnrf_handle_nf_discover sbi_object->type:%d, supi_id:%s.",sbi_object->type, xact->supi_id);    
+    nf_instance = ogs_sbi_nf_instance_find_by_conditions(target_nf_type, requester_nf_type, discovery_option,xact->supi_id, NULL);
+            
     if (!nf_instance) {
         ogs_error("(NF discover) No [%s:%s]",
                     ogs_sbi_service_type_to_name(service_type),

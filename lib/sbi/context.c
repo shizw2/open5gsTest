@@ -1119,35 +1119,6 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_discovery_param(
     return NULL;
 }
 
-ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_select_key(
-        OpenAPI_nf_type_e target_nf_type,
-        OpenAPI_nf_type_e requester_nf_type,
-        ogs_sbi_discovery_option_t *discovery_option, int select_key)
-{
-    ogs_sbi_nf_instance_t *nf_instance = NULL;
-
-    ogs_assert(target_nf_type);
-    ogs_assert(requester_nf_type);
-
-    ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
-        if (ogs_sbi_discovery_param_is_matched(
-                nf_instance,
-                target_nf_type, requester_nf_type, discovery_option) ==
-                    false)
-            continue;                   
-        
-        if (nf_instance->time.heartbeat_interval != select_key){
-            ogs_warn("ogs_sbi_nf_instance_find_by_select_key,target heartbeat_interval:%d, select_key:%d",nf_instance->time.heartbeat_interval, select_key);
-            continue;
-        }else{
-            ogs_warn("ogs_sbi_nf_instance_find_by_select_key,select_key:%d, get nf_instance id:%s, nf_instance_name:%s,target_nf_type:%d.",nf_instance->time.heartbeat_interval,nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type),target_nf_type);
-            return nf_instance;
-        }        
-    }
-
-    return NULL;
-}
-
 ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_service_type(
         ogs_sbi_service_type_e service_type,
         OpenAPI_nf_type_e requester_nf_type)
@@ -1422,6 +1393,35 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_capacity(ogs_sbi_nf_instance_
     ogs_info("ogs_sbi_nf_instance_find_by_capacity, target_nf_type:%s, id:%s.", OpenAPI_nf_type_ToString(selected_nf_instance->nf_type),selected_nf_instance->id);
 
     return selected_nf_instance;
+}
+
+ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_conditions(OpenAPI_nf_type_e target_nf_type,
+        OpenAPI_nf_type_e requester_nf_type,
+        ogs_sbi_discovery_option_t *discovery_option, char * supi_id, char * routing_indicator)
+{
+    ogs_sbi_nf_instance_t *matched_nf_instances[16];
+    int matched_nf_count = 0;
+    
+    ogs_sbi_nf_instances_find_by_discovery_param(matched_nf_instances,&matched_nf_count,target_nf_type, requester_nf_type, discovery_option);
+    ogs_info("after ogs_sbi_nf_instances_find_by_discovery_param,target_nf_type:%s, matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type),matched_nf_count);
+
+    if (supi_id != NULL){
+        ogs_sbi_nf_instances_find_by_supi(matched_nf_instances,&matched_nf_count,target_nf_type, requester_nf_type, discovery_option,supi_id);
+        ogs_info("after ogs_sbi_nf_instances_find_by_supi,target_nf_type:%s, supi:%s, matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type),supi_id, matched_nf_count);
+    }
+    
+    if (routing_indicator != NULL && target_nf_type == OpenAPI_nf_type_AUSF){
+        ogs_sbi_nf_instances_find_by_routing_indicator(matched_nf_instances,&matched_nf_count,routing_indicator);
+        ogs_info("after ogs_sbi_nf_instances_find_by_routing_indicator,target_nf_type:%s ,routing_indicator:%s,matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type),routing_indicator, matched_nf_count);
+    }
+    
+    if (matched_nf_count == 1){
+        return matched_nf_instances[0];
+    }else if (matched_nf_count > 1){
+        return ogs_sbi_nf_instance_find_by_capacity(matched_nf_instances, matched_nf_count);
+    }else {
+        return NULL;
+    }
 }
 
 bool ogs_sbi_nf_instance_maximum_number_is_reached(void)

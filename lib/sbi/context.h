@@ -523,12 +523,11 @@ void ogs_sbi_subscription_data_remove_all(void);
 ogs_sbi_subscription_data_t *ogs_sbi_subscription_data_find(char *id);
 void ogs_sbi_subscription_data_build_default(
         OpenAPI_nf_type_e nf_type, const char *service_name);
-ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_select_key(
-        OpenAPI_nf_type_e target_nf_type,
+
+ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_capacity(ogs_sbi_nf_instance_t *matched_nf_instances[], int matched_nf_count);
+ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_conditions(OpenAPI_nf_type_e target_nf_type,
         OpenAPI_nf_type_e requester_nf_type,
-        ogs_sbi_discovery_option_t *discovery_option,
-        int select_key);
-ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_capacity(ogs_sbi_nf_instance_t *matched_nf_instances[], int matched_nf_count);        
+        ogs_sbi_discovery_option_t *discovery_option, char * supi_id, char * routing_indicator);
 #ifdef __cplusplus
 }
 #endif

@@ -73,7 +73,7 @@ void pcf_nnrf_handle_nf_discover(
 
     ogs_nnrf_disc_handle_nf_discover_search_result(SearchResult);
 
-    if (target_nf_type == OpenAPI_nf_type_UDR){
+    /*if (target_nf_type == OpenAPI_nf_type_UDR){
         nf_instance = ogs_sbi_nf_instance_find_by_select_key(
                         target_nf_type, requester_nf_type, discovery_option, ogs_sbi_self()->nf_instance->time.heartbeat_interval);
         if (!nf_instance) {
@@ -94,6 +94,22 @@ void pcf_nnrf_handle_nf_discover(
         return;
         }
     }
+    */
+    ogs_info("test:pcf_nnrf_handle_nf_discover sbi_object->type:%d, supi_id:%s.",sbi_object->type, xact->supi_id);    
+    char *supi_id = ogs_id_get_value(pcf_ue->supi);
+    nf_instance = ogs_sbi_nf_instance_find_by_conditions(target_nf_type, requester_nf_type, discovery_option,supi_id, NULL);
+    
+    if (supi_id != NULL){
+        ogs_free(supi_id);
+    }
+    
+    if (!nf_instance) {
+        ogs_error("(NF discover) No [%s:%s]",
+                    ogs_sbi_service_type_to_name(service_type),
+                    OpenAPI_nf_type_ToString(requester_nf_type));
+        return;
+    }
+    
     OGS_SBI_SETUP_NF_INSTANCE(
             sbi_object->service_type_array[service_type], nf_instance);
 

@@ -2551,40 +2551,15 @@ void amf_sbi_select_nf(
         }
         
         char *routing_indicator = NULL;
-        if (ue->suci != NULL){
+        if (ue->suci != NULL && target_nf_type == OpenAPI_nf_type_AUSF){
             routing_indicator = ogs_routing_indicator_from_suci(ue->suci);
         }
+        
+        nf_instance = ogs_sbi_nf_instance_find_by_conditions(target_nf_type, requester_nf_type, discovery_option,supi_id, routing_indicator);
 
-        ogs_sbi_nf_instance_t *matched_nf_instances[16];
-        int matched_nf_count = 0;
-        int max_prefix_length = 0;
-        
-        ogs_sbi_nf_instances_find_by_discovery_param(matched_nf_instances,&matched_nf_count,target_nf_type, requester_nf_type, discovery_option);
-        ogs_info("after ogs_sbi_nf_instances_find_by_discovery_param,target_nf_type:%s, matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type),matched_nf_count);
-
-        if (supi_id != NULL){
-            ogs_sbi_nf_instances_find_by_supi(matched_nf_instances,&matched_nf_count,target_nf_type, requester_nf_type, discovery_option,supi_id);
-            ogs_info("after ogs_sbi_nf_instances_find_by_supi,target_nf_type:%s, supi:%s, matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type),supi_id, matched_nf_count);
-        }
-        
-        if (routing_indicator != NULL && target_nf_type == OpenAPI_nf_type_AUSF){
-            ogs_sbi_nf_instances_find_by_routing_indicator(matched_nf_instances,&matched_nf_count,routing_indicator);
-            ogs_info("after ogs_sbi_nf_instances_find_by_routing_indicator,target_nf_type:%s ,routing_indicator:%s,matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type),routing_indicator, matched_nf_count);
-        }
-        
-        // 从可选NF列表中选择目标NF
-        if (matched_nf_count > 0) {        
-            nf_instance = ogs_sbi_nf_instance_find_by_capacity(matched_nf_instances, matched_nf_count);
-            
-            if (nf_instance){
-                OGS_SBI_SETUP_NF_INSTANCE(
-                        sbi_object->service_type_array[service_type], nf_instance);
-            }else{
-                ogs_error("ogs_sbi_nf_instance_find_by_capacity, target_nf_type:%s,no valid instance, supi:%s.", OpenAPI_nf_type_ToString(target_nf_type),ue->supi);
-            }
-        }else{
-            ogs_error("ogs_sbi_nf_instance_find_by_capacity, target_nf_type:%s,no valid instance, supi:%s.", OpenAPI_nf_type_ToString(target_nf_type),ue->supi);
-        }
+        if (nf_instance)
+            OGS_SBI_SETUP_NF_INSTANCE(
+                    sbi_object->service_type_array[service_type], nf_instance);
         
         if (supi_id != NULL){
             ogs_free(supi_id);
