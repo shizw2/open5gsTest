@@ -13,6 +13,7 @@ import {
   GtpcSection,
   GtpuSection,
   DnsSection,
+  PcscfSection,
   MtuSection,
   CtfSection,
   FreeDiameterFileSection,
@@ -35,10 +36,11 @@ export const ViewSMF = ({ nfconfig }) => {
             <NF_SBI_Section sbi={smf.sbi} />
             <PfcpSection pfcp={smf.pfcp} />
             <SubnetSection subnet={smf.subnet} />
-            <GtpcSection gtpc={smf.gtpc} />
+            {/*<GtpcSection gtpc={smf.gtpc} />*/}
             <GtpuSection gtpu={smf.gtpu} />
             <MetricsSection metrics={smf.metrics} />
             <DnsSection dns={smf.dns} />
+            <PcscfSection p-cscf={smf['p-cscf']} />
             <MtuSection mtu={smf.mtu} />
             <CtfSection ctf={smf.ctf} />
             <FreeDiameterFileSection freediameter={smf.freediameter} />
@@ -48,13 +50,15 @@ export const ViewSMF = ({ nfconfig }) => {
       </div>
 
       <div className="upf-section">
-          <div className="upf-header">upf:</div>          
+          <div className="upf-header">upf:</div>
           <PfcpSection pfcp={upf.pfcp} /> 
       </div>
       
+      {/*
       <ParameterSection parameter={parameter} />
       <MaxSection max={max} />
       <TimeSection time={time} />
+      */}
     </div>
   );
 };

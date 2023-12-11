@@ -63,10 +63,10 @@ class Edit extends Component {
       if (formData.amf&&formData.amf.guami&&Array.isArray(formData.amf.guami)) {
         formData.amf.guami.forEach(guami => {         
           if (typeof guami.plmn_id.mcc === 'number') {
-            guami.plmn_id.mcc = String(guami.plmn_id.mcc).padStart(3, '0');
+            guami.plmn_id.mcc = String(guami.plmn_id.mcc);
           }
           if (typeof guami.plmn_id.mnc === 'number') {
-            guami.plmn_id.mnc = String(guami.plmn_id.mnc).padStart(2, '0');
+            guami.plmn_id.mnc = String(guami.plmn_id.mnc);
           }
         });
       }
@@ -74,28 +74,61 @@ class Edit extends Component {
       if (formData.amf&&formData.amf.tai&&Array.isArray(formData.amf.tai)) {
         formData.amf.tai.forEach(tai => {         
           if (typeof tai.plmn_id.mcc === 'number') {
-			tai.plmn_id.mcc = String(tai.plmn_id.mcc).padStart(3, '0');
+            tai.plmn_id.mcc = String(tai.plmn_id.mcc);
           }
           if (typeof tai.plmn_id.mnc === 'number') {
-            tai.plmn_id.mnc = String(tai.plmn_id.mnc).padStart(2, '0');
+            tai.plmn_id.mnc = String(tai.plmn_id.mnc);
           }
+          const tacArray = tai.tac;
+          const tacStringArray = tacArray.map(item => String(item));
+          tai.tac = tacStringArray;
         });
       }
 
       if (formData.amf&&formData.amf.plmn_support&&Array.isArray(formData.amf.plmn_support)) {
         formData.amf.plmn_support.forEach(plmn_support => {         
           if (typeof plmn_support.plmn_id.mcc === 'number') {
-            plmn_support.plmn_id.mcc = String(plmn_support.plmn_id.mcc).padStart(3, '0');
+            plmn_support.plmn_id.mcc = String(plmn_support.plmn_id.mcc);
           }
           if (typeof plmn_support.plmn_id.mnc === 'number') {
-            plmn_support.plmn_id.mnc = String(plmn_support.plmn_id.mnc).padStart(2, '0');
+            plmn_support.plmn_id.mnc = String(plmn_support.plmn_id.mnc);
           }
+          plmn_support.s_nssai.forEach(s_nssai => {  
+            s_nssai.sd =  String(s_nssai.sd);
+          })
         });
       }
 
       selectedSchema = amfschema;
       selectedUiSchema = amfuiSchema;
     }else if (formData._id === 'smf') {
+      //初始配置文件会按数字读取mcc,mnc,将读取到的mcc,mnc的类型改为string
+      if (formData.smf&&formData.smf.info&&Array.isArray(formData.smf.info)) {
+        formData.smf.info.forEach(info => {
+          if (info.s_nssai&&Array.isArray(info.s_nssai)){
+            info.s_nssai.forEach(s_nssai => {
+              if (typeof s_nssai.sd === 'number') {
+                s_nssai.sd = String(s_nssai.sd);
+              }
+            })
+          }
+
+          if (info.tai&&Array.isArray(info.tai)){
+            info.tai.forEach(tai => {
+              if (typeof tai.plmn_id.mcc === 'number') {
+                tai.plmn_id.mcc = String(tai.plmn_id.mcc);
+              }
+              if (typeof tai.plmn_id.mnc === 'number') {
+                tai.plmn_id.mnc = String(tai.plmn_id.mnc);
+              }
+              const tacArray = tai.tac;
+              const tacStringArray = tacArray.map(item => String(item));
+              tai.tac = tacStringArray;
+            })
+          }
+        })
+      };
+
       selectedSchema = smfschema;
       selectedUiSchema = smfuiSchema;
     }else if (formData._id === 'nssf') {

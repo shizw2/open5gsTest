@@ -20,6 +20,7 @@ export const amfschema = {
       },
     },
     nrf: schemas.nrfSchema,
+    parameter: schemas.paraSchema,
     time: {
       type: "object",
       title: "Time",
@@ -50,6 +51,7 @@ export const amfuiSchema = {
     network_name:schemas.network_nameUiSchema,
     amf_name:schemas.amf_nameUiSchema,
   },
+  parameter: schemas.paraUiSchema,
   time: {
     classNames: "col-xs-12",
     nf_instance: schemas.time_nf_instanceUiSchema,

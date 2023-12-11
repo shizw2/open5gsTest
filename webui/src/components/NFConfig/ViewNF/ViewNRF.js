@@ -3,7 +3,7 @@ import {
   SBISection,
   LOGSection, 
   MaxSection,
-  ParameterSection,
+  //ParameterSection,
   TimeSection, 
 } from './ViewCfgSection';
 
@@ -18,9 +18,11 @@ export const ViewNRF = ({ nfconfig }) => {
       {/* // 使用 SBISection 组件 */}   
       <SBISection nfconfig={nfconfig} />
 
+      {/*
       <ParameterSection parameter={parameter} />
       <MaxSection max={max} />
       <TimeSection time={time} />
+      */}
     </div>
   );
 };

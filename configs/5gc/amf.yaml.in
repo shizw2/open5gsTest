@@ -492,7 +492,7 @@ amf:
       - plmn_id:
           mcc: 999
           mnc: 70
-        tac: 1
+        tac: [1]
     plmn_support:
       - plmn_id:
           mcc: 999
@@ -656,7 +656,7 @@ nrf:
 #    prefer_ipv4: true
 #
 parameter:
-
+    capacity: 100
 #
 #  o Maximum Number of UE
 #  max:

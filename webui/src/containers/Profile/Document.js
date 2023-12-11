@@ -168,6 +168,12 @@ class Document extends Component {
 
   validate = (formData, errors) => {
     const { profiles, action, status } = this.props;
+    const { title } = formData;
+
+    if (action === 'create' && profiles && profiles.data &&
+      profiles.data.filter(profile => profile.title === title).length > 0) {
+      errors.title.addError(`'${title}' is duplicated`);
+    }
 
 //    In Editing-mode, this is not working!
 //    More study is needed.

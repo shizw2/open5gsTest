@@ -5,7 +5,7 @@ export const loggerSchema = {
     level: {
       type: "string",
       title: "Log Level",
-      enum: ["debug", "info", "warning", "error"],
+      enum: ["fatal", "error", "warn", "info", "debug", "trace"],
       default: "info",
     },
     file: {
@@ -145,6 +145,149 @@ export const sbiUiSchema = {
   },
 };
 
+export const upfSchema = {
+  type: "object",
+  title:"UPF",
+  properties: {
+    pfcp: {
+      type: "array",
+      title:"PFCP",
+      items: {
+        type: "object",
+        properties: {
+          addr: {
+            type: "string",
+            title: "IP Address",
+            anyOf: [
+              { format: "ipv4" },
+              { format: "ipv6" },
+            ],
+            messages: {
+              "anyOf": "IPv4 or IPv6 allowed"
+            },
+            required: true,
+          },
+          dnn: {
+            type: "array",
+            title: "DNN",
+            items: {
+              type: "string",
+              required: true,
+            }
+          },
+          tac: {
+            type: "array",
+            title: "TAC",
+            items: {
+              type: "string",
+              pattern: /^(?:\d+|\d+-\d+)$/,
+              messages: {
+                pattern: "Format like 1 or 3-5",
+                type: "Format like 1 or 3-5",
+              },
+              required: true,
+            }
+          }
+        },
+      },
+    },
+  },
+  //required:["addr","port"],
+};
+
+export const upfUiSchema = {
+  classNames: "col-xs-12",
+  pfcp: {
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="PFCP" />,
+    items: {
+      addr: {
+        classNames: "col-xs-12",
+        //"ui:title": <CustomTitle14Border14 title="IP Address" />,
+      },
+      dnn: {
+        classNames: "col-xs-6",
+        "ui:title": <CustomTitle14 title="DNN" />,
+        items:{
+          //classNames: "col-xs-12",
+        }
+      },
+      tac: {
+        classNames: "col-xs-6",
+        "ui:title": <CustomTitle14 title="TAC" />,
+        //"ui:title": <CustomTitle18Margin45 title="TAC" />,
+        items:{
+          "ui:placeholder": "Format like 1 or 3-5",
+        }
+      }
+    },
+  },
+};
+
+export const smfSchema = {
+  type: "object",
+  title:"SMF",
+  properties: {
+    pfcp: {
+      type: "object",
+      title:"PFCP",
+      properties: {
+        addr: {
+          type: "string",
+          title: "IP Address",
+          anyOf: [
+            { format: "ipv4" },
+            { format: "ipv6" },
+          ],
+          messages: {
+            "anyOf": "IPv4 or IPv6 allowed"
+          },
+        },
+      },
+    },
+  },
+};
+
+export const SmfUiComponent = ({ formData }) => {
+  if (!formData || !formData.pfcp ) {
+    // 如果 formData 或者 formData.pfcp 为空，则返回 null 或者其他适当的内容
+    return null;
+  }
+  
+  return (
+    <div className="col-xs-12">
+      {formData.pfcp ? (
+        <div>
+          <CustomTitle18 title="PFCP Addr" />
+          <div className="col-xs-12">
+            <div className="col-xs-12">
+              <CustomTitle14Border14 title="IP Address" />
+            </div>
+            {/* 其他PFCP addr相关内容 */}
+          </div>
+        </div>
+      ) : (
+        <div>No PFCP data available</div>
+      )}
+    </div>
+  );
+};
+
+export const smfUiSchema = {
+  classNames: "col-xs-12",
+  pfcp: {
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="PFCP Addr" />,
+    addr: {
+        classNames: "col-xs-12",
+        "ui:options": {
+          "label": false
+        }
+        //"ui:title": <CustomTitle14Border14 title="IP Address" />,
+    },
+  },
+};
+
 export const nrfSchema = {
   type: "object",
   title:"NRF",
@@ -211,6 +354,26 @@ export const nrfUiSchema = {
   },
 };
 
+export const paraSchema = {
+  type: "object",
+  title:"Parameter",
+  properties: {
+    capacity: {
+      type: "number",
+      title: "Capacity",
+      minimum: 0,
+      maximum: 100,
+    }
+  },
+}
+
+export const paraUiSchema = {
+  classNames: "col-xs-12",
+  //"ui:title": <CustomTitle18 title="Parameter" />,
+  capacity: {
+    classNames: "col-xs-12"
+  }
+}
 
 export const nf_sbi_Schema = {
   type: "array",
@@ -343,7 +506,7 @@ export const time_nf_instanceUiSchema = {
   "ui:title": <CustomTitle18 title="NF_Instance" />,
   heartbeat: {
     classNames: "col-xs-12"
-  }  
+  }
 };
 
 export const time_t3512Schema = {
@@ -363,7 +526,7 @@ export const time_t3512UiSchema = {
   "ui:title": <CustomTitle18 title="T3512" />,
   value: {
     classNames: "col-xs-12",
-  } 
+  }
 };
 
 export const time_t3502Schema = {
@@ -692,6 +855,25 @@ export const taiSchema = {
         //required: ["mcc", "mnc"]
       },
       tac: {
+        type: "array",
+        title: "TAC",
+        minItems: 1,
+        items: {
+          type: "string",
+          pattern: /^(?:\d+|\d+-\d+)$/,
+  	      messages: {
+            pattern: "Format like 1 or 3-5",
+            type: "Format like 1 or 3-5",
+          },
+
+          required: true,
+        },
+        messages: {
+          minItems: "At least 1 TAC",
+        },
+      }
+      /*
+      tac: {
         type: "string",
         title: "TAC",
         pattern: /^(\d+|\[\d+(?:-\d+)?(?:, \d+(?:-\d+)?)*])$/,
@@ -700,6 +882,7 @@ export const taiSchema = {
           pattern: "Format like 1 or [1, 3-8, 10, 12-15]"
         }
       }
+      */
     },
     //required: ["plmn_id", "tac"]
   }
@@ -721,9 +904,11 @@ export const taiUiSchema = {
     },
     tac: {
       classNames: "col-xs-5",
-      //"ui:title": <CustomTitle18 title="TAC" />,
-      "ui:title": <CustomTitle18Border39 title="TAC" />,
-      "ui:placeholder": "Format like 1 or [1, 3-8, 10, 12-15]",
+      "ui:title": <CustomTitle18 title="TAC" />,
+      //"ui:title": <CustomTitle18Margin45 title="TAC" />,
+      items:{
+        "ui:placeholder": "Format like 1 or 3-5",
+      }
     }
   }
 };
@@ -1031,13 +1216,13 @@ const subnetipv6Regex = /^([a-f0-9]{1,4}(:[a-f0-9]{1,4}){7}|[a-f0-9]{1,4}(:[a-f0
 
 export const subnetSchema = {
   type: "array",
-  title: "Subnet Address",
+  title: "UE IP Pool",
   items: {
     type: "object",
     properties: {
       addr: {
         type: "string",
-        title: "IP Address",
+        title: "Subnet",
         anyOf: [
           { pattern: subnetipv4Regex.source },
           { pattern: subnetipv6Regex.source }
@@ -1045,41 +1230,79 @@ export const subnetSchema = {
         messages: {
           "anyOf": "IPv4 or IPv6 allowed"
         },
-        default: "10.45.0.1/16"
+        default: "10.45.0.1/16",
+        required: true,
+      },
+      dnn: {
+        type: "string",
+        title: "DNN",
       },
     }
   }
 };
 
 export const subnetUiSchema = {
-  classNames: "col-xs-6",
+  classNames: "col-xs-12",
   //删除无用代码,反而有层次感
-  "ui:title": <CustomTitle18 title="Subnet Address" />,
+  "ui:title": <CustomTitle18 title="UE IP Pool" />,
   items: {
-    classNames: "col-xs-12",
+    //classNames: "col-xs-12",
     addr: {
-      classNames: "col-xs-12",
+      classNames: "col-xs-6",
       "ui:placeholder": "ipv4/v6 subnet address",
-      "ui:options": {
-        "label": false
-      }
+    },
+    dnn: {
+      classNames: "col-xs-6",
     }
   }  
 };
 
 export const dnsSchema = {
   type: "array",
-  title:"DNS",
+  title:"DNS Address",
   items: {
-    type: "string"
+    type: "string",
+    anyOf: [
+      { format: "ipv4" },
+      { format: "ipv6" }
+    ],
+    messages: {
+      "anyOf": "IPv4 or IPv6 allowed"
+    },
+    required: true,
   }
 };
 
 export const dnsUiSchema = {
   classNames: "col-xs-6",
-  "ui:title": <CustomTitle18 title="DNS" />,
+  "ui:title": <CustomTitle18 title="DNS Address" />,
   dns: {
     classNames: "col-xs-12"
+  }
+};
+
+export const pcscfSchema = {
+  type: "array",
+  title: "P-CSCF Address",
+  items: {
+    type: "string",
+    anyOf: [
+      { format: "ipv4" },
+      { format: "ipv6" }
+    ],
+    messages: {
+      "anyOf": "IPv4 or IPv6 allowed"
+    },
+    required: true,
+    //default: "127.0.0.1"
+  },
+};
+
+export const pcscfUiSchema = {
+  classNames: "col-xs-6",
+  "ui:title": <CustomTitle18 title="P-CSCF Address" />,
+  items: {
+      classNames: "col-xs-12",
   }
 };
 
@@ -1104,15 +1327,16 @@ export const mtuSchema = {
 
 export const mtuUiSchema = {
   classNames: "col-xs-3",
-  "ui:title": <CustomTitle18Border39 title="MTU" />,
+  "ui:title": <CustomTitle18Border15 title="MTU" />,
 };
 
 export const ctfSchema = {
   type: "object",
-  title: "CTF",
+  title: "CTF Gy Enabled",
   properties: {
     enabled: {
       type: "string",
+      title: "",
       enum: ["auto", "yes", "no"],
       default: "auto"
     }
@@ -1122,9 +1346,12 @@ export const ctfSchema = {
 
 export const ctfUiSchema = {
   classNames: "col-xs-3",
-  "ui:title": <CustomTitle18 title="CTF" />,
+  "ui:title": <CustomTitle18 title="CTF Gy Enabled" />,
   enabled: {
-    classNames:"col-xs-12"
+    classNames:"col-xs-12",
+    "ui:options": {
+      "label": false
+    }
   }
 };
 
@@ -1134,55 +1361,105 @@ export const freeDiameterSchema = {
 
 export const freeDiameterUiSchema = {
   classNames: "col-xs-6",
-  "ui:title": <CustomTitle18Border39 title="Diameter Config" />,
+  "ui:title": <CustomTitle18Border15 title="Diameter Config" />,
 };
 
 
 export const infoSchema = {
   type: "array",
+  title: "SMF Info",
   items: {
     type: "object",
     properties: {
       s_nssai: {
+        title: "S-NSSAI",
         type: "array",
+        maxItems: 8,
         items: {
           type: "object",
           properties: {
             sst: {
-              type: "number"
+              type: "number",
+              title: "SST*",
+              enum: [ 1, 2, 3, 4 ],
+              required:true,
+              default: 1,
+            },
+            sd: {
+              type: "string",
+              title: "SD",
+              pattern: "^[0-9a-fA-F]+$",
+              minLength: 6,
+              maxLength: 6,
+              messages: {
+                "pattern": "Only hexadecimal digits are allowed"
+              }
             },
             dnn: {
               type: "array",
+              title: "DNN",
+              minItems: 1,
               items: {
-                type: "string"
+                type: "string",
+                required: true,
               }
             }
           },
-          required: ["sst", "dnn"]
+          //required: ["sst", "dnn"]
         }
       },
       tai: {
         type: "array",
+        title: "TAI",
+        maxItems: 8,
         items: {
           type: "object",
           properties: {
             plmn_id: {
               type: "object",
+              title: "PLMN_ID",
               properties: {
                 mcc: {
-                  type: "number"
+                  type: "string",
+                  title: "MCC",
+                  maxLength: 3,
+                  required: true,
+                  pattern: "^\\d+$",
+                  messages: {
+                    pattern: "Only digits are allowed"
+                  }
                 },
                 mnc: {
-                  type: "number"
+                  type: "string",
+                  title: "MNC",
+                  maxLength: 3,
+                  required: true,
+                  pattern: "^\\d+$",
+                  messages: {
+                    pattern: "Only digits are allowed"
+                  }
                 }
               },
-              required: ["mcc", "mnc"]
+              //required: ["mcc", "mnc"]
             },
             tac: {
-              type: "number"
-            }
+              type: "array",
+              title: "TAC",
+              minItems: 1,
+              items: {
+                type: "string",
+                pattern: /^(?:\d+|\d+-\d+)$/,
+                messages: {
+                  pattern: "Format like 1 or 3-5",
+                  type: "Format like 1 or 3-5",
+                },
+                required: true,
+              },
+              messages: {
+                minItems: "At least 1 TAC",
+              },
+            },
           },
-          required: ["plmn_id", "tac"]
         }
       }
     }
@@ -1191,33 +1468,48 @@ export const infoSchema = {
 
 export const infoUiSchema = {
   classNames: "col-xs-12",
+  "ui:title": <CustomTitle18 title="SMF Info" />,
   items: {
     classNames: "col-xs-12",
     s_nssai: {
       classNames: "col-xs-12",
+      "ui:title": <CustomTitle18 title="S_NSSAI" />,
       items: {
         sst: {
-          classNames: "col-xs-12"
+          classNames: "col-xs-7",
+          "ui:widget": "radio",
+          "ui:options": { "inline": true },
+        },
+        sd: {
+          classNames: "col-xs-5",
         },
         dnn: {
-          classNames: "col-xs-12"
+          classNames: "col-xs-12",
+          "ui:title": <CustomTitle14 title="DNN" />,
         }
       }
     },
     tai: {
-      classNames: "col-xs-12",
+      classNames: "col-xs-12", 
+      "ui:title": <CustomTitle18 title="TAI" />,
       items: {
         plmn_id: {
-          classNames: "col-xs-12",
+          classNames: "col-xs-12", //增加这个，体现层次感
+          "ui:title": <CustomTitle14 title="PLMN_ID" />,
           mcc: {
-            classNames: "col-xs-12"
+            classNames: "col-xs-6"
           },
           mnc: {
-            classNames: "col-xs-12"
+            classNames: "col-xs-6"
           }
         },
         tac: {
-          classNames: "col-xs-12"
+          classNames: "col-xs-12",
+          "ui:title": <CustomTitle14 title="TAC" />,
+          //"ui:title": <CustomTitle18Margin45 title="TAC" />,
+          items:{
+            "ui:placeholder": "Format like 1 or 3-5",
+          }
         }
       }
     }
@@ -1430,26 +1722,44 @@ export const freeDiameter2UiSchema = {
 export const hnetSchema = {
   type: "array",
   title: "HNET",
+  maxItems: 256,
   items: {
     type: "object",
     properties: {
       id: {
-        type: "integer",
-        title: "ID",
-        minimum: 1,
-        maximum:99,
+        type: "number",
+        title: "key ID",
+        minimum: 0,
+        maximum: 255,
+        required: true,
+        messages: {
+          required: "required",
+          minimum: "最小值0",
+          maximum: "最大值255",
+        }
       },
       scheme: {
         type: "integer",
-        title: "Scheme",
-        minimum: 1,
+        title: "Scheme ID",
+        minimum: 0,
+        maximum: 15,
+        required: true,
+        messages: {
+          required: "required",
+          minimum: "最小值0",
+          maximum: "最大值15",
+        },
       },
       key: {
         type: "string",
-        title: "Key"
+        title: "Key",
+        required: true,
+        messages: {
+          required: "required",
+        },
       }
     },
-    required: ["id", "scheme", "key"]
+    //required: ["id", "scheme", "key"]
   }
 };
 
@@ -1461,7 +1771,8 @@ export const hnetUiSchema = {
       classNames: "col-xs-2"
     },
     scheme: {
-      classNames: "col-xs-2"
+      classNames: "col-xs-2",
+      //"ui:placeholder": "1:Profile A; 2: Profile B",
     },
     key: {
       classNames: "col-xs-8"
@@ -1562,6 +1873,46 @@ function CustomTitle18Border39({ title }) {
         {title}
       </label>
     </div>
+  );
+}
+
+function CustomTitle18Border15({ title }) {
+  return (
+    <div>
+      <label
+        style={{
+          fontWeight: "400",
+          fontSize: "18px",
+          borderBottom: "1px solid #e5e5e5",
+          width: "1000px",
+          marginBottom: "15px",
+          lineHeight: "1.9",
+        }}
+      >
+        {title}
+      </label>
+    </div>
+  );
+}
+
+function CustomTitle18Margin45({ title }) {
+  return (
+    <legend 
+      style={{
+              marginBottom: "45px",
+            }}
+     >
+      <div>
+        <label
+          style={{
+            fontWeight: "400",
+            fontSize: "18px",
+          }}
+        >
+        {title}
+        </label>
+      </div>
+    </legend>
   );
 }
 

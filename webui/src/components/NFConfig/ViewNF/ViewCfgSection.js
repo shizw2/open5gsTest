@@ -143,8 +143,8 @@ export const GuamiSection = ({ guamis }) => (
           {guamis.map((item, index) => (
             <div key={index}>
               <div>- plmn_id:</div>
-              <div className="twenty-spaces">mcc: {item.plmn_id.mcc.toString().padStart(3, '0')}</div>
-              <div className="twenty-spaces">mnc: {item.plmn_id.mnc.toString().padStart(2, '0')}</div>
+              <div className="twenty-spaces">mcc: {item.plmn_id.mcc.toString()}</div>
+              <div className="twenty-spaces">mnc: {item.plmn_id.mnc.toString()}</div>
               <div>&nbsp;&nbsp;amf_id:</div>
               <div className="twenty-spaces">region: {item.amf_id.region}</div>
               <div className="twenty-spaces">set: {item.amf_id.set}</div>
@@ -165,9 +165,9 @@ export const TaiSection = ({ tais }) => (
           {tais.map((item, index) => (
             <div key={index}>
               <div>- plmn_id:</div>
-              <div className="twenty-spaces">mcc: {item.plmn_id.mcc.toString().padStart(3, '0')}</div>
-              <div className="twenty-spaces">mnc: {item.plmn_id.mnc.toString().padStart(2, '0')}</div>
-              <div>&nbsp;&nbsp;tac: {item.tac}</div>
+              <div className="twenty-spaces">mcc: {item.plmn_id.mcc.toString()}</div>
+              <div className="twenty-spaces">mnc: {item.plmn_id.mnc.toString()}</div>
+              <div>&nbsp;&nbsp;tac: [{item.tac.join(', ')}]</div>
             </div>
           ))}
         </div>
@@ -185,8 +185,8 @@ export const PlmnSupportSection = ({ plmnSupport }) => (
           {plmnSupport.map((item, index) => (
             <div key={index}>
               <div>- plmn_id:</div>
-              <div className="twenty-spaces">mcc: {item.plmn_id.mcc.toString().padStart(3, '0')}</div>
-              <div className="twenty-spaces">mnc: {item.plmn_id.mnc.toString().padStart(2, '0')}</div>
+              <div className="twenty-spaces">mcc: {item.plmn_id.mcc.toString()}</div>
+              <div className="twenty-spaces">mnc: {item.plmn_id.mnc.toString()}</div>
               {item.s_nssai && (
                 <div>
                   <div>&nbsp;&nbsp;s_nssai:</div>
@@ -271,10 +271,10 @@ export const HnetSection = ({ hnet }) => (
 export const ParameterSection = ({ parameter }) => (
   <div>
     <div className="parameter-section">
-      <div className="parameter-header">{parameter ? parameter.name : 'parameter'}:</div>
+      <div className="parameter-header">parameter:</div>
       {parameter ? (
         <div className="parameter-body">
-          {parameter.no_ipv4 && <div className="eight-spaces">no_ipv4: true</div>}
+          {(parameter.capacity >= 0) && <div className="eight-spaces">capacity: {parameter.capacity}</div>}
         </div>
       ) : (
         <div> </div>
@@ -372,7 +372,9 @@ export const PfcpSection = ({ pfcp }) => {
           <div className="twenty-spaces">pfcp:</div>
           {pfcp.map((item, index) => (
             <div key={index} className="twenty-spaces">
-              <div className="twenty-spaces">- addr: {item.addr}</div>          
+              <div className="twenty-spaces">- addr: {item.addr}</div>
+              {item.tac && item.tac.length > 0 && <div className="twenty-spaces">&nbsp;&nbsp;tac: [{item.tac.join(', ')}]</div>}
+              {item.dnn && item.dnn.length > 0 && <div className="twenty-spaces">&nbsp;&nbsp;dnn: [{item.dnn.join(', ')}]</div>}
             </div>
           ))}
         </div>
@@ -423,7 +425,8 @@ export const SubnetSection = ({ subnet }) => {
           <div className="twenty-spaces">subnet:</div>
           {subnet.map((item, index) => (
             <div key={index} className="twenty-spaces">
-              <div className="twenty-spaces">- addr: {item.addr}</div>          
+              <div className="twenty-spaces">- addr: {item.addr}</div>
+              {item.dnn && <div className="twenty-spaces">&nbsp;&nbsp;dnn: {item.dnn}</div>}
             </div>
           ))}
         </div>
@@ -439,6 +442,23 @@ export const DnsSection = ({ dns }) => {
         <div className="dns-section">
           <div className="twenty-spaces">dns:</div>
           {dns.map((item, index) => (
+            <div key={index} className="twenty-spaces">
+              <div className="twenty-spaces">- {item}</div>          
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const PcscfSection = ({ 'p-cscf': pcscf }) => {
+  return (
+    <div>
+      {pcscf && (
+        <div className="pcscf-section">
+          <div className="twenty-spaces">p-cscf:</div>
+          {pcscf.map((item, index) => (
             <div key={index} className="twenty-spaces">
               <div className="twenty-spaces">- {item}</div>          
             </div>
@@ -496,14 +516,14 @@ export const InfoSection = ({ info }) => {
             <div key={index} className="twenty-spaces">
               <div className="twenty-spaces">- s_nssai:</div>
               {item.s_nssai && (
-                <div className="twenty-spaces">
+                <div className="">
                   {item.s_nssai.map((s_item, s_index) => (
                     <div key={s_index} className="twenty-spaces">
                       <div className="twenty-spaces">- sst: {s_item.sst}</div>
-                      <div className="twenty-spaces">&nbsp;&nbsp;sd: {s_item.sd}</div>
+                      {s_item.sd && (<div className="twenty-spaces">&nbsp;&nbsp;sd: {s_item.sd}</div>)}
                       {s_item.dnn && (
-                        <div className="twenty-spaces">
-                          <div className="twenty-spaces">dnn:</div>
+                        <div className="">
+                          <div className="twenty-spaces">&nbsp;&nbsp;dnn:</div>
                           {s_item.dnn.map((dnn_item, dnn_index) => (
                             <div key={dnn_index} className="twenty-spaces">
                               <div className="twenty-spaces">- {dnn_item}</div>
@@ -516,7 +536,7 @@ export const InfoSection = ({ info }) => {
                 </div>
               )}
               {item.tai && (
-                <div className="twenty-spaces">
+                <div className="">
                   <div className="twenty-spaces">tai:</div>
                   {item.tai.map((tai_item, tai_index) => (
                     <div key={tai_index} className="twenty-spaces">
@@ -525,7 +545,7 @@ export const InfoSection = ({ info }) => {
                         <div className="twenty-spaces">mcc: {tai_item.plmn_id.mcc}</div>
                         <div className="twenty-spaces">mnc: {tai_item.plmn_id.mnc}</div>
                       </div>
-                      <div className="twenty-spaces">&nbsp;&nbsp;tac: {tai_item.tac}</div>
+                      <div className="twenty-spaces">&nbsp;&nbsp;tac: [{tai_item.tac.join(', ')}]</div>
                     </div>
                   ))}
                 </div>

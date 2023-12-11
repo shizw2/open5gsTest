@@ -97,19 +97,23 @@ const Logout = ({ visible, onHide, onLogout }) => (
     transitionLeaveTimeout={500}>
     <Wrapper>
       <TitleWrapper>
-        Logout
+        {/*Logout*/}
+        登出
       </TitleWrapper>
       <ContentWrapper>
-        Are you sure you want to logout?
+        确定退出登录？
+        {/*Are you sure you want to logout?*/}
       </ContentWrapper>
       <ButtonWrapper>
         <YesButton
           onClick={onLogout}>
-          Yes
+          {/*Yes*/}
+          是
         </YesButton>
         <NoButton 
           onClick={onHide}>
-          No
+          {/*No*/}
+          否
         </NoButton>
       </ButtonWrapper>
     </Wrapper>

@@ -4,7 +4,7 @@ import {
   LOGSection,
   NF_SBI_Section,  
   MaxSection,
-  ParameterSection,
+  //ParameterSection,
   TimeSection,
 } from './ViewCfgSection';
 
@@ -30,9 +30,11 @@ export const ViewAUSF = ({ nfconfig }) => {
       )}
       </div>
 
+      {/*
       <ParameterSection parameter={parameter} />
       <MaxSection max={max} />
-      <TimeSection time={time} /> 
+      <TimeSection time={time} />
+      */}
     </div>
   );
 };

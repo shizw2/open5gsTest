@@ -182,7 +182,8 @@ const Login = ({
       </Thumbnail>
       <Form>
         <InputWrapper>
-          <Title>Username</Title>
+          {/*<Title>Username</Title>*/}
+          <Title>用户名</Title>
           <Input 
             name="username"
             type="text"
@@ -194,7 +195,8 @@ const Login = ({
           />
         </InputWrapper>
         <InputWrapper>
-          <Title>Password</Title>
+          {/*<Title>Password</Title>*/}
+          <Title>密码</Title>
           <Input 
             name="password"
             type="password"
@@ -205,7 +207,8 @@ const Login = ({
           />
         </InputWrapper>
         <Button color='teal' onClick={onSubmit}>
-          Login
+          {/*Login*/}
+          登录
         </Button>
       </Form>
     </Wrapper>

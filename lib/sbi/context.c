@@ -816,11 +816,7 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_add(void)
             ogs_app()->time.nf_instance.heartbeat_interval;
 
     nf_instance->priority = OGS_SBI_DEFAULT_PRIORITY;
-    if (ogs_app()->parameter.capacity > 0){
-        nf_instance->capacity = ogs_app()->parameter.capacity;
-    } else{
-        nf_instance->capacity = OGS_SBI_DEFAULT_CAPACITY;
-    }
+    nf_instance->capacity = OGS_SBI_DEFAULT_CAPACITY;
     nf_instance->load = OGS_SBI_DEFAULT_LOAD;
 
     ogs_list_add(&ogs_sbi_self()->nf_instance_list, nf_instance);

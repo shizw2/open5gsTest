@@ -9,7 +9,8 @@ const Profile = new Schema({
     default: 1  // Current Schema Version
   },
 
-  title: { $type: String, required: true },
+  //title: { $type: String, required: true },
+  title: { $type: String, unique: true, required: true },
 
   msisdn: [ String ],
   imeisv: [ String ],

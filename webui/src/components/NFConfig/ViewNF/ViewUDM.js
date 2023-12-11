@@ -5,7 +5,7 @@ import {
   NF_SBI_Section,
   HnetSection,
   MaxSection,
-  ParameterSection,
+  //ParameterSection,
   TimeSection
 } from './ViewCfgSection';
 
@@ -33,9 +33,11 @@ export const ViewUDM = ({ nfconfig }) => {
         )}
       </div>
 
+      {/*
       <ParameterSection parameter={parameter} />
       <MaxSection max={max} />
       <TimeSection time={time} />
+      */}
     </div>
   );
 };

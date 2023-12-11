@@ -168,6 +168,27 @@ class Document extends Component {
 
   validate = (formData, errors) => {
     const { nfconfigs, action, status } = this.props;
+
+    if (formData.udm && formData.udm.hnet)
+    {
+      let ids = formData.udm.hnet.map(hnet => {
+        return hnet.id;
+      });
+
+      let duplicates = {};
+      for (let i = 0; i < ids.length; i++) {
+        if (duplicates.hasOwnProperty(ids[i])) {
+          duplicates[ids[i]].push(i);
+        } else if (ids.lastIndexOf(ids[i]) !== i) {
+          duplicates[ids[i]] = [i];
+        }
+      }
+      for (let key in duplicates) {
+        duplicates[key].forEach(index => 
+          errors.udm.hnet[index].id.addError(`${key} is duplicated`));
+      }
+    }
+
 /*
     if (formData.msisdn) {
       const { msisdn } = formData;

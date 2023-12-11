@@ -4,7 +4,7 @@ import {
   LOGSection,
   NF_SBI_Section,  
   MaxSection,
-  ParameterSection,
+  //ParameterSection,
   TimeSection,
   FreeDiameterSection,
   MetricsSection,
@@ -30,9 +30,11 @@ export const ViewUDR= ({ nfconfig }) => {
         )}
       </div>
 
+      {/*
       <ParameterSection parameter={parameter} />
       <MaxSection max={max} />
       <TimeSection time={time} />
+      */}
     </div>
   );
 };
