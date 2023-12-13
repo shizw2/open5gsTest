@@ -270,14 +270,14 @@ pcf:
       listen_on: 127.0.0.9
       no_fwd: true
       load_extension:
-        - module: @build_subprojects_freeDiameter_extensions_dir@/dbg_msg_dumps.fdx
+        - module: @libdir@/freeDiameter/dbg_msg_dumps.fdx
           conf: 0x8888
-        - module: @build_subprojects_freeDiameter_extensions_dir@/dict_rfc5777.fdx
-        - module: @build_subprojects_freeDiameter_extensions_dir@/dict_mip6i.fdx
-        - module: @build_subprojects_freeDiameter_extensions_dir@/dict_nasreq.fdx
-        - module: @build_subprojects_freeDiameter_extensions_dir@/dict_nas_mipv6.fdx
-        - module: @build_subprojects_freeDiameter_extensions_dir@/dict_dcca.fdx
-        - module: @build_subprojects_freeDiameter_extensions_dir@/dict_dcca_3gpp/dict_dcca_3gpp.fdx
+        - module: @libdir@/freeDiameter/dict_rfc5777.fdx
+        - module: @libdir@/freeDiameter/dict_mip6i.fdx
+        - module: @libdir@/freeDiameter/dict_nasreq.fdx
+        - module: @libdir@/freeDiameter/dict_nas_mipv6.fdx
+        - module: @libdir@/freeDiameter/dict_dcca.fdx
+        - module: @libdir@/freeDiameter/dict_dcca_3gpp.fdx
       connect:
         - identity: ims.localdomain
           addr: 127.0.0.1
