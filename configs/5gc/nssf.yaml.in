@@ -313,7 +313,9 @@ nssf:
         port: 7777
         s_nssai:
           sst: 1
-
+    metrics:
+      - addr: 127.0.0.10
+        port: 9084
 #
 #  <SBI Client>>
 #

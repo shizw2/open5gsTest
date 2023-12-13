@@ -1,0 +1,5 @@
+otherlib_dir = 'path/to/otherlib'
+
+install_data(other_files,
+             install_dir: join_paths(install_dir, 'other'),
+             install_mode: '644')

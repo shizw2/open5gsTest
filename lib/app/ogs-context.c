@@ -248,6 +248,8 @@ int ogs_app_context_parse_config(void)
     document = self.document;
     ogs_assert(document);
 
+    self.parameter.capacity = 100;//如果未配置,则默认为100
+
     ogs_yaml_iter_init(&root_iter, document);
     while (ogs_yaml_iter_next(&root_iter)) {
         const char *root_key = ogs_yaml_iter_key(&root_iter);

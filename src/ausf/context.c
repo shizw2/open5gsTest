@@ -180,6 +180,7 @@ int ausf_context_parse_config(void)
                                     v = ogs_yaml_iter_value(&routing_indicator_iter);
                                     if (v && strlen(v) > 0) {
                                         ogs_info("new routing_indicator %s ",v);
+                                        ogs_assert(num_of_routing_indicator < OGS_MAX_NUM_OF_ROUTING_INDICATOR);
                                         if (ausf_info->routing_indicators[num_of_routing_indicator] != NULL){
                                             if ( strcmp(ausf_info->routing_indicators[num_of_routing_indicator],v) != 0){
                                                 ogs_info("routing_indicator changed from %s to %s.",ausf_info->routing_indicators[num_of_routing_indicator],v);
