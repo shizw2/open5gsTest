@@ -1,6 +1,6 @@
 process.env.DB_URI = process.env.DB_URI || 'mongodb://127.0.0.1/5gc';
 
-const _hostname = process.env.HOSTNAME || 'localhost';
+const _hostname = process.env.HOSTNAME || '0.0.0.0';
 const port = process.env.PORT || 3000;
 
 const co = require('co');

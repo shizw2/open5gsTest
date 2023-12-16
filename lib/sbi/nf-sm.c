@@ -211,8 +211,9 @@ void ogs_sbi_nf_state_registered(ogs_fsm_t *s, ogs_event_t *e)
         if (NF_INSTANCE_TYPE_IS_NRF(nf_instance)) {
             ogs_sbi_subscription_spec_t *subscription_spec = NULL;
 
-            ogs_info("[%s] NF registered [Heartbeat:%ds]",
+            ogs_info("[%s] %s NRF NF registered [Heartbeat:%ds]",
                     NF_INSTANCE_ID(ogs_sbi_self()->nf_instance),
+                    OpenAPI_nf_type_ToString(ogs_sbi_self()->nf_instance->nf_type),
                     nf_instance->time.heartbeat_interval);
 
             if (nf_instance->time.heartbeat_interval) {

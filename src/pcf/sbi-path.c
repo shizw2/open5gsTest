@@ -131,6 +131,8 @@ static int pcf_sbi_discover_and_send(
 {
     ogs_sbi_xact_t *xact = NULL;
     int r;
+    pcf_ue_t     *ue = NULL;
+    pcf_sess_t *sess = NULL;
 
     ogs_assert(service_type);
     ogs_assert(sbi_object);
@@ -146,7 +148,22 @@ static int pcf_sbi_discover_and_send(
     }
 
     xact->assoc_stream = stream;
-    xact->select_key = ogs_sbi_self()->nf_instance->time.heartbeat_interval;
+    
+    switch(sbi_object->type) {
+        case OGS_SBI_OBJ_UE_TYPE:   
+            ue = (pcf_ue_t *)sbi_object;
+            ogs_assert(ue);
+            xact->supi_id = ogs_id_get_value(ue->supi);
+            break;
+        case OGS_SBI_OBJ_SESS_TYPE:
+            sess = (pcf_sess_t *)sbi_object;
+            ogs_assert(sess);
+            xact->supi_id = ogs_id_get_value(sess->pcf_ue->supi);
+            break;
+        default:
+            ogs_error("(NF discover search result) Not implemented [%d]",
+                        sbi_object->type);
+    }
 
     r = ogs_sbi_discover_and_send(xact);
     if (r != OGS_OK) {
@@ -197,6 +214,7 @@ int pcf_sess_sbi_discover_only(
     }
 
     xact->assoc_stream = stream;
+    xact->supi_id = ogs_id_get_value(sess->pcf_ue->supi);
 
     return ogs_sbi_discover_only(xact);
 }

@@ -25,7 +25,6 @@
 #include "version.h"
 
 int g_sps_id = 0;
-int g_select_key = 10;
 
 static void show_version(void)
 {
@@ -170,9 +169,6 @@ int main(int argc, const char *const argv[])
         case 'i':
             g_sps_id = atoi(options.optarg);
             printf("g_sps_id:%d\r\n",g_sps_id);
-            break;
-        case 'k':
-            g_select_key = atoi(options.optarg);
             break;
         case '?':
             fprintf(stderr, "%s: %s\n", argv[0], options.errmsg);

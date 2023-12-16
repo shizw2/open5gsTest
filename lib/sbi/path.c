@@ -203,7 +203,7 @@ int ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
         ogs_assert(scp_client);
     }
 
-    ogs_info("test:ogs_sbi_discover_and_send sbi_object->type:%d, supi_id:%s.",sbi_object->type, xact->supi_id); 
+    ogs_info("test:ogs_sbi_discover_and_send sbi_object->type:%d, supi_id:%s, routingIndicator:%s.",sbi_object->type, xact->supi_id, xact->routingIndicator); 
 
     /* Target NF-Instance */
     nf_instance = sbi_object->service_type_array[service_type].nf_instance;
@@ -211,7 +211,7 @@ int ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
         /*nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
                             target_nf_type, requester_nf_type, discovery_option);*/
         
-        nf_instance = ogs_sbi_nf_instance_find_by_conditions(target_nf_type, requester_nf_type, discovery_option,xact->supi_id, NULL);
+        nf_instance = ogs_sbi_nf_instance_find_by_conditions(target_nf_type, requester_nf_type, discovery_option,xact->supi_id, xact->routingIndicator);
         if (nf_instance)
             OGS_SBI_SETUP_NF_INSTANCE(
                     sbi_object->service_type_array[service_type], nf_instance);

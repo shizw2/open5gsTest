@@ -73,7 +73,6 @@ bool ausf_sbi_send_request(
     return ogs_sbi_send_request_to_nf_instance(nf_instance, xact);
 }
 
-extern int g_select_key;
 int ausf_sbi_discover_and_send(
         ogs_sbi_service_type_e service_type,
         ogs_sbi_discovery_option_t *discovery_option,
@@ -101,7 +100,10 @@ int ausf_sbi_discover_and_send(
     }
 
     xact->assoc_stream = stream;
-    xact->select_key = ogs_sbi_self()->nf_instance->time.heartbeat_interval;
+    if (ausf_ue->supi){
+        xact->supi_id = ogs_id_get_value(ausf_ue->supi);
+    }
+    xact->routingIndicator = ogs_routing_indicator_from_suci(ausf_ue->suci);
 
     r = ogs_sbi_discover_and_send(xact);
     if (r != OGS_OK) {

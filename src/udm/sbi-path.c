@@ -120,6 +120,7 @@ int udm_sbi_discover_and_send(
     }
 
     xact->assoc_stream = stream;
+    xact->supi_id = ogs_id_get_value(udm_ue->supi);
 
     r = ogs_sbi_discover_and_send(xact);
     if (r != OGS_OK) {

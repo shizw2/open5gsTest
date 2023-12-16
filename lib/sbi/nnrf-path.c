@@ -26,7 +26,7 @@ bool ogs_nnrf_nfm_send_nf_register(ogs_sbi_nf_instance_t *nf_instance)
 
     ogs_assert(nf_instance);
 
-    ogs_info("ogs_nnrf_nfm_send_nf_register, to:%d.",nf_instance->nf_type);
+    ogs_info("ogs_nnrf_nfm_send_nf_register, nf-type:%s.", OpenAPI_nf_type_ToString(ogs_sbi_self()->nf_instance->nf_type));
 
     request = ogs_nnrf_nfm_build_register();
     if (!request) {

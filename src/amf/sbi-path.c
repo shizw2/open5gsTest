@@ -121,7 +121,6 @@ bool amf_sbi_send_request(
     return ogs_sbi_send_request_to_nf_instance(nf_instance, xact);
 }
 
-extern int g_select_key;
 int amf_ue_sbi_discover_and_send(
         ogs_sbi_service_type_e service_type,
         ogs_sbi_discovery_option_t *discovery_option,
@@ -148,9 +147,12 @@ int amf_ue_sbi_discover_and_send(
         return OGS_ERROR;
     }
 
-    xact->select_key = g_select_key;
-
     xact->state = state;
+
+    xact->routingIndicator = ogs_routing_indicator_from_suci(amf_ue->suci);
+    if (amf_ue->supi){
+        xact->supi_id = ogs_id_get_value(amf_ue->supi); 
+    }
 
     rv = ogs_sbi_discover_and_send(xact);
     if (rv != OGS_OK) {
@@ -193,6 +195,7 @@ int amf_sess_sbi_discover_and_send(
     }
 
     xact->state = state;
+    xact->supi_id = ogs_id_get_value(sess->amf_ue->supi);    
 
     rv = ogs_sbi_discover_and_send(xact);
     if (rv != OGS_OK) {
@@ -359,6 +362,7 @@ int amf_sess_sbi_discover_by_nsi(
         return OGS_ERROR;
     }
 
+    xact->supi_id = ogs_id_get_value(sess->amf_ue->supi);    
     xact->request = amf_nnrf_disc_build_discover(
                 sess->nssf.nrf.id, xact->service_type, xact->discovery_option);
     if (!xact->request) {

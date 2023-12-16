@@ -118,7 +118,6 @@ int smf_sbi_discover_and_send(
 
     xact->state = state;
     xact->assoc_stream = stream;
-    xact->select_key = ogs_sbi_self()->nf_instance->time.heartbeat_interval;
     xact->supi_id = ogs_id_get_value(smf_ue->supi);
     
     r = ogs_sbi_discover_and_send(xact);

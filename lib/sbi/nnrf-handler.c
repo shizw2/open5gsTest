@@ -850,18 +850,16 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
             ogs_sbi_nf_instance_set_id(
                     nf_instance, message.h.resource.component[1]);
             ogs_sbi_nf_fsm_init(nf_instance);
-
-            ogs_info("[%s] (NRF-notify) NF registered", nf_instance->id);
         } else {
             ogs_sbi_nf_fsm_tran(nf_instance, ogs_sbi_nf_state_registered);
 
-            ogs_warn("[%s] (NRF-notify) NF has already been added",
-                    message.h.resource.component[1]);
+            ogs_warn("[%s] %s(NRF-notify) NF has already been added",
+                    message.h.resource.component[1], OpenAPI_nf_type_ToString(NFProfile->nf_type));
         }
 
         ogs_nnrf_nfm_handle_nf_profile(nf_instance, NFProfile);
 
-        ogs_info("[%s] (NRF-notify) NF Profile updated,nftype:%s", nf_instance->id, OpenAPI_nf_type_ToString(nf_instance->nf_type));
+        ogs_info("[%s] %s(NRF-notify) NF Profile updated.", nf_instance->id, OpenAPI_nf_type_ToString(nf_instance->nf_type));
 
         ogs_sbi_client_associate(nf_instance);
 
@@ -916,14 +914,11 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
             ogs_warn("[%s] (NRF-notify) NF Profile Changed, No Instance",
                     message.h.resource.component[1]);
             return false;
-        } else {            
-            ogs_info("[%s] (NRF-notify) NF Profile Changed,nftype:%s",
-                    message.h.resource.component[1],OpenAPI_nf_type_ToString(nf_instance->nf_type));
-        }
+        } 
 
         ogs_nnrf_nfm_handle_nf_profile(nf_instance, NFProfile);
 
-        ogs_info("[%s] (NRF-notify) NF Profile updated,nftype:%s", nf_instance->id, OpenAPI_nf_type_ToString(nf_instance->nf_type));
+        ogs_info("[%s] (NRF-notify) NF Profile Changed,nftype:%s", nf_instance->id, OpenAPI_nf_type_ToString(nf_instance->nf_type));
     } else if (NotificationData->event ==
             OpenAPI_notification_event_type_NF_DEREGISTERED) {
         nf_instance = ogs_sbi_nf_instance_find(message.h.resource.component[1]);
@@ -935,8 +930,8 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
                 ogs_sbi_nf_fsm_tran(
                         nf_instance, ogs_sbi_nf_state_de_registered);
             } else {
-                ogs_info("[%s:%d] NF removed",
-                        nf_instance->id, nf_instance->reference_count);
+                ogs_info("[%s:%d] %s NF removed",
+                        nf_instance->id, nf_instance->reference_count, OpenAPI_nf_type_ToString(nf_instance->nf_type));
                 ogs_sbi_nf_fsm_fini((nf_instance));
                 ogs_sbi_nf_instance_remove(nf_instance);
             }

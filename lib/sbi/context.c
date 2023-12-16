@@ -1325,6 +1325,7 @@ void ogs_sbi_nf_instances_find_by_routing_indicator(ogs_sbi_nf_instance_t *match
         
         switch (nf_instance->nf_type) {
             case OpenAPI_nf_type_AUSF:
+            case OpenAPI_nf_type_UDM:
                 if (ogs_list_count(&nf_instance->nf_info_list) > 0) {
                     bool has_routing_indicator = false;
                     ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
@@ -1409,7 +1410,7 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_conditions(OpenAPI_nf_type_e 
         ogs_info("after ogs_sbi_nf_instances_find_by_supi,target_nf_type:%s, supi:%s, matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type),supi_id, matched_nf_count);
     }
     
-    if (routing_indicator != NULL && target_nf_type == OpenAPI_nf_type_AUSF){
+    if (routing_indicator != NULL && (target_nf_type == OpenAPI_nf_type_AUSF || target_nf_type == OpenAPI_nf_type_UDM)){
         ogs_sbi_nf_instances_find_by_routing_indicator(matched_nf_instances,&matched_nf_count,routing_indicator);
         ogs_info("after ogs_sbi_nf_instances_find_by_routing_indicator,target_nf_type:%s ,routing_indicator:%s,matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type),routing_indicator, matched_nf_count);
     }
@@ -1679,9 +1680,8 @@ static void supiRange_free(ogs_supi_range_t *supiRanges)
     int i;
     ogs_assert(supiRanges);
     
-    ogs_info("num_of_supi_range:%d.",supiRanges->num_of_supi_range);
     for (i = 0; i < supiRanges->num_of_supi_range; i++) {     
-        ogs_info("supiRange_free, start:%s,end:%s",supiRanges->supi_ranges[i].start,supiRanges->supi_ranges[i].end);    
+        //ogs_info("supiRange_free, start:%s,end:%s",supiRanges->supi_ranges[i].start,supiRanges->supi_ranges[i].end);    
         ogs_free(supiRanges->supi_ranges[i].start);
         ogs_free(supiRanges->supi_ranges[i].end);
     }

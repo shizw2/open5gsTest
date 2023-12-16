@@ -1348,7 +1348,7 @@ static OpenAPI_list_t * build_supi_ranges(ogs_supi_range_t *supiRanges)
         SupiRangeItem->end = ogs_strdup(supiRanges->supi_ranges[i].end);
         ogs_assert(SupiRangeItem->end);
         
-        ogs_info("build_supi_ranges,start %s, end %s, num %d.",SupiRangeItem->start,SupiRangeItem->end,supiRanges->num_of_supi_range);
+        //ogs_info("build_supi_ranges,start %s, end %s, num %d.",SupiRangeItem->start,SupiRangeItem->end,supiRanges->num_of_supi_range);
 
         OpenAPI_list_add(SupiRangeList, SupiRangeItem);
     }  

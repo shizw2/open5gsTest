@@ -13,6 +13,6 @@ ExecStart=@bindir@/@project_name@-udrd -c @sysconfdir@/@project_name@/udr.yaml
 RestartSec=2
 RestartPreventExitStatus=1
 ExecReload=/bin/kill -HUP $MAINPID
-
+Environment="LD_LIBRARY_PATH=@libdir@:%LD_LIBRARY_PATH%" 
 [Install]
 WantedBy=multi-user.target

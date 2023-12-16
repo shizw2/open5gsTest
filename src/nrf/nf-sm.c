@@ -187,8 +187,8 @@ void nrf_nf_state_registered(ogs_fsm_t *s, nrf_event_t *e)
 
     switch (e->h.id) {
     case OGS_FSM_ENTRY_SIG:
-        ogs_info("[%s] NF registered [Heartbeat:%ds]",
-                nf_instance->id, nf_instance->time.heartbeat_interval);
+        ogs_info("[%s] %s NF registered [Heartbeat:%ds]",
+                nf_instance->id, OpenAPI_nf_type_ToString(nf_instance->nf_type),nf_instance->time.heartbeat_interval);
         if (nf_instance->time.heartbeat_interval) {
             ogs_timer_start(nf_instance->t_no_heartbeat,
                     ogs_time_from_sec(
@@ -202,7 +202,7 @@ void nrf_nf_state_registered(ogs_fsm_t *s, nrf_event_t *e)
         break;
 
     case OGS_FSM_EXIT_SIG:
-        ogs_info("[%s] NF de-registered", nf_instance->id);
+        ogs_info("[%s] %s NF de-registered", nf_instance->id, OpenAPI_nf_type_ToString(nf_instance->nf_type));
         if (nf_instance->time.heartbeat_interval) {
             ogs_timer_stop(nf_instance->t_no_heartbeat);
         }
