@@ -4,7 +4,8 @@ export const nrfschema = {
   //title: "NRF Configuration",
   type: "object",
   properties: {
-    nrf: schemas.nrfSchema,
+    nrf: schemas.nrfNFSchema,
+    parameter: schemas.paraSchema,
     sbi: schemas.sbiSchema,
     logger: schemas.loggerSchema,
   },
@@ -13,5 +14,6 @@ export const nrfschema = {
 export const nrfuiSchema = {
   logger: schemas.loggerUiSchema,
   sbi: schemas.sbiUiSchema,
-  nrf: schemas.nrfUiSchema,
+  nrf: schemas.nrfNFUiSchema,
+  parameter: schemas.paraUiSchema,
 };

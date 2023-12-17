@@ -2,7 +2,8 @@ import {
   NRFSection,
   SBISection,
   LOGSection,
-  NF_SBI_Section,  
+  NF_SBI_Section,
+  MetricsSection,
   MaxSection,
   ParameterSection,
   TimeSection,  
@@ -21,14 +22,17 @@ export const ViewBSF= ({ nfconfig }) => {
         {bsf && (
           <div className="nf-section">
             <div className="nf-header">bsf:</div>
-            <NF_SBI_Section sbi={bsf.sbi} />   
+            <NF_SBI_Section sbi={bsf.sbi} />
+            <MetricsSection metrics={bsf.metrics} />
           </div>
         )}
       </div>
+      <ParameterSection parameter={nfconfig.parameter} />
 
-      <ParameterSection parameter={parameter} />
+      {/*
       <MaxSection max={max} />
       <TimeSection time={time} />
+      */}
     </div>
   );
 };

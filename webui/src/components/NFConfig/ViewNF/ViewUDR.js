@@ -2,7 +2,8 @@ import {
   NRFSection,
   SBISection,
   LOGSection,
-  NF_SBI_Section,  
+  NF_SBI_Section,
+  SUPIRangeSection,
   MaxSection,
   ParameterSection,
   TimeSection,
@@ -25,14 +26,19 @@ export const ViewUDR= ({ nfconfig }) => {
         {udr && (
           <div className="nf-section">
             <div className="nf-header">udr:</div>
-            <NF_SBI_Section sbi={udr.sbi} />   
+            <NF_SBI_Section sbi={udr.sbi} />
+            <SUPIRangeSection info={udr.info} />
+            <MetricsSection metrics={udr.metrics} />
           </div>
         )}
       </div>
 
-      <ParameterSection parameter={parameter} />
+      <ParameterSection parameter={nfconfig.parameter} />
+
+      {/*
       <MaxSection max={max} />
       <TimeSection time={time} />
+      */}
     </div>
   );
 };

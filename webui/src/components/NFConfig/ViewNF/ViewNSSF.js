@@ -2,7 +2,8 @@ import {
   NRFSection,
   SBISection,
   LOGSection,
-  NF_SBI_Section,  
+  NF_SBI_Section,
+  MetricsSection,
   MaxSection,
   ParameterSection,
   TimeSection,
@@ -24,13 +25,16 @@ export const ViewNSSF= ({ nfconfig }) => {
             <div className="nf-header">nssf:</div>
             <NF_SBI_Section sbi={nssf.sbi} />
             <NSIComponent nsi={nssf.nsi} />
+            <MetricsSection metrics={nssf.metrics} />
           </div>
         )}
       </div>
+      <ParameterSection parameter={nfconfig.parameter} />
 
-      <ParameterSection parameter={parameter} />
+      {/*
       <MaxSection max={max} />
       <TimeSection time={time} />
+      */}
     </div>
   );
 };

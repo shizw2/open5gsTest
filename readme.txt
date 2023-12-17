@@ -1,7 +1,7 @@
 一、发布版本使用说明
 1、配置tun口
 1.1  将99-5gc.netdev、99-5gc.network 拷贝至/etc/systemd/network
-1.2  执行 systemctl restart network 重启网络即可创建ogstun设备
+1.2  执行 systemctl restart network(centos)/systemctl restart systemd-networkd(ubuntu) 重启网络即可创建ogstun设备
 
 2、配置内部网元交互的子接口IP
 2.1   在/etc/rc.local文件中，添加如下代码：
@@ -33,6 +33,9 @@ systemctl start 5gc-amf-spsd@2 #启动第2个5gc-amf-spsd
 4、重启机器，确保上述配置可以开机自启动
 注：1~3步只需要首次搭建环境时执行，如相关服务脚本无变化，则后续不需要重新配置
 
+5、如果目标机器提示找不到xxx库，则可以将编译机上的相关库拷贝到/home/5gc/install/lib64目录下，
+然后在/etc/profile中增加如下代码后source /etc/profile 使其生效即可：
+export LD_LIBRARY_PATH=/home/5gc/install/lib64:$LD_LIBRARY_PATH 
 
 二、开发版本使用说明
 1、配置文件

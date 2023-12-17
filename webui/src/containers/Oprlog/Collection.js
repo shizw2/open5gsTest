@@ -26,7 +26,7 @@ const Tabalehead = styled.div`
   flex-direction: row;
   flex: 0 0 auto;
   line-height: 2rem;
-  margin : 1rem 10rem 0rem 3.1rem;
+  margin : 1rem 7rem 0rem 3.1rem;
   background: ${oc.gray[2]};
   position: sticky;
   top: 0;
@@ -460,6 +460,12 @@ class Collection extends Component {
         width: '160px',
         height: '30px',          
         background: 'transparent',         
+        border: '1px solid #CCC'         
+      },
+      selectval:{
+        fontSize: '1rem',
+        color: '#5C7CFA',
+        cursor: 'pointer'
   }
 }
 return (  
@@ -469,8 +475,8 @@ return (
           <div className="opttime"onClick={this.handleTimeClick}>
           操作时间
           <div ></div>
-          {this.state.isDatePickerOpen && (
-            <select style={styles.select}
+          {this.state.isDatePickerOpen ? (
+            <select style={{ ...styles.select, ...styles.selectval }}
             value={this.state.endTime} 
             onChange={this.handletimepeOptionChange} 
             >
@@ -479,38 +485,48 @@ return (
             <option value="一周">一周</option>
             <option value="一个月">一个月</option>              
           </select>        
+          ):(            
+            <span style={styles.selectval}>{this.state.endTime}</span>
           )}
           </div>
           <div className="opuser"onClick={this.handleOpruserClick}>
             操作账号
-            {this.state.isopusrDropdownOpen && ( 
-            <input style={styles.input}
+            <div ></div>
+            {this.state.isopusrDropdownOpen ? ( 
+            <input style={{ ...styles.input, ...styles.selectval }}
               type="text"
               value={this.state.searchOpruser}
               onChange={this.handleInputChange}
               onKeyUp={this.handleInputKeyUp}  
             />
+            ):(              
+              <span style={styles.selectval}>{this.state.searchOpruser}</span>
             )}
             </div>
           <div className="optype"onClick={this.handleOprtypeClick}>
             操作类型
             <div ></div>
-            {this.state.isoptypeDropdownOpen && (  
-            <select style={styles.select}
+            {this.state.isoptypeDropdownOpen ? (  
+            <select style={{ ...styles.select, ...styles.selectval }}
               value={this.state.searchOprtype} 
               onChange={this.handleoprtypeOptionChange} 
             >
               <option value=""></option>
               <option value="新增">新增</option>
               <option value="修改">修改</option>
-              <option value="删除">删除</option>              
+              <option value="删除">删除</option>
+              <option value="登入">登入</option>
+              <option value="登出">登出</option>              
             </select>
+          ):(            
+            <span style={styles.selectval}>{this.state.searchOprtype}</span>
           )}
           </div>          
           <div className="optfm"onClick={this.handleOprfmClick}>
             功能模块
-            {this.state.isFmDropdownOpen && (  
-            <select style={styles.select}
+          <div ></div>
+            {this.state.isFmDropdownOpen ? (  
+            <select style={{ ...styles.select, ...styles.selectval }}
               value={this.state.fmSelectedOption} 
               onChange={this.handlefmOptionChange}              
             >
@@ -520,6 +536,8 @@ return (
               <option value="签约模板">签约模板</option>
               <option value="账号管理">账号管理</option>
             </select>
+          ):(
+            <span style={styles.selectval}>{this.state.fmSelectedOption}</span>
           )}
           </div>
           <div className="refresh-button-container">

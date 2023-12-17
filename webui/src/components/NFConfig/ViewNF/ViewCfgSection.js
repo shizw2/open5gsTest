@@ -253,8 +253,8 @@ export const HnetSection = ({ hnet }) => (
   <div>
     {hnet && (
       <div className="hnet-section">
-        <div className="hnet-header">hnet:</div>
-        <div className="hnet-body">
+        <div className="twenty-spaces">hnet:</div>
+        <div className="twenty-spaces">
           {hnet.map((entry) => (
             <div className="hnet-entry" key={entry.id}>
               <div className="twenty-spaces">- id: {entry.id}</div>
@@ -268,13 +268,55 @@ export const HnetSection = ({ hnet }) => (
   </div>
 );
 
+export const SUPIRangeSection = ({ info }) => (
+  <div>
+    {info && (
+      <div className="SUPIRange-section">
+        <div className="twenty-spaces">info:</div>
+        <div className="twenty-spaces">
+          <div className="twenty-spaces">supi: </div>
+          {info.supi && info.supi.map((entry) => (
+            <div className="hnet-entry" key={entry.range}>
+              <div className="twenty-spaces">&nbsp;&nbsp;- range: {entry.range}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+);
+
+export const RTSUPIInfoSection = ({ info }) => (
+  <div>
+    {info && (
+      <div className="SUPIRange-section">
+        <div className="twenty-spaces">info:</div>
+        <div className="twenty-spaces">
+          <div className="twenty-spaces">routing_indicator: </div>
+          {info.routing_indicator && info.routing_indicator.map((entry) => (
+            <div className="hnet-entry" key={entry}>
+              <div className="twenty-spaces">&nbsp;&nbsp;- {entry}</div>
+            </div>
+          ))}
+          <div className="twenty-spaces">supi: </div>
+          {info.supi && info.supi.map((entry) => (
+            <div className="hnet-entry" key={entry.range}>
+              <div className="twenty-spaces">&nbsp;&nbsp;- range: {entry.range}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+);
+
 export const ParameterSection = ({ parameter }) => (
   <div>
     <div className="parameter-section">
-      <div className="parameter-header">{parameter ? parameter.name : 'parameter'}:</div>
+      <div className="parameter-header">parameter:</div>
       {parameter ? (
         <div className="parameter-body">
-          {parameter.no_ipv4 && <div className="eight-spaces">no_ipv4: true</div>}
+          {(parameter.capacity >= 0) && <div className="twenty-spaces">capacity: {parameter.capacity}</div>}
         </div>
       ) : (
         <div> </div>
@@ -506,7 +548,7 @@ export const FreeDiameterFileSection = ({ freeDiameter }) => {
   );
 };
 
-export const InfoSection = ({ info }) => {
+export const SMFInfoSection = ({ info }) => {
   return (
     <div>
       {info && (

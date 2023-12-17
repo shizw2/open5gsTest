@@ -88,6 +88,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
     amf_internel_msg_header_t internel_msg;
     ssize_t sent;
     int license_state;
+    int bLoop;
 
     
     
@@ -149,7 +150,17 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             CASE(OGS_SBI_RESOURCE_NAME_NF_STATUS_NOTIFY)
                 SWITCH(sbi_message.h.method)
                 CASE(OGS_SBI_HTTP_METHOD_POST)
-                    ogs_nnrf_nfm_handle_nf_status_notify(stream, &sbi_message);
+                    if (is_amf_icps()){
+                        //发给sps,sps更新nf信息
+                        for (bLoop = 0; bLoop < g_pt_pkt_fwd_tbl->b_sps_num; bLoop++){
+                           udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,g_pt_pkt_fwd_tbl->ta_sps_infos[bLoop].module_no);
+                        }
+                        
+                        //icps 负责返回应答
+                        ogs_nnrf_nfm_handle_nf_status_notify(stream, &sbi_message);                    
+                    }else{
+                        ogs_nnrf_nfm_handle_nf_status_notify(stream, &sbi_message);
+                    }            
                     break;
 
                 DEFAULT

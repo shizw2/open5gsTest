@@ -1,4 +1,16 @@
-import { NRFSection, SBISection,LOGSection,MetricsSection,NF_SBI_Section,GuamiSection,TaiSection,PlmnSupportSection,SecuritySection ,TimeSection} from './ViewCfgSection';
+import{
+  NRFSection,
+  SBISection,
+  LOGSection,
+  MetricsSection,
+  NF_SBI_Section,
+  GuamiSection,
+  TaiSection,
+  PlmnSupportSection,
+  ParameterSection,
+  SecuritySection,
+  TimeSection
+} from './ViewCfgSection';
 
 export const ViewAMF = ({ nfconfig }) => {  
   console.log("nfconfig:", nfconfig); // 在这里添加打印语句
@@ -47,6 +59,7 @@ export const ViewAMF = ({ nfconfig }) => {
         </div>
       )}
       </div>
+      <ParameterSection parameter={nfconfig.parameter} />
       <TimeSection time={nfconfig.time} />   
     </div>
   );

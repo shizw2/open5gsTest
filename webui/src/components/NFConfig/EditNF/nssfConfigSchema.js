@@ -8,11 +8,13 @@ export const nssfschema = {
       type: "object",
       title:"NSSF",
       properties: {
-        sbi: schemas.nf_sbi_Schema,        
-        nsi:schemas.nsiSchema, 
+        sbi: schemas.nf_sbi_Schema,
+        nsi:schemas.nsiSchema,
+        metrics: schemas.metricsSchema,
       },
     },
     nrf: schemas.nrfSchema,
+    parameter: schemas.paraSchema,
     sbi: schemas.sbiSchema,
     logger: schemas.loggerSchema,
   },
@@ -22,9 +24,11 @@ export const nssfuiSchema = {
   logger: schemas.loggerUiSchema,
   sbi: schemas.sbiUiSchema,
   nrf: schemas.nrfUiSchema,
+  parameter: schemas.paraUiSchema,
   nssf: {
     classNames: "col-xs-12",
     sbi: schemas.nf_sbi_UiSchema,
     nsi:schemas.nsiUiSchema,
+    metrics: schemas.metricsUiSchema,
   },
 };

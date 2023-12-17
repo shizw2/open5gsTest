@@ -288,6 +288,116 @@ export const smfUiSchema = {
   },
 };
 
+export const nrfNFSchema = {
+  type: "object",
+  title:"NRF",
+  properties: {
+    sbi: {
+      type: "array",
+      title: "SBI Interface",
+      items: {
+        type: "object",
+        properties: {
+          addr: {
+            type: "array",
+            title:"IP Address",
+            minItems: 1,
+            items: {
+              type: "string",
+              anyOf: [
+                { format: "ipv4" },
+                { format: "ipv6" },
+              ],
+              messages: {
+                "anyOf": "IPv4 or IPv6 allowed"
+              },
+              required: true,
+            },
+            //description: "Please enter a valid IPv4/IPv6 Address",
+            required: true,
+          },
+          port: {
+            type: "number",
+            title: "Port",
+            required: true,
+          },
+        },
+      },
+      //required:["addr","port"],
+    },
+    metrics: {
+      type: "array",
+      title: "Metrics",
+      "minItems": 1,
+      "maxItems": 4,
+      "messages": {
+        "minItems": "At least 1 Interface is required",
+        "maxItems": "4 Interfaces are supported"
+      },
+      items: {
+        type: "object",
+        properties: {
+          addr: {
+            type: "string",
+            title: "IP Address",
+            anyOf: [
+              { format: "ipv4" },
+              { format: "ipv6" }
+            ],
+            messages: {
+              "anyOf": "IPv4 or IPv6 allowed"
+            },
+            default: "127.0.0.5"
+          },
+          port: {
+            type: "number",
+            title: "Port",
+            default: 9090
+          }
+        }
+      }
+    }
+  },
+  //required:["addr","port"],
+};
+
+export const nrfNFUiSchema = {
+  classNames: "col-xs-12",
+  metrics: {
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="Metrics" />,
+    items: {
+      addr: {
+        classNames: "col-xs-8",
+      },
+      port: {
+        classNames: "col-xs-4",
+      },
+    },
+  },
+  sbi: {
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="SBI Interface" />,
+    items: {
+      classNames: "col-xs-12",
+      addr: {
+        classNames: "col-xs-8",
+        "ui:title": <CustomTitle14 title="IP Address" />,
+        items:{
+          //classNames: "col-xs-7",
+          classNames: "col-xs-12",
+          //"ui:help": "Enter a valid IPv4/IPv6 Address",
+          //"ui:placeholder": "Enter a valid IPv4/IPv6 Address",
+        }
+      },
+      port: {
+        classNames: "col-xs-4",
+        "ui:title": <CustomTitle14Border14 title="Port" />,
+      },
+    },
+  },
+};
+
 export const nrfSchema = {
   type: "object",
   title:"NRF",
@@ -326,7 +436,6 @@ export const nrfSchema = {
       //required:["addr","port"],
     },
   },
-  //required:["addr","port"],
 };
 
 export const nrfUiSchema = {
@@ -354,6 +463,27 @@ export const nrfUiSchema = {
   },
 };
 
+export const paraSchema = {
+  type: "object",
+  title:"Parameter",
+  properties: {
+    capacity: {
+      type: "number",
+      title: "Capacity",
+      minimum: 0,
+      maximum: 100,
+      default: 100, 
+    },
+  },
+}
+
+export const paraUiSchema = {
+  classNames: "col-xs-12",
+  //"ui:title": <CustomTitle18 title="Parameter" />,
+  capacity: {
+    classNames: "col-xs-12"
+  }
+}
 
 export const nf_sbi_Schema = {
   type: "array",
@@ -486,7 +616,7 @@ export const time_nf_instanceUiSchema = {
   "ui:title": <CustomTitle18 title="NF_Instance" />,
   heartbeat: {
     classNames: "col-xs-12"
-  }  
+  }
 };
 
 export const time_t3512Schema = {
@@ -506,7 +636,7 @@ export const time_t3512UiSchema = {
   "ui:title": <CustomTitle18 title="T3512" />,
   value: {
     classNames: "col-xs-12",
-  } 
+  }
 };
 
 export const time_t3502Schema = {
@@ -1345,7 +1475,7 @@ export const freeDiameterUiSchema = {
 };
 
 
-export const infoSchema = {
+export const smfinfoSchema = {
   type: "array",
   title: "SMF Info",
   items: {
@@ -1446,7 +1576,7 @@ export const infoSchema = {
   }
 };
 
-export const infoUiSchema = {
+export const smfinfoUiSchema = {
   classNames: "col-xs-12",
   "ui:title": <CustomTitle18 title="SMF Info" />,
   items: {
@@ -1702,27 +1832,45 @@ export const freeDiameter2UiSchema = {
 export const hnetSchema = {
   type: "array",
   title: "HNET",
+  maxItems: 256,
   items: {
     type: "object",
     properties: {
       id: {
-        type: "integer",
-        title: "ID",
-        minimum: 1,
-        maximum:99,
+        type: "number",
+        title: "key ID",
+        minimum: 0,
+        maximum: 255,
+        required: true,
+        messages: {
+          required: "required",
+          minimum: "最小值0",
+          maximum: "最大值255",
+        }
       },
       scheme: {
         type: "integer",
-        title: "Scheme",
-        minimum: 1,
+        title: "Scheme ID",
+        minimum: 0,
+        maximum: 15,
+        required: true,
+        messages: {
+          required: "required",
+          minimum: "最小值0",
+          maximum: "最大值15",
+        },
       },
       key: {
         type: "string",
-        title: "Key"
+        title: "Key",
+        required: true,
+        messages: {
+          required: "required",
+        },
       }
     },
-    required: ["id", "scheme", "key"]
-  }
+    //required: ["id", "scheme", "key"]
+  },
 };
 
 export const hnetUiSchema = {
@@ -1733,10 +1881,115 @@ export const hnetUiSchema = {
       classNames: "col-xs-2"
     },
     scheme: {
-      classNames: "col-xs-2"
+      classNames: "col-xs-2",
+      //"ui:placeholder": "1:Profile A; 2: Profile B",
     },
     key: {
       classNames: "col-xs-8"
+    }
+  }
+};
+
+export const supiRangeInfoSchema = {
+  type: "object",
+  title: "Info",
+  properties: {
+    supi:{
+      type: "array",
+      title: "SUPI",
+      items: {
+        type: "object",
+        maxItems:16,
+        properties: {
+          range: {
+            type: "string",
+            title: "Range",
+            maxLength: 31,
+            pattern: /^(\d+-\d+)$/,
+            messages: {
+              pattern: "Format like 990-999 or 46001-46002",
+              type: "Format like 990-999 or 46001-46002",
+            },
+          },
+        },
+      }
+    }
+  }
+};
+
+export const supiRangeInfoUiSchema = {
+  classNames: "col-xs-12",
+  supi: {
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="SUPI Range" />,
+    items: {
+      range: {
+        classNames: "col-xs-12",
+        "ui:options": {
+          "label": false
+        }
+      },
+    }
+  }
+};
+
+export const rtsupiInfoSchema = {
+  type: "object",
+  title: "NF Info",
+  properties: {
+    routing_indicator: {
+      type: "array",
+      title: "Routing Indicator",
+      maxItems: 16,
+      items: {
+        type: "string",
+        maxLength: 4,
+        pattern: /^(\d+)$/,
+        messages: {
+          pattern: "Number please",
+        },
+        required: true,
+      },
+    },
+    supi:{
+      type: "array",
+      title: "SUPI",
+      items: {
+        type: "object",
+        maxItems:16,
+        properties: {
+          range: {
+            type: "string",
+            title: "Range",
+            maxLength: 31,
+            pattern: /^(\d+-\d+)$/,
+            messages: {
+              pattern: "Format like 990-999 or 46001-46002",
+              type: "Format like 990-999 or 46001-46002",
+            },
+          },
+        },
+      }
+    }
+  }
+};
+
+export const rtsupiInfoUiSchema = {
+  classNames: "col-xs-12",
+  routing_indicator: {
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="Routing Indicator" />,
+  },
+  supi: {
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="SUPI Range" />,
+    items: {
+      range: {
+        classNames: "col-xs-12",
+        "ui:options": {
+          "label": false
+        }
+      },
     }
   }
 };

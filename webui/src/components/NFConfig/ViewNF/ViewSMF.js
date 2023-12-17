@@ -17,7 +17,7 @@ import {
   MtuSection,
   CtfSection,
   FreeDiameterFileSection,
-  InfoSection,
+  SMFInfoSection,
 } from './ViewCfgSection';
 
 
@@ -44,7 +44,7 @@ export const ViewSMF = ({ nfconfig }) => {
             <MtuSection mtu={smf.mtu} />
             <CtfSection ctf={smf.ctf} />
             <FreeDiameterFileSection freediameter={smf.freediameter} />
-            <InfoSection info={smf.info} />
+            <SMFInfoSection info={smf.info} />
           </div>
         )}
       </div>
@@ -53,9 +53,9 @@ export const ViewSMF = ({ nfconfig }) => {
           <div className="upf-header">upf:</div>
           <PfcpSection pfcp={upf.pfcp} /> 
       </div>
-      
+      <ParameterSection parameter={nfconfig.parameter} />
+
       {/*
-      <ParameterSection parameter={parameter} />
       <MaxSection max={max} />
       <TimeSection time={time} />
       */}

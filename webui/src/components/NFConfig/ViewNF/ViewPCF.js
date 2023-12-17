@@ -8,6 +8,7 @@ import {
   TimeSection,
   FreeDiameterSection,
   MetricsSection,
+  SUPIRangeSection,
   DbUriSection,
 } from './ViewCfgSection';
 
@@ -27,14 +28,17 @@ export const ViewPCF= ({ nfconfig }) => {
             <div className="nf-header">pcf:</div>
             <NF_SBI_Section sbi={pcf.sbi} />
             <FreeDiameterSection freeDiameter={pcf.freeDiameter} />
-            <MetricsSection metrics={pcf.metrics} />            
+            <SUPIRangeSection info={pcf.info} />
+            <MetricsSection metrics={pcf.metrics} />
           </div>
         )}
       </div>
+      <ParameterSection parameter={nfconfig.parameter} />
 
-      <ParameterSection parameter={parameter} />
+      {/*
       <MaxSection max={max} />
       <TimeSection time={time} />
+      */}
     </div>
   );
 };

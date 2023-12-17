@@ -8,12 +8,14 @@ export const pcfschema = {
       type: "object",
       title: "PCF",
       properties: {
-        sbi: schemas.nf_sbi_Schema,        
+        sbi: schemas.nf_sbi_Schema,
         freeDiameter:schemas.freeDiameter2Schema,
         metrics: schemas.metricsSchema,
+        info: schemas.supiRangeInfoSchema,
       },
     },
     nrf: schemas.nrfSchema,
+    parameter: schemas.paraSchema,
     db_uri: schemas.db_uriSchema,
     sbi: schemas.sbiSchema,
     logger: schemas.loggerSchema,
@@ -25,10 +27,12 @@ export const pcfuiSchema = {
   logger: schemas.loggerUiSchema,
   sbi: schemas.sbiUiSchema,
   nrf: schemas.nrfUiSchema,
+  parameter: schemas.paraUiSchema,
   pcf: {
     classNames: "col-xs-12",
     sbi: schemas.nf_sbi_UiSchema,
     freeDiameter:schemas.freeDiameter2UiSchema,
-    metrics: schemas.metricsUiSchema,    
+    metrics: schemas.metricsUiSchema,
+    info: schemas.supiRangeInfoUiSchema
   },
 };

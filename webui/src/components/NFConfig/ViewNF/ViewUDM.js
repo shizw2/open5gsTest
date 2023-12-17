@@ -4,6 +4,8 @@ import {
   LOGSection,
   NF_SBI_Section,
   HnetSection,
+  RTSUPIInfoSection,
+  MetricsSection,
   MaxSection,
   ParameterSection,
   TimeSection
@@ -29,13 +31,17 @@ export const ViewUDM = ({ nfconfig }) => {
             <div className="nf-header">udm:</div>
             <NF_SBI_Section sbi={udm.sbi} />
             <HnetSection hnet={udm.hnet} />
+            <RTSUPIInfoSection info={udm.info} />
+            <MetricsSection metrics={udm.metrics} />
           </div>
         )}
       </div>
+      <ParameterSection parameter={nfconfig.parameter} />
 
-      <ParameterSection parameter={parameter} />
+      {/*
       <MaxSection max={max} />
       <TimeSection time={time} />
+      */}
     </div>
   );
 };

@@ -18,7 +18,7 @@ export const smfschema = {
         metrics: schemas.metricsSchema,
         dns:schemas.dnsSchema,
         "p-cscf": schemas.pcscfSchema,
-        info: schemas.infoSchema,
+        info: schemas.smfinfoSchema,
         emptyLine3:schemas.emptyLineSchema,//为了在增加metrics配置项多于dns的时候，下面的配置不跑上来
         mtu:schemas.mtuSchema,
         ctf:schemas.ctfSchema,
@@ -27,6 +27,7 @@ export const smfschema = {
     },
     upf: schemas.upfSchema,
     nrf: schemas.nrfSchema,
+    parameter: schemas.paraSchema,
     sbi: schemas.sbiSchema,
     logger: schemas.loggerSchema,
   },
@@ -37,6 +38,7 @@ export const smfuiSchema = {
   sbi: schemas.sbiUiSchema,
   upf: schemas.upfUiSchema,
   nrf: schemas.nrfUiSchema,
+  parameter: schemas.paraUiSchema,
   smf: {
     classNames: "col-xs-12",
     sbi: schemas.nf_sbi_UiSchema,
@@ -49,7 +51,7 @@ export const smfuiSchema = {
     metrics: schemas.metricsUiSchema,
     dns:schemas.dnsUiSchema,
     "p-cscf":schemas.pcscfUiSchema,
-    info: schemas.infoUiSchema,
+    info: schemas.smfinfoUiSchema,
     emptyLine3:schemas.emptyLineUiSchema,
     mtu:schemas.mtuUiSchema,
     ctf:schemas.ctfUiSchema,

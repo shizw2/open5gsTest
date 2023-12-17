@@ -1,15 +1,15 @@
 import { Component } from 'react';
 import Head from 'next/head';
 import PropTypes from 'prop-types';
-
+import React from 'react';
 import styled from 'styled-components';
 import oc from 'open-color';
 import { media } from 'helpers/style-utils';
-
+import { connect } from 'react-redux';
 import { CircleIcon } from 'components';
 import PersonIcon from 'react-icons/lib/md/person';
 import CloseIcon from 'react-icons/lib/md/close';
-
+import { MODEL,Ommlog } from 'modules/crud/ommlog';
 const Wrapper = styled.div`
   position: fixed;
   top: 50%;
@@ -155,7 +155,6 @@ Button.propTypes = {
   color: PropTypes.string,
   onClick: PropTypes.func
 };
-
 const Login = ({ 
   width,
   form,
@@ -164,8 +163,18 @@ const Login = ({
   onChange,
   onSubmit,
   onKeyPress,
-  onErrorReset
-}) => (
+  onErrorReset,
+  createOmmlog
+}) =>{
+  const handleLogin = () =>{    
+    const { username } = form;
+    // 其他登录逻辑
+    onSubmit();
+    setTimeout(() => {      
+      createOmmlog('login', "账号管理", {}, {}, username); 
+    }, 3000);
+  };
+return (
   <div>
     <Head>
     <title>5GC - Login</title>
@@ -182,7 +191,8 @@ const Login = ({
       </Thumbnail>
       <Form>
         <InputWrapper>
-          <Title>Username</Title>
+          {/*<Title>Username</Title>*/}
+          <Title>用户名</Title>
           <Input 
             name="username"
             type="text"
@@ -191,26 +201,32 @@ const Login = ({
             onChange={onChange}
             onKeyPress={onKeyPress}
             innerRef={(comp) => {innerRef(comp)}}
-          />
+            autocomplete="new-password"
+          />          
         </InputWrapper>
         <InputWrapper>
-          <Title>Password</Title>
+          {/*<Title>Password</Title>*/}
+          <Title>密码</Title>
           <Input 
             name="password"
             type="password"
             placeholder=""
             value={form.password} 
-            onChange={onChange}
+            onChange={onChange}           
             onKeyPress={onKeyPress}
+            autocomplete="new-password"
           />
         </InputWrapper>
-        <Button color='teal' onClick={onSubmit}>
-          Login
+        <Button color='teal' onClick={handleLogin}>
+          {/*Login*/}
+          登录
         </Button>
       </Form>
     </Wrapper>
   </div>
 );
+
+}
 
 Login.propTypes = {
   width: PropTypes.string
@@ -220,4 +236,11 @@ Login.defaultProps = {
   width: '360px'
 }
 
-export default Login;
+const mapDispatchToProps = dispatch => ({  
+  createOmmlog: (type, category, data1, data2, username) =>
+    dispatch(Ommlog.createOmmlog(type, category, data1, data2, username))
+});
+
+export default connect(null, mapDispatchToProps)(Login);
+
+

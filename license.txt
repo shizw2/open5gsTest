@@ -1,0 +1,12 @@
+license使用说明
+1、获取机器特征码
+在目标机器执行./5gc-MakeMachineID   生成机器特征文件 Machine.id
+在开发环境，5gc-MakeMachineID在build目录或install目录都有， 如 /home/5gc/build/src/license 或 /home/5gc/install/bin
+在生产环境，5gc-MakeMachineID在5gc程序相同的目录，如/home/5gc/install/bin
+
+2、生成license
+将 Machine.id拷贝至license管理机（如编译机）的 5gc-MakeLicense程序所在目录，如 /home/5gc/build/src/license
+运行./5gc-MakeLicense ，根据提示，生成license。license文件名称为License.dat。
+
+3、使用license
+将License.dat 拷贝至目标机器的5gc程序相同的目录（如开发环境中的/home/5gc/build/src/amf 、/home/5gc/build/src/upf或生产环境中的/home/5gc/install/bin）

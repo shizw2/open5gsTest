@@ -112,6 +112,8 @@ bool nrf_nnrf_nfm_send_nf_status_notify_all(
     bool rc;
     ogs_sbi_subscription_data_t *subscription_data = NULL;
 
+    ogs_info("nrf_nnrf_nfm_send_nf_status_notify_all.");
+
     ogs_assert(nf_instance);
 
     ogs_list_for_each(

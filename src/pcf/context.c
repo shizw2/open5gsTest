@@ -102,7 +102,7 @@ static int pcf_context_validation(void)
 }
 
 bool isCfgChanged = false;
-int pcf_context_parse_config(void)
+int pcf_context_parse_config(bool reloading)
 {
     int rv;
     yaml_document_t *document = NULL;
@@ -134,6 +134,9 @@ int pcf_context_parse_config(void)
                 } else if (!strcmp(pcf_key, "metrics")) {
                     /* handle config in metrics library */
                 } else if (!strcmp(pcf_key, "freeDiameter")) {
+                    if (reloading == true){//重新加载时不读取
+                        continue;
+                    }
                     yaml_node_t *node =
                         yaml_document_get_node(document, pcf_iter.pair->value);
                     ogs_assert(node);
@@ -884,7 +887,7 @@ int yaml_check_proc(void)
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
   
-    rv = pcf_context_parse_config();
+    rv = pcf_context_parse_config(true);
     if (rv != OGS_OK) return rv;
     
     bool needReRegister = false;

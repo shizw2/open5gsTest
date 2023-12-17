@@ -958,9 +958,11 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
         return false;
     }
 
-    response = ogs_sbi_build_response(recvmsg, OGS_SBI_HTTP_STATUS_NO_CONTENT);
-    ogs_assert(response);
-    ogs_assert(true == ogs_sbi_server_send_response(stream, response));
+    if (!recvmsg->udp_h.isICPStoSPS){//sps模拟不返回应答
+        response = ogs_sbi_build_response(recvmsg, OGS_SBI_HTTP_STATUS_NO_CONTENT);
+        ogs_assert(response);
+        ogs_assert(true == ogs_sbi_server_send_response(stream, response));
+    }
 
     ogs_sbi_header_free(&header);
     return true;

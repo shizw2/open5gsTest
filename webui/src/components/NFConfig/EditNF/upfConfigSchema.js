@@ -16,12 +16,14 @@ export const upfschema = {
       },
     },
     //smf: schemas.smfSchema,
+    parameter: schemas.paraSchema,
     logger: schemas.loggerSchema,
   },
 };
 
 export const upfuiSchema = {
   logger: schemas.loggerUiSchema,
+  parameter: schemas.paraUiSchema,
   upf: {
     classNames: "col-xs-12",
     pfcp:schemas.pfcpUiSchema,

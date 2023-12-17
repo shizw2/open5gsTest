@@ -5,7 +5,7 @@ import {
   NF_SBI_Section,
   HnetSection,
   MaxSection,
-  ParameterSection,
+  //ParameterSection,
   TimeSection,
   DbUriSection
 } from './ViewCfgSection';
@@ -29,9 +29,11 @@ export const ViewSCP = ({ nfconfig }) => {
       
       <NRFSection nfconfig={nfconfig} />
 
+      {/*
       <ParameterSection parameter={parameter} />
       <MaxSection max={max} />
       <TimeSection time={time} />
+      */}
     </div>
   );
 };

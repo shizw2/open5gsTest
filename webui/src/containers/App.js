@@ -16,14 +16,40 @@ import * as Performance from 'containers/Performance';
 import * as Oprlog from 'containers/Oprlog';
 import * as NFConfig from 'containers/NFConfig';
 import { Ommlog } from 'modules/crud/ommlog';
-
+import React from 'react';
+import Logout from 'components/Base/Logout';
+import Session from 'modules/auth/session';
 class App extends Component {
   static propTypes = {
     session: PropTypes.object.isRequired,
     view: PropTypes.string.isRequired,
     width: PropTypes.number.isRequired
   }
+  timeoutId = null;
+
+  handleLogout = async(createOmmlog) => {
+    // 执行退出登录操作
+    // ...
+      createOmmlog('logout', '账号管理', {}, {}, "安全登出"); 
+      const session = new Session()
+      await session.signout()  
   
+      // @FIXME next/router not working reliably so using window.location
+      window.location = '/'
+
+  };
+  resetTimer = () => {
+    clearTimeout(this.timeoutId);
+    this.startTimer();
+  };
+
+  startTimer = () => {
+    const { createOmmlog } = this.props; 
+    this.timeoutId = setTimeout(() => {
+      // 在定时器触发时执行handleLogout函数      
+      this.handleLogout(createOmmlog);
+    }, 300000); // 设置5分钟的定时器，超过5分钟未操作则执行退出登录操作
+  };
   componentWillMount() {
     const { 
       width,
@@ -33,8 +59,16 @@ class App extends Component {
     if (width !== SMALL) {
       SidebarActions.setVisibility(true);
     }
-  }
 
+    window.addEventListener('mousemove', this.resetTimer);
+    window.addEventListener('keydown', this.resetTimer);
+    this.startTimer();
+  }
+  componentWillUnmount() {
+    clearTimeout(this.timeoutId);
+    window.removeEventListener('mousemove', this.resetTimer);
+    window.removeEventListener('keydown', this.resetTimer);
+  }
   render() {
     const {
       view,
@@ -48,6 +82,7 @@ class App extends Component {
     }
 
     return (
+      <div>
       <Layout>
         <Layout.Container visible={view === "subscriber"}>
           <Subscriber.Collection/>
@@ -73,6 +108,8 @@ class App extends Component {
         <Notification/>
         <Ommlog session={session}/>
       </Layout>
+      <Logout onLogout={this.handleLogout} />
+      </div>
     )
   }
 }
@@ -84,8 +121,11 @@ const enhance = compose(
       view: state.sidebar.view
     }),
     (dispatch) => ({
-      SidebarActions: bindActionCreators(sidebarActions, dispatch)
+      SidebarActions: bindActionCreators(sidebarActions, dispatch),
+      createOmmlog: (type, category, data1, data2, username) =>
+    dispatch(Ommlog.createOmmlog(type, category, data1, data2, username))
     })
+    
   )
 );
 

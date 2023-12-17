@@ -147,7 +147,7 @@ void pcf_context_init(void);
 void pcf_context_final(void);
 pcf_context_t *pcf_self(void);
 
-int pcf_context_parse_config(void);
+int pcf_context_parse_config(bool reloading);
 
 pcf_ue_t *pcf_ue_add(char *supi);
 void pcf_ue_remove(pcf_ue_t *pcf_ue);

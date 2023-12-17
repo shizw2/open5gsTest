@@ -2,12 +2,12 @@ import PropTypes from 'prop-types';
 
 import styled from 'styled-components';
 import oc from 'open-color';
-
+import React from 'react';
 import { Modal } from 'components';
 import { media, transitions } from 'helpers/style-utils';
-
+import {Ommlog } from 'modules/crud/ommlog';
 import PersonIcon from 'react-icons/lib/md/person';
-
+import { connect } from 'react-redux';
 const Wrapper = styled.div`
   width: 300px;
 
@@ -87,7 +87,13 @@ const propTypes = {
   onLogout: PropTypes.func,
 };
 
-const Logout = ({ visible, onHide, onLogout }) => (
+const Logout = ({ visible, onHide,onLogout,  createOmmlog }) => {
+  const handleLogoutClick = () => {
+    createOmmlog('logout', '账号管理', {}, {}, "主动登出"); // 记录日志
+    onLogout(); // 执行注销操作    
+  };
+  return (
+    <div>
   <Modal 
     visible={visible} 
     onOutside={onHide} 
@@ -97,25 +103,31 @@ const Logout = ({ visible, onHide, onLogout }) => (
     transitionLeaveTimeout={500}>
     <Wrapper>
       <TitleWrapper>
-        Logout
+        {/*Logout*/}
+        登出
       </TitleWrapper>
       <ContentWrapper>
-        Are you sure you want to logout?
+        确定退出登录？
+        {/*Are you sure you want to logout?*/}
       </ContentWrapper>
       <ButtonWrapper>
-        <YesButton
-          onClick={onLogout}>
-          Yes
+          <YesButton onClick={handleLogoutClick}>
+          {/*Yes*/}
+          是
         </YesButton>
-        <NoButton 
-          onClick={onHide}>
-          No
+          <NoButton onClick={onHide}>
+          {/*No*/}
+          否
         </NoButton>
       </ButtonWrapper>
     </Wrapper>
   </Modal>
-)
-
+    </div>
+  );
+};
 Logout.propTypes = propTypes;
-
-export default Logout;
+const maplogoutDispatchToProps = dispatch => ({  
+  createOmmlog: (type, category, data1, data2, username) =>
+    dispatch(Ommlog.createOmmlog(type, category, data1, data2, username))
+});
+export default connect(null, maplogoutDispatchToProps)(Logout);

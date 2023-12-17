@@ -35,6 +35,8 @@ export const ViewUPF = ({ nfconfig }) => {
           <MetricsSection metrics={upf.metrics} /> 
       </div>
 
+      <ParameterSection parameter={nfconfig.parameter} />
+
       {/* 
       <div className="smf-section">
       <div className="smf-header">smf:</div>
@@ -71,11 +73,9 @@ export const ViewUPF = ({ nfconfig }) => {
         </div>
       </div> 
 
-      <ParameterSection parameter={parameter} />
       <MaxSection max={max} />
       <TimeSection time={time} />
       */}
-   
     </div>
   );
 };

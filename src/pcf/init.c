@@ -40,7 +40,7 @@ int pcf_initialize(void)
     rv = ogs_metrics_context_parse_config("pcf");
     if (rv != OGS_OK) return rv;
 
-    rv = pcf_context_parse_config();
+    rv = pcf_context_parse_config(false);
     if (rv != OGS_OK) return rv;
 
     rv = ogs_log_config_domain(
