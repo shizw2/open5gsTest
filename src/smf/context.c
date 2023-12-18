@@ -290,6 +290,7 @@ static int smf_context_validation(void)
     return OGS_OK;
 }
 
+bool isCfgChanged = false;
 int smf_context_parse_config(bool reloading)
 {
     int rv;
@@ -597,9 +598,15 @@ int smf_context_parse_config(bool reloading)
                         } else
                             ogs_assert_if_reached();
 
-                        nf_info = ogs_sbi_nf_info_add(
+                        nf_info = ogs_sbi_nf_info_find(
                                     &nf_instance->nf_info_list,
                                         OpenAPI_nf_type_SMF);
+                        
+                        if (nf_info == NULL){
+                            nf_info = ogs_sbi_nf_info_add(
+                                        &nf_instance->nf_info_list,
+                                            OpenAPI_nf_type_SMF);
+                        }
                         ogs_assert(nf_info);
 
                         smf_info = &nf_info->smf;
@@ -623,6 +630,7 @@ int smf_context_parse_config(bool reloading)
 
                                     ogs_assert(num_of_slice <
                                             OGS_MAX_NUM_OF_SLICE);
+                                    ogs_info("num_of_slice:%d.",num_of_slice);
                                     s_nssai = &smf_info->slice[num_of_slice].
                                             s_nssai;
                                     ogs_assert(s_nssai);
@@ -690,12 +698,20 @@ int smf_context_parse_config(bool reloading)
 
                                     if (sst) {
                                         int i;
-
+                                        if (s_nssai->sst != atoi(sst)){
+                                            ogs_info("sst changed from %d to %d.",s_nssai->sst,atoi(sst));
+                                            isCfgChanged = true;
+                                        }
                                         s_nssai->sst = atoi(sst);
-                                        if (sd)
-                                            s_nssai->sd =
-                                                ogs_uint24_from_string(
-                                                        (char*)sd);
+                                        
+                                        if (sd){
+                                            ogs_uint24_t sdValue = ogs_uint24_from_string((char*)sd);
+                                            if (s_nssai->sd.v != sdValue.v) {
+                                                ogs_info("sd changed from %d to %d.",s_nssai->sd.v,sdValue.v);
+                                                isCfgChanged = true;
+                                            }
+                                            s_nssai->sd = sdValue;
+                                        }
                                         else
                                             s_nssai->sd.v =
                                                 OGS_S_NSSAI_NO_SD_VALUE;
@@ -704,6 +720,12 @@ int smf_context_parse_config(bool reloading)
                                                 OGS_MAX_NUM_OF_DNN);
 
                                         for (i = 0; i < num_of_dnn; i++) {
+                                            if (smf_info->slice[num_of_slice].dnn[i] != NULL && strcmp(smf_info->slice[num_of_slice].dnn[i], dnn[i]) != 0) {
+                                                ogs_info("dnn changed from %s to %s.",smf_info->slice[num_of_slice].dnn[i],dnn[i]);
+                                                ogs_free(smf_info->slice[num_of_slice].dnn[i]);
+                                                isCfgChanged = true;
+                                            }
+                                            
                                             smf_info->slice[num_of_slice].
                                                 dnn[i] = ogs_strdup(dnn[i]);
                                             ogs_assert(
@@ -850,11 +872,26 @@ int smf_context_parse_config(bool reloading)
                                             if (start[tac].v == end[tac].v) {
                                                 ogs_assert(num_of_nr_tai <
                                                         OGS_MAX_NUM_OF_TAI);
+                                                
+                                                if (ogs_plmn_id_mcc(&smf_info->nr_tai[num_of_nr_tai].plmn_id) != atoi(mcc)
+                                                    || ogs_plmn_id_mnc(&smf_info->nr_tai[num_of_nr_tai].plmn_id) != atoi(mnc)){
+                                                    ogs_info("plmn_id changed from %d:%d to %d:%d.",ogs_plmn_id_mcc(&smf_info->nr_tai[num_of_nr_tai].plmn_id),
+                                                            ogs_plmn_id_mnc(&smf_info->nr_tai[num_of_nr_tai].plmn_id),
+                                                            atoi(mcc),
+                                                            atoi(mnc));
+                                                    isCfgChanged = true;    
+                                                }
+                                                       
                                                 ogs_plmn_id_build(
                                                     &smf_info->nr_tai[
                                                         num_of_nr_tai].plmn_id,
                                                     atoi(mcc), atoi(mnc),
                                                     strlen(mnc));
+                                                    
+                                                if (smf_info->nr_tai[num_of_nr_tai].tac.v != start[tac].v){
+                                                    ogs_info("tac changed from %d to %d.",smf_info->nr_tai[num_of_nr_tai].tac.v , start[tac].v);
+                                                    isCfgChanged = true;  
+                                                }    
                                                 smf_info->nr_tai[num_of_nr_tai].
                                                     tac.v = start[tac].v;
                                                 num_of_nr_tai++;
@@ -864,10 +901,25 @@ int smf_context_parse_config(bool reloading)
                                                         OGS_MAX_NUM_OF_TAI);
                                                 ogs_assert(num_of_tac_range <
                                                         OGS_MAX_NUM_OF_TAI);
+                                                if (smf_info->nr_tai_range[
+                                                    num_of_nr_tai_range].
+                                                    start[num_of_tac_range].v !=
+                                                        start[tac].v){
+                                                    ogs_info("tac changed from %d to %d.",smf_info->nr_tai_range[num_of_nr_tai_range].start[num_of_tac_range].v, start[tac].v);       
+                                                    isCfgChanged = true;  
+                                                }        
                                                 smf_info->nr_tai_range[
                                                     num_of_nr_tai_range].
                                                     start[num_of_tac_range].v =
                                                         start[tac].v;
+                                                
+                                                if (smf_info->nr_tai_range[
+                                                    num_of_nr_tai_range].
+                                                    end[num_of_tac_range].v !=
+                                                    end[tac].v){
+                                                    ogs_info("tac changed from %d to %d.",smf_info->nr_tai_range[num_of_nr_tai_range].end[num_of_tac_range].v, end[tac].v);      
+                                                    isCfgChanged = true;  
+                                                }
                                                 smf_info->nr_tai_range[
                                                     num_of_nr_tai_range].
                                                     end[num_of_tac_range].v =
@@ -875,12 +927,29 @@ int smf_context_parse_config(bool reloading)
                                                 num_of_tac_range++;
                                             }
                                         }
-                                        if (num_of_tac_range) {
+                                        if (num_of_tac_range) {                                            
+                                            if (ogs_plmn_id_mcc(&smf_info->nr_tai_range[num_of_nr_tai_range].plmn_id) != atoi(mcc)
+                                                || ogs_plmn_id_mnc(&smf_info->nr_tai_range[num_of_nr_tai_range].plmn_id) != atoi(mnc)){
+                                                ogs_info("plmn_id changed from %d:%d to %d:%d.",ogs_plmn_id_mcc(&smf_info->nr_tai_range[num_of_nr_tai_range].plmn_id),
+                                                        ogs_plmn_id_mnc(&smf_info->nr_tai_range[num_of_nr_tai_range].plmn_id),
+                                                        atoi(mcc),
+                                                        atoi(mnc));
+                                                isCfgChanged = true;    
+                                            }
+                                            
                                             ogs_plmn_id_build(
                                                 &smf_info->nr_tai_range[
                                                 num_of_nr_tai_range].plmn_id,
                                                 atoi(mcc), atoi(mnc),
                                                 strlen(mnc));
+                                               
+                                            if (smf_info->nr_tai_range[
+                                                num_of_nr_tai_range].
+                                                num_of_tac_range !=
+                                                num_of_tac_range){
+                                                ogs_info("num_of_tac_range changed from %d to %d.",smf_info->nr_tai_range[num_of_nr_tai_range].num_of_tac_range, num_of_tac_range);   
+                                                isCfgChanged = true;        
+                                            }
                                             smf_info->nr_tai_range[
                                                 num_of_nr_tai_range].
                                                 num_of_tac_range =
@@ -3135,6 +3204,21 @@ int yaml_check_proc(void)
     //2、NF级配置
     rv = smf_context_parse_config(true);
     if (rv != OGS_OK) return rv;
-   
+ 
+    bool needReRegister = false;
+    if (ogs_app()->parameter.capacity != ogs_sbi_self()->nrf_instance->capacity){
+        ogs_info("capacity changed from %d to %d.",ogs_sbi_self()->nrf_instance->capacity,ogs_app()->parameter.capacity);
+        ogs_sbi_nf_instance_set_capacity(ogs_sbi_self()->nf_instance,ogs_app()->parameter.capacity);
+        needReRegister = true;
+    }
+    
+    if (isCfgChanged){
+        needReRegister = true;
+    }
+    
+    if (needReRegister){
+        ogs_nnrf_nfm_send_nf_register(ogs_sbi_self()->nrf_instance);
+    }
+    
     return 0;
 }
