@@ -495,6 +495,8 @@ int smf_context_parse_config(bool reloading)
                     ogs_assert(ogs_yaml_iter_type(&dns_iter) !=
                         YAML_MAPPING_NODE);
 
+                    int dns4num = 0;
+                    int dns6num = 0;                    
                     do {
                         const char *v = NULL;
 
@@ -503,28 +505,45 @@ int smf_context_parse_config(bool reloading)
                             if (!ogs_yaml_iter_next(&dns_iter))
                                 break;
                         }
-
-                        v = ogs_yaml_iter_value(&dns_iter);
+                        
+                        v = ogs_yaml_iter_value(&dns_iter);     
                         if (v && strlen(v)) {
                             ogs_ipsubnet_t ipsub;
                             rv = ogs_ipsubnet(&ipsub, v, NULL);
                             ogs_assert(rv == OGS_OK);
-
+                            
                             if (ipsub.family == AF_INET) {
-                                if (self.dns[0] && self.dns[1])
+                                //支持DNS更新
+                                /*if (self.dns[0] && self.dns[1])
                                     ogs_warn("Ignore DNS : %s", v);
                                 else if (self.dns[0]) self.dns[1] = v;
-                                else self.dns[0] = v;
+                                else self.dns[0] = v;*/
+                                if (dns4num >= 2){
+                                    ogs_warn("Ignore DNS : %s", v);
+                                }
+                                if (self.dns[dns4num] != NULL && strcmp(self.dns[dns4num],v) != 0 ){
+                                    ogs_info("DNS changed from %s to %s.", self.dns[dns4num], v);
+                                }
+                                self.dns[dns4num] = v;
+                                dns4num++;
                             }
                             else if (ipsub.family == AF_INET6) {
-                                if (self.dns6[0] && self.dns6[1])
+                                //支持DNS更新
+                                /*if (self.dns6[0] && self.dns6[1])
                                     ogs_warn("Ignore DNS : %s", v);
                                 else if (self.dns6[0]) self.dns6[1] = v;
-                                else self.dns6[0] = v;
+                                else self.dns6[0] = v;*/
+                                if (dns6num >= 2){
+                                    ogs_warn("Ignore DNS : %s", v);
+                                }
+                                if (self.dns6[dns6num] != NULL && strcmp(self.dns6[dns6num],v) != 0 ){
+                                    ogs_info("DNS6 changed from %s to %s.", self.dns6[dns6num], v);
+                                }
+                                self.dns6[dns6num] = v;
+                                dns6num++;
                             } else
                                 ogs_warn("Ignore DNS : %s", v);
                         }
-
                     } while (ogs_yaml_iter_type(&dns_iter) ==
                                 YAML_SEQUENCE_NODE);
                 } else if (!strcmp(smf_key, "mtu")) {
