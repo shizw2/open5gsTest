@@ -1967,6 +1967,7 @@ export const rtsupiInfoSchema = {
               pattern: "Format like 990-999 or 46001-46002",
               type: "Format like 990-999 or 46001-46002",
             },
+            required: true,
           },
         },
       }

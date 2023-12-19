@@ -453,7 +453,7 @@ typedef struct ogs_sbi_udp_header_s {
             } http;
         }response;
     };
-    bool isICPStoSPS;
+    bool isICPS;
 }__attribute__ ((packed)) ogs_sbi_udp_header_t;
 
 

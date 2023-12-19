@@ -152,11 +152,13 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 CASE(OGS_SBI_HTTP_METHOD_POST)
                     if (is_amf_icps()){
                         //发给sps,sps更新nf信息
+                        sbi_message.udp_h.isICPS = false;
                         for (bLoop = 0; bLoop < g_pt_pkt_fwd_tbl->b_sps_num; bLoop++){
                            udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,g_pt_pkt_fwd_tbl->ta_sps_infos[bLoop].module_no);
                         }
                         
                         //icps 负责返回应答
+                        sbi_message.udp_h.isICPS = true;
                         ogs_nnrf_nfm_handle_nf_status_notify(stream, &sbi_message);                    
                     }else{
                         ogs_nnrf_nfm_handle_nf_status_notify(stream, &sbi_message);
