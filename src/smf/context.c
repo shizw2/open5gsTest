@@ -299,6 +299,8 @@ int smf_context_parse_config(bool reloading)
 
     document = ogs_app()->document;
     ogs_assert(document);
+    
+    isCfgChanged = false;
 
     rv = smf_context_prepare();
     if (rv != OGS_OK) return rv;
@@ -505,13 +507,13 @@ int smf_context_parse_config(bool reloading)
                             if (!ogs_yaml_iter_next(&dns_iter))
                                 break;
                         }
-                        
-                        v = ogs_yaml_iter_value(&dns_iter);     
+
+                        v = ogs_yaml_iter_value(&dns_iter);
                         if (v && strlen(v)) {
                             ogs_ipsubnet_t ipsub;
                             rv = ogs_ipsubnet(&ipsub, v, NULL);
                             ogs_assert(rv == OGS_OK);
-                            
+
                             if (ipsub.family == AF_INET) {
                                 //支持DNS更新
                                 /*if (self.dns[0] && self.dns[1])
@@ -544,6 +546,7 @@ int smf_context_parse_config(bool reloading)
                             } else
                                 ogs_warn("Ignore DNS : %s", v);
                         }
+
                     } while (ogs_yaml_iter_type(&dns_iter) ==
                                 YAML_SEQUENCE_NODE);
                 } else if (!strcmp(smf_key, "mtu")) {

@@ -107,10 +107,11 @@ int pcf_context_parse_config(bool reloading)
     int rv;
     yaml_document_t *document = NULL;
     ogs_yaml_iter_t root_iter;
-    printf("pcf_context_parse_config\r\n");
-    fflush(stdout);
+
     document = ogs_app()->document;
     ogs_assert(document);
+    
+    isCfgChanged = false;
 
     rv = pcf_context_prepare();
     if (rv != OGS_OK) return rv;

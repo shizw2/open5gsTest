@@ -89,6 +89,8 @@ int udm_context_parse_config(void)
     document = ogs_app()->document;
     ogs_assert(document);
 
+    isCfgChanged = false;
+    
     rv = udm_context_prepare();
     if (rv != OGS_OK) return rv;
 
