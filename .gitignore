@@ -11,3 +11,4 @@ version/
 install*/
 omm/
 webui/.next
+docker_open5gs
