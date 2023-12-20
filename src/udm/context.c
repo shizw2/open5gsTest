@@ -116,7 +116,6 @@ int udm_context_parse_config(void)
                     rv = ogs_sbi_context_parse_hnet_config(&udm_iter);
                     if (rv != OGS_OK) return rv;
                 } else if (!strcmp(udm_key, "info")) {
-                    ogs_warn("has udm info");
                     ogs_sbi_nf_instance_t *nf_instance = NULL;
 
                     ogs_yaml_iter_t info_array, info_iter;
