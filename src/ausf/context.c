@@ -358,8 +358,8 @@ int yaml_check_proc(void)
     if (rv != OGS_OK) return rv;
     
     bool needReRegister = false;
-    if (ogs_app()->parameter.capacity != ogs_sbi_self()->nrf_instance->capacity){
-        ogs_info("capacity changed from %d to %d.",ogs_sbi_self()->nrf_instance->capacity,ogs_app()->parameter.capacity);
+    if (ogs_app()->parameter.capacity != ogs_sbi_self()->nf_instance->capacity){
+        ogs_info("capacity changed from %d to %d.",ogs_sbi_self()->nf_instance->capacity,ogs_app()->parameter.capacity);
         ogs_sbi_nf_instance_set_capacity(ogs_sbi_self()->nf_instance,ogs_app()->parameter.capacity);
         needReRegister = true;
     }
