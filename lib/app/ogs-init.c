@@ -252,6 +252,10 @@ int ogs_app_config_read(void)
         return OGS_ERROR;
     }
 
+    if (ogs_app()->document) {
+        yaml_document_delete(ogs_app()->document);
+        free(ogs_app()->document);
+    }
     ogs_app()->document = document;
 
     yaml_parser_delete(&parser);

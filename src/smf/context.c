@@ -521,9 +521,6 @@ int smf_context_parse_config(bool reloading)
                                 if (dns4num >= 2){
                                     ogs_warn("Ignore DNS : %s", v);
                                 }
-                                if (self.dns[dns4num] != NULL && strcmp(self.dns[dns4num],v) != 0 ){
-                                    ogs_info("DNS changed from %s to %s.", self.dns[dns4num], v);
-                                }
                                 self.dns[dns4num] = v;
                                 dns4num++;
                             }
@@ -535,9 +532,6 @@ int smf_context_parse_config(bool reloading)
                                 else self.dns6[0] = v;*/
                                 if (dns6num >= 2){
                                     ogs_warn("Ignore DNS : %s", v);
-                                }
-                                if (self.dns6[dns6num] != NULL && strcmp(self.dns6[dns6num],v) != 0 ){
-                                    ogs_info("DNS6 changed from %s to %s.", self.dns6[dns6num], v);
                                 }
                                 self.dns6[dns6num] = v;
                                 dns6num++;
@@ -3225,8 +3219,8 @@ int yaml_check_proc(void)
     if (rv != OGS_OK) return rv;
  
     bool needReRegister = false;
-    if (ogs_app()->parameter.capacity != ogs_sbi_self()->nrf_instance->capacity){
-        ogs_info("capacity changed from %d to %d.",ogs_sbi_self()->nrf_instance->capacity,ogs_app()->parameter.capacity);
+    if (ogs_app()->parameter.capacity != ogs_sbi_self()->nf_instance->capacity){
+        ogs_info("capacity changed from %d to %d.",ogs_sbi_self()->nf_instance->capacity,ogs_app()->parameter.capacity);
         ogs_sbi_nf_instance_set_capacity(ogs_sbi_self()->nf_instance,ogs_app()->parameter.capacity);
         needReRegister = true;
     }

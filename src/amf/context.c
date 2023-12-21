@@ -175,6 +175,11 @@ static int amf_context_prepare(void)
     self.num_of_served_tai      = 0;
     self.num_of_plmn_support    = 0;
     self.num_of_access_control  = 0;
+    self.num_of_served_tai      = 0;
+    self.num_of_plmn_support    = 0;
+    self.num_of_integrity_order = 0;          
+    self.num_of_ciphering_order = 0; 
+    self.num_of_access_control  = 0;
     return OGS_OK;
 }
 
@@ -640,6 +645,7 @@ int amf_context_parse_config(bool reloading)
                     list0 = &self.served_tai[self.num_of_served_tai].list0;
                     list1 = &self.served_tai[self.num_of_served_tai].list1;
                     list2 = &self.served_tai[self.num_of_served_tai].list2;
+                    list2->num = 0;//初始化
 
                     ogs_yaml_iter_t tai_array, tai_iter;
                     ogs_yaml_iter_recurse(&amf_iter, &tai_array);
@@ -869,6 +875,7 @@ int amf_context_parse_config(bool reloading)
                                 ogs_yaml_iter_t s_nssai_array, s_nssai_iter;
                                 ogs_yaml_iter_recurse(&plmn_support_iter,
                                         &s_nssai_array);
+                                self.plmn_support[self.num_of_plmn_support].num_of_s_nssai = 0;//初始化
                                 do {
                                     ogs_s_nssai_t *s_nssai = NULL;
                                     const char *sst = NULL, *sd = NULL;
