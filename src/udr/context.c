@@ -61,7 +61,7 @@ static int udr_context_validation(void)
     return OGS_OK;
 }
 
-bool isCfgChanged = false;
+bool is_nfinfo_changed = false;
 int udr_context_parse_config(void)
 {
     int rv;
@@ -71,7 +71,7 @@ int udr_context_parse_config(void)
     document = ogs_app()->document;
     ogs_assert(document);
     
-    isCfgChanged = false;
+    is_nfinfo_changed = false;
 
     rv = udr_context_prepare();
     if (rv != OGS_OK) return rv;
@@ -141,7 +141,7 @@ int udr_context_parse_config(void)
                                 ogs_yaml_iter_key(&info_iter);
                             ogs_assert(info_key);
                             if (!strcmp(info_key, "supi")) {
-                                isCfgChanged = ogs_sbi_context_parse_supi_ranges(&info_iter, &udr_info->supiRanges);
+                                is_nfinfo_changed = ogs_sbi_context_parse_supi_ranges(&info_iter, &udr_info->supiRanges);
                              } else
                                 ogs_warn("unknown key `%s`", info_key);
                         }
@@ -195,7 +195,7 @@ int yaml_check_proc(void)
         needReRegister = true;
     }
     
-    if (isCfgChanged){
+    if (is_nfinfo_changed){
         needReRegister = true;
     }
     

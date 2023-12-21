@@ -1,3 +1,4 @@
+#!/bin/bash
 interface=${1:-ens160}
 num=${2:-2}
 
