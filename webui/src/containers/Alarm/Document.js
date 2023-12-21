@@ -5,16 +5,22 @@ import NProgress from 'nprogress';
 
 import { Alarm } from 'components';
 
-
-
-//const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>当前告警</title></head><body><iframe src="http://192.168.6.200:3002/d/eea-9_sik/prometheus-alerts?orgId=1&refresh=5s&theme=light&kiosk" width="100%" height="1000" frameborder="0"></iframe></body></html>'
-//const ip = window.location.hostname
 const os = require('os')
 const ip = os.hostname()
-
-const html2=`http://${ip}:3002/d-solo/eea-9_sik/prometheus-alerts?orgId=1&refresh=5s&panelId=442&theme=light&kiosk`
-const html1=`http://${ip}:3002/d-solo/QIA3UR57z/mynode?orgId=1&refresh=1m&theme=light&panelId=2&kiosk`
-
+let vistport = 3002
+let html2=""
+let html1=""
+fetch('/port.json')
+  .then(response => response.json())
+  .then(configData => {
+    // 在这里使用获取到的配置端口数据
+    vistport=configData.grafanaport    
+    html2=`http://${ip}:${vistport}/d-solo/eea-9_sik/prometheus-alerts?orgId=1&refresh=5s&panelId=442&theme=light&kiosk`
+    html1=`http://${ip}:${vistport}/d-solo/QIA3UR57z/mynode?orgId=1&refresh=1m&theme=light&panelId=2&kiosk`  
+  })
+  .catch(error => {
+    console.error('Error fetching config.json:', error);
+  });
 class Document extends Component {
   constructor(props) {
     super(props)
@@ -92,7 +98,7 @@ class Document extends Component {
       </div>
         <iframe
         title="告警柱状图"       
-        src={`http://${ip}:3002/d-solo/eea-9_sik/prometheus-alerts?orgId=1&refresh=5s&panelId=443&theme=light&kiosk"`}     
+        src={`http://${ip}:${vistport}/d-solo/eea-9_sik/prometheus-alerts?orgId=1&refresh=5s&panelId=443&theme=light&kiosk"`}     
         style={{ width: '38%', border: '0px', height: '350px' , float:"right"}}
         andbox="allow-same-origin allow-scripts  allow-forms"
         scrolling="auto"        
@@ -103,7 +109,7 @@ class Document extends Component {
           <div style={{ position: 'relative', width: '100%' }}>
             <iframe
               title="重启以来的历史告警" 
-              src={`http://${ip}:3002/d-solo/eea-9_sik/prometheus-alerts?orgId=1&refresh=5s&panelId=414&from=${fromValue}&to=now&theme=light&kiosk" `}              
+              src={`http://${ip}:${vistport}/d-solo/eea-9_sik/prometheus-alerts?orgId=1&refresh=5s&panelId=414&from=${fromValue}&to=now&theme=light&kiosk" `}              
               style={{
                 width: '100%',
                 border: '10px',
@@ -124,7 +130,7 @@ class Document extends Component {
                     outline: 'none', 
                     background: 'transparent', 
                     fontFamily: 'Inter, Helvetica, Arial, sans-serif', 
-                    fontSize: '0.5rem', 
+                    fontSize: '0.8rem', 
                     fontWeight: 500 ,
                     color: '#24292E',
                     paddingTop: '4px',

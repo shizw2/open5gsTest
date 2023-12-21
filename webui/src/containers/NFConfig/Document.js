@@ -189,6 +189,105 @@ class Document extends Component {
       }
     }
 
+    if ( (formData.smf && formData.smf.subnet)
+         || (formData.upf && formData.upf.subnet) )
+    {
+      let ippools;
+
+      if ( formData.smf && formData.smf.subnet )
+      {
+        ippools = formData.smf.subnet.map(subnet => {
+          return subnet.addr;
+        });
+      }
+      else if ( formData.upf && formData.upf.subnet )
+      {
+        ippools = formData.upf.subnet.map(subnet => {
+          return subnet.addr;
+        });
+      }
+      
+      let overlaps = {};
+
+      for (let i = 0; i < ippools.length; i++) {
+        const ippool = ippools[i];
+            
+        // 解析并计算当前子网的范围
+        const [address, subnetMask] = ippool.split('/');
+        const isIPv6 = address.includes(':');
+        let subnetMaskBits;
+        let startIP;
+        let endIP;
+
+        if (isIPv6)
+        {
+          subnetMaskBits = 128 - parseInt(subnetMask);
+          startIP = ipToNumberV6(address);
+          endIP = startIP + BigInt(Math.pow(2, subnetMaskBits)) - BigInt(1);
+        }
+        else  //IPv4
+        {
+          subnetMaskBits = 32 - parseInt(subnetMask);
+          startIP = ipToNumber(address);
+          endIP = startIP + Math.pow(2, subnetMaskBits) - 1;
+        }
+
+        // 检查当前子网是否与其他子网有重叠
+        for (let j = 0; j < ippools.length; j++) {
+          if (i === j) continue; // 跳过自身
+
+          const otherIPPool = ippools[j];
+          const [otherAddress, otherSubnetMask] = otherIPPool.split('/');
+          const isOtherIPv6 = otherAddress.includes(':');
+
+          let otherSubnetMaskBits;
+          let otherStartIP;
+          let otherEndIP;
+
+          if (isOtherIPv6)
+          {
+            otherSubnetMaskBits = 128 - parseInt(otherSubnetMask);
+            otherStartIP = ipToNumberV6(otherAddress);
+            otherEndIP = otherStartIP + BigInt(Math.pow(2, otherSubnetMaskBits)) - BigInt(1);
+          }
+          else  //IPv4
+          {
+            otherSubnetMaskBits = 32 - parseInt(otherSubnetMask);
+            otherStartIP = ipToNumber(otherAddress);
+            otherEndIP = otherStartIP + Math.pow(2, otherSubnetMaskBits) - 1;
+          }
+
+          if ( isIPv6 !== isOtherIPv6 ) continue;
+
+          if (startIP <= otherEndIP && otherStartIP <= endIP)
+          //if ( (isIPv6 ? startIP : BigInt(startIP)) <= (isOtherIPv6 ? otherEndIP: BigInt(otherEndIP)) 
+          //    && (isOtherIPv6 ? otherStartIP : BigInt(otherStartIP)) <= (isIPv6 ? endIP : BigInt(endIP)) )
+          {
+            // 存在重叠，记录重叠的 addr 值和索引
+            if (!overlaps[ippool]) {
+              overlaps[ippool] = [i];
+            }
+            overlaps[ippool].push(j);
+          }
+        }
+      }
+
+      if (formData.smf && formData.smf.subnet)
+      {
+        for (let key in overlaps) {
+          overlaps[key].forEach(index => 
+            errors.smf.subnet[index].addr.addError(`${key} is overlapped`));
+        }
+      }
+      else if (formData.upf && formData.upf.subnet)
+      {
+        for (let key in overlaps) {
+          overlaps[key].forEach(index => 
+            errors.upf.subnet[index].addr.addError(`${key} is overlapped`));
+        }
+      }
+    }
+
 /*
     if (formData.msisdn) {
       const { msisdn } = formData;
@@ -309,6 +408,68 @@ class Document extends Component {
         onError={handleError} />
     )
   }
+}
+
+function ipToNumber(ipAddress) {
+  const parts = ipAddress.split('.');
+  return (parts[0] << 24) + (parts[1] << 16) + (parts[2] << 8) + parseInt(parts[3]);
+}
+
+// 辅助函数：将 IPv4 地址转换为 32 位整数
+function ipToNumberV4(ipAddress) {
+  const parts = ipAddress.split('.');
+  let number = 0;
+  for (let i = 0; i < 4; i++) {
+    number += parseInt(parts[i]) << (24 - (8 * i));
+  }
+  return number;
+}
+
+// 辅助函数：将 IPv6 地址转换为整数
+function ipToHexV6(ipAddress) {
+  const parts = ipAddress.split(':');
+  let number = '';
+
+  for (let i = 0; i < 8; i++) {
+    const segment = parts[i] || '0000'; // 处理连续零位段
+    const zerosToAdd = 4 - segment.length;
+    const paddedSegment = '0'.repeat(zerosToAdd) + segment;
+    number += paddedSegment;
+  }
+
+  return number;
+}
+
+// 辅助函数：将 IPv6 地址转换为整数
+function ipToNumberV6(ipAddress) {
+  const parts = ipAddress.split(':');
+  let number = '';
+  for (let i = 0; i < 8; i++) {
+    const segment = parts[i] || '0000'; // 处理连续零位段
+    const zerosToAdd = 4 - segment.length;
+    const paddedSegment = '0'.repeat(zerosToAdd) + segment;
+    number += paddedSegment;
+  }
+
+  return BigInt(`0x${number}`);
+}
+
+// 判断地址池是否重叠
+function checkAddressOverlap(pool1, pool2) {
+  const [address1, subnet1] = pool1.split('/');
+  const [address2, subnet2] = pool2.split('/');
+
+  const startIP1 = ipToNumber(address1);
+  const endIP1 = startIP1 + Math.pow(2, 32 - parseInt(subnet1)) - 1;
+
+  const startIP2 = ipToNumber(address2);
+  const endIP2 = startIP2 + Math.pow(2, 32 - parseInt(subnet2)) - 1;
+
+  if (startIP1 <= endIP2 && startIP2 <= endIP1) {
+    return true; // 有重叠
+  }
+
+  return false; // 无重叠
 }
 
 Document = connect(

@@ -10,7 +10,15 @@ import { Alarm } from 'components';
 const os = require('os');
 const ip = os.hostname();
 //const ip = window.location.hostname
-
+let vistport = 3002
+fetch('/port.json')
+  .then(response => response.json())
+  .then(configData => {    
+    vistport=configData.grafanaport       
+  })
+  .catch(error => {
+    console.error('Error fetching config.json:', error);
+  });
 class Document extends Component {
   constructor(props) {
     super(props)
@@ -144,7 +152,7 @@ class Document extends Component {
               ):(<iframe
                 title="实时在线用户统计"  
                 //====实时在线用户统计===           
-                src={`http://${ip}:3002/d-solo/f8997824-d2b3-4caa-aa3a-6e7e408ce4a2/guage?orgId=1&refresh=5s&frameborder="0"&panelId=1&theme=light&from=${fromValue}&to=now&kiosk" `}
+                src={`http://${ip}:${vistport}/d-solo/f8997824-d2b3-4caa-aa3a-6e7e408ce4a2/guage?orgId=1&refresh=5s&frameborder="0"&panelId=1&theme=light&from=${fromValue}&to=now&kiosk" `}
                 style={{
                   width: '100%',
                   border: '10px',
@@ -181,7 +189,7 @@ class Document extends Component {
               ):(<iframe
               title="实时在线基站统计"   
               //====实时在线基站统计===          
-              src={`http://${ip}:3002/d-solo/f8997824-d2b3-4caa-aa3a-6e7e408ce4a2/guage?orgId=1&refresh=5s&panelId=2&theme=light&kiosk" `}
+              src={`http://${ip}:${vistport}/d-solo/f8997824-d2b3-4caa-aa3a-6e7e408ce4a2/guage?orgId=1&refresh=5s&panelId=2&theme=light&kiosk" `}
                   style={{ width: '12.8%', border: '10px', height: '300px',marginTop: '1px' }}
               sandbox="allow-same-origin allow-scripts allow-forms"
               scrolling="auto"
@@ -197,7 +205,7 @@ class Document extends Component {
               ):(<iframe
               title="每分钟注册请求数" 
               //====每分钟注册请求数统计===     
-              src={`http://${ip}:3002/d-solo/a3150b99-8d60-4909-88ef-8eed009ae06d/guage-copy-copy?orgId=1&refresh=5s&panelId=13&theme=light&from=${fromRegValue}&to=now&kiosk" `}     
+              src={`http://${ip}:${vistport}/d-solo/a3150b99-8d60-4909-88ef-8eed009ae06d/guage-copy-copy?orgId=1&refresh=5s&panelId=13&theme=light&from=${fromRegValue}&to=now&kiosk" `}     
               style={{ width: '100%', border: '10px', height: '300px' }}
               andbox="allow-same-origin allow-scripts  allow-forms"
               scrolling="auto"
@@ -224,7 +232,7 @@ class Document extends Component {
             ):(<iframe
             title="resg"        
             //====初始注册请求数===     
-            src={`http://${ip}:3002/d-solo/a3150b99-8d60-4909-88ef-8eed009ae06d/guage-copy-copy?orgId=1&refresh=5s&var-instance1=All&theme=light&panelId=11&from=${fromRegValue}&to=now&kiosk" `}     
+            src={`http://${ip}:${vistport}/d-solo/a3150b99-8d60-4909-88ef-8eed009ae06d/guage-copy-copy?orgId=1&refresh=5s&var-instance1=All&theme=light&panelId=11&from=${fromRegValue}&to=now&kiosk" `}     
             style={{ width: '13%', border: '10px', height: '300px' }}
             andbox="allow-same-origin allow-scripts  allow-forms"
             scrolling="auto"
@@ -236,7 +244,7 @@ class Document extends Component {
             ):(<iframe
             title="resg"        
             //====移动性注册请求数===  
-            src={`http://${ip}:3002/d-solo/a3150b99-8d60-4909-88ef-8eed009ae06d/guage-copy-copy?orgId=1&refresh=5s&var-instance1=All&theme=light&panelId=18&from=${fromRegValue}&to=now&kiosk" `}     
+            src={`http://${ip}:${vistport}/d-solo/a3150b99-8d60-4909-88ef-8eed009ae06d/guage-copy-copy?orgId=1&refresh=5s&var-instance1=All&theme=light&panelId=18&from=${fromRegValue}&to=now&kiosk" `}     
             style={{ width: '13%', border: '10px', height: '300px' }}
             andbox="allow-same-origin allow-scripts  allow-forms"
             scrolling="auto"
@@ -248,7 +256,7 @@ class Document extends Component {
             ):(<iframe
             title="resg"        
             //====周期注册请求数===  
-            src={`http://${ip}:3002/d-solo/a3150b99-8d60-4909-88ef-8eed009ae06d/guage-copy-copy?orgId=1&refresh=5s&var-instance1=All&theme=light&panelId=15&from=${fromRegValue}&to=now&kiosk" `}     
+            src={`http://${ip}:${vistport}/d-solo/a3150b99-8d60-4909-88ef-8eed009ae06d/guage-copy-copy?orgId=1&refresh=5s&var-instance1=All&theme=light&panelId=15&from=${fromRegValue}&to=now&kiosk" `}     
             style={{ width: '13%', border: '10px', height: '300px' }}
             andbox="allow-same-origin allow-scripts allow-forms"
             scrolling="auto"
@@ -266,7 +274,7 @@ class Document extends Component {
             ):(<iframe
                 title="resg"        
                 //====N3 Gtp转发===  
-                src={`http://${ip}:3002/d-solo/a3150b99-8d60-4909-88ef-8eed009ae06d/guage-copy-copy?orgId=1&refresh=5s&var-instance1=All&theme=light&panelId=19&from=${fromGtpValue}&to=now&kiosk" `}     
+                src={`http://${ip}:${vistport}/d-solo/a3150b99-8d60-4909-88ef-8eed009ae06d/guage-copy-copy?orgId=1&refresh=5s&var-instance1=All&theme=light&panelId=19&from=${fromGtpValue}&to=now&kiosk" `}     
                 style={{ width: '100%', border: '10px', height: '300px' }}
                 andbox="allow-same-origin allow-scripts  allow-forms"
                 scrolling="auto"
@@ -293,7 +301,7 @@ class Document extends Component {
             ):(<iframe
             title="resg"        
             //====N3 Gtp发送数据包=== 
-            src={`http://${ip}:3002/d-solo/a3150b99-8d60-4909-88ef-8eed009ae06d/guage-copy-copy?orgId=1&refresh=5s&var-instance1=All&theme=light&panelId=14&from=${fromGtpValue}&to=now&kiosk" `}     
+            src={`http://${ip}:${vistport}/d-solo/a3150b99-8d60-4909-88ef-8eed009ae06d/guage-copy-copy?orgId=1&refresh=5s&var-instance1=All&theme=light&panelId=14&from=${fromGtpValue}&to=now&kiosk" `}     
             style={{ width: '13%', border: '10px', height: '300px' }}
             andbox="allow-same-origin allow-scripts  allow-forms"
             scrolling="auto"
@@ -305,7 +313,7 @@ class Document extends Component {
             ):(<iframe
             title="resg"        
             //srcDoc=====N3 Gtp接收数据包=== 
-            src={`http://${ip}:3002/d-solo/a3150b99-8d60-4909-88ef-8eed009ae06d/guage-copy-copy?orgId=1&refresh=5s&var-instance1=All&theme=light&panelId=21&from=${fromGtpValue}&to=now&kiosk" `}     
+            src={`http://${ip}:${vistport}/d-solo/a3150b99-8d60-4909-88ef-8eed009ae06d/guage-copy-copy?orgId=1&refresh=5s&var-instance1=All&theme=light&panelId=21&from=${fromGtpValue}&to=now&kiosk" `}     
             style={{ width: '13%', border: '10px', height: '300px' }}
             andbox="allow-same-origin allow-scripts  allow-forms"
             scrolling="auto"
@@ -323,7 +331,7 @@ class Document extends Component {
                   id="myFrame1"
                   title="resg"        
                   //srcDoc =====运行时间=== 
-                  src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=15" width="450" height="200" frameborder="0"&kiosk" `}
+                  src={`http://${ip}:${vistport}/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=15" width="450" height="200" frameborder="0"&kiosk" `}
                   style={{ width: '100%', border: '10px', height: '100px' }}
                   sandbox="allow-same-origin allow-scripts allow-forms"
                   scrolling="auto"            
@@ -332,7 +340,7 @@ class Document extends Component {
                   id="myFrame2"
                   title="resg"        
                   //srcDoc=====核数=== 
-                  src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=14" width="450" height="200" frameborder="0"&kiosk" `}
+                  src={`http://${ip}:${vistport}/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=14" width="450" height="200" frameborder="0"&kiosk" `}
                   style={{ width: '100%', border: '10px', height: '100px' }}
                   sandbox="allow-same-origin allow-scripts allow-forms"
                   scrolling="auto"            
@@ -344,7 +352,7 @@ class Document extends Component {
                   id="myFrame3"
                   title="resg"        
                   //srcDoc=====总内存=== 
-                  src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=75" width="450" height="200" frameborder="0"&kiosk" `}
+                  src={`http://${ip}:${vistport}/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=75" width="450" height="200" frameborder="0"&kiosk" `}
                   style={{ width: '100%', border: '10px', height: '100px'  }}
                   sandbox="allow-same-origin allow-scripts allow-forms"
                   scrolling="auto"            
@@ -353,7 +361,7 @@ class Document extends Component {
                   id="myFrame4"
                   title="resg"        
                   //srcDoc=====IO WAIT=== 
-                  src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=20" width="450" height="200" frameborder="0"&kiosk" `}
+                  src={`http://${ip}:${vistport}/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=20" width="450" height="200" frameborder="0"&kiosk" `}
                   style={{ width: '100%', border: '10px', height: '100px' }}
                   sandbox="allow-same-origin allow-scripts allow-forms"
                   scrolling="auto"            
@@ -364,7 +372,7 @@ class Document extends Component {
                 id="myFrame5"
                 title="resg"        
                 //srcDoc=====使用率=== 
-                src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=177" width="450" height="200" frameborder="0"&kiosk" `}
+                src={`http://${ip}:${vistport}/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=177" width="450" height="200" frameborder="0"&kiosk" `}
                 style={{ width: '13%', border: '10px', height: '200px' }}
                 sandbox="allow-same-origin allow-scripts allow-forms"
                 scrolling="auto"            
@@ -374,7 +382,7 @@ class Document extends Component {
                 id="myFrame6"
                 title="resg"        
                 //srcDoc=====硬盘=== 
-                src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=181" width="250" height="200" frameborder="0"&kiosk" `}
+                src={`http://${ip}:${vistport}/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=181" width="250" height="200" frameborder="0"&kiosk" `}
                 style={{ width: '67%', border: '10px', height: '200px' }}
                 sandbox="allow-same-origin allow-scripts allow-forms"
                 scrolling="auto"            
@@ -383,7 +391,7 @@ class Document extends Component {
                 id="myFrame7"
                 title="resg"        
                 //srcDoc=====CPU使用率=== 
-                src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=7" width="450" height="200" frameborder="0"&kiosk" `}
+                src={`http://${ip}:${vistport}/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=7" width="450" height="200" frameborder="0"&kiosk" `}
                 style={{ width: '50%', border: '10px', height: '300px' }}
                 sandbox="allow-same-origin allow-scripts allow-forms"
                 scrolling="auto"            
@@ -392,7 +400,7 @@ class Document extends Component {
                 id="myFrame8"
                 title="resg"        
                 //srcDoc=====内存信息=== 
-                src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=156" width="450" height="200" frameborder="0"&kiosk" `}
+                src={`http://${ip}:${vistport}/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=156" width="450" height="200" frameborder="0"&kiosk" `}
                 style={{ width: '50%', border: '10px', height: '300px' }}
                 sandbox="allow-same-origin allow-scripts allow-forms"
                 scrolling="auto"            
@@ -401,7 +409,7 @@ class Document extends Component {
                 id="myFrame9"
                 title="resg"        
                 //srcDoc=====每小时流量ens33=== 
-                src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=183" width="450" height="200" frameborder="0"&kiosk" `}
+                src={`http://${ip}:${vistport}/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=183" width="450" height="200" frameborder="0"&kiosk" `}
                 style={{ width: '50%', border: '10px', height: '300px' }}
                 sandbox="allow-same-origin allow-scripts allow-forms"
                 scrolling="auto"            
@@ -410,7 +418,7 @@ class Document extends Component {
                 id="myFrame10"
                 title="resg"        
                 //srcDoc=====每秒网络带宽使用=== 
-                src={`http://${ip}:3002/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=157" width="450" height="200" frameborder="0"&kiosk" `}
+                src={`http://${ip}:${vistport}/d-solo/9CWBzd1f0bik001/linux?orgId=1&refresh=15s&theme=light&panelId=157" width="450" height="200" frameborder="0"&kiosk" `}
                 style={{ width: '50%', border: '10px', height: '300px' }}
                 sandbox="allow-same-origin allow-scripts allow-forms"
                 scrolling="auto"            

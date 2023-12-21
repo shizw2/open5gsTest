@@ -35,9 +35,9 @@ typedef enum {
 } ogs_sbi_tls_enabled_mode_e;
 
 
-//注意：在处理 YAML 数据时，YAML 库返回的字符串是由该库自己分配的内存，
-//当前代码中，许多字段直接使用了 YAML 的原始内存值（const char*），这样在每次重新读取 YAML 时老的value已经被释放，无法判断value是否变化。
-//如果要准确判断value是否有更改（比如更改时需要进一步处理，比如通知某进程等），则需要先复制一份副本(ogs_strdup)。
+//注意：在处理 YAML 数据时，YAML 库返回的value是由该库自己分配的内存，
+//当前代码中，许多字段直接使用了 YAML 的原始内存值（const char*），这样在每次重新读取 YAML 时老的value已经被释放，无法确定 value 是否发生更改。
+//如果要准确判断value是否有更改（比如value变化时需要进一步处理，比如通知某进程等），则需要先复制一份副本(ogs_strdup)。
 //如果不需要进行特殊处理，则目前const char*的方式也没啥问题
 
 typedef struct ogs_app_context_s {
