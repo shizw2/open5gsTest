@@ -523,9 +523,6 @@ int smf_context_parse_config(bool reloading)
                                 if (dns4num >= 2){
                                     ogs_warn("Ignore DNS : %s", v);
                                 }
-                                if (self.dns[dns4num] != NULL && strcmp(self.dns[dns4num],v) != 0 ){
-                                    ogs_info("DNS changed from %s to %s.", self.dns[dns4num], v);
-                                }
                                 self.dns[dns4num] = v;
                                 dns4num++;
                             }
@@ -537,9 +534,6 @@ int smf_context_parse_config(bool reloading)
                                 else self.dns6[0] = v;*/
                                 if (dns6num >= 2){
                                     ogs_warn("Ignore DNS : %s", v);
-                                }
-                                if (self.dns6[dns6num] != NULL && strcmp(self.dns6[dns6num],v) != 0 ){
-                                    ogs_info("DNS6 changed from %s to %s.", self.dns6[dns6num], v);
                                 }
                                 self.dns6[dns6num] = v;
                                 dns6num++;

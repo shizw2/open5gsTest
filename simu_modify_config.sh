@@ -26,7 +26,7 @@ for ((i=0; i<update_count; i++)); do
     # 判断是否需要 sleep
     if [ "$i" -lt "$((update_count-1))" ]; then
 	    echo "updateed $((i+1)) times, sleep 5s for another update."
-	sleep 5
+	sleep 3
     fi
 done
 
