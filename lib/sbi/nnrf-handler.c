@@ -945,6 +945,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
         if (!nf_instance) {           
             ogs_warn("[%s] (NRF-notify) NF Profile Changed, No Instance",
                     message.h.resource.component[1]);
+            ogs_sbi_header_free(&header);
             return false;
         } 
 

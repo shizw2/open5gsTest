@@ -1,15 +1,36 @@
-一、发布版本使用说明
+﻿一、发布版本使用说明
 1、配置tun口
+ubuntu：
 1.1  将99-5gc.netdev、99-5gc.network 拷贝至/etc/systemd/network
-1.2  执行 systemctl restart network(centos)/systemctl restart systemd-networkd(ubuntu) 重启网络即可创建ogstun设备
+1.2  执行 systemctl restart systemd-networkd 重启网络即可创建ogstun设备
+
+centos:
+1.1  将/home/5gc/misc/netconf.sh 放到/etc/rc.local 
 
 2、配置内部网元交互的子接口IP
-2.1   在/etc/rc.local文件中，添加如下代码：
-   /home/5gc/misc/udp_ini_conf.sh 实际网卡名称
-   
-  如 /home/5gc/misc/udp_ini_conf.sh ens160
-  
-2.2	 执行 systemctl restart rc-local 完成子接口IP配置
+ubuntu：
+1、在netplan下的yaml文件中添加128网段的IP，其中icps固定为128.128.128.127，sps的IP为128.128.128.no， no从1开始。
+如：
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    ens160:
+      dhcp4: no
+      addresses:
+        - 128.128.128.127/24
+        - 128.128.128.1/24
+修改完后执行netplan apply使之生效
+
+centos：
+1、在/etc/sysconfig/network-scripts/ifcfg-xxx中，添加128网段的IP。
+如：
+IPADDR1=128.128.128.127
+NETMASK1=255.255.255.0
+IPADDR2=128.128.128.1
+NETMASK2=255.255.255.0
+
+修改完后执行systemctl restart network使之生效
 
 注：Ubuntu默认未开启rc-local服务，可通过systemctl enable rc-local 开启rc-local。
 
