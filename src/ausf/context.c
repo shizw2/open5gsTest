@@ -79,7 +79,7 @@ static int ausf_context_validation(void)
     return OGS_OK;
 }
 
-bool isCfgChanged = false;
+bool is_nfinfo_changed = false;
 int ausf_context_parse_config(void)
 {
     int rv;
@@ -89,7 +89,7 @@ int ausf_context_parse_config(void)
     document = ogs_app()->document;
     ogs_assert(document);
     
-    isCfgChanged = false;
+    is_nfinfo_changed = false;
 
     rv = ausf_context_prepare();
     if (rv != OGS_OK) return rv;
@@ -159,7 +159,7 @@ int ausf_context_parse_config(void)
                                 ogs_yaml_iter_key(&info_iter);
                             ogs_assert(info_key);
                             if (!strcmp(info_key, "supi")) {
-                                isCfgChanged = ogs_sbi_context_parse_supi_ranges(&info_iter, &ausf_info->supiRanges); 
+                                is_nfinfo_changed = ogs_sbi_context_parse_supi_ranges(&info_iter, &ausf_info->supiRanges); 
                             } else if (!strcmp(info_key, "routing_indicator")) {
                                 ogs_yaml_iter_t routing_indicator_iter;
                                 int num_of_routing_indicator = 0;
@@ -186,7 +186,7 @@ int ausf_context_parse_config(void)
                                         if (ausf_info->routing_indicators[num_of_routing_indicator] != NULL){
                                             if ( strcmp(ausf_info->routing_indicators[num_of_routing_indicator],v) != 0){
                                                 ogs_info("routing_indicator changed from %s to %s.",ausf_info->routing_indicators[num_of_routing_indicator],v);
-                                                isCfgChanged = true;
+                                                is_nfinfo_changed = true;
                                             }
                                             ogs_info("routing_indicator %s already exit.",ausf_info->routing_indicators[num_of_routing_indicator]);
                                             ogs_free(ausf_info->routing_indicators[num_of_routing_indicator]);//先释放老的
@@ -364,7 +364,7 @@ int yaml_check_proc(void)
         needReRegister = true;
     }
     
-    if (isCfgChanged){
+    if (is_nfinfo_changed){
         needReRegister = true;
     }
     

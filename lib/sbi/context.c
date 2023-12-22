@@ -843,7 +843,7 @@ int ogs_sbi_context_parse_supi_ranges(ogs_yaml_iter_t *root_iter, ogs_supi_range
                     }
 
                     if (low[num_of_range] || high[num_of_range]) {
-                        num_of_range++;                                          
+                        num_of_range++;
                     }
                 } while (
                     ogs_yaml_iter_type(&range_iter) ==

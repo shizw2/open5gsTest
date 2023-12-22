@@ -299,8 +299,6 @@ int smf_context_parse_config(bool reloading)
 
     document = ogs_app()->document;
     ogs_assert(document);
-    
-    isCfgChanged = false;
 
     rv = smf_context_prepare();
     if (rv != OGS_OK) return rv;
@@ -646,7 +644,6 @@ int smf_context_parse_config(bool reloading)
 
                                     ogs_assert(num_of_slice <
                                             OGS_MAX_NUM_OF_SLICE);
-                                    ogs_info("num_of_slice:%d.",num_of_slice);
                                     s_nssai = &smf_info->slice[num_of_slice].
                                             s_nssai;
                                     ogs_assert(s_nssai);
