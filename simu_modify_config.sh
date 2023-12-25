@@ -1,6 +1,6 @@
 #!/bin/bash
 
-directory="/home/test/install/etc/5gc"
+directory="./install/etc/5gc"
 update_count=${1:-1}  # 命令行参数指定更新的次数，默认为1次
 
 for ((i=0; i<update_count; i++)); do
