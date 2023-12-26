@@ -1,15 +1,16 @@
 ﻿一、发布版本使用说明
 1、配置tun口
-ubuntu：
-1.1  将99-5gc.netdev、99-5gc.network 拷贝至/etc/systemd/network
-1.2  执行 systemctl restart systemd-networkd 重启网络即可创建ogstun设备
+1.1、使用systemd-networkd服务配置tun
+    a)将99-5gc.netdev、99-5gc.network 拷贝至/etc/systemd/network
+    b)执行 systemctl restart systemd-networkd 重启网络即可创建ogstun设备
 
-centos:
-1.1  将/home/5gc/misc/netconf.sh 放到/etc/rc.local 
+1.2、使用netconf.sh脚本配置tun
+    a)执行/home/5gc/misc/netconf.sh创建tun
+    b)将/home/5gc/misc/netconf.sh 放到/etc/rc.local, 系统启动时可自动创建tun
 
 2、配置内部网元交互的子接口IP
-ubuntu：
-1、在netplan下的yaml文件中添加128网段的IP，其中icps固定为128.128.128.127，sps的IP为128.128.128.no， no从1开始。
+2.1、ubuntu
+在/etc/netplan下的yaml文件中添加128网段的IP，其中icps固定为128.128.128.127，sps的IP为128.128.128.no， no从1开始。
 如：
 network:
   version: 2
@@ -22,8 +23,8 @@ network:
         - 128.128.128.1/24
 修改完后执行netplan apply使之生效
 
-centos：
-1、在/etc/sysconfig/network-scripts/ifcfg-xxx中，添加128网段的IP。
+2.2、centos
+在/etc/sysconfig/network-scripts/ifcfg-xxx中，添加128网段的IP。
 如：
 IPADDR1=128.128.128.127
 NETMASK1=255.255.255.0
