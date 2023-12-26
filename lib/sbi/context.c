@@ -1182,12 +1182,12 @@ static int check_supi_ranges(
 
             unsigned long long startNumber = strtoull(supi_ranges->supi_ranges[i].start, NULL, 10);
             unsigned long long endNumber = strtoull(supi_ranges->supi_ranges[i].end, NULL, 10);
-            ogs_info("check_supi_ranges,supiNumber:%llu, startNumber:%llu,endNumber:%llu.",supiNumber,startNumber,endNumber);
+            ogs_debug("check_supi_ranges,supiNumber:%llu, startNumber:%llu,endNumber:%llu.",supiNumber,startNumber,endNumber);
             
             if (supiNumber >= startNumber && supiNumber <= endNumber) {
                 int matchLength = startLength;
                 if (matchLength > bestMatchLength) {
-                    ogs_info("check_supi_ranges matched, supiNumber:%llu, startNumber:%llu,endNumber:%llu.",supiNumber,startNumber,endNumber);
+                    ogs_debug("check_supi_ranges matched, supiNumber:%llu, startNumber:%llu,endNumber:%llu.",supiNumber,startNumber,endNumber);
                     bestMatchLength = matchLength;                    
                 }
             }
@@ -1208,7 +1208,7 @@ void ogs_sbi_nf_instances_find_by_discovery_param(ogs_sbi_nf_instance_t *matched
     ogs_assert(requester_nf_type);
 
     ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
-        ogs_info("ogs_sbi_nf_instances_find_by_discovery_param,current_nf_type:%s,target_nf_type:%s,requester_nf_type:%s.",
+        ogs_debug("ogs_sbi_nf_instances_find_by_discovery_param,current_nf_type:%s,target_nf_type:%s,requester_nf_type:%s.",
         OpenAPI_nf_type_ToString(nf_instance->nf_type),
         OpenAPI_nf_type_ToString(target_nf_type),
         OpenAPI_nf_type_ToString(requester_nf_type));
@@ -1236,7 +1236,7 @@ void ogs_sbi_nf_instances_find_by_supi(ogs_sbi_nf_instance_t *matched_nf_instanc
     for (i = 0; i < *matched_nf_count; i++) {
         nf_instance = matched_nf_instances[i];
 
-        ogs_info("ogs_sbi_nf_instances_find_by_supi, nf_instance->nf_type:%s, supi:%s.", OpenAPI_nf_type_ToString(nf_instance->nf_type), supi_id);
+        ogs_debug("ogs_sbi_nf_instances_find_by_supi, nf_instance->nf_type:%s, supi:%s.", OpenAPI_nf_type_ToString(nf_instance->nf_type), supi_id);
 
         switch (nf_instance->nf_type) {
             case OpenAPI_nf_type_UDM:
@@ -1308,6 +1308,7 @@ void ogs_sbi_nf_instances_find_by_supi(ogs_sbi_nf_instance_t *matched_nf_instanc
 
     for (i = 0; i < tmp_matched_nf_count; i++) {
         matched_nf_instances[i] = tmp_matched_nf_instances[i];
+        //ogs_info("supi matched nf instances, nf_type:%s,id:%s.", OpenAPI_nf_type_ToString(matched_nf_instances[i]->nf_type),matched_nf_instances[i]->id);
     }
     *matched_nf_count = tmp_matched_nf_count;
 }
@@ -1356,7 +1357,7 @@ void ogs_sbi_nf_instances_find_by_routing_indicator(ogs_sbi_nf_instance_t *match
 
     if (*matched_nf_count > 0) {
         for (i = 0; i < *matched_nf_count; i++) {
-            ogs_info("matched_nf_instance, nf_type:%s.", OpenAPI_nf_type_ToString(matched_nf_instances[i]->nf_type));
+            //ogs_info("routing_indicator matched nf instances, nf_type:%s,id:%s.", OpenAPI_nf_type_ToString(matched_nf_instances[i]->nf_type),matched_nf_instances[i]->id);
         }
     } else {
         ogs_error("matched_nf_instance, no valid instance.");
@@ -1414,9 +1415,7 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_conditions(OpenAPI_nf_type_e 
         ogs_info("after ogs_sbi_nf_instances_find_by_routing_indicator,target_nf_type:%s ,routing_indicator:%s,matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type),routing_indicator, matched_nf_count);
     }
     
-    if (matched_nf_count == 1){
-        return matched_nf_instances[0];
-    }else if (matched_nf_count > 1){
+    if (matched_nf_count > 0){//考虑到匹配的nf可能capacity为0，
         return ogs_sbi_nf_instance_find_by_capacity(matched_nf_instances, matched_nf_count);
     }else {
         return NULL;
@@ -2040,7 +2039,7 @@ bool ogs_sbi_discovery_option_is_matched(
 
         ogs_list_for_each(&nf_instance->nf_service_list, nf_service) {
             for (i = 0; i < discovery_option->num_of_service_names; i++) {
-                ogs_info("nf_servcie name:%s, discovery_option->service_names:%s",nf_service->name,discovery_option->service_names[i]);
+                //ogs_info("nf_servcie name:%s, discovery_option->service_names:%s",nf_service->name,discovery_option->service_names[i]);
                 if (nf_service->name &&
                     discovery_option->service_names[i] &&
                     strcmp(nf_service->name,
