@@ -47,6 +47,7 @@ static void stats_remove_ran_ue(void);
 static void stats_add_amf_session(void);
 static void stats_remove_amf_session(void);
 
+
 void amf_context_init(void)
 {
     ogs_assert(context_initialized == 0);
@@ -1498,7 +1499,6 @@ ran_ue_t *ran_ue_add(amf_gnb_t *gnb, uint32_t ran_ue_ngap_id)
        ogs_error("Exceeded the licensed user(%d) limit(%.0f%%) . Please upgrade your license to accommodate additional users.",getLicenseUeNum(),(limitPercentage - 1) * 100);
        return NULL;
     }
-
 
     ogs_pool_alloc(&ran_ue_pool, &ran_ue);
     if (ran_ue == NULL) {
@@ -2955,6 +2955,28 @@ static void stats_remove_amf_session(void)
     amf_metrics_inst_global_dec(AMF_METR_GLOB_GAUGE_AMF_SESS);
     num_of_amf_sess = num_of_amf_sess - 1;
     ogs_info("[Removed] Number of AMF-Sessions is now %d", num_of_amf_sess);
+}
+
+// 创建全局变量来保存告警状态
+int license_alarm_state = -1;//默认是一个非法值。这样上电时可以先恢复告警
+void report_license_alarm(int license_state)
+{
+    if (license_state != license_alarm_state) {
+        if (license_state == LICENSE_STATE_SOON_TO_EXPIRE) {
+            // 触发了即将到期告警条件，设置告警状态为即将到期，并上报告警            
+            amf_metrics_inst_global_set(AMF_METR_GLOB_GAUGE_LICENSE_EXPIRING_ALARM, 1);
+            amf_metrics_inst_global_set(AMF_METR_GLOB_GAUGE_LICENSE_EXPIRED_ALARM, 0);
+        } else if (license_state == LICENSE_STATE_EXPIRED) {
+            // 触发了已到期告警条件，设置告警状态为已到期，并上报告警           
+            amf_metrics_inst_global_set(AMF_METR_GLOB_GAUGE_LICENSE_EXPIRING_ALARM, 0);
+            amf_metrics_inst_global_set(AMF_METR_GLOB_GAUGE_LICENSE_EXPIRED_ALARM, 1);
+        } else {
+            // 恢复了告警条件，设置告警状态为未过期，并上报告警恢复           
+            amf_metrics_inst_global_set(AMF_METR_GLOB_GAUGE_LICENSE_EXPIRING_ALARM, 0);
+            amf_metrics_inst_global_set(AMF_METR_GLOB_GAUGE_LICENSE_EXPIRED_ALARM, 0);
+        }
+        license_alarm_state = license_state;
+    }
 }
 
 static bool check_smf_info_s_nssai(

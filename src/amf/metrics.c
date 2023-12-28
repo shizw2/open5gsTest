@@ -150,6 +150,16 @@ amf_metrics_spec_def_t amf_metrics_spec_def_global[_AMF_METR_GLOB_MAX] = {
         .exp.factor = 2,
     },
 },
+[AMF_METR_GLOB_GAUGE_LICENSE_EXPIRING_ALARM] = {
+    .type = OGS_METRICS_METRIC_TYPE_GAUGE,
+    .name = "license_alarm",
+    .description = "license soon to expire.",
+},
+[AMF_METR_GLOB_GAUGE_LICENSE_EXPIRED_ALARM] = {
+    .type = OGS_METRICS_METRIC_TYPE_GAUGE,
+    .name = "license_alarm",
+    .description = "license expired.",
+},
 };
 int amf_metrics_init_inst_global(void)
 {

@@ -1844,7 +1844,7 @@ int ogs_pfcp_ue_pool_generate(void)
                 if (lastindex == 1)
                     ue_ip->addr[3] += htobe32(inc);
 
-                ogs_trace("[%d] - %x:%x:%x:%x",
+                ogs_info("[%d] - %x:%x:%x:%x",
                         poolindex,
                         ue_ip->addr[0], ue_ip->addr[1],
                         ue_ip->addr[2], ue_ip->addr[3]);

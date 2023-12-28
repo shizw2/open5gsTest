@@ -26,6 +26,8 @@ typedef enum amf_metric_type_global_s {
     AMF_METR_GLOB_CTR_MM_CONF_UPDATE,
     AMF_METR_GLOB_CTR_MM_CONF_UPDATE_SUCC,
     AMF_METR_GLOB_HIST_REG_TIME,
+    AMF_METR_GLOB_GAUGE_LICENSE_EXPIRING_ALARM,
+    AMF_METR_GLOB_GAUGE_LICENSE_EXPIRED_ALARM,
     _AMF_METR_GLOB_MAX,
 } amf_metric_type_global_t;
 extern ogs_metrics_inst_t *amf_metrics_inst_global[_AMF_METR_GLOB_MAX];
