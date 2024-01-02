@@ -838,9 +838,9 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                     getLicenseRunTime(),
                     getLicenseDurationTime(),
                     timestampToString(getLicenseExpireTime()));
-            report_license_alarm(license_state);
+            amf_metrics_report_license_alarm(license_state);
             if (license_state == LICENSE_STATE_SOON_TO_EXPIRE){
-                ogs_warn("license soon to expire.");                              
+                ogs_warn("license soon to expire.");
             }else if (license_state == LICENSE_STATE_EXPIRED){
                 ogs_fatal("license expired.");
                 exit(0);

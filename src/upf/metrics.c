@@ -2,6 +2,7 @@
 #include "context.h"
 
 #include "metrics.h"
+#include "license.h"
 
 typedef struct upf_metrics_spec_def_s {
     unsigned int type;
@@ -81,6 +82,16 @@ upf_metrics_spec_def_t upf_metrics_spec_def_global[_UPF_METR_GLOB_MAX] = {
     .type = OGS_METRICS_METRIC_TYPE_GAUGE,
     .name = "fivegs_upffunction_upf_sessionnbr",
     .description = "Active Sessions",
+},
+[UPF_METR_GLOB_GAUGE_LICENSE_EXPIRING_ALARM] = {
+    .type = OGS_METRICS_METRIC_TYPE_GAUGE,
+    .name = "license_expiring",
+    .description = "license soon to expire.",
+},
+[UPF_METR_GLOB_GAUGE_LICENSE_EXPIRED_ALARM] = {
+    .type = OGS_METRICS_METRIC_TYPE_GAUGE,
+    .name = "license_expired",
+    .description = "license expired.",
 },
 };
 int upf_metrics_init_inst_global(void)
@@ -314,6 +325,28 @@ void upf_metrics_inst_by_dnn_add(char *dnn,
 int upf_metrics_free_inst_by_dnn(ogs_metrics_inst_t **inst)
 {
     return upf_metrics_free_inst(inst, _UPF_METR_BY_DNN_MAX);
+}
+
+// 创建全局变量来保存告警状态
+int license_alarm_state = -1;//默认是一个非法值。这样上电时可以先恢复告警
+void upf_metrics_report_license_alarm(int license_state)
+{
+    if (license_state != license_alarm_state) {
+        if (license_state == LICENSE_STATE_SOON_TO_EXPIRE) {
+            // 触发了即将到期告警条件，设置告警状态为即将到期，并上报告警            
+            upf_metrics_inst_global_set(UPF_METR_GLOB_GAUGE_LICENSE_EXPIRING_ALARM, 1);
+            upf_metrics_inst_global_set(UPF_METR_GLOB_GAUGE_LICENSE_EXPIRED_ALARM, 0);
+        } else if (license_state == LICENSE_STATE_EXPIRED) {
+            // 触发了已到期告警条件，设置告警状态为已到期，并上报告警           
+            upf_metrics_inst_global_set(UPF_METR_GLOB_GAUGE_LICENSE_EXPIRING_ALARM, 0);
+            upf_metrics_inst_global_set(UPF_METR_GLOB_GAUGE_LICENSE_EXPIRED_ALARM, 1);
+        } else {
+            // 恢复了告警条件，设置告警状态为未过期，并上报告警恢复           
+            upf_metrics_inst_global_set(UPF_METR_GLOB_GAUGE_LICENSE_EXPIRING_ALARM, 0);
+            upf_metrics_inst_global_set(UPF_METR_GLOB_GAUGE_LICENSE_EXPIRED_ALARM, 0);
+        }
+        license_alarm_state = license_state;
+    }
 }
 
 void upf_metrics_init(void)

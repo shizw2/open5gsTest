@@ -1308,7 +1308,6 @@ void ogs_sbi_nf_instances_find_by_supi(ogs_sbi_nf_instance_t *matched_nf_instanc
 
     for (i = 0; i < tmp_matched_nf_count; i++) {
         matched_nf_instances[i] = tmp_matched_nf_instances[i];
-        //ogs_info("supi matched nf instances, nf_type:%s,id:%s.", OpenAPI_nf_type_ToString(matched_nf_instances[i]->nf_type),matched_nf_instances[i]->id);
     }
     *matched_nf_count = tmp_matched_nf_count;
 }

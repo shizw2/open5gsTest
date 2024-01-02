@@ -69,7 +69,7 @@ void amf_metrics_inst_by_cause_add(
 
 void amf_metrics_init(void);
 void amf_metrics_final(void);
-
+void amf_metrics_report_license_alarm(int license_state);
 #ifdef __cplusplus
 }
 #endif

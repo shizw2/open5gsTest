@@ -23,6 +23,7 @@
 #include "pfcp-path.h"
 #include "gtp-path.h"
 #include "ogs-app-timer.h"
+#include "license.h"
 
 void upf_state_initial(ogs_fsm_t *s, upf_event_t *e)
 {
@@ -48,6 +49,7 @@ void upf_state_operational(ogs_fsm_t *s, upf_event_t *e)
     ogs_pfcp_message_t *pfcp_message = NULL;
     ogs_pfcp_node_t *node = NULL;
     ogs_pfcp_xact_t *xact = NULL;
+    int license_state;
 
     upf_sm_debug(e);
 
@@ -109,6 +111,23 @@ void upf_state_operational(ogs_fsm_t *s, upf_event_t *e)
         ogs_assert(e);
 
         switch(e->timer_id) {
+        case OGS_TIMER_LICENSE_CHECK:
+            license_state = checkLicenseAfterRuntime(LICENSE_CHECK_INTERVAL,30);
+            ogs_info("license state:%s, runtime:%lu, durationtime:%lu, expireTime:%s.", 
+                    get_license_state_name(license_state),
+                    getLicenseRunTime(),
+                    getLicenseDurationTime(),
+                    timestampToString(getLicenseExpireTime()));
+            upf_metrics_report_license_alarm(license_state);
+            if (license_state == LICENSE_STATE_SOON_TO_EXPIRE){
+                ogs_warn("license soon to expire.");
+            }else if (license_state == LICENSE_STATE_EXPIRED){
+                ogs_fatal("license expired.");
+                exit(0);
+            }
+
+            license_check_restart();
+            break;
         case OGS_TIMER_YAML_CONFIG_CHECK:
             yaml_check_proc();
             ogs_yaml_check_restart();

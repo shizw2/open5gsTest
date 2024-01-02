@@ -15,6 +15,8 @@ typedef enum upf_metric_type_global_s {
     UPF_METR_GLOB_CTR_SM_N4SESSIONREPORT,
     UPF_METR_GLOB_CTR_SM_N4SESSIONREPORTSUCC,
     UPF_METR_GLOB_GAUGE_UPF_SESSIONNBR,
+    UPF_METR_GLOB_GAUGE_LICENSE_EXPIRING_ALARM,
+    UPF_METR_GLOB_GAUGE_LICENSE_EXPIRED_ALARM,
     _UPF_METR_GLOB_MAX,
 } upf_metric_type_global_t;
 extern ogs_metrics_inst_t *upf_metrics_inst_global[_UPF_METR_GLOB_MAX];
@@ -61,7 +63,7 @@ void upf_metrics_inst_by_dnn_add(
 
 void upf_metrics_init(void);
 void upf_metrics_final(void);
-
+void upf_metrics_report_license_alarm(int license_state);
 #ifdef __cplusplus
 }
 #endif

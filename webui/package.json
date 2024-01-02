@@ -46,7 +46,8 @@
     "redux-actions": "^2.4.0",
     "redux-saga": "^0.15.6",
     "styled-components": "^2.4.1",
-    "traverse": "^0.6.7"
+    "traverse": "^0.6.7",
+    "isomorphic-fetch": "^3.0.0"
   },
   "scripts": {
     "dev": "node server/index.js",

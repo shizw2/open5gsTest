@@ -786,6 +786,7 @@ static size_t write_cb(void *contents, size_t size, size_t nmemb, void *data)
     memcpy(&(conn->memory[conn->size]), contents, realsize);
     conn->size += realsize;
     conn->memory[conn->size] = 0;
+
     return realsize;
 }
 

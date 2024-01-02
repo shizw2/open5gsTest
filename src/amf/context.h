@@ -925,7 +925,7 @@ icps_ue_spsno_t* icps_ue_add(char *supi);
 icps_ue_spsno_t* icps_ue_find_by_supi(char *supi);
 icps_ue_spsno_t *icps_ue_cycle(icps_ue_spsno_t *icps_ue);
 void icps_ue_remove_all(void);
-void report_license_alarm(int license_state);
+
 #ifdef __cplusplus
 }
 #endif
