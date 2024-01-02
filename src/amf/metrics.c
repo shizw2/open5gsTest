@@ -153,12 +153,12 @@ amf_metrics_spec_def_t amf_metrics_spec_def_global[_AMF_METR_GLOB_MAX] = {
 },
 [AMF_METR_GLOB_GAUGE_LICENSE_EXPIRING_ALARM] = {
     .type = OGS_METRICS_METRIC_TYPE_GAUGE,
-    .name = "license_expiring",
+    .name = "alarm_expiring",
     .description = "license soon to expire.",
 },
 [AMF_METR_GLOB_GAUGE_LICENSE_EXPIRED_ALARM] = {
     .type = OGS_METRICS_METRIC_TYPE_GAUGE,
-    .name = "license_expired",
+    .name = "alarm_expired",
     .description = "license expired.",
 },
 };
