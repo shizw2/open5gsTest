@@ -43,7 +43,7 @@ static int amf_metrics_init_spec(ogs_metrics_context_t *ctx,
                 src[i].initial_val, src[i].num_labels, src[i].labels,
                 &src[i].histogram_params);
     }
-
+    printf("ok \r\n");
     return OGS_OK;
 }
 
@@ -152,12 +152,12 @@ amf_metrics_spec_def_t amf_metrics_spec_def_global[_AMF_METR_GLOB_MAX] = {
 },
 [AMF_METR_GLOB_GAUGE_LICENSE_EXPIRING_ALARM] = {
     .type = OGS_METRICS_METRIC_TYPE_GAUGE,
-    .name = "license_alarm",
+    .name = "alarm_expiring",
     .description = "license soon to expire.",
 },
 [AMF_METR_GLOB_GAUGE_LICENSE_EXPIRED_ALARM] = {
     .type = OGS_METRICS_METRIC_TYPE_GAUGE,
-    .name = "license_alarm",
+    .name = "alarm_expired",
     .description = "license expired.",
 },
 };
