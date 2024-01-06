@@ -827,12 +827,46 @@ int ogs_pfcp_setup_far_gtpu_node(ogs_pfcp_far_t *far)
             return OGS_ERROR;
         }
 
+#if defined(USE_DPDK)
+#warning "USE DPDK"
+        ogs_debug("USE DPDK");
+
+        // TODO: init gnode's addr
+        char buf[50];
+        ogs_sockaddr_t  *addr;
+
+        addr = gnode->sa_list;
+        while (addr) {
+            ogs_sock_t *sock = NULL;
+
+            if (addr->ogs_sa_family == AF_INET)
+                sock = ogs_gtp_self()->gtpu_sock;
+            else if (addr->ogs_sa_family == AF_INET6)
+                sock = ogs_gtp_self()->gtpu_sock6;
+            else
+                ogs_assert_if_reached();
+
+            memcpy(&gnode->addr, addr, sizeof gnode->addr);
+            break;
+        }
+
+        if (addr == NULL) {
+            ogs_log_message(OGS_LOG_WARN, ogs_socket_errno,
+                            "dpdk CP init gnode [%s]:%d failed",
+                            OGS_ADDR(gnode->sa_list, buf), OGS_PORT(gnode->sa_list));
+            return OGS_ERROR;
+       }
+
+#else
+#warning "NOT USE DPDK"
+        ogs_debug("NOT USE DPDK");
         rv = ogs_gtp_connect(
                 ogs_gtp_self()->gtpu_sock, ogs_gtp_self()->gtpu_sock6, gnode);
         if (rv != OGS_OK) {
             ogs_error("ogs_gtp_connect() failed");
             return rv;
         }
+#endif
     }
 
     OGS_SETUP_GTP_NODE(far, gnode);

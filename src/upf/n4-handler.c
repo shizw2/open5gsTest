@@ -21,6 +21,9 @@
 #include "pfcp-path.h"
 #include "gtp-path.h"
 #include "n4-handler.h"
+#if defined(USE_DPDK)
+#include "ctrl-path.h"
+#endif
 
 static void upf_n4_handle_create_urr(upf_sess_t *sess, ogs_pfcp_tlv_create_urr_t *create_urr_arr,
                               uint8_t *cause_value, uint8_t *offending_ie_value)
@@ -193,12 +196,23 @@ void upf_n4_handle_session_establishment_request(
                     OGS_PFCP_OBJ_SESS_TYPE, pdr, restoration_indication);
     }
 
+#if defined(USE_DPDK)
+//#warning "USE DPDK"
+    ogs_debug("dpdk CP upf_dpdk_sess_establish");
+    if (upf_dpdk_sess_establish(sess)) {
+        ogs_error("Error upf_dpdk_sess_establish()");
+        goto cleanup;
+    }
+#else
+//#warning "NOT USE DPDK"
     /* Send Buffered Packet to gNB/SGW */
+    ogs_debug("not use dpdk");
     ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
         if (pdr->src_if == OGS_PFCP_INTERFACE_CORE) { /* Downlink */
             ogs_pfcp_send_buffered_packet(pdr);
         }
     }
+#endif
 
     if (restoration_indication == true ||
         ogs_pfcp_self()->up_function_features.ftup == 0)
@@ -396,12 +410,19 @@ void upf_n4_handle_session_modification_request(
             ogs_pfcp_object_teid_hash_set(OGS_PFCP_OBJ_SESS_TYPE, pdr, false);
     }
 
+#if defined(USE_DPDK)
+    if (upf_dpdk_sess_modify(sess)) {
+        ogs_error("Error upf_dpdk_sess_modify()");
+        goto cleanup;
+    }
+#else
     /* Send Buffered Packet to gNB/SGW */
     ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
         if (pdr->src_if == OGS_PFCP_INTERFACE_CORE) { /* Downlink */
             ogs_pfcp_send_buffered_packet(pdr);
         }
     }
+#endif
 
     if (ogs_pfcp_self()->up_function_features.ftup == 0)
         ogs_assert(OGS_OK ==
@@ -438,6 +459,13 @@ void upf_n4_handle_session_deletion_request(
                 OGS_PFCP_CAUSE_SESSION_CONTEXT_NOT_FOUND, 0);
         return;
     }
+
+#if defined(USE_DPDK)
+    if (upf_dpdk_sess_delete(sess)) {
+        ogs_error("Error upf_dpdk_sess_delete()");
+    }
+#endif
+
     upf_pfcp_send_session_deletion_response(xact, sess);
 
     ogs_list_for_each(&sess->pfcp.qer_list, qer) {

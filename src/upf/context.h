@@ -100,7 +100,7 @@ typedef struct upf_sess_urr_acc_s {
 #define UPF_SESS(pfcp_sess) ogs_container_of(pfcp_sess, upf_sess_t, pfcp)
 typedef struct upf_sess_s {
     ogs_lnode_t     lnode;
-    ogs_pool_id_t   *upf_n4_seid_node;  /* A node of UPF-N4-SEID */
+    ogs_pool_id_t   *upf_n4_seid_node;  /* A node of UPF-N4-SEID */  //TODO: 确认是不是原来的index
 
     ogs_pfcp_sess_t pfcp;
 
@@ -117,8 +117,8 @@ typedef struct upf_sess_s {
     ogs_ipsubnet_t   *ipv4_framed_routes;
     ogs_ipsubnet_t   *ipv6_framed_routes;
 
-    char            *gx_sid;            /* Gx Session ID */
-    ogs_pfcp_node_t *pfcp_node;
+    char            *gx_sid;            /* Gx Session ID */ /* DPDK_UP_NO_USE */
+    ogs_pfcp_node_t *pfcp_node;         /* DPDK_UP_NO_USE */
 
     /* Accounting: */
     upf_sess_urr_acc_t urr_acc[OGS_MAX_NUM_OF_URR]; /* FIXME: This probably needs to be mved to a hashtable or alike */

@@ -85,6 +85,16 @@ libarp_nd_dep = declare_dependency(
     link_with : libarp_nd,
     dependencies : libtins_dep)
 
+#libnuma_dep = dependency('numa')
+libdl_dep = meson.get_compiler('c').find_library('dl', dirs : ['/usr/lib64'])
+
+cmd = run_command('sh', '-c', 'echo $RTE_SDK')
+RTE_SDK = cmd.stdout().strip()
+cmd = run_command('sh', '-c', 'echo $RTE_TARGET')
+RTE_TARGET = cmd.stdout().strip()
+
+libdpdk_dep = dependency('libdpdk')
+
 libupf = static_library('upf',
     sources : libupf_sources,
     dependencies : [
@@ -116,5 +126,65 @@ executable(project_name + '-upfd',
     c_args : '-DDEFAULT_CONFIG_FILENAME="@0@/upf.yaml"'.format(open5gs_sysconfdir),
     include_directories : srcinc,
     dependencies : libupf_dep,
+    install_rpath : libdir,
+    install : true)
+
+# ------------------ UPF DPDK VERSION ------------------
+libupf_dpdk_sources = libupf_sources + files('''
+    dpdk-arp-nd.h
+    dispatcher.c
+    forward.c
+    dpdk-arp-nd.c
+    upf-dpdk.h
+    ctrl-path.h
+    dpdk-path.h
+    hash.h
+    tw_timer.h
+    tw_timer.c
+    ctrl-path.c
+    dpdk-path.c
+    upf-dpdk.c
+'''.split())
+
+if get_option('release') == 'on'
+    c_args = ['-DVER_RELEASE', '-DUSE_DPDK',]
+else
+    c_args = ['-DUSE_DPDK',]
+endif
+
+libupf_dpdk = static_library('upf-dpdk',
+    sources : libupf_dpdk_sources,
+    c_args: c_args,
+    dependencies : [
+        libdpdk_dep,
+        libapp_dep,
+        libgtp_dep,
+        libpfcp_dpdk_dep,
+        libtun_dep,
+        libarp_nd_dep,
+        libmetrics_dep,
+    ],
+    install : false)
+
+libupf_dpdk_dep = declare_dependency(
+    link_with : libupf_dpdk,
+    c_args: c_args,
+    dependencies : [
+        libdpdk_dep,
+        libapp_dep,
+        libgtp_dep,
+        libpfcp_dpdk_dep,
+        libtun_dep,
+        libarp_nd_dep,  
+        #libnuma_dep,
+        libdl_dep,
+        libmetrics_dep,
+    ])
+
+executable('5gc-upf-dpdkd',
+    sources : upf_sources,
+    c_args : '-DDEFAULT_CONFIG_FILENAME="@0@/upf.yaml"'.format(open5gs_sysconfdir),
+    include_directories : srcinc,
+    dependencies : libupf_dpdk_dep,
     install_rpath : libdir,
     install : true)
