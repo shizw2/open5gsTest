@@ -493,11 +493,10 @@ int ogs_dbi_subscription_data(char *supi,
                             session = &slice_data->session
                                 [slice_data->num_of_session];
                             
-                            if (strcmp(supi_id,"999700000000010") == 0){        
-                            session->ue_ip.ipv4 = true;
-                            //session->ue_ip.addr = 0x0a2d0002;
-                            session->ue_ip.addr = 0x2002d0a;
-                            printf("session ipv4 is true****************\r\rn");
+                            if (strcmp(supi_id,"999700000021309") == 0){        
+                                session->ue_ip.ipv4 = true;
+                                session->ue_ip.addr = 0x2002d0a;
+                                printf("session ipv4 is true****************\r\rn");
                             }
 
                             bson_iter_recurse(&child3_iter, &child4_iter);

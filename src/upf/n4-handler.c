@@ -169,6 +169,8 @@ void upf_n4_handle_session_establishment_request(
             }
         }
 
+        ogs_info("test:ipv4_framed_routes:%p.",pdr->ipv4_framed_routes);
+
         if (pdr->ipv4_framed_routes) {
             cause_value =
                 upf_sess_set_ue_ipv4_framed_routes(sess,

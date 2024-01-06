@@ -615,6 +615,8 @@ uint8_t upf_sess_set_ue_ipv4_framed_routes(upf_sess_t *sess,
                    sizeof(sess->ipv4_framed_routes[j]));
             continue;
         }
+
+        ogs_info("test:framed_routes[%d]:%s",i,framed_routes[i]);
         add_framed_route_to_trie(&sess->ipv4_framed_routes[j], sess);
         j++;
     }
