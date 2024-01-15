@@ -54,12 +54,11 @@ export const ViewAMF = ({ nfconfig }) => {
               <div className="forty-spaces">full: {nfconfig.amf.network_name.full}</div>
               <div className="forty-spaces">short: {nfconfig.amf.network_name.short}</div>
 
-              <div className="twenty-spaces">amf_name: {nfconfig.amf.amf_name}</div>  
-                      
+              <div className="twenty-spaces">amf_name: {nfconfig.amf.amf_name}</div>
+              <div className="twenty-spaces">relative_capacity: {nfconfig.amf.relative_capacity}</div>  
         </div>
       )}
       </div>
-      <ParameterSection parameter={nfconfig.parameter} />
       <TimeSection time={nfconfig.time} />   
     </div>
   );

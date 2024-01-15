@@ -3193,7 +3193,7 @@ int smf_maximum_integrity_protected_data_rate_downlink_value2enum(
 int yaml_check_proc(void)
 {
     int rv;    
-    ogs_info("check yaml config.");
+    //ogs_info("check yaml config.");
 
     if (!osg_app_is_config_modified()) {
         return 0;//如果文件未修改,则返回

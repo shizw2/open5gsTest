@@ -1822,10 +1822,7 @@ int ogs_pfcp_ue_pool_generate(void)
         for (i = 0; i < 4; i++) {
             broadcast[i] = subnet->sub.sub[i] + ~subnet->sub.mask[i];
         }
-        ogs_info("broadcast - %x:%x:%x:%x",
-                        broadcast[0], broadcast[1],
-                        broadcast[2], broadcast[3]);
-                        
+
         num_of_range = subnet->num_of_range;
         if (!num_of_range) num_of_range = 1;
 
@@ -1852,13 +1849,7 @@ int ogs_pfcp_ue_pool_generate(void)
             } else {
                 memcpy(end, broadcast, maxbytes);
             }
-            
-            ogs_info("start - %x:%x:%x:%x",
-                        start[0], start[1],
-                        start[2], start[3]);
-            ogs_info("start - %x:%x:%x:%x",
-                        end[0], end[1],
-                        end[2], end[3]);
+
             inc = 0;
             while(poolindex < ogs_app()->pool.sess) {
                 ogs_pfcp_ue_ip_t *ue_ip = NULL;
@@ -1896,7 +1887,6 @@ int ogs_pfcp_ue_pool_generate(void)
             }
         }
         subnet->pool.size = subnet->pool.avail = poolindex;
-        ogs_info("subnet->pool.size:%d",subnet->pool.size);
     }
 
     return OGS_OK;
@@ -1953,9 +1943,6 @@ ogs_pfcp_ue_ip_t *ogs_pfcp_ue_ip_alloc(
         ue_ip->subnet = subnet;
         ue_ip->static_ip = true;
         memcpy(ue_ip->addr, addr, maxbytes);
-        
-        ogs_info("static ueip:%x:%x:%x:%x",ue_ip->addr[0], ue_ip->addr[1],
-                        ue_ip->addr[2], ue_ip->addr[3]);
     } else {
         ogs_pool_alloc(&subnet->pool, &ue_ip);
         if (!ue_ip) {
@@ -1963,8 +1950,6 @@ ogs_pfcp_ue_ip_t *ogs_pfcp_ue_ip_alloc(
             *cause_value = OGS_PFCP_CAUSE_NO_RESOURCES_AVAILABLE;
             return NULL;
         }
-        ogs_info("dyn ueip:%x:%x:%x:%x",ue_ip->addr[0], ue_ip->addr[1],
-                        ue_ip->addr[2], ue_ip->addr[3]);
     }
 
     return ue_ip;
