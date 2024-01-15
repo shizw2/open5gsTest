@@ -503,6 +503,7 @@ static uint32_t set_n3_addr(void)
     ogs_list_for_each(&ogs_gtp_self()->gtpu_list, node) {
         if (node->addr->sin.sin_family == AF_INET) {
             dkuf.n3_addr = *(uint32_t *)&node->addr->sin.sin_addr;
+            ogs_info("n3_addr:%s",ip2str(dkuf.n3_addr));            
         } else if (node->addr->sin6.sin6_family == AF_INET6) {
             memcpy(dkuf.n3_addr6, &node->addr->sin6.sin6_addr, 16);
         }
@@ -901,7 +902,7 @@ int upf_dpdk_init(void)
     for (portid = 0; portid < nb_ports; portid++) {
         port_init(portid);
     }
-
+    ogs_info("upf_dpdk_init sucess.");
     return OGS_OK;
 }
 
@@ -925,6 +926,7 @@ int upf_dpdk_run(void)
 
 int upf_dpdk_open(void)
 {
+    
     upf_dpdk_init();
     upf_dpdk_run();
 

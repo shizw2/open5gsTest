@@ -37,6 +37,7 @@ static int copy_pfcp_pdr(ogs_pfcp_pdr_t *new, ogs_pfcp_pdr_t *old, ogs_pfcp_sess
     int flow;
     ogs_pfcp_rule_t *rule;
     ogs_pfcp_rule_t *new_rule;
+    int i;
 
     memcpy(new, old, sizeof(ogs_pfcp_pdr_t));
 
@@ -46,9 +47,17 @@ static int copy_pfcp_pdr(ogs_pfcp_pdr_t *new, ogs_pfcp_pdr_t *old, ogs_pfcp_sess
     }
 
     //TODO:urr变为数组了
-    if (old->urr) {
-        new->urr[0] = dpdk_malloc(sizeof(ogs_pfcp_urr_t));
-        copy_pfcp_urr(new->urr[0], old->urr[0], pfcp_sess);
+    //if (old->urr) {
+    //    new->urr[0] = dpdk_malloc(sizeof(ogs_pfcp_urr_t));
+    //    copy_pfcp_urr(new->urr[0], old->urr[0], pfcp_sess);
+    //}
+    ogs_info("old->num_of_urr:%d.",old->num_of_urr);
+    if (old->num_of_urr > 0) {
+        for (i = 0; i < old->num_of_urr; i++){
+            new->urr[i] = dpdk_malloc(sizeof(ogs_pfcp_urr_t));
+            copy_pfcp_urr(new->urr[i], old->urr[i], pfcp_sess);
+        }
+        new->num_of_urr = old->num_of_urr;
     }
 
     if (old->qer) {
@@ -315,10 +324,13 @@ int upf_dpdk_loop_event(void) {
     int i, ret;
     struct dpdk_upf_s *dpdk_context = upf_dpdk_context();
     upf_dpdk_event_t *event = NULL;
+    
+    //ogs_info("upf_dpdk_loop_event, pktnum:%d.",dpdk_context->fwd_num);
 
     for (i = 0; i < dpdk_context->fwd_num; i++) {
         for (;;) {
             ret = rte_ring_dequeue(dpdk_context->f2p_ring[i], (void **) &event);
+            //ogs_info("upf_dpdk_loop_event, ret:%d.",ret);
             if (ret)
                 break;
             handle_event(event);
