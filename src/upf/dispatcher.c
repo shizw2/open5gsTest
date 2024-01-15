@@ -295,9 +295,10 @@ dpt_decode_icmp(struct rte_mbuf *m, struct packet *pkt,
         struct mbuf_table *free, struct rte_ipv4_hdr *ipv4_h)
 {
     struct rte_icmp_hdr *icmp_h = (struct rte_icmp_hdr *)((char *)ipv4_h + pkt->l3_len);
-
+    ogs_info("dpt_decode_icmp, ipv4_h->dst_addr %s, m->port :%d, icmp_type:%d.",ip2str(ipv4_h->dst_addr), m->port,icmp_h->icmp_type);
     // TODO: Test for N6 ping UE, will be removed when NAT implemented.
     if (m->port && match_self_addr(ipv4_h->dst_addr, m->port) != OGS_OK) {
+        ogs_info("dpt_decode_icmp, is is an N6 pkt,ipv4_h->dst_addr %s",ip2str(ipv4_h->dst_addr));
         pkt->pkt_type = PKT_TYPE_IP_N6;
         return ntohl(ipv4_h->dst_addr) % dkuf.fwd_num;
     }
@@ -314,6 +315,7 @@ dpt_decode_icmp(struct rte_mbuf *m, struct packet *pkt,
         return -1;
     }
 
+    ogs_info("dpt_decode_icmp, receive icmp request,ipv4_h->src_addr %s,ipv4_h->dst_addr %s",ip2str(ipv4_h->src_addr),ip2str(ipv4_h->dst_addr));
     pkt->pkt_type = PKT_TYPE_PING;
     return ntohl(ipv4_h->src_addr) % dkuf.fwd_num;
 }
@@ -435,6 +437,7 @@ static int dpt_decap_pak(struct lcore_conf *lconf, struct rte_mbuf **mp, struct 
     struct ipv6_extension_fragment *frag_hdr;
     struct rte_ipv6_hdr *ipv6_h;
 
+    //ogs_info("test:eth_type:%d.",eth_type);
     if (eth_type == BE_ETH_P_IP) {
         pkt->is_ipv4 = 1;
         ipv4_h = (struct rte_ipv4_hdr *)l3_head;
@@ -454,7 +457,7 @@ static int dpt_decap_pak(struct lcore_conf *lconf, struct rte_mbuf **mp, struct 
             remain_len = m->data_len - (ptr - rte_pktmbuf_mtod(m, char *));
         }
         if (IPPROTO_ICMP == proto) {
-            return dpt_decode_icmp(m, pkt, free, ipv4_h);
+            return dpt_decode_icmp(m, pkt, free, ipv4_h);  //TODO:处理不对，应答报文被丢弃
         }
     } else if (eth_type == BE_ETH_P_IPV6) {
         pkt->is_ipv4 = 0;
@@ -543,6 +546,7 @@ static int dpt_decap_pak(struct lcore_conf *lconf, struct rte_mbuf **mp, struct 
             }
         }
         pkt->pkt_type = PKT_TYPE_IP_N3;
+        ogs_info("receie an PKT_TYPE_IP_N3 pkt.");
         if (pkt->is_ipv4) {
             ring = ntohl((*(uint32_t *)(ptr + 12 + portid * 4))) % dkuf.fwd_num;
         } else {
@@ -612,14 +616,14 @@ int dpt_main_loop(void *arg)
     while (!dkuf.stopFlag) {
         nb_rx = rte_eth_rx_burst(0, queueid, pkts_burst, MAX_PKT_BURST);
         if (nb_rx) {
-            //printf("lcore %d port 0 queue %d recv cnt %d\n", lcore_id, queueid, nb_rx);
+            //ogs_info("lcore %d port 0 queue %d recv cnt %d\n", lcore_id, queueid, nb_rx);
             lconf->lstat.rx[0] += nb_rx;
             dpt_pkts(lconf, pkts_burst, nb_rx, 0);
         }
 
         nb_rx = rte_eth_rx_burst(1, queueid, pkts_burst, MAX_PKT_BURST);
         if (nb_rx) {
-            //printf("lcore %d port 1 queue %d recv cnt %d\n", lcore_id, queueid, nb_rx);
+            //ogs_info("lcore %d port 1 queue %d recv cnt %d\n", lcore_id, queueid, nb_rx);
             lconf->lstat.rx[1] += nb_rx;
             dpt_pkts(lconf, pkts_burst, nb_rx, 1);
         }
