@@ -1789,17 +1789,16 @@ static void free_ausf_info(OpenAPI_ausf_info_t *AusfInfo)
 {        
     ogs_assert(AusfInfo);
     OpenAPI_lnode_t *node = NULL;
-    
-    if (AusfInfo->supi_ranges)
-        free_supi_ranges(AusfInfo->supi_ranges);
-    ogs_free(AusfInfo);
-    
-   
+      
     OpenAPI_list_for_each( AusfInfo->routing_indicators, node) {
         ogs_info("free %s.",(char*)node->data);
         ogs_free(node->data);
     }
     OpenAPI_list_free(AusfInfo->routing_indicators);
+    
+    if (AusfInfo->supi_ranges)
+        free_supi_ranges(AusfInfo->supi_ranges);
+    ogs_free(AusfInfo);
 }
 
 ogs_sbi_request_t *ogs_nnrf_nfm_build_update(void)
