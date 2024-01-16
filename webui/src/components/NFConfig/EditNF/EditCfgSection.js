@@ -463,6 +463,19 @@ export const nrfUiSchema = {
   },
 };
 
+export const relative_capSchema = {
+  type: "number",
+  title: "Relative Capacity",
+  minimum: 0,
+  maximum: 100,
+  default: 100, 
+}
+
+export const relative_capUiSchema = {
+  classNames: "col-xs-6",
+  "ui:title": <CustomTitle18Border39 title="Relative Capacity" />,
+}
+
 export const paraSchema = {
   type: "object",
   title:"Parameter",
@@ -487,7 +500,7 @@ export const paraUiSchema = {
 
 export const nf_sbi_Schema = {
   type: "array",
-  title:"SBI Interface",
+  title: "SBI Interface",
   "minItems": 1,
   "maxItems": 4,
   "messages": {
@@ -1296,7 +1309,8 @@ export const gtpuSchema = {
         messages: {
           "anyOf": "IPv4 or IPv6 allowed"
         },
-        default: "127.0.0.5"
+        //default: "127.0.0.5"
+        required: true,
       },
     }
   }
@@ -1327,6 +1341,12 @@ const subnetipv6Regex = /^([a-f0-9]{1,4}(:[a-f0-9]{1,4}){7}|[a-f0-9]{1,4}(:[a-f0
 export const subnetSchema = {
   type: "array",
   title: "UE IP Pool",
+  "minItems": 1,
+  "maxItems": 16,
+  "messages": {
+    "minItems": "At least 1 subnet is required",
+    "maxItems": "16 subnets are supported"
+  },
   items: {
     type: "object",
     properties: {
@@ -1335,10 +1355,10 @@ export const subnetSchema = {
         title: "Subnet",
         anyOf: [
           { pattern: subnetipv4Regex.source },
-          { pattern: subnetipv6Regex.source }
+          { pattern: subnetipv6Regex.source },
         ],
         messages: {
-          "anyOf": "IPv4 or IPv6 allowed"
+          "anyOf": "IPv4 or IPv6 subnet allowed"
         },
         default: "10.45.0.1/16",
         required: true,
@@ -1346,17 +1366,15 @@ export const subnetSchema = {
       dnn: {
         type: "string",
         title: "DNN",
-      },
+      }
     }
   }
 };
 
 export const subnetUiSchema = {
   classNames: "col-xs-12",
-  //删除无用代码,反而有层次感
   "ui:title": <CustomTitle18 title="UE IP Pool" />,
   items: {
-    //classNames: "col-xs-12",
     addr: {
       classNames: "col-xs-6",
       "ui:placeholder": "ipv4/v6 subnet address",
@@ -1364,7 +1382,7 @@ export const subnetUiSchema = {
     dnn: {
       classNames: "col-xs-6",
     }
-  }  
+  }
 };
 
 export const dnsSchema = {
@@ -1907,9 +1925,10 @@ export const supiRangeInfoSchema = {
             maxLength: 31,
             pattern: /^(\d+-\d+)$/,
             messages: {
-              pattern: "Format like 990-999 or 46001-46002",
-              type: "Format like 990-999 or 46001-46002",
+              pattern: "Format: x1...xn-y1...yn; xn, yn is digit; n<15; like 46001-46009",
+              type: "Format: x1...xn-y1...yn; xn, yn is digit; n<15; like 46001-46009",
             },
+            required: true,
           },
         },
       }

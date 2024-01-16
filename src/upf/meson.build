@@ -168,7 +168,7 @@ libupf_dpdk = static_library('upf-dpdk',
 
 libupf_dpdk_dep = declare_dependency(
     link_with : libupf_dpdk,
-    c_args: c_args,
+    #c_args: c_args,
     dependencies : [
         libdpdk_dep,
         libapp_dep,

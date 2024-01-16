@@ -53,8 +53,8 @@ const struct testlist {
     {test_ue_context},
     {test_reset},
 #endif
-#if 1
-    //{test_multi_ue},
+#if 0
+    {test_multi_ue},
 #endif
 
     //{single_ue_multi_test},
