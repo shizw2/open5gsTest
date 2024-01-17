@@ -546,7 +546,7 @@ static int dpt_decap_pak(struct lcore_conf *lconf, struct rte_mbuf **mp, struct 
             }
         }
         pkt->pkt_type = PKT_TYPE_IP_N3;
-        ogs_info("receie an PKT_TYPE_IP_N3 pkt.");
+        //ogs_info("receie an PKT_TYPE_IP_N3 pkt.");
         if (pkt->is_ipv4) {
             ring = ntohl((*(uint32_t *)(ptr + 12 + portid * 4))) % dkuf.fwd_num;
         } else {

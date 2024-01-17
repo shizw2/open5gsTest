@@ -520,7 +520,8 @@ void arp_req_init(uint16_t portid)
     struct rte_arp_hdr *arp_h = (struct rte_arp_hdr *)(eth_h + 1);
      
     rte_eth_macaddr_get(portid, &eth_h->s_addr);
-
+    ogs_info("port:%d, mac:%s.",portid,mac2str(&eth_h->s_addr));
+    
     memset(&eth_h->d_addr, 0xFF, RTE_ETHER_ADDR_LEN);
     eth_h->ether_type = rte_cpu_to_be_16(RTE_ETHER_TYPE_ARP);
 

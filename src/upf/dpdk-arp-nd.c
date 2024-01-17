@@ -71,6 +71,7 @@ dkuf_alloc_ns(uint16_t portid, void *dip)
     struct nd_msg *na = (struct nd_msg *)((char *)ipv6_h + 40);
      
     rte_eth_macaddr_get(portid, &eth_h->s_addr);
+    ogs_info("port:%d, mac:%s.",portid,mac2str(&eth_h->s_addr));
     eth_h->ether_type = BE_ETH_P_IPV6;
      
     ipv6_h->vtc_flow = htonl(0x60000000);

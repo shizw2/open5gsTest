@@ -37,7 +37,7 @@ int32_t handle_arp(struct lcore_conf *lconf, struct rte_mbuf *m)
         arp = arp_create(lconf->arp_tbl, sip, m->port);
     }
 
-    ogs_debug("find arp %s, flag %d\n", ip2str(arp_data->arp_sip), arp->flag);
+    ogs_debug("find arp, ip:%s, mac:%s, flag %d\n", ip2str(arp_data->arp_sip), mac2str((struct rte_ether_addr *)arp->mac), arp->flag);
     if (!mac_cmp((char *)arp->mac, (char *)&arp_h->arp_data.arp_sha)) {
         mac_copy(&arp_h->arp_data.arp_sha, (struct rte_ether_addr *)arp->mac);
         ogs_debug("update arp mac\n");
@@ -252,7 +252,7 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
 
         handle_gpdu_prepare(m);
         
-        ogs_info("far->dst_if:%d.",far->dst_if);
+        //ogs_info("far->dst_if:%d.",far->dst_if);
 
         if (far->dst_if == OGS_PFCP_INTERFACE_CORE) {
             return process_dst_if_interface_core(lconf, m, in_l3_head);
