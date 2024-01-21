@@ -52,7 +52,25 @@ const Wrapper = styled.div`
   padding: ${props => props.padding || '2rem'};
 `
 
-const Spinner = ({ sm, md, lg, color, align, padding }) => (
+const UnFilteredSpinner = ({ sm, md, lg, color, align, padding }) => (
+  <Wrapper align={align} padding={padding}>
+    <Circle color={color}>
+      <CircleInner />
+    </Circle>
+  </Wrapper>
+);
+
+const Spinner = styled(UnFilteredSpinner).withConfig({
+  shouldForwardProp: prop =>
+    prop !== 'sm' &&
+    prop !== 'md' &&
+    prop !== 'lg',
+})``;
+/*
+const Spinner = ({ sm, md, lg, color, align, padding }) => {
+  console.log('small:', sm);
+  console.log('medium:', md);
+  return (
   <Wrapper align={align} padding={padding}>
     <Circle
       small={sm}
@@ -67,8 +85,9 @@ const Spinner = ({ sm, md, lg, color, align, padding }) => (
       />
     </Circle>
   </Wrapper>
-);
-
+  );
+};
+*/
 Spinner.propTypes = {
   sm: PropTypes.bool,
   md: PropTypes.bool,

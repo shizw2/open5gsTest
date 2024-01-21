@@ -35,7 +35,7 @@ const Menu = styled.div`
   background-color: ${oc.indigo[5]};
   box-shadow: 3px 3px 6px rgba(0,0,0,0.1), 3px 3px 6px rgba(0,0,0,0.2);
 `;
-
+const FilteredMenu = styled(Menu).withConfig({ shouldForwardProp: prop => prop !== 'visible' })``;
 const StyledItem = styled.div`
   display: flex;
   align-items: center;
@@ -54,7 +54,7 @@ const StyledItem = styled.div`
     background: ${p => p.active ? oc.indigo[7] : oc.indigo[6]};
   }
 `;
-
+const FilteredStyledItem = styled(StyledItem).withConfig({ shouldForwardProp: prop => prop !== 'active' })``;
 const Icon = styled.div`
   display: inline-flex;
   padding-left: 1rem;
@@ -67,11 +67,11 @@ const Title = styled.div`
 `;
 
 const Item = ({ children, selected, name, onSelect }) => (
-  <StyledItem
+  <FilteredStyledItem
     onClick={() => onSelect(name)}
     active={name===selected}>
     {children}
-  </StyledItem>
+  </FilteredStyledItem>
 )
 
 const propTypes = {
@@ -91,7 +91,7 @@ const SubMenu = styled.div`
 
 
 const Sidebar = ({ isOpen, width, selectedView, onSelectView }) => (
-  <Menu visible={isOpen} width={width}>
+  <FilteredMenu visible={isOpen} width={width}>
     <Item name="nfconfig" selected={selectedView} onSelect={onSelectView}>
       <Icon><ConfigIcon/></Icon>
       <Title>{properties.base_nfconfig}</Title>
@@ -128,7 +128,7 @@ const Sidebar = ({ isOpen, width, selectedView, onSelectView }) => (
       <Icon><AccountIcon/></Icon>
       <Title>{properties.base_account}</Title>
     </Item>
-  </Menu>
+  </FilteredMenu>
 )
 
 Sidebar.propTypes = propTypes;

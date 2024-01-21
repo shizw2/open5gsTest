@@ -50,7 +50,7 @@ class App extends Component {
       this.handleLogout(createOmmlog);
     }, 300000); // 设置5分钟的定时器，超过5分钟未操作则执行退出登录操作
   };
-  componentWillMount() {
+  componentDidMount() {
     const { 
       width,
       SidebarActions

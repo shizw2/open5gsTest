@@ -71,6 +71,7 @@ class List extends Component {
     this.state = {
       currentPage: 1,
     };
+    this.checkFirstPage(this.props.oprlogs);
   }
 
   itemsPerPage = 10;
@@ -95,17 +96,26 @@ class List extends Component {
     const totalPages = Math.ceil(oprlogs.length / this.itemsPerPage);
     this.setState({ currentPage: totalPages });
   };
-
+/*
   componentWillMount() {
     this.checkFirstPage(this.props.oprlogs);
   }
-
+*/
+  componentDidMount() {
+    this.checkFirstPage(this.props.oprlogs);
+  }
+  /*
   componentWillReceiveProps(nextProps) {
     if (nextProps.oprlogs !== this.props.oprlogs) {
       this.checkFirstPage(nextProps.oprlogs);
     }
   }
-
+*/
+  componentDidUpdate(prevProps) {
+    if (prevProps.oprlogs !== this.props.oprlogs) {
+      this.checkFirstPage(this.props.oprlogs);
+    }
+  }
   checkFirstPage(oprlogs) {
     const { currentPage } = this.state;
     if (currentPage !== 1) {

@@ -39,7 +39,7 @@ const Confirm = ({ visible, onOutside, message, buttons }) => {
     .map(button =>
       <Button
         key={button.text}
-        clear={true}
+        clear={`${true}`}
         danger={button.danger === true} 
         info={button.info === true} 
         onClick={button.action}>

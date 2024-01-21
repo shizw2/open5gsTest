@@ -37,13 +37,9 @@ class Collection extends Component {
    
     return (
       <Layout.Content>     
-          
         <Document 
-          { ...document }
-          
-          />
-        
-        
+          { ...document }          
+          />        
       </Layout.Content>
     )
   }

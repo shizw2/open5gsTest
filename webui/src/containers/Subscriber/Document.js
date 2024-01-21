@@ -59,6 +59,17 @@ const formData = {
 }
 
 class Document extends Component {
+  constructor(props) {
+    super(props);
+    const { subscribers,  profiles, dispatch } = props
+
+    if (subscribers.needsFetch) {
+      dispatch(subscribers.fetch)
+    }
+    if (profiles.needsFetch) {
+      dispatch(profiles.fetch)
+    }
+  }
   static propTypes = {
     action: PropTypes.string,
     visible: PropTypes.bool, 
@@ -68,7 +79,7 @@ class Document extends Component {
   state = {
     formData
   }
-
+/*
   componentWillMount() {
     const { subscriber, profiles, dispatch } = this.props
 
@@ -79,7 +90,18 @@ class Document extends Component {
       dispatch(profiles.fetch)
     }
   }
+*/
+  componentDidMount() {
+    const { subscribers,  profiles, dispatch } = this.props
 
+    if (subscribers.needsFetch) {
+      dispatch(subscribers.fetch)
+    }
+    if (profiles.needsFetch) {
+      dispatch(profiles.fetch)
+    }
+  }
+  /*
   componentWillReceiveProps(nextProps) {
     const { subscriber, profiles, status } = nextProps
     const { dispatch, action, onHide } = this.props
@@ -172,7 +194,99 @@ class Document extends Component {
       dispatch(clearActionStatus(MODEL, action));
     }
   }
+*/
+  componentDidUpdate(prevProps) {
+    const { subscriber, profiles, status, dispatch, action, onHide } = this.props;
 
+    if (subscriber.needsFetch && !prevProps.subscriber.needsFetch) {
+      dispatch(subscriber.fetch);
+    }
+
+    if (profiles.needsFetch && !prevProps.profiles.needsFetch) {
+      dispatch(profiles.fetch);
+    }
+
+    if (subscriber.data && subscriber.data!== prevProps.subscriber.data) {
+      // Mongoose library has a problem for 64bit-long type
+      //
+      //   FETCH : the library returns 'Number' type for 64bit-long type
+      //   CREATE/UPDATE : the library returns 'String' type for 64bit-long type
+      //
+      // In this case, I cannot avoid json-schema validation function
+      // So, I've changed the type from 'String' to 'Number' if the key name is 'downlink' and 'uplink'
+      // 
+      //    The followings are changed from 'String' to 'Number' after DB CREATE or UPDATE
+      //     - ambr.downlink, ambr.uplink, qos.mbr.downlink, qos.mbr.uplink, qos.gbr.downlink, qos.gbr.uplink
+      // 
+      //traverse(subscriber.data).forEach(function(x) {
+      //  if (this.key == 'downlink') this.update(Number(x));
+      //  if (this.key == 'uplink') this.update(Number(x));
+      //})
+
+      if (subscriber.data.security) {
+        if (subscriber.data.security.opc) {
+          subscriber.data.security.op_type = 0;
+          subscriber.data.security.op_value = subscriber.data.security.opc;
+        } else {
+          subscriber.data.security.op_type = 1;
+          subscriber.data.security.op_value = subscriber.data.security.op;
+        }
+      }
+
+      this.setState({ formData: subscriber.data });
+    } else if (!subscriber.data && this.state.formData!==prevProps.formData) {
+      this.setState({ formData: this.props.formData });
+    }
+
+    if (status.response && !prevProps.status.response) {
+      NProgress.configure({ 
+        parent: 'body',
+        trickleSpeed: 5
+      });
+      NProgress.done(true);
+
+      const message = action === 'create' ? "New subscriber created" : `${status.id} subscriber updated`;
+
+      dispatch(Notification.success({
+        title: 'Subscriber',
+        message
+      }));
+
+      dispatch(clearActionStatus(MODEL, action));
+      onHide();
+    } 
+
+    if (status.error && !prevProps.status.error) {
+      NProgress.configure({ 
+        parent: 'body',
+        trickleSpeed: 5
+      });
+      NProgress.done(true);
+
+      const response = ((status || {}).error || {}).response || {};
+
+      let title = 'Unknown Code';
+      let message = 'Unknown Error';
+      if (response.data && response.data.name && response.data.message) {
+        title = response.data.name;
+        message = response.data.message;
+      } else {
+        title = response.status;
+        message = response.statusText;
+      }
+
+      dispatch(Notification.error({
+        title,
+        message,
+        autoDismiss: 0,
+        action: {
+          label: 'Dismiss',
+          callback: () => onHide()
+        }
+      }));
+      dispatch(clearActionStatus(MODEL, action));
+    }
+  }
   validate = (formData, errors) => {
     const { subscribers, action, status } = this.props;
     const { imsi } = formData;
@@ -298,12 +412,16 @@ class Document extends Component {
       profiles,
       onHide
     } = this.props
-
+    let editformData = subscriber.data || {}; 
+    if (action === 'create') {
+      editformData = { ...formData, ...subscriber.data }; // 将 account.data 的值合并到 formData 中
+    }
     return (
       <Subscriber.Edit
         visible={visible} 
         action={action}
-        formData={this.state.formData}
+        //formData={this.state.formData}
+        formData={editformData}
         profiles={profiles.data}
         isLoading={subscriber.isLoading && !status.pending}
         validate={validate}

@@ -709,11 +709,16 @@ class Edit extends Component {
 
     this.state = this.getStateFromProps(props);
   }
-
+ /*
   componentWillReceiveProps(nextProps) {
     this.setState(this.getStateFromProps(nextProps));
   }
-
+  */
+  componentDidUpdate(prevProps) {
+    if (prevProps.oprlogs !== this.props.oprlogs) {
+      this.checkFirstPage(this.props.oprlogs);
+    }
+  }
   getStateFromProps(props) {
     const { 
       action,

@@ -145,6 +145,16 @@ ip_printf2(char *l3_head, uint8_t dst)
     }
 }
 
+static inline char *
+mac2str(struct rte_ether_addr *mac)
+{
+    static char buf[64];
+    sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X",
+            mac->addr_bytes[0],mac->addr_bytes[1],mac->addr_bytes[2],
+            mac->addr_bytes[3],mac->addr_bytes[4],mac->addr_bytes[5]);
+    return buf;
+}
+
 static inline void
 mac_print(struct rte_ether_addr *mac)
 {

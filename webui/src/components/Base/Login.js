@@ -1,7 +1,7 @@
 import { Component } from 'react';
 import Head from 'next/head';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React , { useRef }from 'react';
 import styled from 'styled-components';
 import oc from 'open-color';
 import { media } from 'helpers/style-utils';
@@ -159,13 +159,14 @@ const Login = ({
   width,
   form,
   error,
-  innerRef,
+  //innerRef,
   onChange,
   onSubmit,
   onKeyPress,
   onErrorReset,
   createOmmlog
 }) =>{
+  const inputRef = useRef(null)
   const handleLogin = () =>{    
     const { username } = form;
     // 其他登录逻辑
@@ -200,8 +201,10 @@ return (
             value={form.username} 
             onChange={onChange}
             onKeyPress={onKeyPress}
-            innerRef={(comp) => {innerRef(comp)}}
-            autocomplete="new-password"
+            ref={inputRef} // 使用 useRef 创建的引用
+            //innerRef={(comp) => {innerRef(comp)}}
+            //ref={innerRef}
+            //autocomplete="new-password"
           />          
         </InputWrapper>
         <InputWrapper>
@@ -214,9 +217,9 @@ return (
             value={form.password} 
             onChange={onChange}           
             onKeyPress={onKeyPress}
-            autocomplete="new-password"
+            //autocomplete="new-password"
           />
-        </InputWrapper>
+        </InputWrapper>      
         <Button color='teal' onClick={handleLogin}>
           {/*Login*/}
           登录

@@ -58,6 +58,17 @@ const formData = {
 }
 
 class Document extends Component {
+  constructor(props) {
+    super(props);
+    const { nfconfig, dispatch,profiles } = props
+
+    if (nfconfig.needsFetch) {
+      dispatch(nfconfig.fetch)
+    }
+    if (profiles.needsFetch) {
+      dispatch(profiles.fetch);
+    }
+  }
   static propTypes = {
     action: PropTypes.string,
     visible: PropTypes.bool, 
@@ -67,7 +78,7 @@ class Document extends Component {
   state = {
     formData
   }
-
+/*
   componentWillMount() {
     const { nfconfig, dispatch } = this.props
 
@@ -75,7 +86,15 @@ class Document extends Component {
       dispatch(nfconfig.fetch)
     }
   }
+*/
+  componentDidMount() {
+    const { nfconfig, dispatch } = this.props
 
+    if (nfconfig.needsFetch) {
+      dispatch(nfconfig.fetch)
+    }
+  }
+  /*
   componentWillReceiveProps(nextProps) {
     const { nfconfig, status } = nextProps
     const { dispatch, action, onHide } = this.props
@@ -101,15 +120,15 @@ class Document extends Component {
       //  if (this.key == 'uplink') this.update(Number(x));
       //})
 
-      /*if (nfconfig.data.security) {
-        if (nfconfig.data.security.opc) {
-          nfconfig.data.security.op_type = 0;
-          nfconfig.data.security.op_value = nfconfig.data.security.opc;
-        } else {
-          nfconfig.data.security.op_type = 1;
-          nfconfig.data.security.op_value = nfconfig.data.security.op;
-        }
-      }*/
+      //if (nfconfig.data.security) {
+       // if (nfconfig.data.security.opc) {
+      //    nfconfig.data.security.op_type = 0;
+      //    nfconfig.data.security.op_value = nfconfig.data.security.opc;
+      //  } else {
+      //    nfconfig.data.security.op_type = 1;
+       //   nfconfig.data.security.op_value = nfconfig.data.security.op;
+      //  }
+      //}
       this.setState({ formData: nfconfig.data })
     } else {
       this.setState({ formData });
@@ -165,7 +184,70 @@ class Document extends Component {
       dispatch(clearActionStatus(MODEL, action));
     }
   }
+*/
+componentDidUpdate(prevProps) {
+  const { nfconfig, status } = this.props;
+  const { dispatch, action, onHide } = this.props;
 
+  if (nfconfig.needsFetch && nfconfig.needsFetch !== prevProps.nfconfig.needsFetch) {
+    dispatch(nfconfig.fetch);
+  }
+/*
+  if (nfconfig.data && nfconfig.data !== prevProps.nfconfig.data) {     
+    this.setState({ formData: nfconfig.data });
+  } else if (!nfconfig.data && prevProps.nfconfig.data) {
+    this.setState({ formData });
+  }
+*/
+  if (status.response && status.response !== prevProps.status.response) {
+    NProgress.configure({
+      parent: 'body',
+      trickleSpeed: 5
+    });
+    NProgress.done(true);
+
+    // const message = action === 'create' ? "New nfconfig created" : `${status.id} nfconfig updated`;
+    const message = action === 'create' ? "New nfconfig created" : `This nfconfig updated`;
+
+    dispatch(Notification.success({
+      title: 'NFConfig',
+      message
+    }));
+
+    dispatch(clearActionStatus(MODEL, action));
+    onHide();
+  }
+
+  if (status.error && status.error !== prevProps.status.error) {
+    NProgress.configure({
+      parent: 'body',
+      trickleSpeed: 5
+    });
+    NProgress.done(true);
+
+    const response = ((status || {}).error || {}).response || {};
+
+    let title = 'Unknown Code';
+    let message = 'Unknown Error';
+    if (response.data && response.data.name && response.data.message) {
+      title = response.data.name;
+      message = response.data.message;
+    } else {
+      title = response.status;
+      message = response.statusText;
+    }
+    dispatch(Notification.error({
+      title,
+      message,
+      autoDismiss: 0,
+      action: {
+        label: 'Dismiss',
+        callback: () => onHide()
+      }
+    }));
+    dispatch(clearActionStatus(MODEL, action));
+  }
+  }
   validate = (formData, errors) => {
     const { nfconfigs, action, status } = this.props;
 
@@ -395,12 +477,13 @@ class Document extends Component {
       nfconfig,
       onHide
     } = this.props
-
+    let editformData = nfconfig.data || {}; 
     return (
       <NFConfig.Edit
         visible={visible} 
         action={action}
-        formData={this.state.formData}
+        formData={editformData}
+        //formData={this.state.formData}
         isLoading={nfconfig.isLoading && !status.pending}
         validate={validate}
         onHide={onHide}
@@ -474,6 +557,7 @@ function checkAddressOverlap(pool1, pool2) {
 
 Document = connect(
   (state, props) => ({ 
+    profiles: select(Ommlog.fetchOmmlogs({}), state.crud),
     nfconfigs: select(fetchNFConfigs(), state.crud),
     nfconfig: select(fetchNFConfig(props._id), state.crud),
     status: selectActionStatus(MODEL, state.crud, props.action)

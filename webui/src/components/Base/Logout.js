@@ -8,6 +8,8 @@ import { media, transitions } from 'helpers/style-utils';
 import {Ommlog } from 'modules/crud/ommlog';
 import PersonIcon from 'react-icons/lib/md/person';
 import { connect } from 'react-redux';
+import { css, keyframes } from 'styled-components';
+
 const Wrapper = styled.div`
   width: 300px;
 
@@ -56,7 +58,7 @@ const Button = styled.button`
 
   transition: all .3s;
 `;
-
+/*
 const YesButton = Button.extend`
   border: 1px solid ${oc.red[9]};
   color: white;
@@ -80,7 +82,30 @@ const NoButton = Button.extend`
     background: ${oc.gray[4]}
   }
 `;
+*/
+const YesButton = styled(Button)`
+  border: 1px solid ${oc.red[9]};
+  color: white;
+  background: ${oc.red[7]};
+  &:hover {
+    background: ${oc.red[5]}
+  }
+  &:active {
+    background: ${oc.red[8]}
+  }
+`;
 
+const NoButton = styled(Button)`
+  border: 1px solid ${oc.gray[5]};
+  color: black;
+  background: ${oc.gray[3]};
+  &:hover {
+    background: ${oc.gray[2]}
+  }
+  &:active {
+    background: ${oc.gray[4]}
+  }
+`;
 const propTypes = {
   visible: PropTypes.bool, 
   onHide: PropTypes.func, 
@@ -97,8 +122,8 @@ const Logout = ({ visible, onHide,onLogout,  createOmmlog }) => {
   <Modal 
     visible={visible} 
     onOutside={onHide} 
-    transitionEnter={`${transitions.slideDown} .5s ease-in-out`}
-    transitionLeave={`${transitions.slideUp} .5s ease-in-out`}
+    //transitionEnter={`${transitions.slideDown} .5s ease-in-out`}
+    //transitionLeave={`${transitions.slideUp} .5s ease-in-out`}
     transitionEnterTimeout={500}
     transitionLeaveTimeout={500}>
     <Wrapper>

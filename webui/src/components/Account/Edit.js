@@ -57,19 +57,26 @@ class Edit extends Component {
     onSubmit: PropTypes.func,
     onError: PropTypes.func
   }
-
+/*
   constructor(props) {
     super(props);
 
     this.state = this.getStateFromProps(props);
+  }*/
+  constructor(props) {
+    super(props);
+    this.state = {
+      props: props,
+      ...Edit.getStateFromProps(props)
+    };
   }
-
+/*
   componentWillReceiveProps(nextProps) {
 
     this.setState(this.getStateFromProps(nextProps));
   }
-
-  getStateFromProps(props) {
+  */
+  static getStateFromProps(props) {
     const { 
       session,
       action,
@@ -80,14 +87,12 @@ class Edit extends Component {
     const {
       username,
       roles
-    } = session.user;
-    
+    } = session.user;  
     let state = {
       schema,
       uiSchema,
       formData,
     };
-
     if (action === 'update' && (roles.indexOf('admin') === -1 || formData.username === username)) {
       state.uiSchema = Object.assign(state.uiSchema, {
         "roles": {
@@ -127,7 +132,15 @@ class Edit extends Component {
 
     return state;
   }
-
+  static getDerivedStateFromProps(nextProps, prevState) {  
+    if (nextProps !== prevState.props) {
+      return {
+        props: nextProps,
+        ...Edit.getStateFromProps(nextProps),
+      };
+    }
+    return null;
+  }
   render() {
     const {
       visible,

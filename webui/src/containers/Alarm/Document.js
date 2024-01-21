@@ -10,16 +10,18 @@ const ip = os.hostname()
 let vistport = 3002
 let html2=""
 let html1=""
-fetch('/port.json')
+const url = new URL(`/port.json`, `http://${ip}:3000`);
+fetch(url)
   .then(response => response.json())
   .then(configData => {
     // 在这里使用获取到的配置端口数据
     vistport=configData.grafanaport    
+    console.log("vistport",vistport)   
     html2=`http://${ip}:${vistport}/d-solo/eea-9_sik/prometheus-alerts?orgId=1&refresh=5s&panelId=442&theme=light&kiosk`
     html1=`http://${ip}:${vistport}/d-solo/QIA3UR57z/mynode?orgId=1&refresh=1m&theme=light&panelId=2&kiosk`  
   })
   .catch(error => {
-    console.error('Error fetching config.json:', error);
+    console.error('Error fetching port.json:', error);
   });
 class Document extends Component {
   constructor(props) {
@@ -123,6 +125,7 @@ class Document extends Component {
             <div style={{ position: 'absolute', top: '10px', right: '10px'}}>
               <form id="myForm" style={{ border: '1px solid #ccc', borderRadius: '5px', padding: '3px' }}>
               <select
+                  name="duration"
                   value={selectedOption}
                   onChange={this.handleOptionChange}
                   style={{ 

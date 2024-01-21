@@ -764,15 +764,28 @@ class Edit extends Component {
 
   constructor(props) {
     super(props);
-
-    this.state = this.getStateFromProps(props);
+    this.state = {
+      props: props,
+      ...Edit.getStateFromProps(props,{})
+    };
+    //this.state = this.getStateFromProps(props);
   }
-
+ /*
   componentWillReceiveProps(nextProps) {
     this.setState(this.getStateFromProps(nextProps));
   }
-
-  getStateFromProps(props) {
+  */
+  static getDerivedStateFromProps(nextProps, prevState) {
+    if (nextProps !== prevState.props) {
+      return {
+        props: nextProps,
+        ...Edit.getStateFromProps(nextProps, prevState),
+      };
+    }
+    return null;
+  }
+  /*
+  static getStateFromProps(props) {
     const { 
       action,
       profiles,
@@ -850,11 +863,90 @@ class Edit extends Component {
 
     return state;
   }
+*/
+  static getStateFromProps(props, prevState) {
+    const { 
+      action,
+      profiles,
+      width,
+      formData,
+    } = props;
 
-  getFormDataFromProfile(profile) {
+    let state = {
+      schema,
+      uiSchema,
+      formData,
+    };
+
+    if (action === 'create' && Object.keys(profiles).length > 0) {
+      if (prevState.profile === undefined) {
+        state = Object.assign(state, {
+          profile : profiles[0]._id
+        })
+      } else {
+        state = Object.assign(state, {
+          profile : prevState.profile
+        })
+      }
+
+      state = {
+        ...state,
+        "schema" : {
+          ...schema,
+          "properties": {
+            profile: {
+              type: "string",
+              title: "Profile*",
+              enum: profiles.map(profile => profile._id),
+              enumNames: profiles.map(profile => profile.title),
+              default: state.profile
+            },
+            ...schema.properties
+          }
+        }
+      }
+
+      state = Object.assign(state, {
+        formData : Edit.getFormDataFromProfile(state.profile,props.profiles)
+      })
+
+      state.uiSchema = Object.assign(state.uiSchema, {
+        "profile": {
+          classNames: "col-xs-12",
+          "ui:title": <CustomTitle20 title="Profile*" />,
+        }
+      });
+
+      //delete state.uiSchema.profile;
+    } else {
+      delete state.schema.properties.profile;
+    }
+
+    if (action === 'update') {
+      state.uiSchema = Object.assign(state.uiSchema, {
+        "imsi": {
+          "ui:disabled": true,
+          classNames: "col-xs-12",
+          "ui:title": <CustomTitle20 title="IMSI*" />,
+        }
+      });
+    } else if (width !== SMALL) {
+      state.uiSchema = Object.assign(state.uiSchema, {
+        "imsi": {
+          "ui:autofocus": true,
+          classNames: "col-xs-12",
+          "ui:title": <CustomTitle20 title="IMSI*" />,
+        }
+      });
+    }
+
+    return state;
+  }
+  static getFormDataFromProfile(profile,profiles) {
     let formData;
     
-    formData = Object.assign({}, this.props.profiles.filter(p => p._id === profile)[0]);
+    //formData = Object.assign({}, this.props.profiles.filter(p => p._id === profile)[0]);
+    formData = Object.assign({}, profiles.filter(p => p._id === profile)[0]);
     formData = Object.assign(formData, { profile });
 
     delete formData.title;

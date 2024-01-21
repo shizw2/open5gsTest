@@ -146,7 +146,7 @@ class Form extends Component {
   };
 
   state = {};
-
+/*
   componentWillReceiveProps(nextProps) {
     if (this.props.visible === false && nextProps.visible === true) {
       // Initialize State Variable when form view is visible for the first time
@@ -159,7 +159,18 @@ class Form extends Component {
       })
     }
   }
-
+  */
+  componentDidUpdate(prevProps) {
+    if (prevProps.visible === false && this.props.visible === true) {
+      this.setState({
+        formData: this.props.formData,
+        disabled: false,
+        editing: false,
+        confirm: false,
+        disableSubmitButton: true
+      });
+    }
+  }
   handleChange = data => {
     const {
       onChange

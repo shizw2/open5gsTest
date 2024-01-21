@@ -21,6 +21,14 @@ import {
 import Document from './Document';
 
 class Collection extends Component {
+  constructor(props) {
+    super(props)
+    const { nfconfigs, dispatch } = props
+
+    if (nfconfigs.needsFetch) {
+      dispatch(nfconfigs.fetch)
+    }
+  }
   state = {
     document: {
       action: '',
@@ -52,7 +60,7 @@ class Collection extends Component {
   handleViewHandlerShow = (_id) => {
     this.viewHandler.show(_id);
   };
-
+/*
   componentWillMount() {
     const { nfconfigs, dispatch } = this.props
 
@@ -60,7 +68,15 @@ class Collection extends Component {
       dispatch(nfconfigs.fetch)
     }
   }
+  */
+  componentDidMount() {
+    const { nfconfigs, dispatch } = this.props
 
+    if (nfconfigs.needsFetch) {
+      dispatch(nfconfigs.fetch)
+    }
+  }
+  /*
   componentWillReceiveProps(nextProps) {
     const { nfconfigs, status } = nextProps
     const { dispatch } = this.props
@@ -99,8 +115,45 @@ class Collection extends Component {
       }));
       dispatch(clearActionStatus(MODEL, 'delete'));
     }
+  }*/
+  componentDidUpdate(prevProps) {
+    const { nfconfigs, status } = this.props;
+    const { dispatch } = this.props;
+
+    if (nfconfigs.needsFetch && nfconfigs.needsFetch !== prevProps.nfconfigs.needsFetch) {
+      dispatch(nfconfigs.fetch);
   }
 
+    if (status.response && status.response !== prevProps.status.response) {
+      dispatch(Notification.success({
+        title: 'NFConfig',
+        message: `This nfconfig has been deleted`
+      }));
+      dispatch(clearActionStatus(MODEL, 'delete'));
+    } 
+
+    if (status.error && status.error !== prevProps.status.error) {
+      let title = 'Unknown Code';
+      let message = 'Unknown Error';
+      if (response.data && response.data.name && response.data.message) {
+        title = response.data.name;
+        message = response.data.message;
+      } else {
+        title = response.status;
+        message = response.statusText;
+      }
+
+      dispatch(Notification.error({
+        title,
+        message,
+        autoDismiss: 0,
+        action: {
+          label: 'Dismiss'
+        }
+      }));
+      dispatch(clearActionStatus(MODEL, 'delete'));
+    }
+  }
   documentHandler = {
     show: (action, payload) => {
       this.setState({

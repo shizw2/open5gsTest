@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import React,{ Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -9,7 +9,11 @@ import Session from 'modules/auth/session';
 import { Login } from 'components';
 
 class Auth extends Component {
-  state = {
+  constructor(props) {
+    super(props);
+
+    this.inputRef = React.createRef();
+    this.state = {
     error: null,
     form: {
       username: '',
@@ -17,7 +21,7 @@ class Auth extends Component {
     },
     session: {}
   };
-
+  }
   static async getInitialProps({req}) {
     const session = new Session({req})
     return {session: await session.getSession(true)}
@@ -29,13 +33,15 @@ class Auth extends Component {
       session: await session.getSession(true)
     });
 
-    this.input.focus();
+    if (this.inputRef.current) {
+      this.inputRef.current.focus();
   }
-
+  }
+/*
   setInnerRef = (comp) => {
     this.input = comp;
   }
-
+*/
   handleChange = (e) => {
     this.setState({ 
       form: {
@@ -91,7 +97,9 @@ class Auth extends Component {
           }
         });
 
-        this.input.focus();
+        if (this.inputRef && this.inputRef.current) {
+          this.inputRef.current.focus(); // 确保 inputRef 存在且不为空
+        }
       })
   }
 
@@ -106,7 +114,7 @@ class Auth extends Component {
       form,
       error
     } = this.state;
-
+/*
     const { 
       setInnerRef,
       handleChange,
@@ -124,6 +132,18 @@ class Auth extends Component {
         onSubmit={handleSubmit}
         onKeyPress={handleKeyPress}
         onErrorReset={handleErrorReset}
+      />
+    );
+    */
+    return (
+      <Login
+        form={form}
+        error={error}
+        innerRef={this.inputRef}
+        onChange={this.handleChange}
+        onSubmit={this.handleSubmit}
+        onKeyPress={this.handleKeyPress}
+        onErrorReset={this.handleErrorReset}
       />
     );
   }
