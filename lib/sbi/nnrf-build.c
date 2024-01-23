@@ -1789,7 +1789,7 @@ static void free_ausf_info(OpenAPI_ausf_info_t *AusfInfo)
 {        
     ogs_assert(AusfInfo);
     OpenAPI_lnode_t *node = NULL;
-      
+
     OpenAPI_list_for_each( AusfInfo->routing_indicators, node) {
         ogs_info("free %s.",(char*)node->data);
         ogs_free(node->data);

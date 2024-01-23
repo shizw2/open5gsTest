@@ -21,6 +21,14 @@ import {
 import Document from './Document';
 
 class Collection extends Component {
+  constructor(props) {
+    super(props);
+    const { profiles, dispatch } = props
+
+    if (profiles.needsFetch) {
+      dispatch(profiles.fetch)
+    }
+  }
   state = {
     document: {
       action: '',
@@ -37,7 +45,7 @@ class Collection extends Component {
       _id: ''
     }
   };
-
+/*
   componentWillMount() {
     const { profiles, dispatch } = this.props
 
@@ -45,7 +53,15 @@ class Collection extends Component {
       dispatch(profiles.fetch)
     }
   }
+*/
+  componentDidMount() {
+    const { profiles, dispatch } = this.props
 
+    if (profiles.needsFetch) {
+      dispatch(profiles.fetch)
+    }
+  }
+  /*
   componentWillReceiveProps(nextProps) {
     const { profiles, status } = nextProps
     const { dispatch } = this.props
@@ -84,8 +100,46 @@ class Collection extends Component {
       }));
       dispatch(clearActionStatus(MODEL, 'delete'));
     }
+  }*/
+  componentDidUpdate(prevProps) {
+    const { profiles, status, dispatch } = this.props;
+
+    if (profiles.needsFetch && profiles.needsFetch !== prevProps.profiles.needsFetch) {
+      dispatch(profiles.fetch);
+    }
+
+    if (status.response && status.response !== prevProps.status.response) {
+      dispatch(Notification.success({
+        title: 'Profile',
+        message: 'This profile has been deleted'
+      }));
+      dispatch(clearActionStatus(MODEL, 'delete'));
   }
 
+    if (status.error && status.error !== prevProps.status.error) {
+      const response = status.error.response || {};
+      let title = 'Unknown Code';
+      let message = 'Unknown Error';
+
+      if (response.data && response.data.name && response.data.message) {
+        title = response.data.name;
+        message = response.data.message;
+      } else {
+        title = response.status;
+        message = response.statusText;
+      }
+
+      dispatch(Notification.error({
+        title,
+        message,
+        autoDismiss: 0,
+        action: {
+          label: 'Dismiss'
+        }
+      }));
+      dispatch(clearActionStatus(MODEL, 'delete'));
+    }
+  }
   documentHandler = {
     show: (action, payload) => {
       this.setState({
@@ -166,8 +220,8 @@ class Collection extends Component {
               break;
             }            
           }
-          console.log("stat============:",this.props.profiles);
-          console.log("stat============:",this.props.profiles.data[j].title);
+          //console.log("stat============:",this.props.profiles);
+          //console.log("stat============:",this.props.profiles.data[j].title);
           dispatch(Ommlog.createOmmlog('delete',"签约模板",{},{},"被删除签约模板名称- "+this.props.profiles.data[j].title));
         }
       }

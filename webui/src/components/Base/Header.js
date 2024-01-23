@@ -57,7 +57,7 @@ const Header = ({ onSidebarToggle, onLogoutRequest }) => (
     </Title>
     <Thumbnail onClick={onLogoutRequest}>
       {/*<Tooltip bottom content='Logout' width="60px">*/}
-      <Tooltip bottom content='退出' width="60px">
+      <Tooltip bottom={`${true}`}  content='退出' width="60px">
         <CircleIcon size="2rem" background={oc['pink'][4]}>
           <PersonIcon/>
         </CircleIcon>

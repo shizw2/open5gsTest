@@ -11,13 +11,14 @@ const os = require('os');
 const ip = os.hostname();
 //const ip = window.location.hostname
 let vistport = 3002
-fetch('/port.json')
+const url = new URL(`/port.json`, `http://${ip}:3000`);
+fetch(url)
   .then(response => response.json())
   .then(configData => {    
     vistport=configData.grafanaport       
   })
   .catch(error => {
-    console.error('Error fetching config.json:', error);
+    console.error('Error fetching port.json:', error);
   });
 class Document extends Component {
   constructor(props) {
@@ -172,6 +173,7 @@ class Document extends Component {
             <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
               <form id="myForm" style={{ border: '1px solid #ccc', borderRadius: '5px', padding: '3px' }}>
               <select
+                  name="duration"
                   value={selectedUserOption}
                   onChange={this.handleOptionChange}
                   style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'sans-serif', fontSize: '0.8rem', fontWeight: 500 }}>
@@ -215,6 +217,7 @@ class Document extends Component {
             <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
               <form id="myForm" style={{ border: '1px solid #ccc', borderRadius: '5px', padding: '3px' }}>
               <select
+                  name="duration"
                   value={selectedRegOption}
                   onChange={this.handleRegOptionChange}
                   style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'sans-serif', fontSize: '0.8rem', fontWeight: 500 }}>
@@ -284,6 +287,7 @@ class Document extends Component {
            <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
               <form id="myForm" style={{ border: '1px solid #ccc', borderRadius: '5px', padding: '3px' }}>
               <select
+                  name="duration"
                   value={selectedGtpOption}
                   onChange={this.handleGtpOptionChange}
                   style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'sans-serif', fontSize: '0.8rem', fontWeight: 500 }}>

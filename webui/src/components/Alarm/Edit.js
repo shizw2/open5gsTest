@@ -16,7 +16,7 @@ class Edit extends Component {
     onSubmit: PropTypes.func,
     onError: PropTypes.func
   }
-
+/*
   constructor(props) {
     super(props);
 
@@ -45,7 +45,7 @@ class Edit extends Component {
 
     return state;
   }
-
+*/
   render() {
     const {
       visible,

@@ -59,6 +59,14 @@ const formData = {
 }
 
 class Document extends Component {
+  constructor(props) {
+    super(props);
+    const { profiles, dispatch } = props
+
+    if (profiles.needsFetch) {
+      dispatch(profiles.fetch)
+    }
+  }
   static propTypes = {
     action: PropTypes.string,
     visible: PropTypes.bool, 
@@ -68,7 +76,7 @@ class Document extends Component {
   state = {
     formData
   }
-
+/*
   componentWillMount() {
     const { profile, dispatch } = this.props
 
@@ -76,7 +84,15 @@ class Document extends Component {
       dispatch(profile.fetch)
     }
   }
+  */
+  componentDidMount() {
+    const { profiles, dispatch } = this.props
 
+    if (profiles.needsFetch) {
+      dispatch(profiles.fetch)
+    }
+  }
+  /*
   componentWillReceiveProps(nextProps) {
     const { profile, status } = nextProps
     const { dispatch, action, onHide } = this.props
@@ -166,7 +182,78 @@ class Document extends Component {
       dispatch(clearActionStatus(MODEL, action));
     }
   }
+*/
+  componentDidUpdate(prevProps) {
+    const { profile, status, dispatch, action, onHide } = this.props;
 
+    if (profile.needsFetch && profile.needsFetch !== prevProps.profile.needsFetch) {
+      dispatch(profile.fetch);
+    }
+
+    if (profile.data && profile.data !== prevProps.profile.data) {
+      if (profile.data.security) {
+        if (profile.data.security.opc) {
+          profile.data.security.op_type = 0;
+          profile.data.security.op_value = profile.data.security.opc;
+        } else {
+          profile.data.security.op_type = 1;
+          profile.data.security.op_value = profile.data.security.op;
+        }
+      }
+      this.setState({ formData: profile.data });
+    } else if (!profile.data && prevProps.profile.data){
+      this.setState({ formData });
+    }
+
+    if (status.response && status.response !== prevProps.status.response) {
+      NProgress.configure({ 
+        parent: 'body',
+        trickleSpeed: 5
+      });
+      NProgress.done(true);
+
+      const message = action === 'create' ? "New profile created" : "This profile updated";
+
+      dispatch(Notification.success({
+        title: 'Profile',
+        message
+      }));
+
+      dispatch(clearActionStatus(MODEL, action));
+      onHide();
+    }
+
+    if (status.error && status.error !== prevProps.status.error) {
+      NProgress.configure({ 
+        parent: 'body',
+        trickleSpeed: 5
+      });
+      NProgress.done(true);
+
+      const response = (status.error.response || {});
+
+      let title = 'Unknown Code';
+      let message = 'Unknown Error';
+      if (response.data && response.data.name && response.data.message) {
+        title = response.data.name;
+        message = response.data.message;
+      } else {
+        title = response.status;
+        message = response.statusText;
+      }
+
+      dispatch(Notification.error({
+        title,
+        message,
+        autoDismiss: 0,
+        action: {
+          label: 'Dismiss',
+          callback: () => onHide()
+        }
+      }));
+      dispatch(clearActionStatus(MODEL, action));
+    }
+  }
   validate = (formData, errors) => {
     const { profiles, action, status } = this.props;
     const { title } = formData;
@@ -292,12 +379,16 @@ class Document extends Component {
       profile,
       onHide
     } = this.props
-
+    let editformData =profile.data || {}; 
+    if (action === 'create') {
+      editformData = { ...formData, ...profile.data }; // 将 account.data 的值合并到 formData 中
+    }
     return (
       <Profile.Edit
         visible={visible} 
         action={action}
-        formData={this.state.formData}
+        //formData={this.state.formData}
+        formData={editformData}
         isLoading={profile.isLoading && !status.pending}
         validate={validate}
         onHide={onHide}

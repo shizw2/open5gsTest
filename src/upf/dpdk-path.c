@@ -629,7 +629,16 @@ int process_dst_if_interface_core(struct lcore_conf *lconf, struct rte_mbuf *m, 
         //route find;
         eth_h = (struct rte_ether_hdr *)((char *)ip_h - sizeof(*eth_h));
         mac_copy((struct rte_ether_addr *)&dkuf.mac[1], &eth_h->s_addr);
-        arp = arp_find(lconf, in_ipv4_h->dst_addr, 1);
+
+        //如果目的IP跟N6在同一网段，则直接查询arp，否则查询GW的MAC
+        ogs_info("dstaddr:%s, n6addr:%s, gw:%s,mask:%d", ip2str(in_ipv4_h->dst_addr),ip2str(dkuf.n6_addr.ipv4),ip2str(dkuf.n6_addr.gw),dkuf.n6_addr.mask);
+        if ((in_ipv4_h->dst_addr&dkuf.n6_addr.mask ) == (dkuf.n6_addr.ipv4 & dkuf.n6_addr.mask)){
+            arp = arp_find(lconf, in_ipv4_h->dst_addr, 1);
+        }else{
+            ogs_info("find gw's mac");
+            arp = arp_find(lconf, dkuf.n6_addr.gw, 1);
+        }
+        
         if (arp->flag == ARP_ND_SEND) {
             if (arp->pkt_list_cnt < MAX_PKT_BURST) {
                 pkt->next = arp->pkt_list;

@@ -56,7 +56,7 @@ const TooltipBubble = styled.div`
   opacity: ${props => props.show ? 1 : 0};
 `;
 
-const TooltipArrow = styled.span`
+const TooltipArrow = styled.div`
   width: 0px;
   height: 0px;
   border-left: ${`${tooltipArrowHeight}px solid transparent`};
@@ -73,6 +73,19 @@ const TooltipArrow = styled.span`
   left: ${`calc(50% - ${tooltipArrowHeight}px)`};
 `;
 
+const FilteredTooltipBubble = styled(TooltipBubble).withConfig({
+  shouldForwardProp: prop =>
+    prop !== 'show' &&
+    prop !== 'leftPosition' &&
+    prop !== 'bottom' &&
+    prop !== 'top',
+})``;
+
+const FilteredTooltipArrow = styled(TooltipArrow).withConfig({
+  shouldForwardProp: prop =>   
+    prop !== 'bottom' &&
+    prop !== 'top',
+})``;
 class Tooltip extends Component {
   static propTypes = {
     children: PropTypes.any.isRequired,
@@ -93,7 +106,8 @@ class Tooltip extends Component {
     this.hideTooltip = this.hideTooltip.bind(this);
     this.handleMouseEnter = this.handleMouseEnter.bind(this);
     this.handleMouseLeave = this.handleMouseLeave.bind(this);
-
+    this.tooltipRef = React.createRef();
+    this.tooltipWrapRef = React.createRef();
     const disableHoverChanges = props.show != null;
 
     this.state = {
@@ -102,12 +116,18 @@ class Tooltip extends Component {
       disableHoverChanges,
     };
   }
-
+/*
   componentWillReceiveProps(nextProps) {
     // if (nextProps.show !== this.props.show) {
     if (nextProps.show) this.showTooltip();
     else this.hideTooltip();
     // }
+  }*/
+  componentDidUpdate(prevProps) {
+    if (prevProps.show !== this.props.show) {
+      if (this.props.show) this.showTooltip();
+      else this.hideTooltip();
+    }
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -148,21 +168,21 @@ class Tooltip extends Component {
     return (
       <TooltipWrapperDiv {...rest} tabIndex='0'>
         <TooltipContainer
-          innerRef={(ref) => { this.tooltipWrapRef = ref; }}
+          ref={(ref) => { this.tooltipWrapRef = ref; }}
           onMouseEnter={this.handleMouseEnter}
           onMouseLeave={this.handleMouseLeave}
         >
-          <TooltipBubble
+          <FilteredTooltipBubble
             {...rest}
-            innerRef={(ref) => { this.tooltipRef = ref; }}
+            ref={(ref) => { this.tooltipRef = ref; }}
             leftPosition={lPos || 0}
             show={showTooltip}
             bgColor={bg}
             textColor={color}
           >
-            <TooltipArrow {...rest} />
+            <FilteredTooltipArrow {...rest} />
             {content}
-          </TooltipBubble>
+          </FilteredTooltipBubble>
           {children}
         </TooltipContainer>
       </TooltipWrapperDiv>

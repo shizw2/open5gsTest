@@ -46,7 +46,6 @@ static int copy_pfcp_pdr(ogs_pfcp_pdr_t *new, ogs_pfcp_pdr_t *old, ogs_pfcp_sess
         copy_pfcp_far(new->far, old->far, pfcp_sess);
     }
 
-    //TODO:urr变为数组了
     //if (old->urr) {
     //    new->urr[0] = dpdk_malloc(sizeof(ogs_pfcp_urr_t));
     //    copy_pfcp_urr(new->urr[0], old->urr[0], pfcp_sess);
@@ -286,7 +285,7 @@ static void handle_event(upf_dpdk_event_t *event) {
 
     switch (event->subtype) {
         case SESS_REPORT_NORMAL:
-            upf_sess = upf_sess_find_by_upf_n4_seid(event_report->sess_index);//TODO:确认
+            upf_sess = upf_sess_find_by_upf_n4_seid(event_report->sess_index);
             if (!upf_sess)
                 goto cleanup;
 

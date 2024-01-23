@@ -1,4 +1,4 @@
-
+#cd /home/5gc/misc/dpdk
 if [ "$1" == "1" ]; then
   # 获取当前的 DPDK 驱动程序信息
   driver_info=$(./dpdk-devbind.py -s)

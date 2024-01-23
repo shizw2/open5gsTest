@@ -99,7 +99,11 @@ const ButtonWrapper = styled.button`
     color: ${props => props.clear && getActiveColor(props)};
   }
 `;
-
+const FilteredButtonWrapper = styled(ButtonWrapper).withConfig({
+  shouldForwardProp: prop =>
+    prop !== 'clear' &&   
+    prop !== 'disabled',
+})``;
 const ButtonContent = styled.div`
   display: flex;
   flex-direction: row;
@@ -110,11 +114,11 @@ const ButtonContent = styled.div`
 `;
 
 const Button = ({ children, ...rest }) => (
-  <ButtonWrapper {...rest}>
+  <FilteredButtonWrapper {...rest}>
     <ButtonContent disabled={rest.disabled}>
       {children}
     </ButtonContent>
-  </ButtonWrapper>
+  </FilteredButtonWrapper>
 );
 
 Button.propTypes = {

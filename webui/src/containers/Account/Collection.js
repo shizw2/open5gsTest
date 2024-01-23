@@ -21,6 +21,14 @@ import {
 import Document from './Document';
 
 class Collection extends Component {
+  constructor(props) {
+    super(props);
+    const { accounts, dispatch } = props;
+  
+    if (accounts.needsFetch) {
+      dispatch(accounts.fetch);
+    }
+  }
   state = {
     document: {
       action: '',
@@ -32,7 +40,7 @@ class Collection extends Component {
       username: ''
     },
   };
-
+/*
   componentWillMount() {
     const { accounts, dispatch } = this.props
 
@@ -40,7 +48,15 @@ class Collection extends Component {
       dispatch(accounts.fetch)
     }
   }
+*/
+/*
+componentDidMount() {
+  const { accounts, dispatch } = this.props;
 
+  if (accounts.needsFetch) {
+    dispatch(accounts.fetch);
+  }
+}
   componentWillReceiveProps(nextProps) {
     const { accounts, status } = nextProps
     const { dispatch } = this.props
@@ -79,7 +95,47 @@ class Collection extends Component {
       dispatch(clearActionStatus(MODEL, 'delete'));
     }
   }
+*/
+componentDidUpdate(prevProps) {
+  const { accounts, status, dispatch } = this.props;
 
+  if (accounts.needsFetch) {
+    dispatch(accounts.fetch);
+  }
+
+  if (status.response && prevProps.status.response !== status.response) {
+    dispatch(Notification.success({
+      title: 'Account',
+      message: `${status.id} has been deleted`
+    }));
+    dispatch(clearActionStatus(MODEL, 'delete'));
+  }
+
+  if (status.error && prevProps.status.error !== status.error) {
+    let title = 'Unknown Code';
+    let message = 'Unknown Error';
+
+    if (status.response && status.response.data && status.response.data.name && status.response.data.message) {
+      title = status.response.data.name;
+      message = status.response.data.message;
+    } else if (status.response && status.response.status && status.response.statusText) {
+      title = status.response.status;
+      message = status.response.statusText;
+    } else {
+      console.log('Error object:', status.response);
+    }
+
+    dispatch(Notification.error({
+      title,
+      message,
+      autoDismiss: 0,
+      action: {
+        label: 'Dismiss'
+      }
+    }));
+    dispatch(clearActionStatus(MODEL, 'delete'));
+  }
+}
   documentHandler = {
     show: (action, payload) => {
       this.setState({

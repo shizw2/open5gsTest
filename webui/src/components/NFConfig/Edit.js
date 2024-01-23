@@ -29,15 +29,27 @@ class Edit extends Component {
 
   constructor(props) {
     super(props);
-
-    this.state = this.getStateFromProps(props);
+    this.state = {
+      props: props,
+      ...Edit.getStateFromProps(props)
+    };
+   // this.state = this.getStateFromProps(props);
   }
-
+ /*
   componentWillReceiveProps(nextProps) {
     this.setState(this.getStateFromProps(nextProps));
+  }*/
+  static getDerivedStateFromProps(nextProps, prevState) {
+    if (nextProps !== prevState.props) {
+      return {
+        props: nextProps,
+        ...Edit.getStateFromProps(nextProps),
+      };
   }
-
-  getStateFromProps(props) {
+    return null;
+  }
+  
+ static getStateFromProps(props) {
     const { 
       action,
       width,

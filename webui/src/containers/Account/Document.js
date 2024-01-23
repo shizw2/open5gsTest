@@ -19,6 +19,19 @@ const formData = {
 }
 
 class Document extends Component {
+  constructor(props) {
+    super(props);
+    const { accounts, dispatch,profiles } = props;
+
+    if (accounts.needsFetch) {
+      dispatch(accounts.fetch);
+    }
+    /*
+    if (profiles.needsFetch) {
+      dispatch(profiles.fetch);
+    }
+  */
+  }
   static propTypes = {
     action: PropTypes.string,
     visible: PropTypes.bool, 
@@ -28,7 +41,7 @@ class Document extends Component {
   state = {
     formData
   }
-
+ /* 
   componentWillMount() {
     const { account, dispatch } = this.props
 
@@ -36,7 +49,19 @@ class Document extends Component {
       dispatch(account.fetch)
     }
   }
+*/
+async componentDidMount() {
+  const { account, dispatch } = this.props;
 
+  if (account.needsFetch) {
+    await dispatch(account.fetch);
+  }
+
+  if (account.data) {
+    this.setState({ formData: account.data });
+  }
+}
+/*
   componentWillReceiveProps(nextProps) {
     const { account, status } = nextProps
     const { dispatch, action, onHide } = this.props
@@ -101,6 +126,83 @@ class Document extends Component {
     }
   }
 
+*/
+componentDidUpdate(prevProps) {
+  const { accounts, account, status, dispatch, action, onHide } = this.props;
+/*
+  if (accounts.needsFetch && prevProps.accounts !== accounts) {
+    dispatch(accounts.fetch);
+  }
+*/
+/*
+if (account.data && !isEqual(account.data, prevProps.account.data)) {
+  this.setState({ formData: account.data }, () => {
+    console.log("this.state.formData==", this.state.formData);
+    // 在回调函数中执行其他需要使用最新状态值的操作
+  });
+}
+console.log("this.state.formData",this.state.formData)
+*/
+/*
+  // 确保在账户数据更新后更新表单数据 
+  console.log("eeeee",account.data,prevProps.account.data)
+  if (account !== prevProps.account) {
+    if (account.data) {
+      this.setState({ formData: account.data });
+    } else {
+      // 处理没有数据的情况
+    }
+  }
+  console.log("this.state.formData",this.state.formData)*/
+  if (status.response && prevProps.status.response !== status.response) {
+    NProgress.configure({ 
+      parent: 'body',
+      trickleSpeed: 5
+    });
+    NProgress.done(true);
+
+    const message = action === 'create' ? "New account created" : `${status.id} account updated`;
+
+    dispatch(Notification.success({
+      title: 'Account',
+      message
+    }));
+
+    dispatch(clearActionStatus(MODEL, action));
+    onHide();
+  } 
+
+  if (status.error && prevProps.status.error !== status.error) {
+    NProgress.configure({ 
+      parent: 'body',
+      trickleSpeed: 5
+    });
+    NProgress.done(true);
+
+    const response = ((status || {}).error || {}).response || {};
+
+    let title = 'Unknown Code';
+    let message = 'Unknown Error';
+    if (response.data && response.data.name && response.data.message) {
+      title = response.data.name;
+      message = response.data.message;
+    } else {
+      title = response.status;
+      message = response.statusText;
+    }
+
+    dispatch(Notification.error({
+      title,
+      message,
+      autoDismiss: 0,
+      action: {
+        label: 'Dismiss',
+        callback: () => onHide()
+      }
+    }));
+    dispatch(clearActionStatus(MODEL, action));
+  }
+}
   validate = (formData, errors) => {
     const { accounts, action, status } = this.props;
     const { username, password1, password2 } = formData;
@@ -156,12 +258,12 @@ class Document extends Component {
     });
     NProgress.start();
 
-    if (action === 'create') {
+    if (action === 'create') { 
       dispatch(createAccount({}, formData));
-      dispatch(Ommlog.createOmmlog(action,"账号管理",{}, formData));
+      dispatch(Ommlog.createOmmlog(action,"账号管理",{}, formData.username));
     } else if (action === 'update') {
       dispatch(updateAccount(formData.username, {}, formData));
-      dispatch(Ommlog.createOmmlog(action,"账号管理",{}, formData));
+      dispatch(Ommlog.createOmmlog(action,"账号管理",{}, formData.username));
     } else {
       throw new Error(`Action type '${action}' is invalid.`);
     }
@@ -208,14 +310,18 @@ class Document extends Component {
       status,
       account,
       onHide
-    } = this.props
-
+    } = this.props    
+    let editformData = account.data || {}; 
+    if (action === 'create') {
+      editformData = { ...formData, ...account.data }; // 将 account.data 的值合并到 formData 中
+    }
     return (
       <Account.Edit
         session={session}
         visible={visible} 
         action={action}
-        formData={this.state.formData}
+        formData={editformData}
+        //formData={this.state.formData}
         isLoading={account.isLoading && !status.pending}
         validate={validate}
         onHide={onHide}

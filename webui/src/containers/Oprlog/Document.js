@@ -20,6 +20,14 @@ const formData = {
 }
 
 class Document extends Component {
+  constructor(props) {
+    super(props);
+    const { oprlogs, dispatch } = props;
+  
+    if (oprlogs.needsFetch) {
+      dispatch(oprlogs.fetch);
+    }
+  }
   static propTypes = {
     action: PropTypes.string,
     visible: PropTypes.bool, 
@@ -29,7 +37,7 @@ class Document extends Component {
   state = {
     formData
   }
-
+/*
   componentWillMount() {
     const { oprlog, dispatch } = this.props
 
@@ -37,7 +45,15 @@ class Document extends Component {
       dispatch(oprlog.fetch)
     }
   }
-
+  */
+  componentDidMount() {
+    const { oprlogs, dispatch } = this.props;
+  
+    if (oprlogs.needsFetch) {
+      dispatch(oprlogs.fetch);
+    }
+  }
+  /*
   componentWillReceiveProps(nextProps) {
     const { oprlog, status } = nextProps
     const { dispatch, action, onHide } = this.props
@@ -97,7 +113,63 @@ class Document extends Component {
       dispatch(clearActionStatus(MODEL, action));
     }
   }
+*/
+  componentDidUpdate(prevProps) {
+    const { oprlog, status, dispatch, action, onHide } = this.props;
 
+    if (oprlog.needsFetch && oprlog.needsFetch !== prevProps.oprlog.needsFetch) {
+      dispatch(oprlog.fetch);
+    }
+
+    if (status.response && status.response !== prevProps.status.response) {
+      NProgress.configure({ 
+        parent: 'body',
+        trickleSpeed: 5
+      });
+      NProgress.done(true);
+
+      const message = action === 'create' ? "New profile created" : "This profile updated";
+
+      dispatch(Notification.success({
+        title: 'oprlog',
+        message
+      }));
+
+      dispatch(clearActionStatus(MODEL, action));
+      onHide();
+    }
+
+    if (status.error && status.error !== prevProps.status.error) {
+      NProgress.configure({ 
+        parent: 'body',
+        trickleSpeed: 5
+      });
+      NProgress.done(true);
+
+      const response = status.error.response || {};
+
+      let title = 'Unknown Code';
+      let message = 'Unknown Error';
+      if (response.data && response.data.name && response.data.message) {
+        title = response.data.name;
+        message = response.data.message;
+      } else {
+        title = response.status;
+        message = response.statusText;
+      }
+
+      dispatch(Notification.error({
+        title,
+        message,
+        autoDismiss: 0,
+        action: {
+          label: 'Dismiss',
+          callback: () => onHide()
+        }
+      }));
+      dispatch(clearActionStatus(MODEL, action));
+    }
+  }
   validate = (formData, errors) => {
     const { oprlogs, action, status } = this.props;
 

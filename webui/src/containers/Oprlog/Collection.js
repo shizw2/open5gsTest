@@ -157,15 +157,55 @@ class Collection extends Component {
       fmSelectedOption: "",
       isDatePickerOpen: false,
   };
-  }
+  const { oprlogs, dispatch } = props;
 
+  if (oprlogs.needsFetch) {
+    dispatch(oprlogs.fetch);
+  }
+  }
+/*
   componentWillMount() {
     const { oprlogs, dispatch } = this.props    
     if (oprlogs.needsFetch) {
       dispatch(oprlogs.fetch)
     }
   }
+ */
+  componentDidMount() {
+    const { oprlogs, dispatch } = this.props;
  
+    if (oprlogs.needsFetch) {
+      dispatch(oprlogs.fetch);
+    }
+  }
+  componentDidUpdate(prevProps) {
+    const { oprlogs, status, dispatch } = this.props;
+
+    if (oprlogs !== prevProps.oprlogs) {
+      this.setState({
+        originalData: oprlogs.data,
+        data: oprlogs.data
+      });
+    }
+
+    if (oprlogs.needsFetch && oprlogs.needsFetch !== prevProps.oprlogs.needsFetch) {
+      dispatch(oprlogs.fetch);
+    }
+
+    if (status.error && status.error !== prevProps.status.error) {
+      let title = 'Unknown Code';
+      let message = 'Unknown Error';
+      if (status.response?.data?.name && status.response?.data?.message) {
+        title = status.response.data.name;
+        message = status.response.data.message;
+      } else {
+        title = status.response?.status ?? 'Unknown Status';
+        message = status.response?.statusText ?? 'Unknown Status Text';
+      }
+      dispatch(clearActionStatus(MODEL, 'delete'));
+    }
+  }
+  /*
   componentWillReceiveProps(nextProps) {
     const { oprlogs, status } = nextProps
     const { dispatch } = this.props
@@ -189,7 +229,7 @@ class Collection extends Component {
       dispatch(clearActionStatus(MODEL, 'delete'));
     }
   }
-
+*/
   documentHandler = {
     show: (action, payload) => {
       this.setState({
@@ -541,14 +581,14 @@ return (
           )}
           </div>
           <div className="refresh-button-container">
-            <Tooltip content='刷新' width="60px" bottom>
+            <Tooltip content='刷新' width="60px" bottom={`${true}`}>
             <CircleButton className='refresh' onClick={this.handleRefreshClick}>
             <FreshIcon/>
             </CircleButton>
             </Tooltip>
           </div>
           <div className="refresh-button-container">
-            <Tooltip content='导出' width="60px" bottom>         
+            <Tooltip content='导出' width="60px" bottom={`${true}`}>         
             <CircleButton className='refresh' onClick={this.handleSaveFileClick}>
               <Dropdown/>            
               </CircleButton> 

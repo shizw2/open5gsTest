@@ -5,7 +5,8 @@ import styled from 'styled-components';
 import onClickOutside from 'react-onclickoutside';
 import CSSTransitionGroup from 'react-transition-group/CSSTransitionGroup';
 import { media, transitions } from 'helpers/style-utils';
-
+import { css } from 'styled-components';
+/*
 const Wrapper = styled.div`
   position: fixed;
   top: 50%;
@@ -24,6 +25,25 @@ const Wrapper = styled.div`
     animation-fill-mode: forwards;
   }
 `;
+*/
+const Wrapper = styled.div`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  z-index: ${p => p.zindex};
+
+  .modal-enter {
+    animation: ${p => css`${p.transitionEnter}`};
+    animation-fill-mode: forwards;
+  }
+
+  .modal-leave {
+    animation: ${p => css`${p.transitionLeave}`};
+    animation-fill-mode: forwards;
+  }
+`;
 
 class Modal extends Component {
   static propTypes = {
@@ -38,8 +58,10 @@ class Modal extends Component {
 
   static defaultProps = {
     zindex: '500',
-    transitionEnter: `${transitions.stretchOut} .25s ease-in`,
-    transitionLeave: `${transitions.shrinkIn} .25s ease-in`,
+    //transitionEnter: `${transitions.stretchOut} .25s ease-in`,
+    //transitionLeave: `${transitions.shrinkIn} .25s ease-in`,
+    //transitionEnter: css`${transitions.stretchOut} .25s ease-in`,
+    //transitionLeave: css`${transitions.shrinkIn} .25s ease-in`,
     transitionEnterTimeout: 300,
     transitionLeaveTimeout: 150
   }

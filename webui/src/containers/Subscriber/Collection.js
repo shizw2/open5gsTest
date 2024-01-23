@@ -21,6 +21,14 @@ import {
 import Document from './Document';
 
 class Collection extends Component {
+  constructor(props) {
+    super(props);
+    const { subscribers, dispatch } = props
+
+    if (subscribers.needsFetch) {
+      dispatch(subscribers.fetch)
+    }
+  }
   state = {
     search: '',
     document: {
@@ -38,7 +46,7 @@ class Collection extends Component {
       imsi: ''
     }
   };
-
+/*
   componentWillMount() {
     const { subscribers, dispatch } = this.props
 
@@ -46,7 +54,15 @@ class Collection extends Component {
       dispatch(subscribers.fetch)
     }
   }
+  */
+  componentDidMount() {
+    const { subscribers, dispatch } = this.props
 
+    if (subscribers.needsFetch) {
+      dispatch(subscribers.fetch)
+    }
+  }
+  /*
   componentWillReceiveProps(nextProps) {
     const { subscribers, status } = nextProps
     const { dispatch } = this.props
@@ -85,7 +101,45 @@ class Collection extends Component {
       dispatch(clearActionStatus(MODEL, 'delete'));
     }
   }
+*/
+  componentDidUpdate(prevProps) {
+    const { subscribers, status, dispatch } = this.props;
 
+    if (subscribers.needsFetch && !prevProps.subscribers.needsFetch) {
+      dispatch(subscribers.fetch);
+    }
+
+    if (status.response && !prevProps.status.response) {
+      dispatch(Notification.success({
+        title: 'Subscriber',
+        message: `${status.id} has been deleted`
+      }));
+      dispatch(clearActionStatus(MODEL, 'delete'));
+    }
+
+    if (status.error && !prevProps.status.error) {
+      let title = 'Unknown Code';
+      let message = 'Unknown Error';
+
+      if (response.data && response.data.name && response.data.message) {
+        title = response.data.name;
+        message = response.data.message;
+      } else {
+        title = response.status;
+        message = response.statusText;
+      }
+
+      dispatch(Notification.error({
+        title,
+        message,
+        autoDismiss: 0,
+        action: {
+          label: 'Dismiss'
+        }
+      }));
+      dispatch(clearActionStatus(MODEL, 'delete'));
+    }
+  }
   handleSearchChange = (e) => {
     this.setState({
       search: e.target.value
