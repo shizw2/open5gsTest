@@ -630,7 +630,7 @@ int process_dst_if_interface_core(struct lcore_conf *lconf, struct rte_mbuf *m, 
         eth_h = (struct rte_ether_hdr *)((char *)ip_h - sizeof(*eth_h));
         mac_copy((struct rte_ether_addr *)&dkuf.mac[1], &eth_h->s_addr);
 
-        //如果目的IP跟N6在同一网段，则直接查询arp，否则查询GW的MAC
+        //如果目的IP跟N6在同一网段，则直接查询目的IP的MAC，否则查询GW的MAC
         ogs_info("dstaddr:%s, n6addr:%s, gw:%s,mask:%d", ip2str(in_ipv4_h->dst_addr),ip2str(dkuf.n6_addr.ipv4),ip2str(dkuf.n6_addr.gw),dkuf.n6_addr.mask);
         if ((in_ipv4_h->dst_addr&dkuf.n6_addr.mask ) == (dkuf.n6_addr.ipv4 & dkuf.n6_addr.mask)){
             arp = arp_find(lconf, in_ipv4_h->dst_addr, 1);

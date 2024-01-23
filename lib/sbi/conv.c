@@ -269,8 +269,6 @@ char *ogs_supi_from_supi_or_suci(char *supi_or_suci)
 cleanup:
     if (type)
         ogs_free(type);
-
-    ogs_info("ogs_supi_from_supi_or_suci,supi_or_suci:%s, supi:%s",supi_or_suci,supi);
     return supi;
 }
 

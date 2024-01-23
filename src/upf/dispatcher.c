@@ -437,7 +437,6 @@ static int dpt_decap_pak(struct lcore_conf *lconf, struct rte_mbuf **mp, struct 
     struct ipv6_extension_fragment *frag_hdr;
     struct rte_ipv6_hdr *ipv6_h;
 
-    //ogs_info("test:eth_type:%d.",eth_type);
     if (eth_type == BE_ETH_P_IP) {
         pkt->is_ipv4 = 1;
         ipv4_h = (struct rte_ipv4_hdr *)l3_head;
@@ -457,7 +456,7 @@ static int dpt_decap_pak(struct lcore_conf *lconf, struct rte_mbuf **mp, struct 
             remain_len = m->data_len - (ptr - rte_pktmbuf_mtod(m, char *));
         }
         if (IPPROTO_ICMP == proto) {
-            return dpt_decode_icmp(m, pkt, free, ipv4_h);  //TODO:处理不对，应答报文被丢弃
+            return dpt_decode_icmp(m, pkt, free, ipv4_h);
         }
     } else if (eth_type == BE_ETH_P_IPV6) {
         pkt->is_ipv4 = 0;
@@ -546,7 +545,6 @@ static int dpt_decap_pak(struct lcore_conf *lconf, struct rte_mbuf **mp, struct 
             }
         }
         pkt->pkt_type = PKT_TYPE_IP_N3;
-        //ogs_info("receie an PKT_TYPE_IP_N3 pkt.");
         if (pkt->is_ipv4) {
             ring = ntohl((*(uint32_t *)(ptr + 12 + portid * 4))) % dkuf.fwd_num;
         } else {

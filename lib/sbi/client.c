@@ -133,11 +133,8 @@ ogs_sbi_client_t *ogs_sbi_client_add(
     ogs_assert(client);
     memset(client, 0, sizeof(ogs_sbi_client_t));
 
-    ogs_info("ogs_sbi_client_add(),addr:%s %d", OGS_ADDR(addr,buf),OGS_PORT(addr));
-
     client->scheme = scheme;
 
-    ogs_info("ogs_sbi_client_add[%s]", OpenAPI_uri_scheme_ToString(scheme));
     OGS_OBJECT_REF(client);
 
     ogs_assert(OGS_OK == ogs_copyaddrinfo(&client->node.addr, addr));
@@ -177,8 +174,6 @@ void ogs_sbi_client_remove(ogs_sbi_client_t *client)
 
     addr = client->node.addr;
     ogs_assert(addr);
-    ogs_info("ogs_sbi_client_remove() [%s:%d]",
-                OGS_ADDR(addr, buf), OGS_PORT(addr));
 
     /* ogs_sbi_client_t is always created with reference context */
     if (OGS_OBJECT_IS_REF(client)) {
@@ -481,13 +476,6 @@ static connection_t *connection_add(
     rc = curl_multi_add_handle(client->multi, conn->easy);
     mcode_or_die("connection_add: curl_multi_add_handle", rc);
 
-    // 获取本端的端口号
-    //long local_port;
-    //curl_easy_getinfo(conn->easy, CURLINFO_LOCAL_PORT, &local_port);
-    //char buf[OGS_ADDRSTRLEN];
-    //ogs_info("connection_add() [%s:%d],localport:%ld",
-    //            OGS_ADDR(client->node.addr, buf), OGS_PORT(client->node.addr),local_port);
-    
     return conn;
 }
 
@@ -499,8 +487,8 @@ static void connection_remove(connection_t *conn)
     client = conn->client;
     ogs_assert(client);
     
-    long local_port;
-    curl_easy_getinfo(conn->easy, CURLINFO_LOCAL_PORT, &local_port);   
+    //long local_port;
+    //curl_easy_getinfo(conn->easy, CURLINFO_LOCAL_PORT, &local_port);   
     
     ogs_list_remove(&client->connection_list, conn);
 
@@ -567,10 +555,7 @@ static void connection_timer_expired(void *data)
 
     conn = data;
     ogs_assert(conn);
-    
-    char buf[OGS_ADDRSTRLEN];
-    ogs_error("Connection timer expired,addr:%s %d", OGS_ADDR(conn->client->node.addr,buf),OGS_PORT(conn->client->node.addr));
-    
+
     ogs_assert(conn->client_cb);
     conn->client_cb(OGS_TIMEUP, NULL, conn->data);
 
@@ -608,10 +593,7 @@ static void check_multi_info(ogs_sbi_client_t *client)
             curl_easy_getinfo(easy, CURLINFO_EFFECTIVE_URL, &url);
             curl_easy_getinfo(easy, CURLINFO_RESPONSE_CODE, &res_status);
             curl_easy_getinfo(easy, CURLINFO_CONTENT_TYPE, &content_type);
-            
-            long local_port;
-            curl_easy_getinfo(conn->easy, CURLINFO_LOCAL_PORT, &local_port);  
-            
+
             res = resource->data.result;
             if (res == CURLE_OK) {
                 ogs_log_level_e level = OGS_LOG_DEBUG;

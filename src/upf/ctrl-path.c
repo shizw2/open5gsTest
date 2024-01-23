@@ -334,13 +334,10 @@ int upf_dpdk_loop_event(void) {
     int i, ret;
     struct dpdk_upf_s *dpdk_context = upf_dpdk_context();
     upf_dpdk_event_t *event = NULL;
-    
-    //ogs_info("upf_dpdk_loop_event, pktnum:%d.",dpdk_context->fwd_num);
 
     for (i = 0; i < dpdk_context->fwd_num; i++) {
         for (;;) {
             ret = rte_ring_dequeue(dpdk_context->f2p_ring[i], (void **) &event);
-            //ogs_info("upf_dpdk_loop_event, ret:%d.",ret);
             if (ret)
                 break;
             handle_event(event);
@@ -383,7 +380,7 @@ int upf_dpdk_sess_establish(upf_sess_t *sess) {
     }
 
     event->event_type = UPF_DPDK_SESS_ESTAB;
-    event->event_body = sess;//event_body;
+    event->event_body = event_body;
 
     return send_p2f_event(event, sess);
 }
@@ -418,7 +415,7 @@ int upf_dpdk_sess_modify(upf_sess_t *sess) {
     }
 
     event->event_type = UPF_DPDK_SESS_MOD;
-    event->event_body = sess;//event_body;
+    event->event_body = event_body;
 
     return send_p2f_event(event, sess);
 }

@@ -251,8 +251,6 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
         ogs_assert(far);
 
         handle_gpdu_prepare(m);
-        
-        //ogs_info("far->dst_if:%d.",far->dst_if);
 
         if (far->dst_if == OGS_PFCP_INTERFACE_CORE) {
             return process_dst_if_interface_core(lconf, m, in_l3_head);
@@ -330,7 +328,7 @@ static int handle_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
     int ret = 0;
     struct packet *pkt = (struct packet *)(m->buf_addr);
 
-    //ogs_info("%s, pkt type %d\n", __func__, pkt->pkt_type);
+    ogs_debug("%s, pkt type %d\n", __func__, pkt->pkt_type);
 
     switch (pkt->pkt_type) {
         case PKT_TYPE_ARP:
@@ -573,7 +571,6 @@ handle_events(struct lcore_conf *lconf, upf_dpdk_event_t **events, uint16_t nb_r
 
 int fwd_main_loop(void *arg)
 {
-    ogs_info("fwd_main_loop");
     unsigned lcore_id = rte_lcore_id();
     struct lcore_conf *lconf = &dkuf.lconf[lcore_id];
 

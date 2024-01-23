@@ -185,14 +185,12 @@ static void upf_main(void *data)
 
 #if defined(USE_DPDK)
     //bind core pfcp;
-    ogs_info("bind_core \r\n");
     bind_core(dkuf.pfcp_lcore);
 #endif
 
     ogs_fsm_init(&upf_sm, upf_state_initial, upf_state_final, 0);
 
     for ( ;; ) {
-        //ogs_info("dkuf_update_time \r\n");
 #if defined(USE_DPDK)
         dkuf_update_time();
 #endif
@@ -235,8 +233,8 @@ static void upf_main(void *data)
         }
 
 #if defined(USE_DPDK)
-        // handle dpdk event        
-        upf_dpdk_loop_event();        
+        // handle dpdk event
+        upf_dpdk_loop_event();
 #endif
     }
 done:

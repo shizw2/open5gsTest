@@ -157,8 +157,6 @@ bool ausf_nudm_ueau_handle_get(ausf_ue_t *ausf_ue,
     ogs_hash_set(ausf_self()->supi_hash,
             ausf_ue->supi, strlen(ausf_ue->supi), ausf_ue);
 
-    ogs_info("test:ausf_nudm_ueau_handle_get,supi:%s.",ausf_ue->supi);
-
     ausf_ue->auth_type = AuthenticationInfoResult->auth_type;
 
     ogs_ascii_to_hex(
