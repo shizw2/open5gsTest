@@ -134,6 +134,11 @@ struct lcore_conf {
     uint16_t flag;
     struct ipv4_hashtbl *ipv4_hash;
     ogs_hash_t *ipv6_hash;
+    /* IPv4 framed routes trie */
+    struct upf_route_trie_node *ipv4_framed_routes;
+    /* IPv6 framed routes trie */
+    struct upf_route_trie_node *ipv6_framed_routes;
+    
     struct rte_lpm *lpm;
     struct route_gw *rt_gw;
     struct rte_lpm6 *lpm6;

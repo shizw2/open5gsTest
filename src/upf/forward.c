@@ -382,6 +382,109 @@ static void handle_pkts(struct lcore_conf *lconf, struct rte_mbuf **pkts_burst, 
     }
 }
 
+static void free_local_framed_route_from_trie(struct lcore_conf *lconf, ogs_ipsubnet_t *route)
+{
+    const int chunk_size = sizeof(route->sub[0]) << 3;
+    const int is_ipv4 = route->family == AF_INET;
+    const int nbits = is_ipv4 ? chunk_size : OGS_IPV6_128_PREFIX_LEN;
+    struct upf_route_trie_node **trie =
+        is_ipv4 ? &lconf->ipv4_framed_routes : &lconf->ipv6_framed_routes;
+
+    struct upf_route_trie_node **to_free_tries[OGS_IPV6_128_PREFIX_LEN + 1];
+    int free_from = 0;
+    int i = 0;
+
+    for (i = 0; i <= nbits; i++) {
+        int part = i / chunk_size;
+        int bit = (nbits - i - 1) % chunk_size;
+
+        if (!*trie)
+            break;
+        to_free_tries[i] = trie;
+
+        if (i == nbits ||
+            ((1 << bit) & be32toh(route->mask[part])) == 0) {
+            (*trie)->sess = NULL;
+            if ((*trie)->left || (*trie)->right)
+                free_from = i + 1;
+            i++;
+            break;
+        }
+
+        if ((1 << bit) & be32toh(route->sub[part])) {
+            if ((*trie)->left || (*trie)->sess)
+                free_from = i + 1;
+            trie = &(*trie)->right;
+        } else {
+            if ((*trie)->right || (*trie)->sess)
+                free_from = i + 1;
+            trie = &(*trie)->left;
+        }
+    }
+
+    for (i = i - 1; i >= free_from; i--) {
+        trie = to_free_tries[i];
+        ogs_free(*trie);
+        *trie = NULL;
+    }
+}
+
+static void add_local_framed_route_to_trie(struct lcore_conf *lconf, ogs_ipsubnet_t *route, upf_sess_t *sess)
+{
+    const int chunk_size = sizeof(route->sub[0]) << 3;
+    const int is_ipv4 = route->family == AF_INET;
+    const int nbits = is_ipv4 ? chunk_size : OGS_IPV6_128_PREFIX_LEN;
+    struct upf_route_trie_node **trie =
+        is_ipv4 ? &lconf->ipv4_framed_routes : &lconf->ipv6_framed_routes;
+    int i = 0;
+
+    for (i = 0; i <= nbits; i++) {
+        int part = i / chunk_size;
+        int bit = (nbits - i - 1) % chunk_size;
+
+        if (!*trie)
+            *trie = ogs_calloc(1, sizeof(**trie));
+
+        if (i == nbits ||
+            ((1 << bit) & be32toh(route->mask[part])) == 0) {
+            (*trie)->sess = sess;
+            break;
+        }
+
+        if ((1 << bit) & be32toh(route->sub[part])) {
+            trie = &(*trie)->right;
+        } else {
+            trie = &(*trie)->left;
+        }
+    }
+}
+
+static int ipv4_framed_routes_remove(struct lcore_conf *lconf, upf_sess_t *sess){
+    int i = 0;
+    
+    for (i = 0; i < OGS_MAX_NUM_OF_FRAMED_ROUTES_IN_PDI; i++) {
+        if (!sess->ipv4_framed_routes || !sess->ipv4_framed_routes[i].family)
+            break;
+        free_local_framed_route_from_trie(lconf, &sess->ipv4_framed_routes[i]);
+    }
+    
+    return 0;
+}
+
+static int ipv4_framed_routes_add(struct lcore_conf *lconf, upf_sess_t *sess){
+    int i = 0;
+    
+    ogs_assert(sess);
+
+    for (i = 0; i < OGS_MAX_NUM_OF_FRAMED_ROUTES_IN_PDI; i++) {
+        if (!sess->ipv4_framed_routes || !sess->ipv4_framed_routes[i].family)
+            break;
+        add_local_framed_route_to_trie(lconf, &sess->ipv4_framed_routes[i], sess);
+    }
+
+    return 0;
+}
+
 static int upf_local_sess_add(struct lcore_conf *lconf, upf_sess_t *sess)
 {
     upf_sess_t *old = NULL;
@@ -389,12 +492,13 @@ static int upf_local_sess_add(struct lcore_conf *lconf, upf_sess_t *sess)
     old = ipv4_sess_find(lconf->ipv4_hash, sess->ipv4->addr[0]);
     if (old) {
         ipv4_hash_remove(lconf->ipv4_hash, sess->ipv4->addr[0]);
+        ipv4_framed_routes_remove(lconf, sess);
         fwd_flush_buffered_packet(old);
         free_upf_dpdk_sess(old);
     }
 
     ipv4_hash_insert(lconf->ipv4_hash, sess->ipv4->addr[0], sess);
-
+    ipv4_framed_routes_add(lconf, sess);
     return 0;
 }
 
@@ -405,11 +509,12 @@ static int upf_local_sess_update(struct lcore_conf *lconf, upf_sess_t *sess)
     old = ipv4_sess_find(lconf->ipv4_hash, sess->ipv4->addr[0]);
     if (old) {
         ipv4_hash_remove(lconf->ipv4_hash, sess->ipv4->addr[0]);
+        ipv4_framed_routes_remove(lconf, sess);
         fwd_flush_buffered_packet(old);
         free_upf_dpdk_sess(old);
     }
     ipv4_hash_insert(lconf->ipv4_hash, sess->ipv4->addr[0], sess);
-
+    ipv4_framed_routes_add(lconf, sess);
     return 0;
 }
 
@@ -423,6 +528,7 @@ static int upf_local_sess_del(struct lcore_conf *lconf, void *body)
     if (sess) {
         fwd_flush_buffered_packet(sess);
         ipv4_hash_remove(lconf->ipv4_hash, sess->ipv4->addr[0]);
+        ipv4_framed_routes_remove(lconf, sess);
         ogs_debug("forward local sess found and delete ipv4= "FORMAT_IPV4, FORMAT_IPV4_ARGS(ip));
         free_upf_dpdk_sess(sess);
     }

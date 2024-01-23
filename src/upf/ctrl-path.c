@@ -151,6 +151,17 @@ static void *copy_upf_sess(upf_sess_t *old_sess) {
             memcpy(new_sess->ipv6->subnet, old_sess->ipv6->subnet, sizeof(ogs_pfcp_subnet_t));
         }
     }
+    
+    if (old_sess->ipv4_framed_routes) {
+        new_sess->ipv4_framed_routes = dpdk_malloc(sizeof(ogs_ipsubnet_t));
+        memcpy(new_sess->ipv4_framed_routes, old_sess->ipv4_framed_routes, sizeof(ogs_ipsubnet_t));
+    }
+    
+    if (old_sess->ipv6_framed_routes) {
+        new_sess->ipv6_framed_routes = dpdk_malloc(sizeof(ogs_ipsubnet_t));
+        memcpy(new_sess->ipv6_framed_routes, old_sess->ipv6_framed_routes, sizeof(ogs_ipsubnet_t));
+    }
+    
     return new_sess;
 
     // TODO: 中间过程malloc错误没有处理
@@ -373,7 +384,7 @@ int upf_dpdk_sess_establish(upf_sess_t *sess) {
     }
 
     event->event_type = UPF_DPDK_SESS_ESTAB;
-    event->event_body = event_body;
+    event->event_body = sess;//event_body;
 
     return send_p2f_event(event, sess);
 }
@@ -408,7 +419,7 @@ int upf_dpdk_sess_modify(upf_sess_t *sess) {
     }
 
     event->event_type = UPF_DPDK_SESS_MOD;
-    event->event_body = event_body;
+    event->event_body = sess;//event_body;
 
     return send_p2f_event(event, sess);
 }
