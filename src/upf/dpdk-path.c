@@ -192,14 +192,39 @@ upf_sess_t *local_sess_find_by_ue_ip(struct lcore_conf *lconf, char *l3_head, ui
 
     struct ip *ip_h = NULL;
 
+    
     ip_h = (struct ip *)l3_head;
     if (ip_h->ip_v == 4) {
         off = dst ? 16 : 12;
         sess = ipv4_sess_find(lconf->ipv4_hash, *(uint32_t *)(l3_head + off));
         if (!sess || !sess->ipv4) {
-            return NULL;
+            struct upf_route_trie_node *trie = lconf->ipv4_framed_routes;
+            uint32_t addr = *(uint32_t *)(l3_head + off);
+            const int nbits = sizeof(addr) << 3;
+            int i;
+            for (i =  0; i <= nbits; i++) {
+                int bit = nbits - i - 1;
+
+                if (!trie)
+                    break;
+                if (trie->sess){
+                    sess = trie->sess;
+                    ogs_info("framed_routes find sess, ip:%s", ip2str(addr));   
+                }
+                if (i == nbits)
+                    break;
+
+                if ((1 << bit) & be32toh(addr))
+                    trie = trie->right;
+                else
+                    trie = trie->left;
+            }
+            
+            if (!sess || !sess->ipv4){
+                return NULL;
+            }
         }
-        ogs_debug("PAA IPv4:%s", ip2str(sess->ipv4->addr[0]));
+        ogs_debug("PAA IPv4:%s", ip2str(sess->ipv4->addr[0]));        
     } else if (ip_h->ip_v == 6) {
         off = dst ? 24 : 8;
         sess = (upf_sess_t *)ogs_hash_get(lconf->ipv6_hash,
