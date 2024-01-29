@@ -281,7 +281,7 @@ int gtp_send_user_plane(
         ipv6_h->payload_len = rte_cpu_to_be_16(l4_len);
         ipv6_h->proto = IPPROTO_UDP;
         ipv6_h->hop_limits = IPDEFTTL - 1;
-        memcpy(ipv6_h->src_addr, dkuf.n3_addr6, 16);
+        memcpy(ipv6_h->src_addr, dkuf.n3_addr.ipv6, 16);
         memcpy(ipv6_h->dst_addr, &gnode->addr.sin6.sin6_addr, 16);
         eth_h->ether_type = BE_ETH_P_IPV6;
     } else {
@@ -298,7 +298,7 @@ int gtp_send_user_plane(
         ipv4_h->fragment_offset = 0; /* [15,14,13] bits for flags, [12 - 0] bits for offset */
         ipv4_h->time_to_live = IPDEFTTL - 1;
         ipv4_h->next_proto_id = IPPROTO_UDP;
-        ipv4_h->src_addr = dkuf.n3_addr;
+        ipv4_h->src_addr = dkuf.n3_addr.ipv4;
         ipv4_h->dst_addr = gnode->addr.sin.sin_addr.s_addr;
         ipv4_h->total_length = rte_cpu_to_be_16(IP_HDR_LEN + l4_len);
         ipv4_h->hdr_checksum = 0;
@@ -323,6 +323,16 @@ int gtp_send_user_plane(
     struct lcore_conf *lconf = &dkuf.lconf[rte_lcore_id()];
     if (LIKELY(is_ipv4)) {
         arp_node_t *arp = arp_find(lconf, ipv4_h->dst_addr, 0);
+
+        //如果目的IP跟N3在同一网段,则直接查询目的IP的MAC,否则查询GW的MAC
+        ogs_info("dstaddr:%s, n6addr:%s, gw:%s,mask:%d", ip2str(ipv4_h->dst_addr),ip2str(dkuf.n3_addr.ipv4),ip2str(dkuf.n6_addr.gw),dkuf.n6_addr.mask);
+        if ((ipv4_h->dst_addr&dkuf.n3_addr.mask ) == (dkuf.n3_addr.ipv4 & dkuf.n3_addr.mask)){
+            arp = arp_find(lconf, ipv4_h->dst_addr, 1);
+        }else{
+            ogs_info("find gw's mac");
+            arp = arp_find(lconf, dkuf.n3_addr.gw, 1);
+        }
+
         if (arp->flag == ARP_ND_SEND) {
             if (arp->pkt_list_cnt < MAX_PKT_BURST) {
                 pkt->next = arp->pkt_list;

@@ -185,8 +185,20 @@ struct dpdk_upf_s {
     uint16_t dpt_lcore[MAX_DISPATCHER_NUM];
     uint16_t fwd_lcore[MAX_FWD_NUM];
 
-    uint32_t n3_addr;
-    uint64_t  n3_addr6[2];
+    //uint32_t n3_addr;
+    //uint64_t  n3_addr6[2];
+
+    struct {
+        uint32_t ipv4;
+        uint32_t mask;
+        uint32_t gw;
+        uint16_t mask_bits;
+        uint16_t mask6_bits;
+        uint64_t ipv6[2];
+        uint64_t mask6[2];
+        uint64_t gw6[2];
+    } n3_addr;
+
     struct {
         uint32_t ipv4;
         uint32_t mask;
@@ -257,7 +269,7 @@ send_garp(void)
         return ;
     }
 
-    struct rte_mbuf *n3_garp = dkuf_alloc_arp_request(0, dkuf.n3_addr);
+    struct rte_mbuf *n3_garp = dkuf_alloc_arp_request(0, dkuf.n3_addr.ipv4);
     int ret = rte_eth_tx_burst(0, dkuf.fwd_num, &n3_garp, 1);
     if (unlikely(ret < 1)) {
         ogs_error("port 0 send garp failed\n");

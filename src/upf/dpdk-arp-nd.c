@@ -24,7 +24,7 @@
 struct rte_mbuf *
 dkuf_alloc_arp_request(uint16_t portid, uint32_t dip)
 {
-    uint32_t sip = portid ? dkuf.n6_addr.ipv4 : dkuf.n3_addr;
+    uint32_t sip = portid ? dkuf.n6_addr.ipv4 : dkuf.n3_addr.ipv4;
     struct rte_mempool *mp = dkuf.mpool;
 
     struct rte_mbuf *m;
@@ -56,7 +56,7 @@ dkuf_alloc_ns(uint16_t portid, void *dip);
 struct rte_mbuf *
 dkuf_alloc_ns(uint16_t portid, void *dip)
 {
-    void *sip = portid ? dkuf.n6_addr.ipv6 : dkuf.n3_addr6;
+    void *sip = portid ? dkuf.n6_addr.ipv6 : dkuf.n3_addr.ipv6;
     struct rte_mempool *mp = dkuf.mpool;
 
     struct rte_mbuf *m = rte_pktmbuf_alloc(mp);

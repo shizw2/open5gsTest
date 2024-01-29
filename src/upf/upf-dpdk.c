@@ -502,10 +502,9 @@ static uint32_t set_n3_addr(void)
 
     ogs_list_for_each(&ogs_gtp_self()->gtpu_list, node) {
         if (node->addr->sin.sin_family == AF_INET) {
-            dkuf.n3_addr = *(uint32_t *)&node->addr->sin.sin_addr;
-            ogs_info("n3_addr:%s",ip2str(dkuf.n3_addr));            
+            dkuf.n3_addr.ipv4 = *(uint32_t *)&node->addr->sin.sin_addr;
         } else if (node->addr->sin6.sin6_family == AF_INET6) {
-            memcpy(dkuf.n3_addr6, &node->addr->sin6.sin6_addr, 16);
+            memcpy(dkuf.n3_addr.ipv6, &node->addr->sin6.sin6_addr, 16);
         }
     }
 
@@ -829,15 +828,24 @@ int upf_dpdk_context_parse_config(void)
 
                             dkuf.n6_addr.mask = 0xFFFFFFFF;
                             ogs_info("mask:%s\n",ip2str(dkuf.n6_addr.mask));
-                            // 左移 32 - mask_bits 位，并取反，以得到正确的子网掩码
-                            //dkuf.n6_addr.mask >>= dkuf.n6_addr.mask_bits;
-                            //dkuf.n6_addr.mask = ~dkuf.n6_addr.mask;
                             dkuf.n6_addr.mask <<= (32 - dkuf.n6_addr.mask_bits);
                             dkuf.n6_addr.mask = ntohl(dkuf.n6_addr.mask);
                             ogs_info("get n6 address %s/%d\n", ip2str(dkuf.n6_addr.ipv4), dkuf.n6_addr.mask_bits);
                             ogs_info("get n6 mask:%s\n",ip2str(dkuf.n6_addr.mask));
                         }
-                    } else if (!strcmp(dpdk_key, "n6_gw")) {
+                    } else if (!strcmp(dpdk_key, "n3_default_gw")) {
+                        char *v = (char *)ogs_yaml_iter_value(&dpdk_iter);
+                        if (v) {
+                            dkuf.n3_addr.gw = inet_addr(v);
+                            ogs_info("get n3 gateway %s\n", ip2str(dkuf.n3_addr.gw));
+                        }
+                    } else if (!strcmp(dpdk_key, "n3_default_gw6")) {
+                        char *v = (char *)ogs_yaml_iter_value(&dpdk_iter);
+                        if (v) {
+                            inet_pton(AF_INET6, v, dkuf.n3_addr.gw6);
+                            ogs_info("get n3 gateway6 %s\n", v);
+                        }
+                    } else if (!strcmp(dpdk_key, "n6_default_gw")) {
                         char *v = (char *)ogs_yaml_iter_value(&dpdk_iter);
                         if (v) {
                             dkuf.n6_addr.gw = inet_addr(v);
@@ -855,7 +863,7 @@ int upf_dpdk_context_parse_config(void)
                             }
                             ogs_info("get n6 address %s/%d\n", ipstr, dkuf.n6_addr.mask6_bits);
                         }
-                    } else if (!strcmp(dpdk_key, "n6_gw6")) {
+                    } else if (!strcmp(dpdk_key, "n6_default_gw6")) {
                         char *v = (char *)ogs_yaml_iter_value(&dpdk_iter);
                         if (v) {
                             inet_pton(AF_INET6, v, dkuf.n6_addr.gw6);

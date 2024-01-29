@@ -32,6 +32,7 @@
     "node-fetch": "^2.7.0",
     "nprogress": "^0.2.0",
     "open-color": "^1.9.1",
+    "or": "^0.2.0",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
