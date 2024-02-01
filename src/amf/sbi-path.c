@@ -195,7 +195,9 @@ int amf_sess_sbi_discover_and_send(
     }
 
     xact->state = state;
-    xact->supi_id = ogs_id_get_value(sess->amf_ue->supi);    
+    if (sess->amf_ue->supi){
+        xact->supi_id = ogs_id_get_value(sess->amf_ue->supi);
+    }  
 
     rv = ogs_sbi_discover_and_send(xact);
     if (rv != OGS_OK) {
