@@ -845,6 +845,18 @@ int upf_dpdk_context_parse_config(void)
                             inet_pton(AF_INET6, v, dkuf.n3_addr.gw6);
                             ogs_info("get n3 gateway6 %s\n", v);
                         }
+                    } else if (!strcmp(dpdk_key, "n3_mask_bits")) {
+                        char *v = (char *)ogs_yaml_iter_value(&dpdk_iter);
+                        if (v) {
+                            dkuf.n3_addr.mask_bits = atoi(v);
+                            ogs_info("get n3 mask_bits %d\n", dkuf.n3_addr.mask_bits);
+                        }
+                    } else if (!strcmp(dpdk_key, "n3_mask6_bits")) {
+                        char *v = (char *)ogs_yaml_iter_value(&dpdk_iter);
+                        if (v) {
+                            dkuf.n3_addr.mask6_bits = atoi(v);
+                            ogs_info("get n3 mask6_bits %d\n", dkuf.n3_addr.mask6_bits);
+                        }
                     } else if (!strcmp(dpdk_key, "n6_default_gw")) {
                         char *v = (char *)ogs_yaml_iter_value(&dpdk_iter);
                         if (v) {
