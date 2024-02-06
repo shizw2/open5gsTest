@@ -852,6 +852,11 @@ int upf_dpdk_context_parse_config(void)
                         if (v) {
                             dkuf.n3_addr.mask_bits = atoi(v);
                             ogs_info("get n3 mask_bits %d\n", dkuf.n3_addr.mask_bits);
+                            
+                            dkuf.n3_addr.mask = 0xFFFFFFFF;
+                            dkuf.n3_addr.mask <<= (32 - dkuf.n3_addr.mask_bits);
+                            dkuf.n3_addr.mask = ntohl(dkuf.n3_addr.mask);
+                            ogs_info("get n3 mask:%s\n",ip2str(dkuf.n3_addr.mask));
                         }
                     } else if (!strcmp(dpdk_key, "n3_mask6_bits")) {
                         char *v = (char *)ogs_yaml_iter_value(&dpdk_iter);
