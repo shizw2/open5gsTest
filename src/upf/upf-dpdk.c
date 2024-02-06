@@ -608,7 +608,9 @@ static int port_init(uint16_t portid)
         rte_exit(EXIT_FAILURE, "rte_eth_dev_start:err %d, port %u\n", ret, portid);
     }
     printf("init port %d, done!\n", portid);
-    rte_eth_promiscuous_enable(portid);
+    if (portid != 0){
+        rte_eth_promiscuous_enable(portid);
+    }
 
     return OGS_OK;
 }
