@@ -1,4 +1,24 @@
 cd /home/5gc/misc/dpdk
+# 获取当前系统的内核版本  
+kernel_version=$(uname -r)  
+# 提取主版本号  
+major_version=${kernel_version%%.*}  
+minor_version=${kernel_version#*.}  
+minor_version=${minor_version%%.*}  
+  
+# 定义函数来加载指定目录下的igb_uio.ko模块  
+load_module() {  
+    local dir=$1  
+    echo "Loading igb_uio.ko from $dir..."  
+    insmod "$dir/igb_uio.ko"  
+    if [ $? -eq 0 ]; then  
+        echo "igb_uio.ko loaded successfully."  
+    else  
+        echo "Failed to load igb_uio.ko from $dir."  
+        exit 1  
+    fi  
+}  
+  
 if [ "$1" == "1" ]; then
   # 获取当前的 DPDK 驱动程序信息
   driver_info=$(./dpdk-devbind.py -s)
@@ -29,8 +49,14 @@ else
   # 加载 uio 和 igb 内核模块
   modprobe uio
   modprobe igb
-  insmod igb_uio.ko
-
+  # 判断内核版本并加载对应模块  
+  if [[ $major_version -lt 5 || ( $major_version -eq 5 && $minor_version -le 9 ) ]]; then
+    load_module "kernel/ubuntu20_kernel5.4"
+  elif [[ $major_version -lt 6 || ( $major_version -eq 6 && $minor_version -lt 5 ) ]]; then
+    load_module "kernel/ubuntu22_kernel5.9"
+  else
+    load_module "kernel/ubuntu22_kernel6.5"
+  fi
   # 使用 dpdk-devbind.py 将网络设备绑定到 igb_uio
   ./dpdk-devbind.py --bind=igb_uio ens192
   ./dpdk-devbind.py --bind=igb_uio ens224
