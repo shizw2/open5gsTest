@@ -15,7 +15,7 @@ load_module() {
         echo "igb_uio.ko loaded successfully."  
     else  
         echo "Failed to load igb_uio.ko from $dir."  
-        exit 1  
+        #exit 1  
     fi  
 }  
   
@@ -49,8 +49,9 @@ else
   # 加载 uio 和 igb 内核模块
   modprobe uio
   modprobe igb
+  echo $major_version $minor_version
   # 判断内核版本并加载对应模块  
-  if [[ $major_version -lt 5 || ( $major_version -eq 5 && $minor_version -le 9 ) ]]; then
+  if [[ $major_version -lt 5 || ( $major_version -eq 5 && $minor_version -lt 9 ) ]]; then
     load_module "kernel/ubuntu20_kernel5.4"
   elif [[ $major_version -lt 6 || ( $major_version -eq 6 && $minor_version -lt 5 ) ]]; then
     load_module "kernel/ubuntu22_kernel5.9"
