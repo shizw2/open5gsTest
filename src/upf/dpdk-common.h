@@ -87,9 +87,11 @@ static inline char *
 ip2str(uint32_t ip)
 {
     uint8_t *p = (uint8_t *)&ip;
-    static char buf[16];
-    sprintf(buf, "%u.%u.%u.%u%c", p[0], p[1], p[2], p[3], '\0');
-    return buf;
+    static char buf[4][16];
+    static int count = 0;
+    count = (count + 1) % 4; // 切换到下一个缓冲区
+    sprintf(buf[count], "%u.%u.%u.%u%c", p[0], p[1], p[2], p[3], '\0');
+    return buf[count];
 }
 
 static inline char *
@@ -104,9 +106,11 @@ ip2str2(uint32_t ip)
 static inline char *
 ip62str(void *ip)
 {
-    static char buf[64];
-    inet_ntop(AF_INET6, (struct in6_addr *)ip, buf, 64);
-    return buf;
+    static char buf[4][64];
+    static int count = 0;
+    count = (count + 1) % 4; // 切换到下一个缓冲区
+    inet_ntop(AF_INET6, (struct in6_addr *)ip, buf[count], 64);
+    return buf[count];
 }
 
 static inline char *
@@ -148,11 +152,13 @@ ip_printf2(char *l3_head, uint8_t dst)
 static inline char *
 mac2str(struct rte_ether_addr *mac)
 {
-    static char buf[64];
-    sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X",
+    static char buf[4][64];
+    static int count = 0;
+    count = (count + 1) % 4; // 切换到下一个缓冲区
+    sprintf(buf[count], "%02X:%02X:%02X:%02X:%02X:%02X",
             mac->addr_bytes[0],mac->addr_bytes[1],mac->addr_bytes[2],
             mac->addr_bytes[3],mac->addr_bytes[4],mac->addr_bytes[5]);
-    return buf;
+    return buf[count];
 }
 
 static inline void
