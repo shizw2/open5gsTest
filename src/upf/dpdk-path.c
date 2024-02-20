@@ -347,14 +347,14 @@ int gtp_send_user_plane(
 
     struct lcore_conf *lconf = &dkuf.lconf[rte_lcore_id()];
     if (LIKELY(is_ipv4)) {
-        arp_node_t *arp = arp_find(lconf, ipv4_h->dst_addr, 0);
-
+        //arp_node_t *arp = arp_find(lconf, ipv4_h->dst_addr, 0);
+        arp_node_t *arp = NULL;
         //如果目的IP跟N3在同一网段,则直接查询目的IP的MAC,否则查询GW的MAC
         ogs_info("dstaddr:%s, n3addr:%s, gw:%s,mask:%s", ip2str(ipv4_h->dst_addr),ip2str(dkuf.n3_addr.ipv4),ip2str(dkuf.n3_addr.gw),ip2str(dkuf.n3_addr.mask));
         if ((ipv4_h->dst_addr&dkuf.n3_addr.mask ) == (dkuf.n3_addr.ipv4 & dkuf.n3_addr.mask)){
-            arp = arp_find(lconf, ipv4_h->dst_addr, 1);
+            arp = arp_find(lconf, ipv4_h->dst_addr, 0);
         }else{
-            arp = arp_find(lconf, dkuf.n3_addr.gw, 1);
+            arp = arp_find(lconf, dkuf.n3_addr.gw, 0);
         }
 
         if (arp->flag == ARP_ND_SEND) {
@@ -370,7 +370,14 @@ int gtp_send_user_plane(
         }
         mac_copy(arp->mac, &eth_h->d_addr);
     } else {
-        nd_node_t *nd = nd_find(lconf, ipv6_h->dst_addr, 0);
+        //nd_node_t *nd = nd_find(lconf, ipv6_h->dst_addr, 0);
+        nd_node_t *nd = NULL;
+        if ((ipv6_h->dst_addr[0]&dkuf.n3_addr.mask6[0] ) == (dkuf.n3_addr.ipv6[0] & dkuf.n3_addr.mask6[0]) && 
+            (ipv6_h->dst_addr[1]&dkuf.n3_addr.mask6[1] ) == (dkuf.n3_addr.ipv6[1] & dkuf.n3_addr.mask6[1])){
+            nd = nd_find(lconf, ipv6_h->dst_addr, 1);
+        }else{
+            nd = nd_find(lconf, dkuf.n3_addr.gw6, 1);
+        }
         if (nd->flag == ARP_ND_SEND) {
             if (nd->pkt_list_cnt < MAX_PKT_BURST) {
                 pkt->next = nd->pkt_list;
@@ -700,7 +707,13 @@ int process_dst_if_interface_core(struct lcore_conf *lconf, struct rte_mbuf *m, 
 
         eth_h = (struct rte_ether_hdr *)((char *)ip_h - sizeof(*eth_h));
         mac_copy((struct rte_ether_addr *)&dkuf.mac[1], &eth_h->s_addr);
-        nd = nd_find(lconf, in_ipv6_h->dst_addr, 1);
+        //nd = nd_find(lconf, in_ipv6_h->dst_addr, 1);
+        if ((in_ipv6_h->dst_addr[0]&dkuf.n6_addr.mask6[0] ) == (dkuf.n6_addr.ipv6[0] & dkuf.n6_addr.mask6[0]) && 
+            (in_ipv6_h->dst_addr[1]&dkuf.n6_addr.mask6[1] ) == (dkuf.n6_addr.ipv6[1] & dkuf.n6_addr.mask6[1])){
+            nd = nd_find(lconf, in_ipv6_h->dst_addr, 1);
+        }else{
+            nd = nd_find(lconf, dkuf.n6_addr.gw6, 1);
+        }
         if (nd->flag == ARP_ND_SEND) {
             if (nd->pkt_list_cnt < MAX_PKT_BURST) {
                 pkt->next = nd->pkt_list;

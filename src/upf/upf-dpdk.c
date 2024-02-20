@@ -739,6 +739,22 @@ static int upf_dpdk_context_validation(void)
     return OGS_OK;
 }
 
+void generateMask6(uint16_t mask6_bits, uint64_t* mask6) {
+    memset(mask6, 0, sizeof(uint64_t) * 2);
+
+    int num_full_blocks = mask6_bits / 64;
+    int remaining_bits = mask6_bits % 64;
+
+    for (int i = 0; i < num_full_blocks; i++) {
+        mask6[i] = UINT64_MAX;
+    }
+
+    if (remaining_bits > 0) {
+        uint64_t last_block_mask = (UINT64_MAX << (64 - remaining_bits));
+        mask6[num_full_blocks] = last_block_mask;
+    }
+}
+
 /* upf:
  *    dpdk:
  *        pfcp_lcore: 0
@@ -881,6 +897,9 @@ int upf_dpdk_context_parse_config(void)
                                 dkuf.n6_addr.mask6_bits = 128;
                             }
                             ogs_info("get n6 address %s/%d\n", ipstr, dkuf.n6_addr.mask6_bits);
+                            
+                            generateMask6(dkuf.n6_addr.mask6_bits, dkuf.n6_addr.mask6);
+                            ogs_info("get n6 mask6 %s\n", ip62str(dkuf.n6_addr.mask6));
                         }
                     } else if (!strcmp(dpdk_key, "n6_default_gw6")) {
                         char *v = (char *)ogs_yaml_iter_value(&dpdk_iter);
