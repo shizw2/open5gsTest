@@ -1,18 +1,11 @@
 cd /home/5gc/misc/dpdk
-# 获取当前系统的内核版本  
-kernel_version=$(uname -r)  
-# 提取主版本号  
-major_version=${kernel_version%%.*}  
-minor_version=${kernel_version#*.}  
-minor_version=${minor_version%%.*}  
-  
+
 # 定义函数来加载指定目录下的igb_uio.ko模块  
 load_module() {
-    local dir=$1
     local version=$(uname -r | sed 's/-generic//')
-    local module="$dir/igb_uio_$version.ko"
+    local module="kernel/igb_uio_$version.ko"
 
-    echo "Loading igb_uio.ko from $dir..."
+    echo "Loading igb_uio.ko from $module"
     insmod "$module"
     if [ $? -eq 0 ]; then
         echo "igb_uio.ko loaded successfully."
@@ -52,7 +45,7 @@ else
   # 加载 uio 和 igb 内核模块
   modprobe uio
   modprobe igb
-  load_module "kernel"
+  load_module
   # 使用 dpdk-devbind.py 将网络设备绑定到 igb_uio
   ./dpdk-devbind.py --bind=igb_uio ens192
   ./dpdk-devbind.py --bind=igb_uio ens224
