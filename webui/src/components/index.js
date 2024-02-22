@@ -22,6 +22,7 @@ import * as Account from './Account';
 import * as Alarm from './Alarm';
 import * as NFConfig from './NFConfig';
 import * as Oprlog from './Oprlog';
+import * as Imeicheck from './Imeicheck';
 export {
   Layout,
   Header,
@@ -46,5 +47,6 @@ export {
   Account,
   NFConfig,
   Alarm,
-  Oprlog
+  Oprlog,
+  Imeicheck
 }

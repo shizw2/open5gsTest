@@ -127,6 +127,13 @@ const transformErrors = errors => {
 };
 
 class Form extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      formData: null,
+      // 其他状态...
+    };
+  }
   static propTypes = {
     visible: PropTypes.bool,
     title: PropTypes.string,
@@ -160,10 +167,32 @@ class Form extends Component {
     }
   }
   */
+  componentDidMount() {
+    const { visible, formData } = this.props;
+    if (visible) {
+      this.setState({ formData });
+    }
+  }
+  static getDerivedStateFromProps(nextProps, prevState) {
+    if (prevState.visible === false && nextProps.visible === true) {
+      // Initialize State Variable when form view is visible for the first time
+      return { 
+        formData: nextProps.formData,
+        disabled: false,
+        editing: false,
+        confirm: false,
+        disableSubmitButton: true
+      };
+    }
+    return null;
+  }
   componentDidUpdate(prevProps) {
-    if (prevProps.visible === false && this.props.visible === true) {
+    const { visible, formData } = this.props;
+    console.log("****prevProps.visible,visible",prevProps.visible,visible,formData,this.props.formData)   
+    console.log("****prevProps.visible,this.props.visible",prevProps.visible,this.props.visible)
+    if ( formData !== prevProps.formData) {
       this.setState({
-        formData: this.props.formData,
+        formData: formData,
         disabled: false,
         editing: false,
         confirm: false,

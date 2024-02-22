@@ -341,11 +341,6 @@ int16_t ogs_pfcp_parse_sdf_filter(
         size += sizeof(filter->sdf_filter_id);
     }
 
-    ogs_info("test:flow_description:%s,tos_traffic_class:%d,security_parameter_index:%d,flow_label:%d,sdf_filter_id:%d",
-        filter->flow_description,filter->tos_traffic_class,
-        filter->security_parameter_index,filter->flow_label,
-        filter->sdf_filter_id);
-
     ogs_assert(size == octet->len);
 
     return size;

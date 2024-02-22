@@ -4,14 +4,7 @@ import styled from 'styled-components';
 import oc from 'open-color';
 import { media } from 'helpers/style-utils';
 
-import EditIcon from 'react-icons/lib/md/edit';
-import DeleteIcon from 'react-icons/lib/md/delete';
 import CloseIcon from 'react-icons/lib/md/close';
-
-import PhoneIcon from 'react-icons/lib/md/phone';
-import SecurityIcon from 'react-icons/lib/md/security';
-import PdnIcon from 'react-icons/lib/md/cast';
-import KeyboardControlIcon from 'react-icons/lib/md/keyboard-control';
 
 import { Modal, Tooltip, Dimmed } from 'components';
 

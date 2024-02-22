@@ -337,7 +337,10 @@ class Collection extends Component {
     this.setState(prevState => ({
       ...prevState,   
       data: prevState.originalData.filter(item => {      
-         return (item.opuser[0].includes(opu)&&item.optfm[0].includes(opfm)&&new Date(item.opttime[0])>=dateRangeStart&&item.optype[0].includes(opty));       
+         return (item.opuser[0].includes(opu)&&
+         item.optfm[0].includes(opfm)&&
+         new Date(item.opttime[0])>=dateRangeStart&&
+         item.optype[0].includes(opty));       
      })          
     }));
   }
@@ -507,8 +510,8 @@ class Collection extends Component {
         color: '#5C7CFA',
         cursor: 'pointer'
   }
-}
-return (  
+    }
+  return (  
   <div>                   
     <Tabalehead>
           <div className="optorder">序号</div>
@@ -575,6 +578,7 @@ return (
               <option value="用户管理">用户管理</option>
               <option value="签约模板">签约模板</option>
               <option value="账号管理">账号管理</option>
+              <option value="黑白名单">黑白名单</option>
             </select>
           ):(
             <span style={styles.selectval}>{this.state.fmSelectedOption}</span>
