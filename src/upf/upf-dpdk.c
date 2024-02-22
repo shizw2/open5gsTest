@@ -750,7 +750,7 @@ void generateMask6(uint16_t mask6_bits, uint64_t* mask6) {
     }
 
     if (remaining_bits > 0) {
-        uint64_t last_block_mask = (UINT64_MAX << (64 - remaining_bits));
+        uint64_t last_block_mask = (UINT64_MAX >> (64 - remaining_bits));
         mask6[num_full_blocks] = last_block_mask;
     }
 }
@@ -879,6 +879,8 @@ int upf_dpdk_context_parse_config(void)
                         if (v) {
                             dkuf.n3_addr.mask6_bits = atoi(v);
                             ogs_info("get n3 mask6_bits %d\n", dkuf.n3_addr.mask6_bits);
+                            generateMask6(dkuf.n3_addr.mask6_bits, dkuf.n3_addr.mask6);
+                            ogs_info("get n3 mask6 %s\n", ip62str(dkuf.n3_addr.mask6));
                         }
                     } else if (!strcmp(dpdk_key, "n6_default_gw")) {
                         char *v = (char *)ogs_yaml_iter_value(&dpdk_iter);
