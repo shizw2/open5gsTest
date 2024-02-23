@@ -192,7 +192,6 @@ upf_sess_t *local_sess_find_by_ue_ip(struct lcore_conf *lconf, char *l3_head, ui
 
     struct ip *ip_h = NULL;
 
-    
     ip_h = (struct ip *)l3_head;
     if (ip_h->ip_v == 4) {
         off = dst ? 16 : 12;
@@ -224,7 +223,7 @@ upf_sess_t *local_sess_find_by_ue_ip(struct lcore_conf *lconf, char *l3_head, ui
                 return NULL;
             }
         }
-        ogs_debug("PAA IPv4:%s", ip2str(sess->ipv4->addr[0]));        
+        ogs_debug("PAA IPv4:%s", ip2str(sess->ipv4->addr[0]));
     } else if (ip_h->ip_v == 6) {
         off = dst ? 24 : 8;
         sess = (upf_sess_t *)ogs_hash_get(lconf->ipv6_hash,
@@ -374,9 +373,9 @@ int gtp_send_user_plane(
         nd_node_t *nd = NULL;
         if ((ipv6_h->dst_addr[0]&dkuf.n3_addr.mask6[0] ) == (dkuf.n3_addr.ipv6[0] & dkuf.n3_addr.mask6[0]) && 
             (ipv6_h->dst_addr[1]&dkuf.n3_addr.mask6[1] ) == (dkuf.n3_addr.ipv6[1] & dkuf.n3_addr.mask6[1])){
-            nd = nd_find(lconf, ipv6_h->dst_addr, 1);
+            nd = nd_find(lconf, ipv6_h->dst_addr, 0);
         }else{
-            nd = nd_find(lconf, dkuf.n3_addr.gw6, 1);
+            nd = nd_find(lconf, dkuf.n3_addr.gw6, 0);
         }
         if (nd->flag == ARP_ND_SEND) {
             if (nd->pkt_list_cnt < MAX_PKT_BURST) {

@@ -715,8 +715,8 @@ class Edit extends Component {
   }
   */
   componentDidUpdate(prevProps) {
-    if (prevProps.oprlogs !== this.props.oprlogs) {
-      this.checkFirstPage(this.props.oprlogs);
+    if (prevProps.profiles !== this.props.profiles) {
+      this.checkFirstPage(this.props.profiles);
     }
   }
   getStateFromProps(props) {

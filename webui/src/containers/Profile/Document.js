@@ -86,10 +86,10 @@ class Document extends Component {
   }
   */
   componentDidMount() {
-    const { profiles, dispatch } = this.props
+    const { profile, dispatch } = this.props
 
-    if (profiles.needsFetch) {
-      dispatch(profiles.fetch)
+    if (profile.needsFetch) {
+      dispatch(profile.fetch)
     }
   }
   /*
@@ -381,7 +381,7 @@ class Document extends Component {
     } = this.props
     let editformData =profile.data || {}; 
     if (action === 'create') {
-      editformData = { ...formData, ...profile.data }; // 将 account.data 的值合并到 formData 中
+      editformData = { ...formData, ...profile.data }; 
     }
     return (
       <Profile.Edit

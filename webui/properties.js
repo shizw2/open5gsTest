@@ -8,6 +8,9 @@ const properties = {
   base_performance: '性能监控',
   base_oprlog: '日志管理',
   base_account: '账号管理',
+  base_imeicheck: '黑白名单',
+  grafanaport: '3002',
+  monitor: 1,
 };
 
 export default properties;

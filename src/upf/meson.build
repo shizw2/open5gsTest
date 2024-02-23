@@ -86,10 +86,6 @@ libarp_nd_dep = declare_dependency(
     dependencies : libtins_dep)
 
 #libnuma_dep = dependency('numa')
-#libnuma_dep = dependency('numa', required: true, path : '/usr/lib/x86_64-linux-gnu')
-#libnuma_dep = static_library('numa', '/usr/lib/x86_64-linux-gnu/libnuma.a')
-#libnuma_dep = shared_library('numa', '/usr/lib/x86_64-linux-gnu/libnuma.so')
-
 libdl_dep = meson.get_compiler('c').find_library('dl', dirs : ['/usr/lib64'])
 
 cmd = run_command('sh', '-c', 'echo $RTE_SDK')

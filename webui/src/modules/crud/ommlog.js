@@ -131,15 +131,13 @@ class Ommlog extends Component{
       }else{
         logformData.optcommand += info;        
     } 
-    }
-    console.log("createDocument:",MODEL, URL, params, logformData);  
+    }    
     return createDocument(MODEL, URL, params, logformData);
   }
   static fetchOmmlog(_id, params = {}) {
     return fetchDocument(MODEL, _id, `${URL}/${_id}`, params);
   }
-  static fetchOmmlogs(params = {}){
-    console.log("params:",params);
+  static fetchOmmlogs(params = {}){   
     return fetchCollection(MODEL, URL, params);
   }
 }

@@ -15,10 +15,13 @@ import * as Alarm from 'containers/Alarm';
 import * as Performance from 'containers/Performance';
 import * as Oprlog from 'containers/Oprlog';
 import * as NFConfig from 'containers/NFConfig';
+import * as Imeicheck from 'containers/Imeicheck';
 import { Ommlog } from 'modules/crud/ommlog';
 import React from 'react';
 import Logout from 'components/Base/Logout';
 import Session from 'modules/auth/session';
+import properties from '../../properties' // 导入配置文件
+
 class App extends Component {
   static propTypes = {
     session: PropTypes.object.isRequired,
@@ -47,7 +50,7 @@ class App extends Component {
     const { createOmmlog } = this.props; 
     this.timeoutId = setTimeout(() => {
       // 在定时器触发时执行handleLogout函数      
-      this.handleLogout(createOmmlog);
+      if(properties.monitor===0)this.handleLogout(createOmmlog);//如果需要长期监控则不执行退出。
     }, 300000); // 设置5分钟的定时器，超过5分钟未操作则执行退出登录操作
   };
   componentDidMount() {
@@ -104,6 +107,9 @@ class App extends Component {
         </Layout.Container>
         <Layout.Container visible={view === "oprlog"}> 
           <Oprlog.Collection/>       
+        </Layout.Container>
+        <Layout.Container visible={view === "imeicheck"}> 
+          <Imeicheck.Collection/>       
         </Layout.Container>
         <Notification/>
         <Ommlog session={session}/>

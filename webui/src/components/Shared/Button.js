@@ -102,7 +102,12 @@ const ButtonWrapper = styled.button`
 const FilteredButtonWrapper = styled(ButtonWrapper).withConfig({
   shouldForwardProp: prop =>
     prop !== 'clear' &&   
-    prop !== 'disabled',
+    prop !== 'disabled'&&   
+    prop !== 'info'&& 
+    prop !== 'danger'&&
+    prop !=='primary'&&
+    prop !=='secondary'&&
+    prop !=='success',
 })``;
 const ButtonContent = styled.div`
   display: flex;

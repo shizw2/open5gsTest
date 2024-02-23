@@ -602,8 +602,6 @@ uint8_t upf_sess_set_ue_ipv4_framed_routes(upf_sess_t *sess,
     for (i = 0, j = 0; i < OGS_MAX_NUM_OF_FRAMED_ROUTES_IN_PDI; i++) {
         if (!framed_routes || !framed_routes[i])
             break;
-        
-        ogs_info("framed_routes:%s",framed_routes[i]);
 
         if (sess->ipv4_framed_routes == NULL) {
             sess->ipv4_framed_routes = ogs_calloc(
