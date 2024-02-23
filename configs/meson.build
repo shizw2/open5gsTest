@@ -22,7 +22,7 @@ conf_data.set('sysconfdir', sysconfdir)
 conf_data.set('libdir', libdir)
 conf_data.set('localstatedir', localstatedir)
 conf_data.set('project_name', project_name)
-
+conf_data.set('5g_user', fiveG_user)
 build_configs_dir = join_paths(open5gs_build_dir, 'configs')
 conf_data.set('build_configs_dir', build_configs_dir)
 

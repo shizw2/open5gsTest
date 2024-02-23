@@ -27,7 +27,8 @@ project('5gc', 'c', 'cpp',
 
 #变量名称不能以数字开头。另外,变量定义只能放在project之后
 project_name = '5gc'
-
+#5g_user也可以是5gc，但需要在系统创建5gc用户和组
+fiveG_user = 'root' 
 libogslib_version = '2.6.4'
 
 prefix = get_option('prefix')
