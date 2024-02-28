@@ -23,12 +23,13 @@
 #include "metrics.h"
 #include "license.h"
 #include "ogs-app-timer.h"
+#include "telnet.h"
 
 static ogs_thread_t *thread;
 static void amf_main(void *data);
 static void amf_sps_main(void *data);
 static int initialized = 0;
-
+int cli_port = 2324;
 int amf_initialize(void)
 {
     int rv;
@@ -78,6 +79,10 @@ int amf_initialize(void)
 
     initialized = 1;
 
+    //pttTelnetdStart();
+    set_telnet_cmd_callback(telnet_proc_cmd);
+    
+    ogs_thread_create(telnetMain, &cli_port);
     return OGS_OK;
 }
 

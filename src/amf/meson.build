@@ -63,6 +63,7 @@ libamf_sources = files('''
 
     init.c
     metrics.c
+    telnetcmd.c
 '''.split())
 
 libamf = static_library('amf',
@@ -72,7 +73,8 @@ libamf = static_library('amf',
                     libngap_dep,
                     libnas_5gs_dep,
                     liblicense_dep,
-                    libsbi_dep],
+                    libsbi_dep,
+                    libtelnet_dep],
     install : false)
 
 libamf_dep = declare_dependency(
@@ -82,7 +84,8 @@ libamf_dep = declare_dependency(
                     libngap_dep,
                     libnas_5gs_dep,
                     liblicense_dep,
-                    libsbi_dep])
+                    libsbi_dep,
+                    libtelnet_dep])
 
 amf_sources = files('''
     app.c
