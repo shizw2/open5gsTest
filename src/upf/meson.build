@@ -68,6 +68,7 @@ libupf_sources = files('''
     pfcp-path.c
     n4-build.c
     n4-handler.c
+    telnetcmd.c
 '''.split())
 
 libtins_dep = dependency('libtins',
@@ -103,6 +104,7 @@ libupf = static_library('upf',
         libtun_dep,
         liblicense_dep,
         libarp_nd_dep,
+        libtelnet_dep,
     ],
     install : false)
 
@@ -114,6 +116,7 @@ libupf_dep = declare_dependency(
         libtun_dep,
         liblicense_dep,
         libarp_nd_dep,
+        libtelnet_dep,
     ])
 
 upf_sources = files('''
@@ -163,6 +166,7 @@ libupf_dpdk = static_library('upf-dpdk',
         libtun_dep,
         libarp_nd_dep,
         libmetrics_dep,
+        libtelnet_dep,
     ],
     install : false)
 
@@ -179,6 +183,7 @@ libupf_dpdk_dep = declare_dependency(
         #libnuma_dep,
         libdl_dep,
         libmetrics_dep,
+        libtelnet_dep,
     ])
 
 executable('5gc-upf-dpdkd',

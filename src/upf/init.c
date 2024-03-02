@@ -24,7 +24,7 @@
 #include "metrics.h"
 #include "license.h"
 #include "ogs-app-timer.h"
-
+#include "telnet.h"
 #if defined(USE_DPDK)
 #include <unistd.h>
 #include <sched.h>
@@ -121,7 +121,10 @@ int upf_initialize(void)
     
     thread = ogs_thread_create(upf_main, NULL);
     if (!thread) return OGS_ERROR;
-
+    
+    set_telnet_cmd_callback(telnet_proc_cmd);
+    int cli_port = 2325;    
+    ogs_thread_create(telnetMain, &cli_port);
     initialized = 1;
 
     return OGS_OK;

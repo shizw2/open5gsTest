@@ -424,7 +424,7 @@ void udp_ini_hand_shake_check()
     for (i = 0; i < g_pt_pkt_fwd_tbl->b_sps_num; i++)
     {   
         g_pt_pkt_fwd_tbl->ta_sps_infos[i].lost_heart_beat_cnt++;
-        if (g_pt_pkt_fwd_tbl->ta_sps_infos[i].lost_heart_beat_cnt >= 2)
+        if (g_pt_pkt_fwd_tbl->ta_sps_infos[i].lost_heart_beat_cnt > 2)
         {
             ogs_warn("icps hand shake check, acvite module num:%d, current module %d, lostcnt:%d.", 
             g_pt_pkt_fwd_tbl->b_sps_num,g_pt_pkt_fwd_tbl->ta_sps_infos[i].module_no,g_pt_pkt_fwd_tbl->ta_sps_infos[i].lost_heart_beat_cnt);

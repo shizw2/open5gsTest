@@ -2,15 +2,13 @@
 #include "context.h"
 char                g_chCmdName[128] = {0};
 T_pttCmdParas       g_tCmdPara[128];
-void amf(void);
-void showgnb(uint32_t enbID);
-void showgnbBriefAll( void );
-void shownf(uint32_t id);
-void shownfBriefAll(void);
-void showranue( void );
-void amf(void)
+void upf(void);
+void showsess(uint32_t id);
+void showsessBriefAll( void );
+
+void upf(void)
 {
-    printf("this is amf system. \r\n");
+    printf("this is upf system. \r\n");
 }
 
 void telnet_proc_cmd(char * pabCmd)
@@ -26,27 +24,22 @@ void telnet_proc_cmd(char * pabCmd)
     dwPara1 = pttGetCmdWord32Value(&g_tCmdPara[0]);
     dwPara2 = pttGetCmdWord32Value(&g_tCmdPara[1]);
 
-    if (strcmp(g_chCmdName, "amf") == 0){
-        amf();
-    }else if (strcmp(g_chCmdName, "showgnb") == 0){
-        showgnb(dwPara1);
-    }else if (strcmp(g_chCmdName, "shownf") == 0){
-        shownf(dwPara1);
-    }else if (strcmp(g_chCmdName, "showranue") == 0){
-        showranue();
-    }  
-    else{
+    if (strcmp(g_chCmdName, "upf") == 0){
+        upf();
+    }else if (strcmp(g_chCmdName, "showsess") == 0){
+        showsess(dwPara1);
+    }else{
         printf("the command not support\r\n");
     }  
     
     return;
 }
 
-void showgnb(uint32_t enbID)
+void showsess(uint32_t id)
 {
-    if(enbID == 0 )
+    if(id == 0 )
     {
-        showgnbBriefAll();
+        showsessBriefAll();
     }
     else
     {
@@ -56,32 +49,33 @@ void showgnb(uint32_t enbID)
     return;
 }
 
-void showgnbBriefAll( void )
+void showsessBriefAll( void )
 {
-    amf_gnb_t *gnb = NULL;
+    upf_sess_t *sess = NULL;
+    char buf1[OGS_ADDRSTRLEN];
+    char buf2[OGS_ADDRSTRLEN];
     
-    printf("\ngnb Brief All(current %u gnb count):\r\n", ogs_list_count(&amf_self()->gnb_list));
-    printf("+---------+----------------+----------+----------+--------+\n\r");
-    printf("| gnb_id  |    plmn_id     |  state   |  ta_num  | UECnt  |\n\r");
-    printf("+---------+----------------+----------+----------+--------+\n\r");
+    printf("\nupf sess Brief All(current %u sess count):\r\n", ogs_list_count(&upf_self()->sess_list));
+    printf("+-------------+-------------+----------------+----------------+----------------------------------------+----------+\n\r");
+    printf("| upf_n4_seid | smf_n4_seid |   smf_n4_ip    |     ipv4       |                 ipv6                   | apn_dnn  |\n\r");
+    printf("+-------------+-------------+----------------+----------------+----------------------------------------+----------+\n\r");
     
-    ogs_list_for_each(&amf_self()->gnb_list, gnb) {
-        printf("| %-7u | MCC:%dMNC:%-3d | %-8d | %-8d | %-6u |\r\n",
-               gnb->gnb_id, 
-               ogs_plmn_id_mcc(&gnb->plmn_id),
-               ogs_plmn_id_mnc(&gnb->plmn_id),
-               gnb->state.ng_setup_success,
-               gnb->num_of_supported_ta_list, 
-               ogs_list_count(&gnb->ran_ue_list));
+    ogs_list_for_each(&upf_self()->sess_list, sess) {
+        printf("| %-11lu | %-11ld | %-14s | %-14s | %-38s | %-8s |\r\n",
+               sess->upf_n4_seid,
+               sess->smf_n4_f_seid.seid,
+               sess->smf_n4_f_seid.ip.ipv4 ? ogs_ipv4_to_string(sess->smf_n4_f_seid.ip.addr):"",
+               sess->ipv4 ? OGS_INET_NTOP(&sess->ipv4->addr, buf1) : "",
+               sess->ipv6 ? OGS_INET6_NTOP(&sess->ipv6->addr, buf2) : "",
+               sess->apn_dnn);
     }
     
-    printf("+---------+----------------+----------+----------+--------+\n\r");
-    
+        printf("+-------------+-------------+----------------+----------------+----------------------------------------+----------+\n\r");
     printf("\r\n");
     
     return ;
 }
-
+#if 0
 void shownf(uint32_t id){
     if(id == 0 ){
         shownfBriefAll();
@@ -144,3 +138,4 @@ void showranue( void )
     
     return ;
 }
+#endif
