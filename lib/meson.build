@@ -35,4 +35,4 @@ subdir('nas')
 subdir('gtp')
 subdir('pfcp')
 subdir('sbi')
-
+subdir('telnet')
