@@ -26,6 +26,7 @@
 #include "telnet.h"
 
 static ogs_thread_t *thread;
+static ogs_thread_t *cli_thread;
 static void amf_main(void *data);
 static void amf_sps_main(void *data);
 static int initialized = 0;
@@ -79,11 +80,10 @@ int amf_initialize(void)
 
     initialized = 1;
 
-    //pttTelnetdStart();
     set_telnet_cmd_callback(telnet_proc_cmd);
+    cli_thread = ogs_thread_create(telnetMain, &ogs_app()->cli_list);
+    if (!cli_thread) return OGS_ERROR;
     
-    int cli_port = 2324;
-    ogs_thread_create(telnetMain, &cli_port);
     return OGS_OK;
 }
 
@@ -162,8 +162,10 @@ void amf_terminate(void)
     if (!initialized) return;
 
     /* Daemon terminating */
-    event_termination();
+    event_termination();    
+    ogs_free(cli_thread);
     ogs_thread_destroy(thread);
+
     ogs_timer_delete(t_termination_holding);
 
     ngap_close();
@@ -221,7 +223,7 @@ static void amf_main(void *data)
         }
     }
 done:
-
+    printf("test:finish  main\r\n");
     ogs_fsm_fini(&amf_sm, 0);
 }
 

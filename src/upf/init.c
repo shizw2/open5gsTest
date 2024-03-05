@@ -123,8 +123,7 @@ int upf_initialize(void)
     if (!thread) return OGS_ERROR;
     
     set_telnet_cmd_callback(telnet_proc_cmd);
-    int cli_port = 2325;    
-    ogs_thread_create(telnetMain, &cli_port);
+    ogs_thread_create(telnetMain, &ogs_app()->cli_list);
     initialized = 1;
 
     return OGS_OK;

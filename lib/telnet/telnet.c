@@ -1,4 +1,5 @@
 #include <telnet.h>  
+#include "ogs-core.h"
 
 int save_fd;
 /*telnet_cmd:ff fb 01 ff fb 03 ff fc 1f*/
@@ -26,7 +27,7 @@ int pttTelnetdStart(void);
 void pttTelnetProcCmdCCM(char * pabCmd);
 void *pttClientTaskProcess(int sockfd) ;
 void mcs(void);
-
+int pttTelnetd_New(ogs_list_t *cli_list);
 
 const char *strPassPromt = "Password:";
 const char *strPass = "mcptt";
@@ -83,7 +84,77 @@ int pttTelnetdStart(void)
     return 0;
 }
 
+int pttTelnetd_New(ogs_list_t *cli_list){
+    int server_sockfd;//服务器端套接字  
+    int client_sockfd;//客户端套接字  
+    struct sockaddr_in remote_addr; //客户端网络地址结构体  
+    socklen_t  sin_size;  
+    BOOL bReuseaddr=TRUE;
+    pid_t fpid;
+    int status;
+   
+    char buf[OGS_ADDRSTRLEN];
+    socklen_t addrlen;
+    ogs_socknode_t *node = NULL;
+    ogs_sockaddr_t *addr = NULL;
+    
+    /*创建服务器端套接字--IPv4协议，面向连接通信，TCP协议*/  
+    if((server_sockfd=socket(AF_INET,SOCK_STREAM,0))<0)  
+    {    
+        perror("socket");
+        return -1;  
+    }  
 
+    /*设置地址可重用*/
+    setsockopt (server_sockfd,SOL_SOCKET,SO_REUSEADDR,(char  *)&bReuseaddr, sizeof(bReuseaddr));
+
+    /*将套接字绑定到服务器的网络地址上*/ 
+    ogs_list_for_each(cli_list, node) {
+        addr = node->addr;
+        printf("begin bind socket to ip:%s, port %u.\r\n", OGS_ADDR(addr, buf),OGS_PORT(addr));          
+        addrlen = ogs_sockaddr_len(addr); 
+        if (bind(server_sockfd, &addr->sa, addrlen) != 0) {
+            printf("socket bind(%d) [%s]:%d failed",
+                    addr->ogs_sa_family, OGS_ADDR(addr, buf), OGS_PORT(addr));
+            return -1;
+        }
+    }
+
+    printf("begin listen socket.\r\n");
+
+    /*监听连接请求*/  
+    listen(server_sockfd,1);  
+
+    printf("Telnet: listening for telnet requests....\n");
+
+    sin_size=sizeof(struct sockaddr_in);  
+    while(1) 
+    {      
+        /*等待客户端连接请求到达*/  
+        if((client_sockfd=accept(server_sockfd,(struct sockaddr *)&remote_addr,&sin_size))<0)  
+        {  
+            perror("accept");  
+            return 1;  
+        }  
+        printf("accept client %s\n",inet_ntoa(remote_addr.sin_addr));  
+
+        pthread_t id;
+        int i,ret;
+
+        ret=pthread_create(&id,NULL,(void *) pttTaskProcessPthread,(void *)&client_sockfd);
+        if(ret!=0){
+            printf ("Telnet: telnet_starting.......err!\n");
+            return -1;
+        }
+        printf ("Telnet: telnet_started ok!\n");
+        pthread_join(id,NULL);
+    } 
+
+    close(client_sockfd);  
+    close(server_sockfd);  
+    return 0;       
+}
+#if 0
 /*telnet 主服务任务*/
 int pttTelnetd(int port)  
 {  
@@ -173,21 +244,19 @@ int pttTelnetd(int port)
     close(server_sockfd);  
     return 0;   
 } 
+#endif
 
 void * pttTelnetdPthread(void *arg)
 {
-    printf("pttTelnetdPthread.\r\n");
-    pttTelnetd(23);  
-
+    ogs_list_t *cli_list = (ogs_list_t *)arg;
+    pttTelnetd_New(cli_list); 
     return NULL;
 }
 
 void telnetMain(void *arg)
 {
-    int *cli_port = (int *)arg;
-    printf("telnetMain. cli_port:%d\r\n",*cli_port);    
-    pttTelnetd(*cli_port);  
-
+    ogs_list_t *cli_list = (ogs_list_t *)arg;
+    pttTelnetd_New(cli_list); 
     return ;
 }
 
@@ -301,7 +370,7 @@ int pttCmdProcess(int fd, char *cmdLine)
 
     /*这里添加命令处理函数*/
     /*示例*/
-    printf("%s\r\n",cmdLine);
+    //printf("%s\r\n",cmdLine);
     if (cmd_callback != NULL) {
         cmd_callback(cmdLine);
     }
@@ -330,7 +399,7 @@ BOOL pttGetCmdParams(char *pabCmd)
     memset(g_chCmdName, 0, sizeof(g_chCmdName));
     memset(&g_tCmdPara, 0, sizeof(g_tCmdPara));
 
-    printf("%s\r\n", pabCmd);
+    //printf("%s\r\n", pabCmd);
 
     for(i=0; i<128 && *(pabCmd+i)!= '\0'; i++)
     {
@@ -392,75 +461,6 @@ BOOL pttGetCmdParams(char *pabCmd)
     return TRUE;
 }
 
-#ifdef FUNC_MCS_CCM
-void pttTelnetProcCmdCCM(char * pabCmd)
-{
-    uint32_t  dwPara1   = 0;
-    uint32_t  dwPara2   = 0;
-
-    if (!pttGetCmdParams(pabCmd))
-    {
-        return;
-    }
-
-    dwPara1 = pttGetCmdWord32Value(&g_tCmdPara[0]);
-    dwPara2 = pttGetCmdWord32Value(&g_tCmdPara[1]);
-
-    if (strcmp(g_chCmdName, "mcs") == 0)
-    {
-        mcs();
-    }
-    #if 0
-    else if (strcmp(g_chCmdName, "pttmdbShowDBUsage") == 0)
-    {
-        pttmdbShowDBUsage();
-    }
-    else if (strcmp(g_chCmdName, "pttccShowCall") == 0)
-    {
-        pttccShowCall(dwPara1);
-    }
-    else if (strcmp(g_chCmdName, "pttrmShowCtxt") == 0)
-    {
-        pttrmShowCtxt(dwPara1);
-    }
-    else if (strcmp(g_chCmdName, "pttiuShowInfoUpd") == 0)
-    {
-        pttiuShowInfoUpd(dwPara1);
-    }    
-    else if (strcmp(g_chCmdName, "pttccForceDestroyCall") == 0)
-    {
-        pttccForceDestroyCall(dwPara1);
-    }     
-    else if (strcmp(g_chCmdName, "pttrmForceDestroyCtxt") == 0)
-    {
-        pttrmForceDestroyCtxt(dwPara1);
-    }    
-    else if (strcmp(g_chCmdName, "pttiuForceDestroyInfoUpd") == 0)
-    {
-        pttiuForceDestroyInfoUpd(dwPara1);
-    }     
-    else if (strcmp(g_chCmdName, "pttShowSIPData") == 0)
-    {
-        pttShowSIPData(dwPara1, dwPara2);
-    }
-    else if (strcmp(g_chCmdName, "pttSipLog") == 0)
-    {
-        pttSipLog(dwPara1);
-    }
-    else if (strcmp(g_chCmdName, "pttCloseInfoUpd") == 0)
-    {
-        pttCloseInfoUpd(dwPara1);
-    } 
-#endif    
-    else
-    {
-        printf("the command not support\r\n");
-    }  
-    
-    return;
-}
-#endif
-
 
 /*telnet交互处理函数*/
 void pttTaskProcess(int sockfd, BOOL bLoginSuccess)
@@ -489,11 +489,22 @@ void pttTaskProcess(int sockfd, BOOL bLoginSuccess)
             //exit(1);对方断开连接，返回
             return ;
         }
-        printf("[%s,%d]rev count:%d,buf:%s\n",__FUNCTION__,__LINE__,count, cmdLine);
+        //printf("[%s,%d]rev count:%d,buf:%s\n",__FUNCTION__,__LINE__,count, cmdLine);
         ret = pttCmdAnalyze(cmdLine);
         if(ret == 0) 
         {
-            printf("[%s,%d]rev count:%d,buf:%s\n",__FUNCTION__,__LINE__,count, cmdLine);
+            printf("[%s,%d]rev count:%d,buf:%s.\n",__FUNCTION__,__LINE__,count, cmdLine);
+            
+            if (strncmp(cmdLine, "quit", 4) == 0){
+                printf("telnet quit.\r\n");
+                //如何退出客户端
+                // 向客户端发送回车换行符，触发客户端处理并关闭连接
+                //shutdown(sockfd, SHUT_RDWR);
+
+                // 等待一段时间以确保客户端接收并处理消息
+                //sleep(1);
+                return;
+            }
 
             if (bLoginSuccess && strlen(cmdLine) > 0)
             {
@@ -529,8 +540,9 @@ void pttTaskProcess(int sockfd, BOOL bLoginSuccess)
         }else{
             printf("pttCmdAnalyze faild,cmdLine:%s\r\n",cmdLine);
         }
-
     }
+    
+    printf("test:telnet quit.\r\n");
 }
 void __attribute__((noreturn)) *pttTaskProcessPthread(void *arg) 
 {
@@ -541,7 +553,8 @@ void __attribute__((noreturn)) *pttTaskProcessPthread(void *arg)
 
     printf("pttTaskProcessPthread \r\n");
     pttTaskProcess(sockfd, bLoginSuccess);
-
+    printf("pttTaskProcessPthread exit\r\n");
+    close(sockfd);  
     pthread_exit((void *)1);
 }
 
