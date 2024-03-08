@@ -450,4 +450,4 @@ time:
 # Configuration for CLI
 cli:
   - addr: 127.0.0.11
-    port: 2324
+    port: 2300

@@ -886,4 +886,4 @@ time:
 # Configuration for CLI
 cli:
   - addr: 127.0.0.4
-    port: 2324
+    port: 2300
