@@ -716,3 +716,8 @@ usrsctp:
 time:
   t3512:
     value: 540     # 9 mintues * 60 = 540 seconds
+
+# Configuration for CLI
+cli:
+  - addr: 127.0.0.5
+    port: 2324

@@ -446,3 +446,8 @@ max:
 #    message:
 #        duration: 3000
 time:
+
+# Configuration for CLI
+cli:
+  - addr: 127.0.0.13
+    port: 2324

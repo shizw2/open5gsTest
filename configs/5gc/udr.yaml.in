@@ -448,3 +448,8 @@ max:
 #    message:
 #        duration: 3000
 time:
+
+# Configuration for CLI
+cli:
+  - addr: 127.0.0.20
+    port: 2324
