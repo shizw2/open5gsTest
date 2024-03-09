@@ -103,7 +103,7 @@ void showsessDetail( uint32_t id )
     ogs_list_for_each(&sess->pfcp.pdr_list, pdr){
         printf("          **************pdr id: %d***********\r\n",pdr->id);     
         printf("          |--teid              : %d \r\n", pdr->teid);
-        printf("          |--src_if            : %d \r\n", pdr->src_if);
+        printf("          |--src_if            : %s \r\n", ogs_pfcp_interface_get_name(pdr->src_if));
         printf("          |--dnn               : %s \r\n", pdr->dnn);
         printf("          |--f_teid            :  \r\n");
         printf("              |--teid             : %d \r\n", pdr->f_teid.teid);
@@ -119,7 +119,12 @@ void showsessDetail( uint32_t id )
             printf("              |--rep_triggers      : reptri_5:%d reptri_6:%d reptri_7:%d \r\n", pdr->urr[i]->rep_triggers.reptri_5, 
                                                                                                     pdr->urr[i]->rep_triggers.reptri_6, 
                                                                                                     pdr->urr[i]->rep_triggers.reptri_7);
-            //printf("              |--meas_info         : %d \r\n", pdr->urr[i]->meas_info);
+
+			printf("              |--meas_info         : mnop:%d,istm:%d,radi:%d,inam:%d,mnop:%d \r\n", pdr->urr[i]->meas_info.mnop,
+																									    pdr->urr[i]->meas_info.istm,
+																									    pdr->urr[i]->meas_info.radi,
+																									    pdr->urr[i]->meas_info.inam,
+																									    pdr->urr[i]->meas_info.mbqe);
             printf("              |--meas_period       : %d \r\n", pdr->urr[i]->meas_period);
             printf("              |--vol_threshold     : total:%lu uplink:%lu downlink:%lu\r\n", pdr->urr[i]->vol_threshold.total_volume,
                                                                                                  pdr->urr[i]->vol_threshold.uplink_volume,
@@ -132,7 +137,7 @@ void showsessDetail( uint32_t id )
             printf("              |--time_threshold    : %d \r\n", pdr->urr[i]->time_threshold);
             printf("              |--time_quota        : %d \r\n", pdr->urr[i]->time_quota);
             printf("              |--quota_holding_time: %d \r\n", pdr->urr[i]->quota_holding_time);
-            //printf("              |--dropped_dl_traffic_threshold: %d \r\n", pdr->urr[i]->dropped_dl_traffic_threshold);
+            printf("              |--dropped_dl_traffic_threshold: downlink_packets:%lu,number_of_bytes_of_downlink_data:%lu \r\n", pdr->urr[i]->dropped_dl_traffic_threshold.downlink_packets,pdr->urr[i]->dropped_dl_traffic_threshold.number_of_bytes_of_downlink_data);
             printf("              |--quota_validity_time: %d \r\n", pdr->urr[i]->quota_validity_time);
         }
         printf("          |--num_of_flow       : %d \r\n", pdr->num_of_flow);
@@ -142,9 +147,8 @@ void showsessDetail( uint32_t id )
     ogs_list_for_each(&sess->pfcp.far_list, far){
         printf("          **************far id: %d***********\r\n",far->id);     
         printf("          |--dnn               : %s \r\n", far->dnn);
-        printf("          |--dst_if            : %d \r\n", far->dst_if);
+        printf("          |--dst_if            : %s \r\n", ogs_pfcp_interface_get_name(far->dst_if));
         printf("          |--apply_action      : %d \r\n", far->apply_action);
-        printf("          |--dst_if            : %d \r\n", far->dst_if);
         printf("          |--num_of_buffered_packet: %d \r\n", far->num_of_buffered_packet);        
         printf("          |--smreq_flags       : %d \r\n", far->smreq_flags.value);
     }
@@ -183,8 +187,6 @@ void showsessDetail( uint32_t id )
 
     }
     printf("\r\n"); 
-    
-    printf("\r\n");
     
     return ;
 }

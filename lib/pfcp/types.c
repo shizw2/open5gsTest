@@ -73,6 +73,34 @@ const char *ogs_pfcp_cause_get_name(uint8_t cause)
     return "OGS_PFCP_CAUSE_UNKNOWN";
 }
 
+const char *ogs_pfcp_interface_get_name(ogs_pfcp_interface_t interface)
+{
+    switch(interface) {
+    case OGS_PFCP_INTERFACE_ACCESS:
+        return "ACCESS";
+        break;
+    case OGS_PFCP_INTERFACE_CORE:
+        return "CORE";
+        break;
+    case OGS_PFCP_INTERFACE_SGI_N6_LAN:
+        return "SGI_N6_LAN";
+        break;
+    case OGS_PFCP_INTERFACE_CP_FUNCTION:
+        return "CP_FUNCTION";
+        break;
+    case OGS_PFCP_INTERFACE_LI_FUNCTION:
+        return "LI_FUNCTION";
+        break;
+    case OGS_PFCP_INTERFACE_UNKNOWN:
+        return "UNKNOWN";
+        break;
+    default:
+        break;
+    }
+    return "UNKNOWN";
+}
+
+
 int16_t ogs_pfcp_build_user_plane_ip_resource_info(
         ogs_tlv_octet_t *octet,
         ogs_user_plane_ip_resource_info_t *info,
