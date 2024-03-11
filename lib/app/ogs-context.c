@@ -216,7 +216,7 @@ static void app_context_prepare(void)
 
     self.time.nf_instance.heartbeat_interval = 10;//默认值
     
-    self.cli_port = 2324;
+    self.cli_port = 2300;
 
     regenerate_all_timer_duration();
 }

@@ -4,8 +4,8 @@
 int save_fd;
 /*telnet_cmd:ff fb 01 ff fb 03 ff fc 1f*/
 //const unsigned char g_chCmdTelnet[9] = {0xff, 0xfb, 0x01, 0xff, 0xfb, 0x03, 0xff, 0xfc, 0x1f};
-/*TELNETĞ­ÒéÃüÁî*/
-/*0XFD: ÈÏ¿ÉÑ¡ÏîÇëÇó*/
+/*TELNETåè®®å‘½ä»¤*/
+/*0XFD: è®¤å¯é€‰é¡¹è¯·æ±‚*/
 const unsigned char g_chCmdTelnet[12] = {0xff,0xfd,0x18, 0xff,0xfd,0x20, 0xff,0xfd,0x23, 0xff,0xfd,0x27};
 char                g_cmdLine[1024]  = {0};
 uint8_t             g_bCmdParaNum    = 0;
@@ -19,7 +19,6 @@ int pttioStdSet(int src_fd, int dest_fd, int *save_fd);
 void pttRecoverIoStdSet(int src_fd, int dest_fd);
 int pttCmdAnalyze(char *cmd);
 int pttCmdProcess(int fd, char *cmdLine);
-int pttTelnetd(int port);
 void pttTaskProcess(int sockfd, BOOL bLoginSuccess);
 void *pttTelnetdPthread(void * arg);
 void *pttTaskProcessPthread(void *arg);
@@ -27,10 +26,10 @@ int pttTelnetdStart(void);
 void pttTelnetProcCmdCCM(char * pabCmd);
 void *pttClientTaskProcess(int sockfd) ;
 void mcs(void);
-int pttTelnetd_New(ogs_list_t *cli_list);
+int pttTelnetd(ogs_list_t *cli_list);
 
 const char *strPassPromt = "Password:";
-const char *strPass = "mcptt";
+
 
 
 static TelnetCmdCallback cmd_callback = NULL;
@@ -50,7 +49,7 @@ int main()
 }
 #endif
 
-/*Æô¶¯telnet·şÎñ*/
+/*å¯åŠ¨telnetæœåŠ¡*/
 int pttTelnetdStart(void)
 {
 #if 1
@@ -71,11 +70,11 @@ int pttTelnetdStart(void)
     int status;
 
     if(pid=fork()) {
-        //exit(0);        //ÊÇ¸¸½ø³Ì£¬½áÊø¸¸½ø³Ì
+        //exit(0);        //æ˜¯çˆ¶è¿›ç¨‹ï¼Œç»“æŸçˆ¶è¿›ç¨‹
         waitpid(-1, &status, WNOHANG | WUNTRACED | WCONTINUED);
         return 0;
     } else if(pid < 0) {
-        return -1;//exit(1);        //forkÊ§°Ü£¬ÍË³ö
+        return -1;//exit(1);        //forkå¤±è´¥ï¼Œé€€å‡º
     }
     printf("Telnet: telnet_starting.......\n");
     pttTelnetd(23);
@@ -84,10 +83,10 @@ int pttTelnetdStart(void)
     return 0;
 }
 
-int pttTelnetd_New(ogs_list_t *cli_list){
-    int server_sockfd;//·şÎñÆ÷¶ËÌ×½Ó×Ö  
-    int client_sockfd;//¿Í»§¶ËÌ×½Ó×Ö  
-    struct sockaddr_in remote_addr; //¿Í»§¶ËÍøÂçµØÖ·½á¹¹Ìå  
+int pttTelnetd(ogs_list_t *cli_list){
+    int server_sockfd;//æœåŠ¡å™¨ç«¯å¥—æ¥å­—  
+    int client_sockfd;//å®¢æˆ·ç«¯å¥—æ¥å­—  
+    struct sockaddr_in remote_addr; //å®¢æˆ·ç«¯ç½‘ç»œåœ°å€ç»“æ„ä½“  
     socklen_t  sin_size;  
     BOOL bReuseaddr=TRUE;
     pid_t fpid;
@@ -98,17 +97,17 @@ int pttTelnetd_New(ogs_list_t *cli_list){
     ogs_socknode_t *node = NULL;
     ogs_sockaddr_t *addr = NULL;
     
-    /*´´½¨·şÎñÆ÷¶ËÌ×½Ó×Ö--IPv4Ğ­Òé£¬ÃæÏòÁ¬½ÓÍ¨ĞÅ£¬TCPĞ­Òé*/  
+    /*åˆ›å»ºæœåŠ¡å™¨ç«¯å¥—æ¥å­—--IPv4åè®®ï¼Œé¢å‘è¿æ¥é€šä¿¡ï¼ŒTCPåè®®*/  
     if((server_sockfd=socket(AF_INET,SOCK_STREAM,0))<0)  
     {    
         perror("socket");
         return -1;  
     }  
 
-    /*ÉèÖÃµØÖ·¿ÉÖØÓÃ*/
+    /*è®¾ç½®åœ°å€å¯é‡ç”¨*/
     setsockopt (server_sockfd,SOL_SOCKET,SO_REUSEADDR,(char  *)&bReuseaddr, sizeof(bReuseaddr));
 
-    /*½«Ì×½Ó×Ö°ó¶¨µ½·şÎñÆ÷µÄÍøÂçµØÖ·ÉÏ*/ 
+    /*å°†å¥—æ¥å­—ç»‘å®šåˆ°æœåŠ¡å™¨çš„ç½‘ç»œåœ°å€ä¸Š*/ 
     ogs_list_for_each(cli_list, node) {
         addr = node->addr;
         printf("begin bind socket to ip:%s, port %u.\r\n", OGS_ADDR(addr, buf),OGS_PORT(addr));          
@@ -122,7 +121,7 @@ int pttTelnetd_New(ogs_list_t *cli_list){
 
     printf("begin listen socket.\r\n");
 
-    /*¼àÌıÁ¬½ÓÇëÇó*/  
+    /*ç›‘å¬è¿æ¥è¯·æ±‚*/  
     listen(server_sockfd,1);  
 
     printf("Telnet: listening for telnet requests....\n");
@@ -130,7 +129,7 @@ int pttTelnetd_New(ogs_list_t *cli_list){
     sin_size=sizeof(struct sockaddr_in);  
     while(1) 
     {      
-        /*µÈ´ı¿Í»§¶ËÁ¬½ÓÇëÇóµ½´ï*/  
+        /*ç­‰å¾…å®¢æˆ·ç«¯è¿æ¥è¯·æ±‚åˆ°è¾¾*/  
         if((client_sockfd=accept(server_sockfd,(struct sockaddr *)&remote_addr,&sin_size))<0)  
         {  
             perror("accept");  
@@ -155,41 +154,41 @@ int pttTelnetd_New(ogs_list_t *cli_list){
     return 0;       
 }
 #if 0
-/*telnet Ö÷·şÎñÈÎÎñ*/
+/*telnet ä¸»æœåŠ¡ä»»åŠ¡*/
 int pttTelnetd(int port)  
 {  
-    int server_sockfd;//·şÎñÆ÷¶ËÌ×½Ó×Ö  
-    int client_sockfd;//¿Í»§¶ËÌ×½Ó×Ö  
-    struct sockaddr_in server_addr;   //·şÎñÆ÷ÍøÂçµØÖ·½á¹¹Ìå  
-    struct sockaddr_in remote_addr; //¿Í»§¶ËÍøÂçµØÖ·½á¹¹Ìå  
+    int server_sockfd;//æœåŠ¡å™¨ç«¯å¥—æ¥å­—  
+    int client_sockfd;//å®¢æˆ·ç«¯å¥—æ¥å­—  
+    struct sockaddr_in server_addr;   //æœåŠ¡å™¨ç½‘ç»œåœ°å€ç»“æ„ä½“  
+    struct sockaddr_in remote_addr; //å®¢æˆ·ç«¯ç½‘ç»œåœ°å€ç»“æ„ä½“  
     socklen_t  sin_size;  
     BOOL bReuseaddr=TRUE;
     pid_t fpid;
     int status;
-    memset(&server_addr,0,sizeof(server_addr)); //Êı¾İ³õÊ¼»¯--ÇåÁã  
-    server_addr.sin_family=AF_INET; //ÉèÖÃÎªIPÍ¨ĞÅ  
-    server_addr.sin_addr.s_addr=htonl(INADDR_ANY);//·şÎñÆ÷IPµØÖ·--ÔÊĞíÁ¬½Óµ½ËùÓĞ±¾µØµØÖ·ÉÏ  
+    memset(&server_addr,0,sizeof(server_addr)); //æ•°æ®åˆå§‹åŒ–--æ¸…é›¶  
+    server_addr.sin_family=AF_INET; //è®¾ç½®ä¸ºIPé€šä¿¡  
+    server_addr.sin_addr.s_addr=htonl(INADDR_ANY);//æœåŠ¡å™¨IPåœ°å€--å…è®¸è¿æ¥åˆ°æ‰€æœ‰æœ¬åœ°åœ°å€ä¸Š  
     //#ifdef FUNC_MCS_CCM
-    //server_addr.sin_port=htons(CCM_TELNET_PORT); //·şÎñÆ÷telnet¶Ë¿ÚºÅ 
+    //server_addr.sin_port=htons(CCM_TELNET_PORT); //æœåŠ¡å™¨telnetç«¯å£å· 
     //#endif
 
     server_addr.sin_port = htons(port);
     
     printf("begin create socket %d.\r\n",port);
 
-    /*´´½¨·şÎñÆ÷¶ËÌ×½Ó×Ö--IPv4Ğ­Òé£¬ÃæÏòÁ¬½ÓÍ¨ĞÅ£¬TCPĞ­Òé*/  
+    /*åˆ›å»ºæœåŠ¡å™¨ç«¯å¥—æ¥å­—--IPv4åè®®ï¼Œé¢å‘è¿æ¥é€šä¿¡ï¼ŒTCPåè®®*/  
     if((server_sockfd=socket(AF_INET,SOCK_STREAM,0))<0)  
     {    
         perror("socket");
         return -1;  
     }  
 
-    /*ÉèÖÃµØÖ·¿ÉÖØÓÃ*/
+    /*è®¾ç½®åœ°å€å¯é‡ç”¨*/
     setsockopt (server_sockfd,SOL_SOCKET,SO_REUSEADDR,(char  *)&bReuseaddr, sizeof(bReuseaddr));
 
     printf("begin bind socket to port %u.\r\n", ntohs(server_addr.sin_port));
 
-        /*½«Ì×½Ó×Ö°ó¶¨µ½·şÎñÆ÷µÄÍøÂçµØÖ·ÉÏ*/  
+        /*å°†å¥—æ¥å­—ç»‘å®šåˆ°æœåŠ¡å™¨çš„ç½‘ç»œåœ°å€ä¸Š*/  
     if (bind(server_sockfd,(struct sockaddr *)&server_addr,sizeof(struct sockaddr)) < 0)  
     {  
         perror("bind");  
@@ -199,7 +198,7 @@ int pttTelnetd(int port)
 
     printf("begin listen socket.\r\n");
 
-    /*¼àÌıÁ¬½ÓÇëÇó*/  
+    /*ç›‘å¬è¿æ¥è¯·æ±‚*/  
     listen(server_sockfd,1);  
 
     printf("Telnet: listening for telnet requests....\n");
@@ -207,7 +206,7 @@ int pttTelnetd(int port)
     sin_size=sizeof(struct sockaddr_in);  
     while(1) 
     {      
-        /*µÈ´ı¿Í»§¶ËÁ¬½ÓÇëÇóµ½´ï*/  
+        /*ç­‰å¾…å®¢æˆ·ç«¯è¿æ¥è¯·æ±‚åˆ°è¾¾*/  
         if((client_sockfd=accept(server_sockfd,(struct sockaddr *)&remote_addr,&sin_size))<0)  
         {  
             perror("accept");  
@@ -249,24 +248,24 @@ int pttTelnetd(int port)
 void * pttTelnetdPthread(void *arg)
 {
     ogs_list_t *cli_list = (ogs_list_t *)arg;
-    pttTelnetd_New(cli_list); 
+    pttTelnetd(cli_list); 
     return NULL;
 }
 
 void telnetMain(void *arg)
 {
     ogs_list_t *cli_list = (ogs_list_t *)arg;
-    pttTelnetd_New(cli_list); 
+    pttTelnetd(cli_list); 
     return ;
 }
 
-/*·¢ËÍtelnetĞ­ÒéÃüÁî*/
+/*å‘é€telnetåè®®å‘½ä»¤*/
 int pttSendTelnetCmd(int fd)
 {
     return write(fd, g_chCmdTelnet, sizeof(g_chCmdTelnet));
 }
 
-/*¶ÁÈ¡ÃüÁî×Ö·û´®*/
+/*è¯»å–å‘½ä»¤å­—ç¬¦ä¸²*/
 int pttReadCmdline(int sockfd, char *cmdLine, int size)
 {
     int ret, rev_count = 0;
@@ -284,7 +283,7 @@ int pttReadCmdline(int sockfd, char *cmdLine, int size)
         {
             return rev_count;
         }
-        else  if (*buf == '\r') // »Ø³µ·û£¬½øĞĞÃüÁî´¦Àí
+        else  if (*buf == '\r') // å›è½¦ç¬¦ï¼Œè¿›è¡Œå‘½ä»¤å¤„ç†
         {
             return rev_count;
         }
@@ -297,8 +296,8 @@ int pttReadCmdline(int sockfd, char *cmdLine, int size)
     return ret;
 } 
 
-/*Êä³öÖØ¶¨Ïò*/
-/*±ê×¼ÊäÈë£¨stdin£©£¬±ê×¼Êä³ö£¨stdout£©£¬±ê×¼³ö´íĞÅÏ¢£¨stderr£©µÄÎÄ¼şºÅ·Ö±ğÎª0£¬1£¬2*/
+/*è¾“å‡ºé‡å®šå‘*/
+/*æ ‡å‡†è¾“å…¥ï¼ˆstdinï¼‰ï¼Œæ ‡å‡†è¾“å‡ºï¼ˆstdoutï¼‰ï¼Œæ ‡å‡†å‡ºé”™ä¿¡æ¯ï¼ˆstderrï¼‰çš„æ–‡ä»¶å·åˆ†åˆ«ä¸º0ï¼Œ1ï¼Œ2*/
 int pttioStdSet(int src_fd, int dest_fd, int *save_fd) 
 {
     *save_fd = dup(dest_fd);
@@ -307,14 +306,14 @@ int pttioStdSet(int src_fd, int dest_fd, int *save_fd)
     return *save_fd;
 }
 
-/*»Ö¸´Êä³öÖØ¶¨Ïò*/
+/*æ¢å¤è¾“å‡ºé‡å®šå‘*/
 void pttRecoverIoStdSet(int src_fd, int dest_fd) 
 {
     dup2(src_fd, dest_fd);
     close(src_fd);
 }
 
-/*½âÎö×Ö·û´®*/
+/*è§£æå­—ç¬¦ä¸²*/
 int pttCmdAnalyze(char *cmd)
 {
     char *ptr = NULL;
@@ -323,7 +322,7 @@ int pttCmdAnalyze(char *cmd)
     if(strlen(cmd) < 1 || strlen(cmd) > 48) {
         return -1;
     }
-    /*È¥³ı¶àÓàµÄ»»ĞĞ·û¼°ÆäËû¶àÓà×Ö·û*/
+    /*å»é™¤å¤šä½™çš„æ¢è¡Œç¬¦åŠå…¶ä»–å¤šä½™å­—ç¬¦*/
     while((ptr = strstr(cmd, "\r")) != 0 ) {
         while(*ptr != 0) {
             *ptr = *(ptr+1);
@@ -363,13 +362,13 @@ void mcs(void)
 }
 #endif
 
-/*Ö´ĞĞÃüÁî²¢»ØÏÔµ½telnetÖÕ¶Ë*/
+/*æ‰§è¡Œå‘½ä»¤å¹¶å›æ˜¾åˆ°telnetç»ˆç«¯*/
 int pttCmdProcess(int fd, char *cmdLine)
 {
-    pttioStdSet(fd, 1, &save_fd); /*±ê×¼Êä³öÖØ¶¨Ïò*/
+    pttioStdSet(fd, 1, &save_fd); /*æ ‡å‡†è¾“å‡ºé‡å®šå‘*/
 
-    /*ÕâÀïÌí¼ÓÃüÁî´¦Àíº¯Êı*/
-    /*Ê¾Àı*/
+    /*è¿™é‡Œæ·»åŠ å‘½ä»¤å¤„ç†å‡½æ•°*/
+    /*ç¤ºä¾‹*/
     //printf("%s\r\n",cmdLine);
     if (cmd_callback != NULL) {
         cmd_callback(cmdLine);
@@ -377,14 +376,14 @@ int pttCmdProcess(int fd, char *cmdLine)
 
     printf(">\r");
     
-    pttRecoverIoStdSet(save_fd, 1); /*»Ö¸´Êä³öÖØ¶¨Ïò*/
+    pttRecoverIoStdSet(save_fd, 1); /*æ¢å¤è¾“å‡ºé‡å®šå‘*/
     return 0;
 }
 
 BOOL pttGetCmdParams(char *pabCmd)
 {
-    BOOL blLBracket   = FALSE; /*×óÀ¨ºÅ*/
-    BOOL blRBracket   = FALSE; /*ÓÒÀ¨ºÅ*/
+    BOOL blLBracket   = FALSE; /*å·¦æ‹¬å·*/
+    BOOL blRBracket   = FALSE; /*å³æ‹¬å·*/
     uint16_t i          = 0;
 
     if (NULL == pabCmd)
@@ -392,7 +391,7 @@ BOOL pttGetCmdParams(char *pabCmd)
         return FALSE;
     }
 
-    /* ³õÊ¼»¯ */
+    /* åˆå§‹åŒ– */
     g_bCmdParaNum = 0;
     g_bCmdNameLen = 0;
 
@@ -433,7 +432,7 @@ BOOL pttGetCmdParams(char *pabCmd)
                 continue;
             }
 
-            /* Åöµ½ÓÒÀ¨ºÅ½áÊø */
+            /* ç¢°åˆ°å³æ‹¬å·ç»“æŸ */
             if (*(pabCmd+i) == ')')
             {
                 g_bCmdParaNum++;
@@ -462,15 +461,16 @@ BOOL pttGetCmdParams(char *pabCmd)
 }
 
 
-/*telnet½»»¥´¦Àíº¯Êı*/
+/*telnetäº¤äº’å¤„ç†å‡½æ•°*/
 void pttTaskProcess(int sockfd, BOOL bLoginSuccess)
 {
     char cmdLine[BUFSIZE]={0};
     int count = 0;
     int ret;
+    const char *strPass = "5gc";
 
     pttioStdSet(sockfd, 1, &save_fd);
-    printf("\r\r\nwelcome to mcs manage system. \r\n");
+    printf("\r\r\nwelcome to 5gc management system. \r\n");
     printf("%s", strPassPromt);
     fflush(stdout);
     pttRecoverIoStdSet(save_fd, 1);
@@ -486,7 +486,7 @@ void pttTaskProcess(int sockfd, BOOL bLoginSuccess)
         count = pttReadCmdline(sockfd, cmdLine, BUFSIZE);
         if(count <= 0) {
             //perror("read err");
-            //exit(1);¶Ô·½¶Ï¿ªÁ¬½Ó£¬·µ»Ø
+            //exit(1);å¯¹æ–¹æ–­å¼€è¿æ¥ï¼Œè¿”å›
             return ;
         }
         //printf("[%s,%d]rev count:%d,buf:%s\n",__FUNCTION__,__LINE__,count, cmdLine);
@@ -497,11 +497,11 @@ void pttTaskProcess(int sockfd, BOOL bLoginSuccess)
             
             if (strncmp(cmdLine, "quit", 4) == 0){
                 printf("telnet quit.\r\n");
-                //ÈçºÎÍË³ö¿Í»§¶Ë
-                // Ïò¿Í»§¶Ë·¢ËÍ»Ø³µ»»ĞĞ·û£¬´¥·¢¿Í»§¶Ë´¦Àí²¢¹Ø±ÕÁ¬½Ó
+                //å¦‚ä½•é€€å‡ºå®¢æˆ·ç«¯
+                // å‘å®¢æˆ·ç«¯å‘é€å›è½¦æ¢è¡Œç¬¦ï¼Œè§¦å‘å®¢æˆ·ç«¯å¤„ç†å¹¶å…³é—­è¿æ¥
                 //shutdown(sockfd, SHUT_RDWR);
 
-                // µÈ´ıÒ»¶ÎÊ±¼äÒÔÈ·±£¿Í»§¶Ë½ÓÊÕ²¢´¦ÀíÏûÏ¢
+                // ç­‰å¾…ä¸€æ®µæ—¶é—´ä»¥ç¡®ä¿å®¢æˆ·ç«¯æ¥æ”¶å¹¶å¤„ç†æ¶ˆæ¯
                 //sleep(1);
                 return;
             }
@@ -643,7 +643,7 @@ FILE *logfp;
 #define MAXPATH        150
 
 /*------------------------------------------------------
- *--- AllocateMemory - ·ÖÅä¿Õ¼ä²¢°ÑdËùÖ¸µÄÄÚÈİ¸´ÖÆ
+ *--- AllocateMemory - åˆ†é…ç©ºé—´å¹¶æŠŠdæ‰€æŒ‡çš„å†…å®¹å¤åˆ¶
  *------------------------------------------------------
  */
 void AllocateMemory(char **s, int l, char *d)
@@ -652,21 +652,21 @@ void AllocateMemory(char **s, int l, char *d)
     bzero(*s, l + 1);
     memcpy(*s, d, l);
 }
-/************¹ØÓÚ±¾ÎÄµµ*************************************************************
+/************å…³äºæœ¬æ–‡æ¡£*************************************************************
 *filename: telnet-server.c
-*purpose: ÕâÊÇÔÚLinuxÏÂÓÃCÓïÑÔĞ´µÄtelnet·şÎñÆ÷£¬Ã»ÓĞÓÃ»§ÃûºÍÃÜÂë£¬Ö±½ÓÒÔ¿ªÆô·şÎñÕßµÄÉí·İµÇÂ¼ÏµÍ³
-*wrote by: zhoulifa(zhoulifa@163.com) ÖÜÁ¢·¢(http://zhoulifa.bokee.com)
-Linux°®ºÃÕß LinuxÖªÊ¶´«²¥Õß SOHO×å ¿ª·¢Õß ×îÉÃ³¤CÓïÑÔ
+*purpose: è¿™æ˜¯åœ¨Linuxä¸‹ç”¨Cè¯­è¨€å†™çš„telnetæœåŠ¡å™¨ï¼Œæ²¡æœ‰ç”¨æˆ·åå’Œå¯†ç ï¼Œç›´æ¥ä»¥å¼€å¯æœåŠ¡è€…çš„èº«ä»½ç™»å½•ç³»ç»Ÿ
+*wrote by: zhoulifa(zhoulifa@163.com) å‘¨ç«‹å‘(http://zhoulifa.bokee.com)
+Linuxçˆ±å¥½è€… LinuxçŸ¥è¯†ä¼ æ’­è€… SOHOæ— å¼€å‘è€… æœ€æ“…é•¿Cè¯­è¨€
 *date time:2007-01-27 17:02
-*Note: ÈÎºÎÈË¿ÉÒÔÈÎÒâ¸´ÖÆ´úÂë²¢ÔËÓÃÕâĞ©ÎÄµµ£¬µ±È»°üÀ¨ÄãµÄÉÌÒµÓÃÍ¾
-* µ«Çë×ñÑ­GPL
+*Note: ä»»ä½•äººå¯ä»¥ä»»æ„å¤åˆ¶ä»£ç å¹¶è¿ç”¨è¿™äº›æ–‡æ¡£ï¼Œå½“ç„¶åŒ…æ‹¬ä½ çš„å•†ä¸šç”¨é€”
+* ä½†è¯·éµå¾ªGPL
 *Thanks to: Google.com
-*Hope:Ï£ÍûÔ½À´Ô½¶àµÄÈË¹±Ï××Ô¼ºµÄÁ¦Á¿£¬Îª¿ÆÑ§¼¼Êõ·¢Õ¹³öÁ¦
-* ¿Æ¼¼Õ¾ÔÚ¾ŞÈËµÄ¼ç°òÉÏ½ø²½¸ü¿ì£¡¸ĞĞ»ÓĞ¿ªÔ´Ç°±²µÄ¹±Ï×£¡
+*Hope:å¸Œæœ›è¶Šæ¥è¶Šå¤šçš„äººè´¡çŒ®è‡ªå·±çš„åŠ›é‡ï¼Œä¸ºç§‘å­¦æŠ€æœ¯å‘å±•å‡ºåŠ›
+* ç§‘æŠ€ç«™åœ¨å·¨äººçš„è‚©è†€ä¸Šè¿›æ­¥æ›´å¿«ï¼æ„Ÿè°¢æœ‰å¼€æºå‰è¾ˆçš„è´¡çŒ®ï¼
 **********************************************************************************/
 
 /*------------------------------------------------------
- *--- getoption - ·ÖÎöÈ¡³ö³ÌĞòµÄ²ÎÊı
+ *--- getoption - åˆ†æå–å‡ºç¨‹åºçš„å‚æ•°
  *------------------------------------------------------
  */
 void getoption(int argc, char **argv)
@@ -686,13 +686,13 @@ void getoption(int argc, char **argv)
             {"daemon", 0, 0, 0},
             {0, 0, 0, 0}
         };
-        /* ±¾³ÌĞòÖ§³ÖÈçÒ»Ğ©²ÎÊı£º
-         * --host IPµØÖ· »òÕß -H IPµØÖ·
-         * --port ¶Ë¿Ú »òÕß -P ¶Ë¿Ú
-         * --back ¼àÌıÊıÁ¿ »òÕß -B ¼àÌıÊıÁ¿
-         * --dir ·şÎñÄ¬ÈÏÄ¿Â¼ »òÕß -D ·şÎñÄ¬ÈÏÄ¿Â¼
-         * --log ÈÕÖ¾´æ·ÅÂ·¾¶ »òÕß -L ÈÕÖ¾´æ·ÅÂ·¾¶
-         * --daemon Ê¹³ÌĞò½øÈëºóÌ¨ÔËĞĞÄ£Ê½
+        /* æœ¬ç¨‹åºæ”¯æŒå¦‚ä¸€äº›å‚æ•°ï¼š
+         * --host IPåœ°å€ æˆ–è€… -H IPåœ°å€
+         * --port ç«¯å£ æˆ–è€… -P ç«¯å£
+         * --back ç›‘å¬æ•°é‡ æˆ–è€… -B ç›‘å¬æ•°é‡
+         * --dir æœåŠ¡é»˜è®¤ç›®å½• æˆ–è€… -D æœåŠ¡é»˜è®¤ç›®å½•
+         * --log æ—¥å¿—å­˜æ”¾è·¯å¾„ æˆ–è€… -L æ—¥å¿—å­˜æ”¾è·¯å¾„
+         * --daemon ä½¿ç¨‹åºè¿›å…¥åå°è¿è¡Œæ¨¡å¼
          */
         c = getopt_long(argc, argv, "H:P:B:D:L",
                         long_options, &option_index);
@@ -741,9 +741,9 @@ int main(int argc, char **argv)
 {
     struct sockaddr_in addr;
     int sock_fd, addrlen;
-    pid_t fpid; //fpid±íÊ¾forkº¯Êı·µ»ØµÄÖµ  
+    pid_t fpid; //fpidè¡¨ç¤ºforkå‡½æ•°è¿”å›çš„å€¼  
 
-    /* »ñµÃ³ÌĞò¹¤×÷µÄ²ÎÊı£¬Èç IP ¡¢¶Ë¿Ú¡¢¼àÌıÊı¡¢ÍøÒ³¸ùÄ¿Â¼¡¢Ä¿Â¼´æ·ÅÎ»ÖÃµÈ */
+    /* è·å¾—ç¨‹åºå·¥ä½œçš„å‚æ•°ï¼Œå¦‚ IP ã€ç«¯å£ã€ç›‘å¬æ•°ã€ç½‘é¡µæ ¹ç›®å½•ã€ç›®å½•å­˜æ”¾ä½ç½®ç­‰ */
     getoption(argc, argv);
 
     if (!host) {
@@ -768,10 +768,10 @@ int main(int argc, char **argv)
     }
 
     printf
-        ("host=%s port=%s back=%s dirroot=%s logdir=%s %sÊÇºóÌ¨¹¤×÷Ä£Ê½(½ø³ÌID£º%d)\n",
-         host, port, back, dirroot, logdir, daemon_y_n?"":"²»", getpid());
+        ("host=%s port=%s back=%s dirroot=%s logdir=%s %sæ˜¯åå°å·¥ä½œæ¨¡å¼(è¿›ç¨‹IDï¼š%d)\n",
+         host, port, back, dirroot, logdir, daemon_y_n?"":"ä¸", getpid());
 
-    /* fork() Á½´Î´¦ÓÚºóÌ¨¹¤×÷Ä£Ê½ÏÂ */
+    /* fork() ä¸¤æ¬¡å¤„äºåå°å·¥ä½œæ¨¡å¼ä¸‹ */
     if (daemon_y_n) {
         if (fork())
             exit(0);
@@ -783,10 +783,10 @@ int main(int argc, char **argv)
             exit(0);
     }
 
-    /* ´¦Àí×Ó½ø³ÌÍË³öÒÔÃâ²úÉú½©Ê¬½ø³Ì */
+    /* å¤„ç†å­è¿›ç¨‹é€€å‡ºä»¥å…äº§ç”Ÿåƒµå°¸è¿›ç¨‹ */
     signal(SIGCHLD, SIG_IGN);
 
-    /* ´´½¨ socket */
+    /* åˆ›å»º socket */
     if ((sock_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
         if (!daemon_y_n) {
             prterrmsg("socket()");
@@ -795,7 +795,7 @@ int main(int argc, char **argv)
         }
     }
 
-    /* ÉèÖÃ¶Ë¿Ú¿ìËÙÖØÓÃ */
+    /* è®¾ç½®ç«¯å£å¿«é€Ÿé‡ç”¨ */
     addrlen = 1;
     setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &addrlen,
                sizeof(addrlen));
@@ -804,7 +804,7 @@ int main(int argc, char **argv)
     addr.sin_port = htons(atoi(port));
     addr.sin_addr.s_addr = inet_addr(host);
     addrlen = sizeof(struct sockaddr_in);
-    /* °ó¶¨µØÖ·¡¢¶Ë¿ÚµÈĞÅÏ¢ */
+    /* ç»‘å®šåœ°å€ã€ç«¯å£ç­‰ä¿¡æ¯ */
     if (bind(sock_fd, (struct sockaddr *) &addr, addrlen) < 0) {
         if (!daemon_y_n) {
             prterrmsg("bind()");
@@ -813,7 +813,7 @@ int main(int argc, char **argv)
         }
     }
 
-    /* ¿ªÆôÁÙÌı */
+    /* å¼€å¯ä¸´å¬ */
     if (listen(sock_fd, atoi(back)) < 0) {
         if (!daemon_y_n) {
             prterrmsg("listen()");
@@ -824,7 +824,7 @@ int main(int argc, char **argv)
     while (1) {
         int new_fd;
         addrlen = sizeof(struct sockaddr_in);
-        /* ½ÓÊÜĞÂÁ¬½ÓÇëÇó */
+        /* æ¥å—æ–°è¿æ¥è¯·æ±‚ */
         new_fd = accept(sock_fd, (struct sockaddr *) &addr, &addrlen);
         if (new_fd < 0) {
             if (!daemon_y_n) {
@@ -842,7 +842,7 @@ int main(int argc, char **argv)
         } else {
             wrtinfomsg(buffer);
         }
-        /* ²úÉúÒ»¸ö×Ó½ø³ÌÈ¥´¦ÀíÇëÇó£¬µ±Ç°½ø³Ì¼ÌĞøµÈ´ıĞÂµÄÁ¬½Óµ½À´ */
+        /* äº§ç”Ÿä¸€ä¸ªå­è¿›ç¨‹å»å¤„ç†è¯·æ±‚ï¼Œå½“å‰è¿›ç¨‹ç»§ç»­ç­‰å¾…æ–°çš„è¿æ¥åˆ°æ¥ */
         fpid = fork();
         if (fpid < 0)  
         {
@@ -853,13 +853,13 @@ int main(int argc, char **argv)
                 printf("i am the child process, my process id is %d/n",getpid());   
                 
                 wrtinfomsg("new sub pro to solve this client.\r\n");
-                         /* °ÑsocketÁ¬½Ó×÷Îª±ê×¼ÊäÈë¡¢Êä³ö¡¢³ö´í¾ä±úÀ´ÓÃ */
+                         /* æŠŠsocketè¿æ¥ä½œä¸ºæ ‡å‡†è¾“å…¥ã€è¾“å‡ºã€å‡ºé”™å¥æŸ„æ¥ç”¨ */
                          dup2(new_fd, 0);
                          dup2(new_fd, 1);
                          dup2(new_fd, 2);
-                         /* ÇĞ»»µ½Ö¸¶¨Ä¿Â¼¹¤×÷ */
+                         /* åˆ‡æ¢åˆ°æŒ‡å®šç›®å½•å·¥ä½œ */
                          chdir(dirroot);
-                         /* ½»»¥Ê½Ö´ĞĞshell */
+                         /* äº¤äº’å¼æ‰§è¡Œshell */
                          execl("/bin/bash", "-l", "--login", "-i", "-r", "-s", (char *)NULL);
 
                 

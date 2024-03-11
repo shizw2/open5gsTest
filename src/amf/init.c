@@ -185,7 +185,6 @@ void amf_terminate(void)
     event_termination();    
     ogs_free(cli_thread);
     ogs_thread_destroy(thread);
-
     ogs_timer_delete(t_termination_holding);
 
     ngap_close();
@@ -243,7 +242,7 @@ static void amf_main(void *data)
         }
     }
 done:
-    printf("test:finish  main\r\n");
+
     ogs_fsm_fini(&amf_sm, 0);
 }
 
