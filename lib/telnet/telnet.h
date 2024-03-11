@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <pthread.h>
-
+#include "ogs-core.h"
 
 #define BUFSIZE 1024
 #define MAX_PARA 10
@@ -33,12 +33,8 @@ typedef struct tagdsCmdParas
     uint8_t abCont[128];
 } PACK_1 T_pttCmdParas;
 
+
 typedef void (*TelnetCmdCallback)(char *);
-
-
-
-
-
 uint32_t pttGetCmdWord32Value(T_pttCmdParas *ptCmdPara);
 BOOL pttGetCmdParams(char *pabCmd);
 

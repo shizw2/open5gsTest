@@ -1,5 +1,5 @@
 #include <telnet.h>  
-#include "ogs-core.h"
+
 
 int save_fd;
 /*telnet_cmd:ff fb 01 ff fb 03 ff fc 1f*/
@@ -26,11 +26,20 @@ int pttTelnetdStart(void);
 void pttTelnetProcCmdCCM(char * pabCmd);
 void *pttClientTaskProcess(int sockfd) ;
 void mcs(void);
+char* nf_type_ToString(uint8_t nf_type);
 int pttTelnetd(ogs_list_t *cli_list);
 
 const char *strPassPromt = "Password:";
 
-
+char* nf_type_ToString(uint8_t nf_type)
+{
+    const char *nf_typeArray[] =  { "NULL", "NRF", "UDM", "AMF", "SMF", "AUSF", "NEF", "PCF", "SMSF", "NSSF", "UDR", "LMF", "GMLC", "5G_EIR", "SEPP", "UPF", "N3IWF", "AF", "UDSF", "BSF", "CHF", "NWDAF", "PCSCF", "CBCF", "HSS", "UCMF", "SOR_AF", "SPAF", "MME", "SCSAS", "SCEF", "SCP", "NSSAAF", "ICSCF", "SCSCF", "DRA", "IMS_AS", "AANF", "5G_DDNMF", "NSACF", "MFAF", "EASDF", "DCCF", "MB_SMF", "TSCTSF", "ADRF", "GBA_BSF", "CEF", "MB_UPF", "NSWOF", "PKMF", "MNPF", "SMS_GMSC", "SMS_IWMSC", "MBSF", "MBSTF", "PANF" };
+    size_t sizeofArray = sizeof(nf_typeArray) / sizeof(nf_typeArray[0]);
+    if (nf_type < sizeofArray)
+        return (char *)nf_typeArray[nf_type];
+    else
+        return (char *)"Unknown";
+}
 
 static TelnetCmdCallback cmd_callback = NULL;
 
@@ -248,7 +257,7 @@ int pttTelnetd(int port)
 void * pttTelnetdPthread(void *arg)
 {
     ogs_list_t *cli_list = (ogs_list_t *)arg;
-    pttTelnetd(cli_list); 
+    pttTelnetd(cli_list);
     return NULL;
 }
 
@@ -374,7 +383,7 @@ int pttCmdProcess(int fd, char *cmdLine)
         cmd_callback(cmdLine);
     }
 
-    printf(">\r");
+    printf("aaa>\r");
     
     pttRecoverIoStdSet(save_fd, 1); /*恢复输出重定向*/
     return 0;
@@ -468,9 +477,24 @@ void pttTaskProcess(int sockfd, BOOL bLoginSuccess)
     int count = 0;
     int ret;
     const char *strPass = "5gc";
+    
+    // 获取当前程序的文件路径
+    char path[100];
+    if (readlink("/proc/self/exe", path, sizeof(path)) == -1) {
+        perror("readlink");
+        exit(EXIT_FAILURE);
+    }
+    
+    // 从文件路径中提取程序名称
+    char* programName = strrchr(path, '/');
+    if (programName != NULL) {
+        programName++; // 移动到下一个字符，跳过斜杠
+    } else {
+        programName = path; // 如果没有斜杠，则使用整个路径作为程序名称
+    }
 
     pttioStdSet(sockfd, 1, &save_fd);
-    printf("\r\r\nwelcome to 5gc management system. \r\n");
+    printf("\r\r\nwelcome to 5gc %s management system. \r\n", programName);
     printf("%s", strPassPromt);
     fflush(stdout);
     pttRecoverIoStdSet(save_fd, 1);
@@ -489,11 +513,11 @@ void pttTaskProcess(int sockfd, BOOL bLoginSuccess)
             //exit(1);对方断开连接，返回
             return ;
         }
-        //printf("[%s,%d]rev count:%d,buf:%s\n",__FUNCTION__,__LINE__,count, cmdLine);
+        printf("[%s,%d]rev count:%d,buf:%s\n",__FUNCTION__,__LINE__,count, cmdLine);
         ret = pttCmdAnalyze(cmdLine);
         if(ret == 0) 
         {
-            printf("[%s,%d]rev count:%d,buf:%s.\n",__FUNCTION__,__LINE__,count, cmdLine);
+            //printf("[%s,%d]rev count:%d,buf:%s.\n",__FUNCTION__,__LINE__,count, cmdLine);
             
             if (strncmp(cmdLine, "quit", 4) == 0){
                 printf("telnet quit.\r\n");
@@ -531,7 +555,7 @@ void pttTaskProcess(int sockfd, BOOL bLoginSuccess)
             else
             {
                 pttioStdSet(sockfd, 1, &save_fd);
-                printf(">");
+                printf("aaa>");
                 fflush(stdout);
                 pttRecoverIoStdSet(save_fd, 1);
             }
