@@ -25,38 +25,17 @@ void *pttTaskProcessPthread(void *arg);
 int pttTelnetdStart(void);
 void pttTelnetProcCmdCCM(char * pabCmd);
 void *pttClientTaskProcess(int sockfd) ;
-void mcs(void);
-char* nf_type_ToString(uint8_t nf_type);
+void show(void);
 int pttTelnetd(ogs_list_t *cli_list);
 
 const char *strPassPromt = "Password:";
-
-char* nf_type_ToString(uint8_t nf_type)
-{
-    const char *nf_typeArray[] =  { "NULL", "NRF", "UDM", "AMF", "SMF", "AUSF", "NEF", "PCF", "SMSF", "NSSF", "UDR", "LMF", "GMLC", "5G_EIR", "SEPP", "UPF", "N3IWF", "AF", "UDSF", "BSF", "CHF", "NWDAF", "PCSCF", "CBCF", "HSS", "UCMF", "SOR_AF", "SPAF", "MME", "SCSAS", "SCEF", "SCP", "NSSAAF", "ICSCF", "SCSCF", "DRA", "IMS_AS", "AANF", "5G_DDNMF", "NSACF", "MFAF", "EASDF", "DCCF", "MB_SMF", "TSCTSF", "ADRF", "GBA_BSF", "CEF", "MB_UPF", "NSWOF", "PKMF", "MNPF", "SMS_GMSC", "SMS_IWMSC", "MBSF", "MBSTF", "PANF" };
-    size_t sizeofArray = sizeof(nf_typeArray) / sizeof(nf_typeArray[0]);
-    if (nf_type < sizeofArray)
-        return (char *)nf_typeArray[nf_type];
-    else
-        return (char *)"Unknown";
-}
-
 static TelnetCmdCallback cmd_callback = NULL;
+char g_program_name[100];
 
 void set_telnet_cmd_callback(TelnetCmdCallback callback) {
     cmd_callback = callback;
 }
 
- 
-#if 0
-int main()
-{
-    pttTelnetdStart();
-
-    while(1)
-    {}
-}
-#endif
 
 /*启动telnet服务*/
 int pttTelnetdStart(void)
@@ -162,97 +141,6 @@ int pttTelnetd(ogs_list_t *cli_list){
     close(server_sockfd);  
     return 0;       
 }
-#if 0
-/*telnet 主服务任务*/
-int pttTelnetd(int port)  
-{  
-    int server_sockfd;//服务器端套接字  
-    int client_sockfd;//客户端套接字  
-    struct sockaddr_in server_addr;   //服务器网络地址结构体  
-    struct sockaddr_in remote_addr; //客户端网络地址结构体  
-    socklen_t  sin_size;  
-    BOOL bReuseaddr=TRUE;
-    pid_t fpid;
-    int status;
-    memset(&server_addr,0,sizeof(server_addr)); //数据初始化--清零  
-    server_addr.sin_family=AF_INET; //设置为IP通信  
-    server_addr.sin_addr.s_addr=htonl(INADDR_ANY);//服务器IP地址--允许连接到所有本地地址上  
-    //#ifdef FUNC_MCS_CCM
-    //server_addr.sin_port=htons(CCM_TELNET_PORT); //服务器telnet端口号 
-    //#endif
-
-    server_addr.sin_port = htons(port);
-    
-    printf("begin create socket %d.\r\n",port);
-
-    /*创建服务器端套接字--IPv4协议，面向连接通信，TCP协议*/  
-    if((server_sockfd=socket(AF_INET,SOCK_STREAM,0))<0)  
-    {    
-        perror("socket");
-        return -1;  
-    }  
-
-    /*设置地址可重用*/
-    setsockopt (server_sockfd,SOL_SOCKET,SO_REUSEADDR,(char  *)&bReuseaddr, sizeof(bReuseaddr));
-
-    printf("begin bind socket to port %u.\r\n", ntohs(server_addr.sin_port));
-
-        /*将套接字绑定到服务器的网络地址上*/  
-    if (bind(server_sockfd,(struct sockaddr *)&server_addr,sizeof(struct sockaddr)) < 0)  
-    {  
-        perror("bind");  
-        return -1;  
-    }  
-
-
-    printf("begin listen socket.\r\n");
-
-    /*监听连接请求*/  
-    listen(server_sockfd,1);  
-
-    printf("Telnet: listening for telnet requests....\n");
-
-    sin_size=sizeof(struct sockaddr_in);  
-    while(1) 
-    {      
-        /*等待客户端连接请求到达*/  
-        if((client_sockfd=accept(server_sockfd,(struct sockaddr *)&remote_addr,&sin_size))<0)  
-        {  
-            perror("accept");  
-            return 1;  
-        }  
-        printf("accept client %s\n",inet_ntoa(remote_addr.sin_addr));  
-#if 0       
-        fpid = fork();
-        if (fpid < 0) {
-               perror("call fork() err!\n");
-               exit(1);
-        } else if (fpid == 0) {
-               pttClientTaskProcess(client_sockfd);
-               close(client_sockfd);
-               exit(0);
-        } else {
-            waitpid(-1, &status, WNOHANG | WUNTRACED | WCONTINUED);
-        }
-#else 
-        pthread_t id;
-        int i,ret;
-
-        ret=pthread_create(&id,NULL,(void *) pttTaskProcessPthread,(void *)&client_sockfd);
-        if(ret!=0){
-            printf ("Telnet: telnet_starting.......err!\n");
-            return -1;
-        }
-        printf ("Telnet: telnet_started ok!\n");
-        pthread_join(id,NULL);
-#endif      
-
-    }   
-    close(client_sockfd);  
-    close(server_sockfd);  
-    return 0;   
-} 
-#endif
 
 void * pttTelnetdPthread(void *arg)
 {
@@ -365,9 +253,9 @@ int pttCmdAnalyze(char *cmd)
 }
 
 #if 1
-void mcs(void)
+void show(void)
 {
-    printf("this is mcs system. \r\n");
+    printf("this is %s management system. \r\n",g_program_name);
 }
 #endif
 
@@ -383,7 +271,7 @@ int pttCmdProcess(int fd, char *cmdLine)
         cmd_callback(cmdLine);
     }
 
-    printf("aaa>\r");
+    printf(">\r");
     
     pttRecoverIoStdSet(save_fd, 1); /*恢复输出重定向*/
     return 0;
@@ -492,9 +380,10 @@ void pttTaskProcess(int sockfd, BOOL bLoginSuccess)
     } else {
         programName = path; // 如果没有斜杠，则使用整个路径作为程序名称
     }
+    strcpy(g_program_name, programName);
 
     pttioStdSet(sockfd, 1, &save_fd);
-    printf("\r\r\nwelcome to 5gc %s management system. \r\n", programName);
+    printf("\r\r\nwelcome to %s management system. \r\n", programName);
     printf("%s", strPassPromt);
     fflush(stdout);
     pttRecoverIoStdSet(save_fd, 1);

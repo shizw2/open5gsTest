@@ -18,6 +18,19 @@ void amf(void)
     printf("this is amf system. \r\n");
 }
 
+telnet_command_t commands[] = {
+    {"showgnb",     (GenericFunc)showgnb,        1, {INTEGER}},
+    {"shownf",      (GenericFunc)shownf,         1, {INTEGER}},
+    {"showranue",   (GenericFunc)showranue,      0, {}},
+};
+
+telnet_command_t sps_commands[] = {
+    {"showue",     (GenericFunc)showue,        1, {STRING}},
+};
+
+int numCommands = sizeof(commands) / sizeof(commands[0]);
+int spsnumCommands = sizeof(sps_commands) / sizeof(sps_commands[0]);
+
 void telnet_proc_cmd(char * pabCmd)
 {
     uint32_t  dwPara1   = 0;
@@ -32,8 +45,11 @@ void telnet_proc_cmd(char * pabCmd)
     dwPara2 = pttGetCmdWord32Value(&g_tCmdPara[1]);
 
 	if (is_amf_icps()){
-	    if (strcmp(g_chCmdName, "amf") == 0){
-	        amf();
+	    if (strcmp(g_chCmdName, "help") == 0){
+	        printf("Supported commands:\n");
+            for (int i = 0; i < numCommands; i++) {
+                printf("- %s\n", commands[i].command);
+            }
 	    }else if (strcmp(g_chCmdName, "showgnb") == 0){
 	        showgnb(dwPara1);
 	    }else if (strcmp(g_chCmdName, "shownf") == 0){
@@ -45,7 +61,12 @@ void telnet_proc_cmd(char * pabCmd)
 	        printf("the command not support\r\n");
 	    }
 	}else{
-		if (strcmp(g_chCmdName, "showue") == 0){
+		if (strcmp(g_chCmdName, "help") == 0){
+	        printf("Supported commands:\n");
+            for (int i = 0; i < spsnumCommands; i++) {
+                printf("- %s\n", sps_commands[i].command);
+            }
+	    }else if (strcmp(g_chCmdName, "showue") == 0){
 	        showue((char*)g_tCmdPara[0].abCont);
 	    }else{
 	        printf("the command not support\r\n");
@@ -175,9 +196,9 @@ void showueAll( void )
     struct tm tm;
 	
     printf("\namf ue Brief All(current %u ue count):\r\n", ogs_list_count(&amf_self()->amf_ue_list));
-    printf("+----------------------+---------------+---------------------+-----------------------+---------------------+\n\r");
-    printf("|         supi         | register_type |          tai        |          cgi          |      timestamp      |\n\r");
-    printf("+----------------------+---------------+---------------------+-----------------------+---------------------+\n\r");
+    printf("+----------------------+---------------+---------------------+---------------------------+---------------------+\n\r");
+    printf("|         supi         | register_type |          tai        |            cgi --         |      timestamp      |\n\r");
+    printf("+----------------------+---------------+---------------------+---------------------------+---------------------+\n\r");
     
     ogs_list_for_each(&amf_self()->amf_ue_list, ue) {
 		time_t time = ogs_time_sec(ue->ue_location_timestamp);
@@ -197,7 +218,7 @@ void showueAll( void )
            buffer);        
     }
     
-    printf("+----------------------+---------------+---------------------+-----------------------+---------------------+\n\r");
+    printf("+----------------------+---------------+---------------------+---------------------------+---------------------+\n\r");
     printf("\r\n");
     
     return ;
