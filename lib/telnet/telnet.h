@@ -49,20 +49,5 @@ BOOL pttGetCmdParams(char *pabCmd);
 void telnetMain(void *arg);
 void telnet_proc_cmd(char * pabCmd); //每个NF实现自己的telnet命令
 void set_telnet_cmd_callback(TelnetCmdCallback callback);
+void set_telnet_commands(telnet_command_t *commands, int numCommands);
 
-void funcO(void);
-// 1个参数函数声明
-void funcI(uint32_t num);
-void funcS(char* str);
-
-// 2个参数函数声明
-void funcII(uint32_t num1, uint32_t num2);
-void funcIS(uint32_t num, char* str);
-void funcSI(char* str, uint32_t num);
-void funcSS(char* str1, char* str2);
-
-// 3个参数函数声明
-void funcIII(uint32_t num1, uint32_t num2, uint32_t num3);
-void funcIIS(uint32_t num1, uint32_t num2, char* str);
-void funcISS(uint32_t num, char* str1, char* str2);
-void funcSSI(char* str1, char* str2, uint32_t num);

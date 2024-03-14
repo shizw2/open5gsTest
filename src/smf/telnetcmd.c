@@ -14,82 +14,58 @@ void showue(char* id);
 void showueAll(void);
 void showueDetail(char * id);
 
-void amf(void)
-{
-    printf("this is amf system. \r\n");
-}
 
 telnet_command_t g_commands[] = {
-    {"showgnb",     (GenericFunc)showgnb,        1, {INTEGER}},
-    {"shownf",      (GenericFunc)shownf,         1, {INTEGER}},
-    {"showranue",   (GenericFunc)showranue,      0, {}},
+    {"showue",      (GenericFunc)showue,         1, {INTEGER}},
 };
 int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);
 
-telnet_command_t g_sps_commands[] = {
-    {"shownf",      (GenericFunc)shownf,         1, {INTEGER}},
-    {"showue",      (GenericFunc)showue,         1, {STRING}},
-};
-int g_spsnumCommands = sizeof(g_sps_commands) / sizeof(g_sps_commands[0]);
-
-void setCommands(void){
-    telnet_command_t *commands = NULL;
-    int numCommands = 0;
-    if (is_amf_icps()){
-        commands = g_commands;
-        numCommands = g_numCommands;
-    }else{
-        commands = g_sps_commands;
-        numCommands = g_spsnumCommands;
-    }
-    set_telnet_commands(commands, numCommands);
+void setCommands(void){    
+    set_telnet_commands(g_commands, g_numCommands);
 }
-#if 0
-void telnet_proc_cmd(char * pabCmd)
-{
-    uint32_t  dwPara1   = 0;
-    uint32_t  dwPara2   = 0;
-   
-    if (!pttGetCmdParams(pabCmd))
-    {
-        return;
+
+void showue(char * id){
+    if(id == NULL || strlen(id) == 0){
+        showueAll();
+    }else{
+        showueDetail(id);
     }
 
-    dwPara1 = pttGetCmdWord32Value(&g_tCmdPara[0]);
-    dwPara2 = pttGetCmdWord32Value(&g_tCmdPara[1]);
-
-	if (is_amf_icps()){
-	    if (strcmp(g_chCmdName, "help") == 0){
-	        printf("Supported commands:\n");
-            for (int i = 0; i < g_numCommands; i++) {
-                printf("- %s\n", g_commands[i].command);
-            }
-	    }else if (strcmp(g_chCmdName, "showgnb") == 0){
-	        showgnb(dwPara1);
-	    }else if (strcmp(g_chCmdName, "shownf") == 0){
-	        shownf(dwPara1);
-	    }else if (strcmp(g_chCmdName, "showranue") == 0){
-	        showranue();
-	    }  
-	    else{
-	        printf("the command not support\r\n");
-	    }
-	}else{
-		if (strcmp(g_chCmdName, "help") == 0){
-	        printf("Supported commands:\n");
-            for (int i = 0; i < g_spsnumCommands; i++) {
-                printf("- %s\n", g_sps_commands[i].command);
-            }
-	    }else if (strcmp(g_chCmdName, "showue") == 0){
-	        showue((char*)g_tCmdPara[0].abCont);
-	    }else{
-	        printf("the command not support\r\n");
-	    }
-	}
-    
     return;
 }
-#endif
+
+void showueAll( void )
+{
+    smf_ue_t *ue = NULL;
+    char buffer[20] = {};
+    struct tm tm;
+	
+    printf("\nsmf ue Brief All(current %u ue count):\r\n", ogs_list_count(&smf_self()->smf_ue_list));
+    printf("+----------------------+----------------------+----------------------+----------------------+-------------+\n\r");
+    printf("|         supi         |         imsi         |        msisdn        |        imeisv        | session cnt |\n\r");
+    printf("+----------------------+----------------------+----------------------+----------------------+-------------+\n\r");
+    
+    ogs_list_for_each(&smf_self()->smf_ue_list, ue) {
+		printf("| %-15s | %-15s | %-15s | %-15s | %d |\r\n",
+		   ue->supi,
+           ue->imsi_bcd,
+           ue->msisdn_bcd,
+           ue->imeisv_bcd,
+           ogs_list_count(&ue->sess_list));        
+    }
+    
+    printf("+----------------------+---------------+---------------------+---------------------------+---------------------+\n\r");
+    printf("\r\n");
+    
+    return ;
+}
+
+void showueDetail( char * supi )
+{
+    
+}
+
+#if 0
 
 void showgnb(uint32_t enbID)
 {
@@ -195,50 +171,7 @@ void showranue( void )
     return ;
 }
 
-void showue(char * id){
-    if(id == NULL || strlen(id) == 0){
-        showueAll();
-    }else{
-        showueDetail(id);
-    }
 
-    return;
-}
-
-void showueAll( void )
-{
-    amf_ue_t *ue = NULL;
-    char buffer[20] = {};
-    struct tm tm;
-	
-    printf("\namf ue Brief All(current %u ue count):\r\n", ogs_list_count(&amf_self()->amf_ue_list));
-    printf("+----------------------+---------------+---------------------+---------------------------+---------------------+\n\r");
-    printf("|         supi         | register_type |          tai        |            cgi --         |      timestamp      |\n\r");
-    printf("+----------------------+---------------+---------------------+---------------------------+---------------------+\n\r");
-    
-    ogs_list_for_each(&amf_self()->amf_ue_list, ue) {
-		time_t time = ogs_time_sec(ue->ue_location_timestamp);
-		struct tm *timeInfo = localtime(&time);  
-        strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeInfo);    
-        printf("| %-15s | %-13u | MCC:%dMNC:%-3dTAC:%d | MCC:%dMNC:%-3dCELL:%lu | %s |\r\n",
-		   ue->supi,
-           ue->nas.registration.value,
-           ogs_plmn_id_mcc(&ue->nr_tai.plmn_id),
-           ogs_plmn_id_mnc(&ue->nr_tai.plmn_id),
-           ue->nr_tai.tac.v,
-           ogs_plmn_id_mcc(&ue->nr_cgi.plmn_id),
-           ogs_plmn_id_mnc(&ue->nr_cgi.plmn_id),
-           ue->nr_cgi.cell_id,
-           //ue->ue_ambr.downlink,
-           //ue->ue_ambr.uplink,
-           buffer);        
-    }
-    
-    printf("+----------------------+---------------+---------------------+---------------------------+---------------------+\n\r");
-    printf("\r\n");
-    
-    return ;
-}
 
 void showueDetail( char * supi )
 {
@@ -305,3 +238,4 @@ void showueDetail( char * supi )
     return ;
 }
 
+#endif

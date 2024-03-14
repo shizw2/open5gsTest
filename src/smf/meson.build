@@ -106,6 +106,7 @@ libsmf_sources = files('''
     ngap-handler.c
     ngap-path.c
     metrics.c
+    telnetcmd.c
 '''.split())
 
 libsmf = static_library('smf',
@@ -117,7 +118,8 @@ libsmf = static_library('smf',
                     libdiameter_gx_dep,
                     libdiameter_gy_dep,
                     libdiameter_s6b_dep,
-			  liblicense_dep,
+			        liblicense_dep,
+                    libtelnet_dep,
                     libpfcp_dep],
     install : false)
 
@@ -130,7 +132,8 @@ libsmf_dep = declare_dependency(
                     libdiameter_gx_dep,
                     libdiameter_gy_dep,
                     libdiameter_s6b_dep,
-			  liblicense_dep,
+                    liblicense_dep,
+                    libtelnet_dep,
                     libpfcp_dep])
 
 smf_sources = files('''

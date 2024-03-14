@@ -32,10 +32,13 @@ const char *strPassPromt = "Password:";
 static TelnetCmdCallback cmd_callback = NULL;
 char g_program_name[100];
 
+telnet_command_t *commands = NULL;
+int numCommands = 0;
+
+
 void set_telnet_cmd_callback(TelnetCmdCallback callback) {
     cmd_callback = callback;
 }
-
 
 /*启动telnet服务*/
 int pttTelnetdStart(void)
@@ -259,20 +262,155 @@ void show(void)
 }
 #endif
 
+void set_telnet_commands(telnet_command_t *nf_commands, int nf_numCommands){
+    commands = nf_commands;
+    numCommands = nf_numCommands;
+    printf("numCommands:%d\r\n",numCommands);
+}
+
 /*执行命令并回显到telnet终端*/
 int pttCmdProcess(int fd, char *cmdLine)
 {
+    int i;
     pttioStdSet(fd, 1, &save_fd); /*标准输出重定向*/
 
     /*这里添加命令处理函数*/
     /*示例*/
     //printf("%s\r\n",cmdLine);
-    if (cmd_callback != NULL) {
-        cmd_callback(cmdLine);
-    }
+    //if (cmd_callback != NULL) {
+    //    cmd_callback(cmdLine);
+    //}
 
-    printf(">\r");
+    uint32_t dwPara1 = 0;
+    uint32_t dwPara2 = 0;
+    uint32_t dwPara3 = 0;
+    char* strPara1 = NULL;
+    char* strPara2 = NULL;
+    char* strPara3 = NULL;
+    if (!pttGetCmdParams(cmdLine))
+    {
+        printf(">\r");    
+        pttRecoverIoStdSet(save_fd, 1); /*恢复输出重定向*/
+        return -1;
+    }    
+
+    if (strcmp(g_chCmdName, "help") == 0){
+        printf("Supported commands:\n");
+        for (i = 0; i < numCommands; i++) {
+            printf("- %s\n", commands[i].command);
+        }
+    }else {        
+        for (i = 0; i < numCommands; i++)
+        {       
+            if (strcmp(g_chCmdName, commands[i].command) == 0){
+                telnet_command_t cmd = commands[i];
+                
+                union {
+                    uint32_t intValue;
+                    char* strValue;
+                } params[3];
+
+                int paramIndex = 0;
+
+                for (paramIndex = 0; paramIndex < cmd.numParams; paramIndex++)
+                {
+                    if (cmd.paramTypes[paramIndex] == INTEGER)
+                    {                    
+                        params[paramIndex].intValue = pttGetCmdWord32Value(&g_tCmdPara[paramIndex]);
+                        printf("intValue:%d\r\n",params[paramIndex].intValue);
+                    }
+                    else if (cmd.paramTypes[paramIndex] == STRING)
+                    {
+                        params[paramIndex].strValue = (char*)g_tCmdPara[paramIndex].abCont;
+                        printf("strValue:%s\r\n",params[paramIndex].strValue);
+                    }
+                    // 处理其他可能的参数类型
+                }
+
+                // 根据参数数量调用相应的函数，并传递参数数组
+                switch (cmd.numParams)
+                {
+                    case 0:
+                        ((void (*)(void))cmd.function)();
+                        break;
+                    case 1:
+                        if (cmd.paramTypes[0] == INTEGER)
+                        {
+                            ((void (*)(uint32_t))cmd.function)(params[0].intValue);
+                        }
+                        else if (cmd.paramTypes[0] == STRING)
+                        {
+                            ((void (*)(char*))cmd.function)(params[0].strValue);
+                        }
+                        break;
+                    case 2:
+                        if (cmd.paramTypes[0] == INTEGER && cmd.paramTypes[1] == INTEGER)
+                        {
+                            ((void (*)(uint32_t, uint32_t))cmd.function)(params[0].intValue, params[1].intValue);
+                        }
+                        else if (cmd.paramTypes[0] == INTEGER && cmd.paramTypes[1] == STRING)
+                        {
+                            ((void (*)(uint32_t, char*))cmd.function)(params[0].intValue, params[1].strValue);
+                        }
+                        else if (cmd.paramTypes[0] == STRING && cmd.paramTypes[1] == INTEGER)
+                        {
+                            ((void (*)(char*, uint32_t))cmd.function)(params[0].strValue, params[1].intValue);
+                        }
+                        else if (cmd.paramTypes[0] == STRING && cmd.paramTypes[1] == STRING)
+                        {
+                            ((void (*)(char*, char*))cmd.function)(params[0].strValue, params[1].strValue);
+                        }
+                        break;
+                    case 3:
+                        if (cmd.paramTypes[0] == INTEGER && cmd.paramTypes[1] == INTEGER && cmd.paramTypes[2] == INTEGER)
+                        {
+                            ((void (*)(uint32_t, uint32_t, uint32_t))cmd.function)(params[0].intValue, params[1].intValue, params[2].intValue);
+                        }
+                        else if (cmd.paramTypes[0] == INTEGER && cmd.paramTypes[1] == INTEGER && cmd.paramTypes[2] == STRING)
+                        {
+                            ((void (*)(uint32_t, uint32_t, char*))cmd.function)(params[0].intValue, params[1].intValue, params[2].strValue);
+                        }
+                        else if (cmd.paramTypes[0] == INTEGER && cmd.paramTypes[1] == STRING && cmd.paramTypes[2] == INTEGER)
+                        {
+                            ((void (*)(uint32_t, char*, uint32_t))cmd.function)(params[0].intValue, params[1].strValue, params[2].intValue);
+                        }
+                        else if (cmd.paramTypes[0] == INTEGER && cmd.paramTypes[1] == STRING && cmd.paramTypes[2] == STRING)
+                        {
+                            ((void (*)(uint32_t, char*, char*))cmd.function)(params[0].intValue, params[1].strValue, params[2].strValue);
+                        }
+                        else if (cmd.paramTypes[0] == STRING && cmd.paramTypes[1] == INTEGER && cmd.paramTypes[2] == INTEGER)
+                        {
+                            ((void (*)(char*, uint32_t, uint32_t))cmd.function)(params[0].strValue, params[1].intValue, params[2].intValue);
+                        }
+                        else if (cmd.paramTypes[0] == STRING && cmd.paramTypes[1] == INTEGER && cmd.paramTypes[2] == STRING)
+                        {
+                            ((void (*)(char*, uint32_t, char*))cmd.function)(params[0].strValue, params[1].intValue, params[2].strValue);
+                        }
+                        else if (cmd.paramTypes[0] == STRING && cmd.paramTypes[1] == STRING && cmd.paramTypes[2] == INTEGER)
+                        {
+                            ((void (*)(char*, char*, uint32_t))cmd.function)(params[0].strValue, params[1].strValue, params[2].intValue);
+                        }
+                        else if (cmd.paramTypes[0] == STRING && cmd.paramTypes[1] == STRING && cmd.paramTypes[2] == STRING)
+                        {
+                            ((void (*)(char*, char*, char*))cmd.function)(params[0].strValue, params[1].strValue, params[2].strValue);
+                        }
+                        break;
+          
+                    default:
+                        printf("Invalid number of parameters\n");
+                        break;
+                }
+
+                break;
+            }
+        }
+        
+        if (i == numCommands){
+            printf("Command not found: %s\n", g_chCmdName);
+        }
+    }
     
+    printf(">\r");    
     pttRecoverIoStdSet(save_fd, 1); /*恢复输出重定向*/
     return 0;
 }
@@ -402,11 +540,11 @@ void pttTaskProcess(int sockfd, BOOL bLoginSuccess)
             //exit(1);对方断开连接，返回
             return ;
         }
-        printf("[%s,%d]rev count:%d,buf:%s\n",__FUNCTION__,__LINE__,count, cmdLine);
+        //printf("[%s,%d]rev count:%d,buf:%s\n",__FUNCTION__,__LINE__,count, cmdLine); //少两个字符
         ret = pttCmdAnalyze(cmdLine);
         if(ret == 0) 
         {
-            //printf("[%s,%d]rev count:%d,buf:%s.\n",__FUNCTION__,__LINE__,count, cmdLine);
+            printf("[%s,%d]rev count:%d,buf:%s.\n",__FUNCTION__,__LINE__,count, cmdLine);
             
             if (strncmp(cmdLine, "quit", 4) == 0){
                 printf("telnet quit.\r\n");
@@ -447,11 +585,13 @@ void pttTaskProcess(int sockfd, BOOL bLoginSuccess)
                 printf("aaa>");
                 fflush(stdout);
                 pttRecoverIoStdSet(save_fd, 1);
-            }
-
-            
+            }            
         }else{
+            //pttioStdSet(sockfd, 1, &save_fd);
             printf("pttCmdAnalyze faild,cmdLine:%s\r\n",cmdLine);
+            //printf("aaa>");
+            //fflush(stdout);
+            //pttRecoverIoStdSet(save_fd, 1);            
         }
     }
     

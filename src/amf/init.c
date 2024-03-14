@@ -30,7 +30,7 @@ static ogs_thread_t *cli_thread;
 static void amf_main(void *data);
 static void amf_sps_main(void *data);
 static int initialized = 0;
-
+void setCommands(void);
 int amf_initialize(void)
 {
     int rv;
@@ -80,7 +80,8 @@ int amf_initialize(void)
 
     initialized = 1;
 
-    set_telnet_cmd_callback(telnet_proc_cmd);
+    //set_telnet_cmd_callback(telnet_proc_cmd);
+    setCommands();
     cli_thread = ogs_thread_create(telnetMain, &ogs_app()->cli_list);
     if (!cli_thread) return OGS_ERROR;
     
@@ -146,7 +147,7 @@ int amf_sps_initialize()
     thread = ogs_thread_create(amf_sps_main, NULL);
     if (!thread) return OGS_ERROR;
     
-    set_telnet_cmd_callback(telnet_proc_cmd);
+    setCommands();
     amf_sps_update_cli_port();
     cli_thread = ogs_thread_create(telnetMain, &ogs_app()->cli_list);
     if (!cli_thread) return OGS_ERROR;
