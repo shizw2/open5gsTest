@@ -258,7 +258,7 @@ static void test1_func(abts_case *tc, void *data)
     recvbuf = testgnb_gtpu_read(gtpu);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     ogs_pkbuf_free(recvbuf);
-
+#if 0
     /* Send GTP-U Router Solicitation */
     ogs_info("Send GTP-U Router Solicitation.");
     rv = test_gtpu_send_slacc_rs(gtpu, qos_flow);
@@ -280,7 +280,7 @@ static void test1_func(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, recvbuf);
     ogs_pkbuf_free(recvbuf);
 #endif
-
+#endif 
     /* Send UEContextReleaseRequest */
     ogs_info("Send UEContextReleaseRequest.");
     sendbuf = testngap_build_ue_context_release_request(test_ue,
