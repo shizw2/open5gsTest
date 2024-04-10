@@ -6,33 +6,23 @@ void upf(void);
 void showsess(uint32_t id);
 void showsessBriefAll( void );
 void showsessDetail( uint32_t id );
+void setCommands(void);
+
+telnet_command_t g_commands[] = {
+    {"showsess",      (GenericFunc)showsess,         1, {INTEGER}},
+    {"upf",           (GenericFunc)upf,              0, {}},
+};
+int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);
+
+void setCommands(void){    
+    set_telnet_commands(g_commands, g_numCommands);
+}
+
+
+
 void upf(void)
 {
     printf("this is upf system. \r\n");
-}
-
-void telnet_proc_cmd(char * pabCmd)
-{
-    uint32_t  dwPara1   = 0;
-    uint32_t  dwPara2   = 0;
-   
-    if (!pttGetCmdParams(pabCmd))
-    {
-        return;
-    }
-
-    dwPara1 = pttGetCmdWord32Value(&g_tCmdPara[0]);
-    dwPara2 = pttGetCmdWord32Value(&g_tCmdPara[1]);
-
-    if (strcmp(g_chCmdName, "upf") == 0){
-        upf();
-    }else if (strcmp(g_chCmdName, "showsess") == 0){
-        showsess(dwPara1);
-    }else{
-        printf("the command not support\r\n");
-    }  
-    
-    return;
 }
 
 void showsess(uint32_t id)

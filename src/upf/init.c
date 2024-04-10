@@ -34,7 +34,7 @@
 
 static ogs_thread_t *thread;
 static void upf_main(void *data);
-
+void setCommands(void);
 static int initialized = 0;
 
 #if defined(USE_DPDK)
@@ -122,7 +122,7 @@ int upf_initialize(void)
     thread = ogs_thread_create(upf_main, NULL);
     if (!thread) return OGS_ERROR;
     
-    set_telnet_cmd_callback(telnet_proc_cmd);
+    setCommands();
     ogs_thread_create(telnetMain, &ogs_app()->cli_list);
     initialized = 1;
 
