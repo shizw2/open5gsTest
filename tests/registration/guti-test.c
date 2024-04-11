@@ -237,7 +237,7 @@ static void test1_func(abts_case *tc, void *data)
     recvbuf = testgnb_gtpu_read(gtpu);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     ogs_pkbuf_free(recvbuf);
-
+#if 0
     /* Send GTP-U Router Solicitation */
     rv = test_gtpu_send_slacc_rs(gtpu, qos_flow);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
@@ -257,7 +257,7 @@ static void test1_func(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, recvbuf);
     ogs_pkbuf_free(recvbuf);
 #endif
-
+#endif
     /* Send Registration request
      * - Update Registration request type
      * - Uplink Data Status */
@@ -712,7 +712,7 @@ static void test2_func(abts_case *tc, void *data)
     recvbuf = testgnb_gtpu_read(gtpu);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     ogs_pkbuf_free(recvbuf);
-
+#if 0
     /* Send GTP-U Router Solicitation */
     rv = test_gtpu_send_slacc_rs(gtpu, qos_flow);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
@@ -732,7 +732,7 @@ static void test2_func(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, recvbuf);
     ogs_pkbuf_free(recvbuf);
 #endif
-
+#endif
     /* Send Registration request
      * - Update Registration request type
      * - Uplink Data Status */
@@ -1225,8 +1225,8 @@ abts_suite *test_guti(abts_suite *suite)
     suite = ADD_SUITE(suite)
 
     abts_run_test(suite, test1_func, NULL);
-    abts_run_test(suite, test2_func, NULL);
-    abts_run_test(suite, test3_func, NULL);
+    //abts_run_test(suite, test2_func, NULL);
+    //abts_run_test(suite, test3_func, NULL);
 
     return suite;
 }

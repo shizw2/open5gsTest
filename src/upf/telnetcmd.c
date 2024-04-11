@@ -6,33 +6,23 @@ void upf(void);
 void showsess(uint32_t id);
 void showsessBriefAll( void );
 void showsessDetail( uint32_t id );
+void setCommands(void);
+
+telnet_command_t g_commands[] = {
+    {"showsess",      (GenericFunc)showsess,         1, {INTEGER}},
+    {"upf",           (GenericFunc)upf,              0, {}},
+};
+int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);
+
+void setCommands(void){    
+    set_telnet_commands(g_commands, g_numCommands);
+}
+
+
+
 void upf(void)
 {
     printf("this is upf system. \r\n");
-}
-
-void telnet_proc_cmd(char * pabCmd)
-{
-    uint32_t  dwPara1   = 0;
-    uint32_t  dwPara2   = 0;
-   
-    if (!pttGetCmdParams(pabCmd))
-    {
-        return;
-    }
-
-    dwPara1 = pttGetCmdWord32Value(&g_tCmdPara[0]);
-    dwPara2 = pttGetCmdWord32Value(&g_tCmdPara[1]);
-
-    if (strcmp(g_chCmdName, "upf") == 0){
-        upf();
-    }else if (strcmp(g_chCmdName, "showsess") == 0){
-        showsess(dwPara1);
-    }else{
-        printf("the command not support\r\n");
-    }  
-    
-    return;
 }
 
 void showsess(uint32_t id)
@@ -83,9 +73,11 @@ void showsessDetail( uint32_t id )
     ogs_pfcp_far_t *far = NULL;
     ogs_pfcp_urr_t *urr = NULL;
     ogs_pfcp_qer_t *qer = NULL;
+    ogs_pfcp_rule_t *rule = NULL;
     char buf1[OGS_ADDRSTRLEN];
     char buf2[OGS_ADDRSTRLEN];
     int i;
+    int pdr_index = 0;
     printf("\r\n");
     sess = upf_sess_find_by_upf_n4_seid(id);
     
@@ -101,7 +93,7 @@ void showsessDetail( uint32_t id )
     printf("  |--pfcp      : \r\n");    
     printf("      |--pdr_cnt           : %d \r\n", ogs_list_count(&sess->pfcp.pdr_list));
     ogs_list_for_each(&sess->pfcp.pdr_list, pdr){
-        printf("          **************pdr id: %d***********\r\n",pdr->id);     
+        printf("          **************pdr index:%d, id: %d***********\r\n",pdr_index, pdr->id);     
         printf("          |--teid              : %d \r\n", pdr->teid);
         printf("          |--src_if            : %s \r\n", ogs_pfcp_interface_get_name(pdr->src_if));
         printf("          |--dnn               : %s \r\n", pdr->dnn);
@@ -141,7 +133,43 @@ void showsessDetail( uint32_t id )
             printf("              |--quota_validity_time: %d \r\n", pdr->urr[i]->quota_validity_time);
         }
         printf("          |--num_of_flow       : %d \r\n", pdr->num_of_flow);
+        for (i = 0; i < pdr->num_of_flow; i++){
+            printf("              |--flow_description[%d] : %s \r\n", i,pdr->flow_description[i]);
+        }
         printf("          |--num of rule_list  : %d \r\n", ogs_list_count(&pdr->rule_list));
+        ogs_list_for_each(&pdr->rule_list, rule){
+            printf("              |--sdf_filter_id : %d \r\n", rule->sdf_filter_id);
+            printf("              |--flags         : %d(bid:%d,fl:%d,spi:%d,ttc:%d,fd:%d) \r\n", rule->flags,rule->bid,rule->fl,rule->spi,rule->ttc,rule->fd);
+            printf("              |--proto         : %d \r\n", rule->ipfw.proto);
+            printf("              |--ipv4_src      : %d \r\n", rule->ipfw.ipv4_src);
+            printf("              |--ipv4_dst      : %d \r\n", rule->ipfw.ipv4_dst);
+            printf("              |--ipv6_src      : %d \r\n", rule->ipfw.ipv6_src);
+            printf("              |--ipv6_dst      : %d \r\n", rule->ipfw.ipv6_dst);
+            printf("              |--port          :SRC:%d-%d DST:%d-%d\r\n",
+                                                        rule->ipfw.port.src.low,
+                                                        rule->ipfw.port.src.high,
+                                                        rule->ipfw.port.dst.low,
+                                                        rule->ipfw.port.dst.high);
+            printf("              |--SRC           :%08x %08x %08x %08x/%08x %08x %08x %08x\r\n",
+                                                        be32toh(rule->ipfw.ip.src.addr[0]),
+                                                        be32toh(rule->ipfw.ip.src.addr[1]),
+                                                        be32toh(rule->ipfw.ip.src.addr[2]),
+                                                        be32toh(rule->ipfw.ip.src.addr[3]),
+                                                        be32toh(rule->ipfw.ip.src.mask[0]),
+                                                        be32toh(rule->ipfw.ip.src.mask[1]),
+                                                        be32toh(rule->ipfw.ip.src.mask[2]),
+                                                        be32toh(rule->ipfw.ip.src.mask[3]));
+            printf("              |--DST           :%08x %08x %08x %08x/%08x %08x %08x %08x\r\n",
+                                                        be32toh(rule->ipfw.ip.dst.addr[0]),
+                                                        be32toh(rule->ipfw.ip.dst.addr[1]),
+                                                        be32toh(rule->ipfw.ip.dst.addr[2]),
+                                                        be32toh(rule->ipfw.ip.dst.addr[3]),
+                                                        be32toh(rule->ipfw.ip.dst.mask[0]),
+                                                        be32toh(rule->ipfw.ip.dst.mask[1]),
+                                                        be32toh(rule->ipfw.ip.dst.mask[2]),
+                                                        be32toh(rule->ipfw.ip.dst.mask[3]));
+        }
+        pdr_index++;
     }
     printf("     |--far_cnt           : %d \r\n", ogs_list_count(&sess->pfcp.far_list));
     ogs_list_for_each(&sess->pfcp.far_list, far){

@@ -126,12 +126,12 @@ ogs_thread_t *test_child_create(const char *name, const char *const argv[])
     /* buildroot/src/mme/open5gs-mmed */
     ogs_snprintf(command, sizeof command, "%s%s%s%sd",
             MESON_BUILD_ROOT OGS_DIR_SEPARATOR_S "src" OGS_DIR_SEPARATOR_S,
-            name, OGS_DIR_SEPARATOR_S "open5gs-", name);
+            name, OGS_DIR_SEPARATOR_S "5gc-", name);
 			
     if (!ogs_strcasecmp("amf-sps",name)){
         ogs_snprintf(command, sizeof command, "%s%s%s%sd",
         MESON_BUILD_ROOT OGS_DIR_SEPARATOR_S "src" OGS_DIR_SEPARATOR_S,
-        "amf", OGS_DIR_SEPARATOR_S "open5gs-", name);
+        "amf", OGS_DIR_SEPARATOR_S "5gc-", name);
     }
 	
     commandLine[0] = command;
