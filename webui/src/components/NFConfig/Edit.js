@@ -60,6 +60,8 @@ class Edit extends Component {
     let selectedSchema;
     let selectedUiSchema;
 
+    if (formData.parameter && formData.parameter.capacity)
+      formData.parameter.capacity = parseInt(formData.parameter.capacity);
 
     if (formData._id === 'nrf') {
       selectedSchema = nrfschema;
@@ -105,11 +107,18 @@ class Edit extends Component {
           if (typeof plmn_support.plmn_id.mnc === 'number') {
             plmn_support.plmn_id.mnc = String(plmn_support.plmn_id.mnc);
           }
-          plmn_support.s_nssai.forEach(s_nssai => {  
-            s_nssai.sd =  String(s_nssai.sd);
-          })
+          if (plmn_support.s_nssai)
+          {
+            plmn_support.s_nssai.forEach(s_nssai => {  
+              if (s_nssai.sd)
+                s_nssai.sd = String(s_nssai.sd);
+            })
+          }
         });
       }
+
+      if (formData.amf && formData.amf.relative_capacity)
+        formData.amf.relative_capacity = parseInt(formData.amf.relative_capacity);
 
       selectedSchema = amfschema;
       selectedUiSchema = amfuiSchema;
@@ -161,6 +170,15 @@ class Edit extends Component {
       selectedSchema = udmschema;
       selectedUiSchema = udmuiSchema;
     }else if (formData._id === 'upf') {
+      if (formData.upf && formData.upf.dpdk && formData.upf.dpdk.pfcp_lcore)
+        formData.upf.dpdk.pfcp_lcore = parseInt(formData.upf.dpdk.pfcp_lcore);
+      
+      if (formData.upf && formData.upf.dpdk && formData.upf.dpdk.dpt_lcore)
+        formData.upf.dpdk.dpt_lcore = parseInt(formData.upf.dpdk.dpt_lcore);
+      
+      if (formData.upf && formData.upf.dpdk && formData.upf.dpdk.fwd_lcore)
+        formData.upf.dpdk.fwd_lcore = parseInt(formData.upf.dpdk.fwd_lcore);
+      
       selectedSchema = upfschema;
       selectedUiSchema = upfuiSchema;
     }else if (formData._id === 'udr') {

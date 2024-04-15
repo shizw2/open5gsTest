@@ -16,6 +16,7 @@ import {
   FreeDiameterFileSection,
   InfoSection,
   SubnetSection,
+  DPDKSection,
 } from './ViewCfgSection';
 
 
@@ -32,6 +33,7 @@ export const ViewUPF = ({ nfconfig }) => {
           <PfcpSection pfcp={upf.pfcp} /> 
           <GtpuSection gtpu={upf.gtpu} />
           <SubnetSection subnet={upf.subnet} />
+          <DPDKSection dpdk={upf.dpdk} />
           <MetricsSection metrics={upf.metrics} /> 
       </div>
 

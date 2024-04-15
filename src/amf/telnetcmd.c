@@ -44,52 +44,7 @@ void setCommands(void){
     }
     set_telnet_commands(commands, numCommands);
 }
-#if 0
-void telnet_proc_cmd(char * pabCmd)
-{
-    uint32_t  dwPara1   = 0;
-    uint32_t  dwPara2   = 0;
-   
-    if (!pttGetCmdParams(pabCmd))
-    {
-        return;
-    }
 
-    dwPara1 = pttGetCmdWord32Value(&g_tCmdPara[0]);
-    dwPara2 = pttGetCmdWord32Value(&g_tCmdPara[1]);
-
-	if (is_amf_icps()){
-	    if (strcmp(g_chCmdName, "help") == 0){
-	        printf("Supported commands:\n");
-            for (int i = 0; i < g_numCommands; i++) {
-                printf("- %s\n", g_commands[i].command);
-            }
-	    }else if (strcmp(g_chCmdName, "showgnb") == 0){
-	        showgnb(dwPara1);
-	    }else if (strcmp(g_chCmdName, "shownf") == 0){
-	        shownf(dwPara1);
-	    }else if (strcmp(g_chCmdName, "showranue") == 0){
-	        showranue();
-	    }  
-	    else{
-	        printf("the command not support\r\n");
-	    }
-	}else{
-		if (strcmp(g_chCmdName, "help") == 0){
-	        printf("Supported commands:\n");
-            for (int i = 0; i < g_spsnumCommands; i++) {
-                printf("- %s\n", g_sps_commands[i].command);
-            }
-	    }else if (strcmp(g_chCmdName, "showue") == 0){
-	        showue((char*)g_tCmdPara[0].abCont);
-	    }else{
-	        printf("the command not support\r\n");
-	    }
-	}
-    
-    return;
-}
-#endif
 
 void showgnb(uint32_t enbID)
 {

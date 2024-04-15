@@ -1,3 +1,10 @@
+
+let promptRestart = "修改本配置项需重启系统";
+
+const HiddenField = () => {
+  return null;
+};
+
 export const loggerSchema = {
   type: "object",
   title: "Logger",
@@ -192,7 +199,6 @@ export const upfSchema = {
       },
     },
   },
-  //required:["addr","port"],
 };
 
 export const upfUiSchema = {
@@ -319,6 +325,8 @@ export const nrfNFSchema = {
           port: {
             type: "number",
             title: "Port",
+            minimum: 1,
+            maximum: 65535,
             required: true,
           },
         },
@@ -352,6 +360,8 @@ export const nrfNFSchema = {
           port: {
             type: "number",
             title: "Port",
+            minimum: 1,
+            maximum: 65535,
             default: 9090
           }
         }
@@ -366,6 +376,7 @@ export const nrfNFUiSchema = {
   metrics: {
     classNames: "col-xs-12",
     "ui:title": <CustomTitle18 title="Metrics" />,
+    "ui:description": <Customhelp14 title={promptRestart} />,
     items: {
       addr: {
         classNames: "col-xs-8",
@@ -429,6 +440,8 @@ export const nrfSchema = {
           port: {
             type: "number",
             title: "Port",
+            minimum: 1,
+            maximum: 65535,
             required: true,
           },
         },
@@ -440,6 +453,7 @@ export const nrfSchema = {
 
 export const nrfUiSchema = {
   classNames: "col-xs-12",
+  "ui:description": <Customhelp14 title={promptRestart} />,
   sbi: {
     classNames: "col-xs-12",
     "ui:title": <CustomTitle18 title="SBI Interface" />,
@@ -468,7 +482,7 @@ export const relative_capSchema = {
   title: "Relative Capacity",
   minimum: 0,
   maximum: 100,
-  default: 100, 
+  required: true,
 }
 
 export const relative_capUiSchema = {
@@ -485,7 +499,7 @@ export const paraSchema = {
       title: "Capacity",
       minimum: 0,
       maximum: 100,
-      default: 100, 
+      required: true, 
     },
   },
 }
@@ -528,6 +542,8 @@ export const nf_sbi_Schema = {
       port: {
         type: "number",
         title: "Port",
+        minimum: 1,
+        maximum: 65535,
         required: true,
         //default: 7777
       }
@@ -538,6 +554,8 @@ export const nf_sbi_Schema = {
 export const nf_sbi_UiSchema = {
   classNames: "col-xs-12",
   "ui:title": <CustomTitle18 title="SBI Interface" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
+  //"ui:help": <Customhelp14 title={promptRestart} />,
   items: {
     addr: {
       classNames: "col-xs-8",
@@ -580,6 +598,8 @@ export const nf_sbi_shortSchema = {
       port: {
         type: "number",
         title: "Port",
+        minimum: 1,
+        maximum: 65535,
         required: true,
         //default: 7777
       }
@@ -590,6 +610,7 @@ export const nf_sbi_shortSchema = {
 export const nf_sbi_shortUiSchema = {
   classNames: "col-xs-7",
   "ui:title": <CustomTitle18 title="SBI Interface" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
   items: {
     addr: {
       classNames: "col-xs-7",
@@ -618,6 +639,8 @@ export const time_nf_instanceSchema = {
     heartbeat: {
       type: "number",
       title: "HeartBeat",
+      minimum: 1,
+      required: true,
       default: 20
     }
   },
@@ -639,6 +662,8 @@ export const time_t3512Schema = {
     value: {
       type: "number",
       title: "Value",
+      minimum: 1,
+      required: true,
       default: 540
     }
   }
@@ -659,6 +684,8 @@ export const time_t3502Schema = {
     value: {
       type: "number",
       title: "Value",
+      minimum: 1,
+      required: true,
       default: 720
     }
   }
@@ -682,6 +709,8 @@ export const icpsSchema = {
     },
     port: {
       type: "number",
+      minimum: 1,
+      maximum: 65535,
       default: 9777
     }
   },
@@ -730,6 +759,7 @@ export const ngapSchema = {
 export const ngapUiSchema = {
   classNames: "col-xs-5",
   "ui:title": <CustomTitle18 title="NGAP" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
   items: {
     //classNames: "col-xs-12",
     addr: {
@@ -765,6 +795,8 @@ export const metricsSchema = {
       port: {
         type: "number",
         title: "Port",
+        minimum: 1,
+        maximum: 65535,
         default: 9090
       }
     }
@@ -774,6 +806,7 @@ export const metricsSchema = {
 export const metricsUiSchema = {
   classNames: "col-xs-12",
   "ui:title": <CustomTitle18 title="Metrics" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
   //items: {
     //classNames: "col-xs-12",//层次感  
     //metrics: {
@@ -812,6 +845,8 @@ export const metricsShortSchema = {
       port: {
         type: "number",
         title: "Port",
+        minimum: 1,
+        maximum: 65535,
         default: 9090
       }
     }
@@ -821,6 +856,7 @@ export const metricsShortSchema = {
 export const metricsShortUiSchema = {
   classNames: "col-xs-6",
   "ui:title": <CustomTitle18 title="Metrics" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
   //items: {
     //classNames: "col-xs-12",//层次感  
     //metrics: {
@@ -1039,6 +1075,8 @@ export const taiUiSchema = {
 export const plmn_supportSchema = {
   type: "array",
   title: "PLMN_SUPPORT",
+  minItems: 1,
+  maxItems: 8,
   items: {
     type: "object",
     properties: {
@@ -1223,6 +1261,8 @@ export const amf_nameUiSchema = {
 export const pfcpSchema = {
   type: "array",
   title: "PFCP Address",
+  minItems: 1,
+  maxItems: 8,
   items: {
     type: "object",
     properties: {
@@ -1235,7 +1275,8 @@ export const pfcpSchema = {
         messages: {
           "anyOf": "IPv4 or IPv6 allowed"
         },
-        default: "127.0.0.5",
+        required: true,
+        //default: "127.0.0.5",
       },
     }
   }
@@ -1244,6 +1285,7 @@ export const pfcpSchema = {
 export const pfcpUiSchema = {
   classNames: "col-xs-6",
   "ui:title": <CustomTitle18 title="PFCP Address" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
   //pfcp: {  //不需要再加一层。加了反而没层次感  
   items: {
     classNames: "col-xs-12",
@@ -1260,6 +1302,8 @@ export const pfcpUiSchema = {
 export const gtpcSchema = {
   type: "array",
   title: "GTPC Address",
+  minItems: 1,
+  maxItems: 8,
   items: {
     type: "object",
     properties: {
@@ -1273,7 +1317,8 @@ export const gtpcSchema = {
         messages: {
           "anyOf": "IPv4 or IPv6 allowed"
         },
-        default: "127.0.0.5"
+        //default: "127.0.0.5"
+        required: true,
       },
     }
   }
@@ -1296,6 +1341,8 @@ export const gtpcUiSchema = {
 export const gtpuSchema = {
   type: "array",
   title: "GTPU Address",
+  minItems: 1,
+  maxItems: 8,
   items: {
     type: "object",
     properties: {
@@ -1319,6 +1366,7 @@ export const gtpuSchema = {
 export const gtpuUiSchema = {
   classNames: "col-xs-6",
   "ui:title": <CustomTitle18 title="GTPU Address" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
   items: {
     classNames: "col-xs-12",
     addr: {
@@ -1374,6 +1422,7 @@ export const subnetSchema = {
 export const subnetUiSchema = {
   classNames: "col-xs-12",
   "ui:title": <CustomTitle18 title="UE IP Pool" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
   items: {
     addr: {
       classNames: "col-xs-6",
@@ -1385,9 +1434,160 @@ export const subnetUiSchema = {
   }
 };
 
+export const dpdkSchema = {
+  type: "object",
+  title: "DPDK Configuration",
+  properties: {
+    pfcp_lcore: {
+      type: "number",
+      title: "PFCP LCore",
+      minimum: 0,
+      maximum: 255,
+      //default: 0,
+    },
+    dpt_lcore: {
+      type: "number",
+      title: "DPT LCore",
+      minimum: 0,
+      maximum: 255,
+      //default: 1,
+    },
+    fwd_lcore: {
+      type: "number",
+      title: "FWD LCore",
+      minimum: 0,
+      maximum: 255,
+      //default: 2,
+    },
+    emptyLine1: {
+      type: "number",
+    },
+    n3_default_gw: {
+      type: "string",
+      title: "N3 IPv4 Default Gateway",
+      format: "ipv4",
+    },
+    n3_mask_bits: {
+      type: "number",
+      title: "N3 IPv4 Mask Bits",
+      minimum: 1,
+      maximum: 32,
+      //default: 24,
+    },
+    emptyLine2: {
+      type: "number",
+    },
+    n3_default_gw6: {
+      type: "string",
+      title: "N3 IPv6 Default Gateway",
+      format: "ipv6",
+    },
+    n3_mask6_bits: {
+      type: "number",
+      title: "N3 IPv6 Mask Bits",
+      minimum: 1,
+      maximum: 128,
+      //default: 64,
+    },
+    emptyLine3: {
+      type: "number",
+    },
+    n6_addr: {
+      type: "string",
+      title: "N6 IPv4 Address",
+      pattern: subnetipv4Regex.source,
+      messages: {
+        "pattern": "Format like 192.168.6.10/24"
+      },
+      //default: "10.45.0.1/16",
+      //required: true,
+    },
+    n6_default_gw: {
+      type: "string",
+      title: "N6 IPv4 Default Gateway",
+      format: "ipv4",
+    },
+    emptyLine4: {
+      type: "number",
+    },
+    n6_addr6: {
+      type: "string",
+      title: "N6 IPv6 Address",
+      pattern: subnetipv6Regex.source,
+      messages: {
+        "patternf": "Format like 2001::10/48"
+      },
+      //default: "10.45.0.1/16",
+      //required: true,
+    },
+    n6_default_gw6: {
+      type: "string",
+      title: "N6 IPv6 Default Gateway",
+      format: "ipv6",
+    },
+  },
+};
+
+export const dpdkUiSchema = {
+  classNames: "col-xs-12",
+  "ui:title": <CustomTitle18 title="DPDK Configuration" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
+  pfcp_lcore: {
+    classNames: "col-xs-4",
+  },
+  dpt_lcore: {
+    classNames: "col-xs-4",
+  },
+  fwd_lcore: {
+    classNames: "col-xs-4",
+  },
+  emptyLine1: {
+    classNames: "col-xs-12",
+    "ui:field": HiddenField,
+  },
+  n3_default_gw: {
+    classNames: "col-xs-6",
+  },
+  n3_mask_bits: {
+    classNames: "col-xs-6",
+  },
+  emptyLine2: {
+    classNames: "col-xs-12",
+    "ui:field": HiddenField,
+  },
+  n3_default_gw6: {
+    classNames: "col-xs-6",
+  },
+  n3_mask6_bits: {
+    classNames: "col-xs-6",
+  },
+  emptyLine3: {
+    classNames: "col-xs-12",
+    "ui:field": HiddenField,
+  },
+  n6_addr: {
+    classNames: "col-xs-6",
+  },
+  n6_default_gw: {
+    classNames: "col-xs-6",
+  },
+  emptyLine4: {
+    classNames: "col-xs-12",
+    "ui:field": HiddenField,
+  },
+  n6_addr6: {
+    classNames: "col-xs-6",
+  },
+  n6_default_gw6: {
+    classNames: "col-xs-6",
+  },
+};
+
 export const dnsSchema = {
   type: "array",
   title:"DNS Address",
+  minItems: 1,
+  maxItems: 8,
   items: {
     type: "string",
     anyOf: [
@@ -1412,6 +1612,7 @@ export const dnsUiSchema = {
 export const pcscfSchema = {
   type: "array",
   title: "P-CSCF Address",
+  maxItems: 8,
   items: {
     type: "string",
     anyOf: [
@@ -1434,10 +1635,6 @@ export const pcscfUiSchema = {
   }
 };
 
-const HiddenField = () => {
-  return null;
-};
-
 export const emptyLineSchema = {
   type: "number",
 };
@@ -1450,7 +1647,7 @@ export const emptyLineUiSchema = {
 export const mtuSchema = {
   type: "number",
   title: "MTU",
-  minimum: 0
+  minimum: 1
 };
 
 export const mtuUiSchema = {
@@ -1490,6 +1687,7 @@ export const freeDiameterSchema = {
 export const freeDiameterUiSchema = {
   classNames: "col-xs-6",
   "ui:title": <CustomTitle18Border15 title="Diameter Config" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
 };
 
 
@@ -1665,6 +1863,8 @@ export const nsiSchema = {
       port: {
         type: "number",
         title:"Port",
+        minimum: 1,
+        maximum: 65535,
         required:true,
       },
       s_nssai: {
@@ -1809,6 +2009,7 @@ export const freeDiameter2Schema = {
 export const freeDiameter2UiSchema = {
   classNames: "col-xs-12",
   "ui:title": <CustomTitle18 title="Diameter" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
   no_fwd: {
     classNames: "col-xs-3"
   },
@@ -2051,6 +2252,22 @@ function CustomTitle18({ title }) {
         style={{
           fontWeight: "400",
           fontSize: "18px",
+        }}
+      >
+        {title}
+      </label>
+    </div>
+  );
+}
+
+function Customhelp14({ title }) {
+  return (
+    <div>
+      <label
+        style={{
+          fontWeight: "400",
+          fontSize: "14px",
+          color: "grey"
         }}
       >
         {title}

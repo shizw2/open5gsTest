@@ -477,6 +477,51 @@ export const SubnetSection = ({ subnet }) => {
   );
 };
 
+export const DPDKSection = ({ dpdk }) => (
+  <div>
+    {dpdk && (
+      <div className="dpdk-section">
+        <div className="twenty-spaces">dpdk:</div>
+        <div className="dpdk-body">
+          <div className="forty-spaces">
+            pfcp_lcore: {dpdk.pfcp_lcore}
+          </div>
+          <div className="forty-spaces">
+            dpt_lcore: {dpdk.dpt_lcore}
+          </div>
+          <div className="forty-spaces">
+            fwd_lcore: {dpdk.fwd_lcore}
+          </div>
+          <div className="forty-spaces">
+            n3_default_gw: {dpdk.n3_default_gw}
+          </div>
+          <div className="forty-spaces">
+            n3_mask_bits: {dpdk.n3_mask_bits}
+          </div>
+          <div className="forty-spaces">
+            n3_default_gw6: {dpdk.n3_default_gw6}
+          </div>
+          <div className="forty-spaces">
+            n3_mask6_bits: {dpdk.n3_mask6_bits}
+          </div>
+          <div className="forty-spaces">
+            n6_addr: {dpdk.n6_addr}
+          </div>
+          <div className="forty-spaces">
+            n6_default_gw: {dpdk.n6_default_gw}
+          </div>
+          <div className="forty-spaces">
+            n6_addr6: {dpdk.n6_addr6}
+          </div>
+          <div className="forty-spaces">
+            n6_default_gw6: {dpdk.n6_default_gw6}
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+);
+
 export const DnsSection = ({ dns }) => {
   return (
     <div>
