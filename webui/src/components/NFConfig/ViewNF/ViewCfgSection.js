@@ -167,7 +167,9 @@ export const TaiSection = ({ tais }) => (
               <div>- plmn_id:</div>
               <div className="twenty-spaces">mcc: {item.plmn_id.mcc.toString()}</div>
               <div className="twenty-spaces">mnc: {item.plmn_id.mnc.toString()}</div>
+              {item.tac && (
               <div>&nbsp;&nbsp;tac: [{item.tac.join(', ')}]</div>
+              )}
             </div>
           ))}
         </div>
@@ -212,8 +214,12 @@ export const SecuritySection = ({ security }) => (
       <div className="security-section">
         <div className="twenty-spaces">security:</div>
         <div className="forty-spaces">
+          {security.integrity_order && (
           <div>integrity_order : [{security.integrity_order.join(', ')}]</div>
+          )}
+          {security.ciphering_order && (
           <div>ciphering_order : [{security.ciphering_order.join(', ')}]</div>
+          )}
         </div>
       </div>
     )}
@@ -246,6 +252,24 @@ export const TimeSection = ({ time }) => (
             </div>
         )}
       </div>
+  </div>
+);
+
+export const CLISection = ({ cli }) => (
+  <div>
+    {cli && (
+      <div className="cli-section">
+        <div>cli:</div>
+        <div className="twenty-spaces">
+          {cli.map((item, index) => (
+            <div key={index}>
+              <div>- addr: {item.addr}</div>
+              <div>&nbsp;&nbsp;port: {item.port}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
   </div>
 );
 
@@ -632,7 +656,9 @@ export const SMFInfoSection = ({ info }) => {
                         <div className="twenty-spaces">mcc: {tai_item.plmn_id.mcc}</div>
                         <div className="twenty-spaces">mnc: {tai_item.plmn_id.mnc}</div>
                       </div>
+                      {tai_item.tac && (
                       <div className="twenty-spaces">&nbsp;&nbsp;tac: [{tai_item.tac.join(', ')}]</div>
+                      )}
                     </div>
                   ))}
                 </div>

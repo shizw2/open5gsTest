@@ -1753,7 +1753,10 @@ void ogs_sbi_nf_info_remove(ogs_list_t *list, ogs_sbi_nf_info_t *nf_info)
         break;
     case OpenAPI_nf_type_AUSF:
         ausf_info_free(&nf_info->ausf);
-        break;        
+        break;  
+    case OpenAPI_nf_type_5G_EIR:
+        //没有info释放;
+        break;   
     default:
         ogs_fatal("Not implemented NF-type[%s]",
                 OpenAPI_nf_type_ToString(nf_info->nf_type));

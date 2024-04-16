@@ -40,7 +40,7 @@ ogs_pkbuf_t *gmm_build_de_registration_request(
         OpenAPI_deregistration_reason_e dereg_reason,
         ogs_nas_5gmm_cause_t gmm_cause);
 
-ogs_pkbuf_t *gmm_build_identity_request(amf_ue_t *amf_ue);
+ogs_pkbuf_t *gmm_build_identity_request(amf_ue_t *amf_ue,uint8_t id_type);
 ogs_pkbuf_t *gmm_build_security_mode_command(amf_ue_t *amf_ue);
 
 ogs_pkbuf_t *gmm_build_authentication_request(amf_ue_t *amf_ue);

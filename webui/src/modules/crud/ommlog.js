@@ -130,7 +130,7 @@ class Ommlog extends Component{
         logformData.optcommand += JSON.stringify(data);
       }else{
         logformData.optcommand += info;        
-    } 
+      } 
     }    
     return createDocument(MODEL, URL, params, logformData);
   }

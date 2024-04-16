@@ -476,16 +476,16 @@ class Collection extends Component {
     } = oprlogs
 
     const styles = {
-  underline: {
-    width: '100%',
-    height: '2px',    
-    backgroundColor: '#5C7CFA',
-  },
+      underline: {
+        width: '100%',
+        height: '2px',    
+        backgroundColor: '#5C7CFA',
+      },
       body: {
         backgroundColor: '#5C7CFA',
       },
-  topm: {
-    margin: '0px 30px 20px 10px',
+      topm: {
+        margin: '0px 30px 20px 10px',
       },
       select:{ 
         border: 'none', 
@@ -509,11 +509,11 @@ class Collection extends Component {
         fontSize: '1rem',
         color: '#5C7CFA',
         cursor: 'pointer'
-  }
+      }
     }
   return (  
-  <div>                   
-    <Tabalehead>
+    <div>                   
+     <Tabalehead>
           <div className="optorder">序号</div>
           <div className="opttime"onClick={this.handleTimeClick}>
           操作时间
@@ -599,22 +599,22 @@ class Collection extends Component {
             </Tooltip>          
           </div>               
     </Tabalehead>                       
-  <Layout.Content style={styles.topm}>              
-    <Oprlog.List         
-      oprlogs={data}          
-            onView={viewHandler.show}            
-    />
-    <Oprlog.View
-      visible={this.state.view.visible}
-      oprlog={data.filter(oprlog => 
-      oprlog._id === this.state.view._id)[0]}
-      disableOnClickOutside={this.state.view.disableOnClickOutside}
-      onHide={viewHandler.hide}/>
-    <Document 
-      { ...document }
-      onHide={documentHandler.hide} />
-    <Dimmed visible={document.dimmed} />           
-  </Layout.Content>
+    <Layout.Content style={styles.topm}>              
+      <Oprlog.List         
+        oprlogs={data}          
+              onView={viewHandler.show}            
+      />
+      <Oprlog.View
+        visible={this.state.view.visible}
+        oprlog={data.filter(oprlog => 
+        oprlog._id === this.state.view._id)[0]}
+        disableOnClickOutside={this.state.view.disableOnClickOutside}
+        onHide={viewHandler.hide}/>
+      <Document 
+        { ...document }
+        onHide={documentHandler.hide} />
+      <Dimmed visible={document.dimmed} />           
+    </Layout.Content>
   </div>
 )
 }

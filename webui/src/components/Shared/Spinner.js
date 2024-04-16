@@ -71,20 +71,20 @@ const Spinner = ({ sm, md, lg, color, align, padding }) => {
   console.log('small:', sm);
   console.log('medium:', md);
   return (
-  <Wrapper align={align} padding={padding}>
-    <Circle
-      small={sm}
-      medium={md}
-      large={lg}
-      color={color}
-    >
-      <CircleInner
+    <Wrapper align={align} padding={padding}>
+      <Circle
         small={sm}
         medium={md}
         large={lg}
-      />
-    </Circle>
-  </Wrapper>
+        color={color}
+      >
+        <CircleInner
+          small={sm}
+          medium={md}
+          large={lg}
+        />
+      </Circle>
+    </Wrapper>
   );
 };
 */

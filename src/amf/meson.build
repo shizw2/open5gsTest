@@ -64,6 +64,8 @@ libamf_sources = files('''
     init.c
     metrics.c
     telnetcmd.c
+    neir-build.c
+    neir-handler.c
 '''.split())
 
 libamf = static_library('amf',

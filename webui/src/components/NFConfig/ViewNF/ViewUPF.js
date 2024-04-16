@@ -17,6 +17,7 @@ import {
   InfoSection,
   SubnetSection,
   DPDKSection,
+  CLISection
 } from './ViewCfgSection';
 
 
@@ -28,17 +29,19 @@ export const ViewUPF = ({ nfconfig }) => {
       <NRFSection nfconfig={nfconfig} />
       <SBISection nfconfig={nfconfig} />
 
-      <div className="upf-section">
+      {upf && (
+        <div className="upf-section">
           <div className="upf-header">upf:</div>          
           <PfcpSection pfcp={upf.pfcp} /> 
           <GtpuSection gtpu={upf.gtpu} />
           <SubnetSection subnet={upf.subnet} />
           <DPDKSection dpdk={upf.dpdk} />
           <MetricsSection metrics={upf.metrics} /> 
-      </div>
+        </div>
+      )}
 
-      <ParameterSection parameter={nfconfig.parameter} />
-
+      {parameter && <ParameterSection parameter={nfconfig.parameter} />}
+      {nfconfig && nfconfig.cli && <CLISection cli={nfconfig.cli} />}
       {/* 
       <div className="smf-section">
       <div className="smf-header">smf:</div>

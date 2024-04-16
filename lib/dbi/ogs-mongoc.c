@@ -190,6 +190,38 @@ void ogs_dbi_final(void)
 
     ogs_mongoc_final();
 }
+int ogs_eir_dbi_init(const char *db_uri)
+{
+    int rv;
+
+    ogs_assert(db_uri);
+
+    rv = ogs_mongoc_init(db_uri);
+    if (rv != OGS_OK) return rv;
+
+    if (ogs_mongoc()->client && ogs_mongoc()->name) {
+        self.collection.imeicheck = mongoc_client_get_collection(
+            ogs_mongoc()->client, ogs_mongoc()->name, "imeichecks");
+        ogs_assert(self.collection.imeicheck);
+    }
+
+    return OGS_OK;
+}
+
+void ogs_eir_dbi_final(void)
+{
+    if (self.collection.imeicheck) {
+        mongoc_collection_destroy(self.collection.imeicheck);
+    }
+
+#if MONGOC_MAJOR_VERSION >= 1 && MONGOC_MINOR_VERSION >= 9
+    if (self.stream) {
+        mongoc_change_stream_destroy(self.stream);
+    }
+#endif
+
+    ogs_mongoc_final();
+}
 
 int ogs_dbi_collection_watch_init(void)
 {

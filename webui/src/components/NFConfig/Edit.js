@@ -45,7 +45,7 @@ class Edit extends Component {
         props: nextProps,
         ...Edit.getStateFromProps(nextProps),
       };
-  }
+    }
     return null;
   }
   
@@ -63,16 +63,16 @@ class Edit extends Component {
     if (formData.parameter && formData.parameter.capacity)
       formData.parameter.capacity = parseInt(formData.parameter.capacity);
 
-    if (formData._id === 'nrf') {
+    if (formData._id === 'nrf' || formData._nf === 'nrf') {
       selectedSchema = nrfschema;
       selectedUiSchema = nrfuiSchema;
-    } else if (formData._id === 'bsf') {
+    } else if (formData._id === 'bsf' || formData._nf === 'bsf') {
       selectedSchema = bsfschema;
       selectedUiSchema = bsfuiSchema;
-    }else if (formData._id === 'ausf') {
+    }else if (formData._id === 'ausf'  || formData._nf === 'ausf') {
       selectedSchema = ausfschema;
       selectedUiSchema = ausfuiSchema;
-    }else if (formData._id === 'amf' || formData._id === 'a') {        
+    }else if (formData._id === 'amf' || formData._nf === 'amf') {        
       //初始配置文件会按数字读取mcc,mnc,将读取到的mcc,mnc的类型改为string
       if (formData.amf&&formData.amf.guami&&Array.isArray(formData.amf.guami)) {
         formData.amf.guami.forEach(guami => {         
@@ -122,7 +122,7 @@ class Edit extends Component {
 
       selectedSchema = amfschema;
       selectedUiSchema = amfuiSchema;
-    }else if (formData._id === 'smf') {
+    }else if (formData._id === 'smf' || formData._nf === 'smf') {
       //初始配置文件会按数字读取mcc,mnc,将读取到的mcc,mnc的类型改为string
       if (formData.smf&&formData.smf.info&&Array.isArray(formData.smf.info)) {
         formData.smf.info.forEach(info => {
@@ -152,10 +152,10 @@ class Edit extends Component {
 
       selectedSchema = smfschema;
       selectedUiSchema = smfuiSchema;
-    }else if (formData._id === 'nssf') {
+    }else if (formData._id === 'nssf' || formData._nf === 'nssf') {
       selectedSchema = nssfschema;
       selectedUiSchema = nssfuiSchema;
-    }else if (formData._id === 'pcf') {   
+    }else if (formData._id === 'pcf' || formData._nf === 'pcf') {   
       if (formData.pcf&&formData.pcf.freeDiameter &&formData.pcf.freeDiameter.load_extension
         &&Array.isArray(formData.pcf.freeDiameter.load_extension)) {          
           formData.pcf.freeDiameter.load_extension.forEach(load_extension => {               
@@ -166,10 +166,10 @@ class Edit extends Component {
       }
       selectedSchema = pcfschema;
       selectedUiSchema = pcfuiSchema;
-    }else if (formData._id === 'udm') {
+    }else if (formData._id === 'udm' || formData._nf === 'udm') {
       selectedSchema = udmschema;
       selectedUiSchema = udmuiSchema;
-    }else if (formData._id === 'upf') {
+    }else if (formData._id === 'upf' || formData._nf === 'upf') {
       if (formData.upf && formData.upf.dpdk && formData.upf.dpdk.pfcp_lcore)
         formData.upf.dpdk.pfcp_lcore = parseInt(formData.upf.dpdk.pfcp_lcore);
       
@@ -181,7 +181,7 @@ class Edit extends Component {
       
       selectedSchema = upfschema;
       selectedUiSchema = upfuiSchema;
-    }else if (formData._id === 'udr') {
+    }else if (formData._id === 'udr' || formData._nf === 'udr') {
       selectedSchema = udrschema;
       selectedUiSchema = udruiSchema;
     }else {
@@ -237,7 +237,7 @@ class Edit extends Component {
     return (
       <Form 
         visible={isLoading?false:visible}//解决页面超时后空白的问题
-        title={(action === 'update') ? `Edit  ${String(formData._id).toUpperCase()} Configuration` : `Create ${String(formData._id).toUpperCase()} Configuration`}
+        title={(action === 'update') ? `Edit  ${String(formData._name).toUpperCase()} Configuration` : `Create ${String(formData._name).toUpperCase()} Configuration`}
         schema={this.state.schema}
         uiSchema={this.state.uiSchema}
         formData={formData}

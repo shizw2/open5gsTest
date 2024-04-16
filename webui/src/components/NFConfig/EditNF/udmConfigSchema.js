@@ -18,6 +18,7 @@ export const udmschema = {
     parameter: schemas.paraSchema,
     sbi: schemas.sbiSchema,
     logger: schemas.loggerSchema,
+    cli: schemas.cliSchema,
     //time: {
     //  type: "object",
     //  title: "time",
@@ -40,6 +41,7 @@ export const udmuiSchema = {
     info: schemas.rtsupiInfoUiSchema,
     metrics: schemas.metricsUiSchema,
   },
+  cli: schemas.cliUiSchema,
   //time: {
   //  classNames: "col-xs-12",
   //  instance: schemas.time_instanceUiSchema,

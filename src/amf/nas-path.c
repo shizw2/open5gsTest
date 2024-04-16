@@ -452,7 +452,7 @@ int nas_5gs_send_de_registration_request(
     return rv;
 }
 
-int nas_5gs_send_identity_request(amf_ue_t *amf_ue)
+int nas_5gs_send_identity_request(amf_ue_t *amf_ue,uint8_t id_type)
 {
     int rv;
     ogs_pkbuf_t *gmmbuf = NULL;
@@ -472,7 +472,7 @@ int nas_5gs_send_identity_request(amf_ue_t *amf_ue)
     if (amf_ue->t3570.pkbuf) {
         gmmbuf = amf_ue->t3570.pkbuf;
     } else {
-        gmmbuf = gmm_build_identity_request(amf_ue);
+        gmmbuf = gmm_build_identity_request(amf_ue,id_type);
         if (!gmmbuf) {
             ogs_error("gmm_build_identity_request() failed");
             return OGS_ERROR;

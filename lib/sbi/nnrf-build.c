@@ -359,7 +359,10 @@ OpenAPI_nf_profile_t *ogs_nnrf_nfm_build_nf_profile(
 
             OpenAPI_list_add(InfoList, InfoMap);
 
-        } else {
+        } else if (nf_info->nf_type == OpenAPI_nf_type_5G_EIR) {
+           //不带任何信息
+
+        }else {
             ogs_fatal("Not implemented NF-type[%s]",
                     OpenAPI_nf_type_ToString(nf_info->nf_type));
             ogs_assert_if_reached();

@@ -122,7 +122,7 @@ class Collection extends Component {
 
     if (nfconfigs.needsFetch && nfconfigs.needsFetch !== prevProps.nfconfigs.needsFetch) {
       dispatch(nfconfigs.fetch);
-  }
+    }
 
     if (status.response && status.response !== prevProps.status.response) {
       dispatch(Notification.success({
@@ -298,9 +298,9 @@ class Collection extends Component {
         {/*<FloatingButton onClick={documentHandler.actions.create}/>*/}
         <NFConfig.View
           visible={this.state.view.visible}
-          nfconfig={data.filter(nfconfig => 
-            nfconfig._id === this.state.view._id)[0]}
           disableOnClickOutside={this.state.view.disableOnClickOutside}
+          nfconfigs={data.filter(nfconfig => 
+            (nfconfig._nf === this.state.view._id))}
           onEdit={documentHandler.actions.update}
           onDelete={confirmHandler.show}
           onHide={viewHandler.hide}/>

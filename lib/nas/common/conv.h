@@ -29,6 +29,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+void ogs_nas_imei_to_bcd(
+    ogs_nas_mobile_identity_5gs_imei_t *imei, uint8_t imei_len, char *bcd);
 
 void ogs_nas_imeisv_to_bcd(
     ogs_nas_mobile_identity_imeisv_t *imeisv, uint8_t imeisv_len, char *bcd);

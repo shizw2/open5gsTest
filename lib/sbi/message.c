@@ -443,6 +443,14 @@ ogs_sbi_request_t *ogs_sbi_build_request(ogs_sbi_message_t *message)
         ogs_sbi_header_set(request->http.params,
                 OGS_SBI_PARAM_DNN, message->param.dnn);
     }
+    if (message->param.pei) {
+        ogs_sbi_header_set(request->http.params,
+                OGS_SBI_PARAM_PEI, message->param.pei);       
+    }//add for imeicheck
+    if (message->param.supi) {
+        ogs_sbi_header_set(request->http.params,
+                OGS_SBI_PARAM_SUPI, message->param.supi);
+    }//add for imeicheck
     if (message->param.plmn_id_presence) {
         OpenAPI_plmn_id_t plmn_id;
 
@@ -754,6 +762,10 @@ int ogs_sbi_parse_request(
             message->param.limit = atoi(ogs_hash_this_val(hi));
         } else if (!strcmp(ogs_hash_this_key(hi), OGS_SBI_PARAM_DNN)) {
             message->param.dnn = ogs_hash_this_val(hi);
+        } else if (!strcmp(ogs_hash_this_key(hi), OGS_SBI_PARAM_PEI)) {
+            message->param.pei = ogs_hash_this_val(hi);
+        } else if (!strcmp(ogs_hash_this_key(hi), OGS_SBI_PARAM_SUPI)) {
+            message->param.supi = ogs_hash_this_val(hi);
         } else if (!strcmp(ogs_hash_this_key(hi), OGS_SBI_PARAM_PLMN_ID)) {
             char *v = NULL;
             cJSON *item = NULL;
@@ -1258,7 +1270,11 @@ static char *build_json(ogs_sbi_message_t *message)
             message->ModificationNotification);
         ogs_assert(item);
     }
-
+    else if (message->eir_response) {        
+        item = OpenAPI_eir_response_data_convertToJSON(
+            message->eir_response);
+        ogs_assert(item);
+    }
     if (item) {
         content = cJSON_Print(item);
         ogs_assert(content);
@@ -1316,6 +1332,18 @@ static int parse_json(ogs_sbi_message_t *message,
         }
     } else {
         SWITCH(message->h.service.name)
+        CASE(OGS_SBI_SERVICE_NAME_N5G_EIR_EIC)
+            if (message->res_status < 300) {
+                message->eir_response =
+                    OpenAPI_eir_response_data_parseFromJSON(item);
+                if (!message->eir_response) {
+                    rv = OGS_ERROR;
+                    ogs_error("JSON parse error");
+                }
+            } else {
+                ogs_error("HTTP ERROR Status : %d", message->res_status);
+            }
+            break;
         CASE(OGS_SBI_SERVICE_NAME_NNRF_NFM)
 
             SWITCH(message->h.resource.component[0])

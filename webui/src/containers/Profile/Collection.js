@@ -114,7 +114,7 @@ class Collection extends Component {
         message: 'This profile has been deleted'
       }));
       dispatch(clearActionStatus(MODEL, 'delete'));
-  }
+    }
 
     if (status.error && status.error !== prevProps.status.error) {
       const response = status.error.response || {};

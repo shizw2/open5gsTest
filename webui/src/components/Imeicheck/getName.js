@@ -1,10 +1,10 @@
 export const getStatusName = (status) => {
     switch (status) {
-      case 0:
-        return "白名单";
       case 1:
-        return "黑名单";
+        return "白名单";
       case 2:
+        return "黑名单";
+      case 3:
         return "灰名单";
       default:
         return "白名单";

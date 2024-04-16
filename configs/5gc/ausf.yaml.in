@@ -451,3 +451,7 @@ time:
 cli:
   - addr: 127.0.0.11
     port: 2300
+schema_version: '1.0'
+_id: ausf
+_name: ausf1
+_nf: ausf

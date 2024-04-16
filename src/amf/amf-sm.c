@@ -462,7 +462,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
         CASE(OGS_SBI_SERVICE_NAME_NAUSF_AUTH)
         CASE(OGS_SBI_SERVICE_NAME_NUDM_UECM)
         CASE(OGS_SBI_SERVICE_NAME_NUDM_SDM)
-        CASE(OGS_SBI_SERVICE_NAME_NPCF_AM_POLICY_CONTROL)            
+        CASE(OGS_SBI_SERVICE_NAME_NPCF_AM_POLICY_CONTROL)
+        CASE(OGS_SBI_SERVICE_NAME_N5G_EIR_EIC)
             if (is_amf_icps()){
                 ogs_info("test icps:sbi_message.h.service.name:%s.",sbi_message.h.service.name);
                 udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_response->http.content,sbi_response->http.content_length,1);

@@ -9,7 +9,8 @@ import{
   PlmnSupportSection,
   ParameterSection,
   SecuritySection,
-  TimeSection
+  TimeSection,
+  CLISection
 } from './ViewCfgSection';
 
 export const ViewAMF = ({ nfconfig }) => {  
@@ -27,9 +28,10 @@ export const ViewAMF = ({ nfconfig }) => {
       {nfconfig && nfconfig.amf && (
         <div className="nf-section">
           <div className="nf-header">amf:</div>             
-          
-              <NF_SBI_Section  sbi={nfconfig.amf.sbi} />
+            <NF_SBI_Section  sbi={nfconfig.amf.sbi} />
 
+            {nfconfig.amf.ngap && (
+            <div>
               <div className="twenty-spaces">ngap:</div> 
               <div className="forty-spaces">
               {nfconfig.amf.ngap.map((item, index) => (
@@ -37,29 +39,48 @@ export const ViewAMF = ({ nfconfig }) => {
                   <div>- addr: {item.addr}</div>
                 </div>
               ))}
-              </div>          
-              
+              </div>
+            </div>
+            )}
+
+            {nfconfig.amf.icps && (
+            <div>
               <div className="twenty-spaces">icps: </div> 
               <div className="forty-spaces">spsnum: {nfconfig.amf.icps.spsnum}</div>
               <div className="forty-spaces">port: {nfconfig.amf.icps.port}</div>
-              
+            </div>
+            )}
 
-              <MetricsSection metrics={nfconfig.amf.metrics} />
-              <GuamiSection guamis={nfconfig.amf.guami} />              
-              <TaiSection tais={nfconfig.amf.tai} />      
-              <PlmnSupportSection plmnSupport={nfconfig.amf.plmn_support} />      
-              <SecuritySection security={nfconfig.amf.security} />              
-              
+            <MetricsSection metrics={nfconfig.amf.metrics} />
+            <GuamiSection guamis={nfconfig.amf.guami} />              
+            <TaiSection tais={nfconfig.amf.tai} />      
+            <PlmnSupportSection plmnSupport={nfconfig.amf.plmn_support} />      
+            <SecuritySection security={nfconfig.amf.security} />              
+
+            {nfconfig.amf.network_name && (
+            <div>
               <div className="twenty-spaces">network_name:</div>
               <div className="forty-spaces">full: {nfconfig.amf.network_name.full}</div>
               <div className="forty-spaces">short: {nfconfig.amf.network_name.short}</div>
+            </div>
+            )}
 
+            {nfconfig.amf.amf_name && (
+            <div>
               <div className="twenty-spaces">amf_name: {nfconfig.amf.amf_name}</div>
-              <div className="twenty-spaces">relative_capacity: {nfconfig.amf.relative_capacity}</div>  
+            </div>
+            )}
+
+            {nfconfig.amf.relative_capacity && (
+            <div>
+              <div className="twenty-spaces">relative_capacity: {nfconfig.amf.relative_capacity}</div>
+            </div>
+            )}
         </div>
       )}
       </div>
-      <TimeSection time={nfconfig.time} />   
+      {nfconfig && nfconfig.time && <TimeSection time={nfconfig.time} />}
+      {nfconfig && nfconfig.cli && <CLISection cli={nfconfig.cli} />}
     </div>
   );
 };

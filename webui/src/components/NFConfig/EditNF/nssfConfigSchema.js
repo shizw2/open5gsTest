@@ -17,6 +17,7 @@ export const nssfschema = {
     parameter: schemas.paraSchema,
     sbi: schemas.sbiSchema,
     logger: schemas.loggerSchema,
+    cli: schemas.cliSchema,
   },
 };
 
@@ -31,4 +32,5 @@ export const nssfuiSchema = {
     nsi:schemas.nsiUiSchema,
     metrics: schemas.metricsUiSchema,
   },
+  cli: schemas.cliUiSchema,
 };

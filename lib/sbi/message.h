@@ -142,6 +142,8 @@ extern "C" {
                                                     "network-slice-information"
 
 #define OGS_SBI_RESOURCE_NAME_PCF_BINDINGS          "pcfBindings"
+#define OGS_SBI_RESOURCE_NAME_EIR_EQUIPMENTSTATUS   "equipment-status"
+
 
 #define OGS_SBI_PATCH_PATH_NF_STATUS                "/nfStatus"
 #define OGS_SBI_PATCH_PATH_LOAD                     "/load"
@@ -317,6 +319,9 @@ extern "C" {
         "slice-info-request-for-pdu-session"
 #define OGS_SBI_PARAM_IPV4ADDR                      "ipv4Addr"
 #define OGS_SBI_PARAM_IPV6PREFIX                    "ipv6Prefix"
+#define OGS_SBI_PARAM_PEI                           "pei"
+#define OGS_SBI_PARAM_SUPI                          "supi"
+
 
 #define OGS_SBI_CONTENT_JSON_TYPE                   \
     OGS_SBI_APPLICATION_TYPE "/" OGS_SBI_APPLICATION_JSON_TYPE
@@ -505,6 +510,8 @@ typedef struct ogs_sbi_message_s {
         OpenAPI_nf_type_e nf_type;
         int limit;
         char *dnn;
+        char *pei;//add for imeicheck Get
+        char *supi;//add for imeicheck Get
 
         /* Shared memory */
         ogs_plmn_id_t plmn_id;
@@ -576,6 +583,7 @@ typedef struct ogs_sbi_message_s {
     OpenAPI_deregistration_data_t *DeregistrationData;
     OpenAPI_sdm_subscription_t *SDMSubscription;
     OpenAPI_modification_notification_t *ModificationNotification;
+    OpenAPI_eir_response_data_t *eir_response;
 
     ogs_sbi_links_t *links;
 

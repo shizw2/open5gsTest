@@ -15,7 +15,7 @@ import { Imeicheck } from 'components';
 import traverse from 'traverse';
 
 const formData = {
-  "status": 0,
+  "status": 1,
   "checkflag": false,  
 }
 

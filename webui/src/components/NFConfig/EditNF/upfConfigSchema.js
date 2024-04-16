@@ -19,6 +19,7 @@ export const upfschema = {
     //smf: schemas.smfSchema,
     parameter: schemas.paraSchema,
     logger: schemas.loggerSchema,
+    cli: schemas.cliSchema,
   },
 };
 
@@ -34,5 +35,6 @@ export const upfuiSchema = {
     metrics: schemas.metricsUiSchema,
     subnet:schemas.subnetUiSchema,
   },
+  cli: schemas.cliUiSchema,
   //smf: schemas.smfUiSchema,
 };

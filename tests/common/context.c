@@ -1103,6 +1103,30 @@ static void test_ue_set_mobile_identity_imsisv(test_ue_t *test_ue)
     test_ue->mobile_identity_imeisv.digit16 = 1;
     test_ue->mobile_identity_imeisv.digit17 = 0xf;
 }
+static void test_ue_set_mobile_identity_imei(test_ue_t *test_ue)
+{
+    ogs_assert(test_ue);
+
+    memset(&test_ue->mobile_identity_imei, 0,
+            sizeof(ogs_nas_mobile_identity_imei_t));
+    test_ue->mobile_identity_imei.type = OGS_NAS_5GS_MOBILE_IDENTITY_IMEI;
+    test_ue->mobile_identity_imei.odd_even = OGS_NAS_MOBILE_IDENTITY_ODD;
+    test_ue->mobile_identity_imei.digit1 = 8;
+    test_ue->mobile_identity_imei.digit2 = 6;
+    test_ue->mobile_identity_imei.digit3 = 6;
+    test_ue->mobile_identity_imei.digit4 = 5;
+    test_ue->mobile_identity_imei.digit5 = 0;
+    test_ue->mobile_identity_imei.digit6 = 7;
+    test_ue->mobile_identity_imei.digit7 = 0;
+    test_ue->mobile_identity_imei.digit8 = 4;
+    test_ue->mobile_identity_imei.digit9 = 0;
+    test_ue->mobile_identity_imei.digit10 = 0;
+    test_ue->mobile_identity_imei.digit11 = 4;
+    test_ue->mobile_identity_imei.digit12 = 0;
+    test_ue->mobile_identity_imei.digit13 = 5;
+    test_ue->mobile_identity_imei.digit14 = 3;
+    test_ue->mobile_identity_imei.digit15 = 0;
+}
 
 test_ue_t *test_ue_add_by_suci(
     ogs_nas_5gs_mobile_identity_suci_t *mobile_identity_suci,
@@ -1164,7 +1188,7 @@ test_ue_t *test_ue_add_by_suci(
 
     test_ue_set_mobile_identity_imsi(test_ue);
     test_ue_set_mobile_identity_imsisv(test_ue);
-
+    test_ue_set_mobile_identity_imei(test_ue);
     ogs_list_add(&self.test_ue_list, test_ue);
 
     return test_ue;

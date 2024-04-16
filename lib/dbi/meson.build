@@ -27,6 +27,7 @@ libdbi_sources = files('''
     ims.c
     path.c
     timer.c
+    imeicheck.c
 '''.split())
 
 libmongoc_dep = dependency('libmongoc-1.0')

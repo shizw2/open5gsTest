@@ -455,6 +455,27 @@ ogs_pkbuf_t *testgmm_build_identity_response(test_ue_t *test_ue)
 
     return ogs_nas_5gs_plain_encode(&message);
 }
+ogs_pkbuf_t *testgmm_build_identity_imei_response(test_ue_t *test_ue)
+{
+    ogs_nas_5gs_message_t message;
+    ogs_pkbuf_t *pkbuf = NULL;
+    ogs_nas_5gs_identity_response_t *identity_response =
+            &message.gmm.identity_response;
+
+    ogs_assert(test_ue);
+
+    memset(&message, 0, sizeof(message));
+    message.gmm.h.extended_protocol_discriminator =
+            OGS_NAS_EXTENDED_PROTOCOL_DISCRIMINATOR_5GMM;
+    message.gmm.h.message_type = OGS_NAS_5GS_IDENTITY_RESPONSE;
+
+    identity_response->mobile_identity.length =
+        sizeof(test_ue->mobile_identity_imei);
+    identity_response->mobile_identity.buffer =
+        &test_ue->mobile_identity_imei;  
+
+    return ogs_nas_5gs_plain_encode(&message);
+}
 
 ogs_pkbuf_t *testgmm_build_authentication_response(test_ue_t *test_ue)
 {

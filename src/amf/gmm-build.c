@@ -332,7 +332,7 @@ ogs_pkbuf_t *gmm_build_de_registration_request(
     return nas_5gs_security_encode(amf_ue, &message);
 }
 
-ogs_pkbuf_t *gmm_build_identity_request(amf_ue_t *amf_ue)
+ogs_pkbuf_t *gmm_build_identity_request(amf_ue_t *amf_ue,uint8_t id_type)
 {
     ogs_nas_5gs_message_t message;
     ogs_nas_5gs_identity_request_t *identity_request =
@@ -347,7 +347,7 @@ ogs_pkbuf_t *gmm_build_identity_request(amf_ue_t *amf_ue)
 
     /* Request IMSI */
     ogs_debug("    Identity Type 2 : SUCI");
-    identity_request->identity_type.value = OGS_NAS_5GS_MOBILE_IDENTITY_SUCI;
+    identity_request->identity_type.value = id_type;//OGS_NAS_5GS_MOBILE_IDENTITY_SUCI;
 
     return ogs_nas_5gs_plain_encode(&message);
 }

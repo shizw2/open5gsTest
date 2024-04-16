@@ -356,6 +356,10 @@ typedef struct ogs_sbi_udr_info_s {
     ogs_supi_range_t supiRanges;
 } ogs_sbi_udr_info_t;
 
+typedef struct ogs_sbi_eir_info_s {
+    ogs_supi_range_t supiRanges;
+} ogs_sbi_eir_info_t;
+
 typedef struct ogs_sbi_pcf_info_s {
     ogs_supi_range_t supiRanges;
 } ogs_sbi_pcf_info_t;
@@ -380,6 +384,7 @@ typedef struct ogs_sbi_nf_info_s {
         ogs_sbi_udr_info_t udr;
         ogs_sbi_pcf_info_t pcf;
         ogs_sbi_ausf_info_t ausf;
+        ogs_sbi_eir_info_t eir;
     };
     char *routing_indicator;//TODO
 } ogs_sbi_nf_info_t;

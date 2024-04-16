@@ -30,6 +30,9 @@
 #include "sbi-path.h"
 #include "amf-sm.h"
 #include "udp-ini-path.h"
+#include "neir-handler.h"
+#include "neir-build.h"
+
 
 #undef OGS_LOG_DOMAIN
 #define OGS_LOG_DOMAIN __gmm_log_domain
@@ -140,7 +143,12 @@ void gmm_state_de_registered(ogs_fsm_t *s, amf_event_t *e)
                 OGS_FSM_TRAN(&amf_ue->sm, &gmm_state_exception);
             } else {
                 amf_ue->t3570.retry_count++;
-                r = nas_5gs_send_identity_request(amf_ue);
+                uint8_t id_type;
+                if(!AMF_UE_HAVE_SUCI(amf_ue))
+                    id_type=OGS_NAS_5GS_MOBILE_IDENTITY_SUCI;
+                else
+                    id_type=OGS_NAS_5GS_MOBILE_IDENTITY_IMEI;
+                r = nas_5gs_send_identity_request(amf_ue,id_type);
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
             }
@@ -635,7 +643,12 @@ void gmm_state_registered(ogs_fsm_t *s, amf_event_t *e)
                 OGS_FSM_TRAN(&amf_ue->sm, &gmm_state_exception);
             } else {
                 amf_ue->t3570.retry_count++;
-                r = nas_5gs_send_identity_request(amf_ue);
+                uint8_t id_type;
+                if(!AMF_UE_HAVE_SUCI(amf_ue))
+                    id_type=OGS_NAS_5GS_MOBILE_IDENTITY_SUCI;
+                else
+                    id_type=OGS_NAS_5GS_MOBILE_IDENTITY_IMEI;
+                r = nas_5gs_send_identity_request(amf_ue,id_type);
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
             }
@@ -1093,7 +1106,7 @@ static void common_register_state(ogs_fsm_t *s, amf_event_t *e,
 
             if (!AMF_UE_HAVE_SUCI(amf_ue)) {
                 CLEAR_AMF_UE_TIMER(amf_ue->t3570);
-                r = nas_5gs_send_identity_request(amf_ue);
+                r = nas_5gs_send_identity_request(amf_ue,OGS_NAS_5GS_MOBILE_IDENTITY_SUCI);
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
                 break;
@@ -1699,7 +1712,18 @@ void gmm_state_security_mode(ogs_fsm_t *s, amf_event_t *e)
                     amf_ue->nas.access_type, amf_ue->kgnb);
             ogs_kdf_nh_gnb(amf_ue->kamf, amf_ue->kgnb, amf_ue->nh);
             amf_ue->nhcc = 1;
+            ogs_debug("amf_is_imeicheck()=%d,amf_ue->nas.registration.value==%d",amf_is_imeicheck(),amf_ue->nas.registration.value);
+            if(amf_is_imeicheck()&&
+                (amf_ue->nas.registration.value!=OGS_NAS_5GS_REGISTRATION_TYPE_EMERGENCY)&&
+                (amf_ue->nas.message_type == OGS_NAS_5GS_REGISTRATION_REQUEST)){
+                 CLEAR_AMF_UE_TIMER(amf_ue->t3570);
+                 r = nas_5gs_send_identity_request(amf_ue,OGS_NAS_5GS_MOBILE_IDENTITY_IMEI);
+                 ogs_expect(r == OGS_OK);
+                 ogs_assert(r != OGS_ERROR);
+                 OGS_FSM_TRAN(s, &gmm_state_imei_check);
+                 break;
 
+            }
             r = amf_ue_sbi_discover_and_send(
                     OGS_SBI_SERVICE_TYPE_NUDM_UECM, NULL,
                     amf_nudm_uecm_build_registration, amf_ue, 0, NULL);
@@ -1804,7 +1828,157 @@ void gmm_state_security_mode(ogs_fsm_t *s, amf_event_t *e)
         break;
     }
 }
+void gmm_state_imei_check(ogs_fsm_t *s, amf_event_t *e)
+{
+    int rv, r, state, xact_count = 0;
+    ogs_nas_5gmm_cause_t gmm_cause;
 
+    amf_ue_t *amf_ue = NULL;
+    amf_sess_t *sess = NULL;
+    ogs_nas_5gs_message_t *nas_message = NULL;
+    ogs_nas_security_header_type_t h;
+
+    ogs_sbi_message_t *sbi_message = NULL;
+
+
+    ogs_assert(s);
+    ogs_assert(e);
+
+    amf_sm_debug(e);
+
+    if (e->sess) {
+        sess = e->sess;
+        amf_ue = sess->amf_ue;
+        ogs_assert(amf_ue);
+    } else {
+        amf_ue = e->amf_ue;
+        ogs_assert(amf_ue);
+    }
+
+    switch (e->h.id) {
+    case OGS_FSM_ENTRY_SIG:
+        break;
+    case OGS_FSM_EXIT_SIG:
+        break;
+
+    case OGS_EVENT_SBI_CLIENT:
+        sbi_message = e->h.sbi.message;
+        ogs_assert(sbi_message);
+        state = e->h.sbi.state;
+
+        SWITCH(sbi_message->h.service.name)
+        CASE(OGS_SBI_SERVICE_NAME_N5G_EIR_EIC)
+            if ((sbi_message->res_status != OGS_SBI_HTTP_STATUS_OK)&&
+                (sbi_message->res_status != OGS_SBI_HTTP_STATUS_NOT_FOUND)){/*放松要求，如果没有配置，则不影响注册*/
+                ogs_error("[%s] HTTP response error [%d]",
+                        amf_ue->supi, sbi_message->res_status);
+                r = nas_5gs_send_gmm_reject(
+                        amf_ue, OGS_5GMM_CAUSE_ILLEGAL_ME);
+                ogs_expect(r == OGS_OK);
+                ogs_assert(r != OGS_ERROR);
+                OGS_FSM_TRAN(&amf_ue->sm, &gmm_state_exception);
+                break;
+            }
+           if (sbi_message->res_status == OGS_SBI_HTTP_STATUS_OK){
+                rv = amf_neir_imeicheck_handle(amf_ue, state, sbi_message);
+                if (rv != OGS_OK) {
+                    ogs_error("[%s] amf_neir_imeicheck_handle(%s) failed or BLACKLISTED",
+                            amf_ue->supi, amf_ue->imei_bcd);
+                    r = nas_5gs_send_gmm_reject(
+                            amf_ue, OGS_5GMM_CAUSE_ILLEGAL_ME);
+                    ogs_expect(r == OGS_OK);
+                    ogs_assert(r != OGS_ERROR);
+                    OGS_FSM_TRAN(&amf_ue->sm, &gmm_state_exception);
+                    break;
+                }
+            }
+            r = amf_ue_sbi_discover_and_send(
+                    OGS_SBI_SERVICE_TYPE_NUDM_UECM, NULL,
+                    amf_nudm_uecm_build_registration, amf_ue, 0, NULL);
+            ogs_expect(r == OGS_OK);
+            ogs_assert(r != OGS_ERROR);
+
+            if (amf_ue->nas.message_type == OGS_NAS_5GS_REGISTRATION_REQUEST) {
+                OGS_FSM_TRAN(s, &gmm_state_initial_context_setup);
+            } else if (amf_ue->nas.message_type ==
+                        OGS_NAS_5GS_SERVICE_REQUEST) {
+                OGS_FSM_TRAN(s, &gmm_state_registered);
+            } else {
+                ogs_fatal("Invalid OGS_NAS_5GS[%d]", amf_ue->nas.message_type);
+                ogs_assert_if_reached();
+            }
+           break;
+        DEFAULT
+            ogs_error("Invalid service name [%s]", sbi_message->h.service.name);
+            ogs_assert_if_reached();
+        END
+        break;
+
+    case AMF_EVENT_5GMM_MESSAGE:
+         nas_message = e->nas.message;
+         ogs_assert(nas_message);
+ 
+         h.type = e->nas.type;        
+ 
+         switch (nas_message->gmm.h.message_type) {
+         case OGS_NAS_5GS_IDENTITY_RESPONSE:
+             CLEAR_AMF_UE_TIMER(amf_ue->t3570);
+ 
+             ogs_info("Identity response");
+             rv = gmm_handle_identity_imei_response(amf_ue,
+                     &nas_message->gmm.identity_response);
+             if (rv != OGS_OK) {
+                 ogs_error("gmm_handle_identity_response() failed");
+                 OGS_FSM_TRAN(s, gmm_state_exception);
+                 break;
+             }
+              r = amf_ue_sbi_discover_and_send(
+                     OGS_SBI_SERVICE_TYPE_N5G_EIR_EIC, NULL,
+                     amf_neir_imeicheck_build, amf_ue, 0, NULL);
+              ogs_expect(r == OGS_OK);
+              ogs_assert(r != OGS_ERROR);               
+             
+             break;
+  
+         default:
+             ogs_error("Unknown message [%d]", nas_message->gmm.h.message_type);
+             break;
+         }
+         break;
+    case AMF_EVENT_5GMM_TIMER:
+        switch (e->h.timer_id) {
+        case AMF_TIMER_T3570:
+        if (amf_ue->t3570.retry_count >=
+                amf_timer_cfg(AMF_TIMER_T3570)->max_count) {
+            ogs_warn("Retransmission of Identity-Request failed. "
+                    "Stop retransmission");
+            CLEAR_AMF_UE_TIMER(amf_ue->t3570);
+            OGS_FSM_TRAN(&amf_ue->sm, &gmm_state_exception);
+        } else {
+            amf_ue->t3570.retry_count++;
+            uint8_t id_type;
+            if(!AMF_UE_HAVE_SUCI(amf_ue))
+                id_type=OGS_NAS_5GS_MOBILE_IDENTITY_SUCI;
+            else
+                id_type=OGS_NAS_5GS_MOBILE_IDENTITY_IMEI;
+            r = nas_5gs_send_identity_request(amf_ue,id_type);
+            ogs_expect(r == OGS_OK);
+            ogs_assert(r != OGS_ERROR);
+        }
+            break;
+        default:
+            ogs_error("Unknown timer[%s:%d]",
+                    amf_timer_get_name(e->h.timer_id), e->h.timer_id);
+            break;
+        }
+        break;
+    default:
+        ogs_error("Unknown event[%s]", amf_event_get_name(e));
+        break;
+    }
+
+
+}
 void gmm_state_initial_context_setup(ogs_fsm_t *s, amf_event_t *e)
 {
     int rv, r, state, xact_count = 0;
@@ -2267,7 +2441,7 @@ void gmm_state_exception(ogs_fsm_t *s, amf_event_t *e)
 
             if (!AMF_UE_HAVE_SUCI(amf_ue)) {
                 CLEAR_AMF_UE_TIMER(amf_ue->t3570);
-                r = nas_5gs_send_identity_request(amf_ue);
+                r = nas_5gs_send_identity_request(amf_ue,OGS_NAS_5GS_MOBILE_IDENTITY_SUCI);
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
 

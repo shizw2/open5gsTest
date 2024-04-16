@@ -131,6 +131,25 @@ ED2(uint8_t digit15:4;,
 ED2(uint8_t digit17:4;,
     uint8_t digit16:4;)
 } __attribute__ ((packed)) ogs_nas_mobile_identity_imeisv_t;
+typedef struct ogs_nas_mobile_identity_5gs_imei_s {
+ED3(uint8_t digit1:4;,
+    uint8_t odd_even:1;,
+    uint8_t type:3;)
+ED2(uint8_t digit3:4;,
+    uint8_t digit2:4;)
+ED2(uint8_t digit5:4;,
+    uint8_t digit4:4;)
+ED2(uint8_t digit7:4;,
+    uint8_t digit6:4;)
+ED2(uint8_t digit9:4;,
+    uint8_t digit8:4;)
+ED2(uint8_t digit11:4;,
+    uint8_t digit10:4;)
+ED2(uint8_t digit13:4;,
+    uint8_t digit12:4;)
+ED2(uint8_t digit15:4;,
+    uint8_t digit14:4;)
+} __attribute__ ((packed)) ogs_nas_mobile_identity_5gs_imei_t;
 
 /* 9.9.2.4 Mobile station classmark 2
  * See subclause 10.5.1.6 in 3GPP TS 24.008

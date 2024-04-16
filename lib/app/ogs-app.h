@@ -100,6 +100,9 @@ void amf_sps_terminate(void);
 int scp_initialize(void);
 void scp_terminate(void);
 
+int eir_initialize(void);
+void eir_terminate(void);
+
 #ifdef __cplusplus
 }
 #endif

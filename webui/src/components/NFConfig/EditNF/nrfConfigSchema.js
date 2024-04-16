@@ -8,6 +8,7 @@ export const nrfschema = {
     parameter: schemas.paraSchema,
     sbi: schemas.sbiSchema,
     logger: schemas.loggerSchema,
+    cli: schemas.cliSchema,
   },
 };
 
@@ -16,4 +17,5 @@ export const nrfuiSchema = {
   sbi: schemas.sbiUiSchema,
   nrf: schemas.nrfNFUiSchema,
   parameter: schemas.paraUiSchema,
+  cli: schemas.cliUiSchema,
 };

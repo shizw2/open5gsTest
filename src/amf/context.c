@@ -103,6 +103,7 @@ void amf_context_init(void)
     ogs_assert(self.icps_ue_spsno_hash);
 
     context_initialized = 1;
+    self.imeicheckflag = 0;
 
     ogs_info("sps id:%d.",g_sps_id);
 }
@@ -1176,7 +1177,10 @@ int amf_context_parse_config(bool reloading)
                     }
                 } else if (!strcmp(amf_key, "amf_name")) {
                     self.amf_name = ogs_yaml_iter_value(&amf_iter);
-                } else if (!strcmp(amf_key, "sbi")) {
+                } else if (!strcmp(amf_key, "imeicheck")) {
+                    self.imeicheckflag = ogs_yaml_iter_bool(&amf_iter);
+                    ogs_info("imeicheck `%d`",self.imeicheckflag);
+                }else if (!strcmp(amf_key, "sbi")) {
                     /* handle config in sbi library */
                 } else if (!strcmp(amf_key, "service_name")) {
                     /* handle config in sbi library */
@@ -3864,4 +3868,8 @@ int yaml_check_proc(void)
     if (rv != OGS_OK) return rv;
    
     return 0;
+}
+bool amf_is_imeicheck(void)
+{
+    return self.imeicheckflag;
 }

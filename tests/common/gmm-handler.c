@@ -121,6 +121,8 @@ void testgmm_handle_identity_request(test_ue_t *test_ue,
     switch (identity_request->identity_type.value) {
     case OGS_NAS_5GS_MOBILE_IDENTITY_SUCI:
         break;
+    case OGS_NAS_5GS_MOBILE_IDENTITY_IMEI:
+        break;
     default:
         ogs_error("Not implemented [%d]",
                 identity_request->identity_type.value);

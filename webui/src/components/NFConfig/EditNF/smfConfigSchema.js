@@ -30,6 +30,7 @@ export const smfschema = {
     parameter: schemas.paraSchema,
     sbi: schemas.sbiSchema,
     logger: schemas.loggerSchema,
+    cli: schemas.cliSchema,
   },
 };
 
@@ -57,4 +58,5 @@ export const smfuiSchema = {
     ctf:schemas.ctfUiSchema,
     freeDiameter:schemas.freeDiameterUiSchema,
   },
+  cli: schemas.cliUiSchema,
 };

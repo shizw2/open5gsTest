@@ -505,3 +505,7 @@ time:
 cli:
   - addr: 127.0.0.14
     port: 2300
+schema_version: '1.0'
+_id: nssf
+_name: nssf1
+_nf: nssf

@@ -33,6 +33,59 @@ export const loggerUiSchema = {
   },
 };
 
+export const cliSchema = {
+  type: "array",
+  title: "CLI Configuration",
+  "maxItems": 4,
+  "messages": {
+      "maxItems": "4 Interfaces are supported"
+  },
+  items: {
+    type: "object",
+    properties: {
+      addr: {
+        type: "string",
+        title: "IP Address",
+        anyOf: [
+          { format: "ipv4" },
+          { format: "ipv6" },
+        ],
+        messages: {
+          "anyOf": "IPv4 or IPv6 allowed"
+        },
+        //format:"ipv4",
+        //description: "Please enter a valid IPv4/IPv6 Address",
+        required: true,
+        //default: "127.0.0.5"
+      },
+      port: {
+        type: "number",
+        title: "Port",
+        minimum: 1,
+        maximum: 65535,
+        required: true,
+        //default: 7777
+      }
+    }
+  }
+}
+
+export const cliUiSchema = {
+  classNames: "col-xs-12",
+  //"ui:title": <CustomTitle18 title="CLI Configuration" />,
+  //"ui:description": <Customhelp14 title={promptRestart} />,
+  items: {
+    addr: {
+      classNames: "col-xs-8",
+      //"ui:help": "Enter a valid IPv4/IPv6 Address",
+      //"ui:placeholder": "Enter a valid IPv4/IPv6 Address",
+    },
+    port: {
+      classNames: "col-xs-4"
+    }
+  }
+};
+
 export const sbiSchema = {
   type: "object",
   title: "SBI Security",

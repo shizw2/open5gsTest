@@ -31,6 +31,7 @@
 #include "dbi/ims.h"
 #include "dbi/path.h"
 #include "dbi/timer.h"
+#include "dbi/imeicheck.h"
 
 #undef OGS_DBI_INSIDE
 

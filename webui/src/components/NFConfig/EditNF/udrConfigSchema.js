@@ -18,6 +18,7 @@ export const udrschema = {
     db_uri: schemas.db_uriSchema,
     sbi: schemas.sbiSchema,
     logger: schemas.loggerSchema,
+    cli: schemas.cliSchema,
   },
 };
 
@@ -33,5 +34,5 @@ export const udruiSchema = {
     info: schemas.supiRangeInfoUiSchema,
     metrics: schemas.metricsUiSchema,
   },
- 
+  cli: schemas.cliUiSchema,
 };

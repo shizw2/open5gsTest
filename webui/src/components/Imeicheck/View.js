@@ -162,7 +162,7 @@ const View = ({ visible, disableOnClickOutside, imeicheck, onEdit, onDelete, onH
       <span >MSISDN: {item.msisdn}</span>
     </div>
   ));
-  const  statusname=["白名单","黑名单","灰名单"] 
+  const  statusname=["","白名单","黑名单","灰名单"] 
   const  reasonname=["","丢失","被偷","被抢","非法厂商","未知原因"] 
   return (
     <div>

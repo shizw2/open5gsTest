@@ -342,3 +342,7 @@ time:
 cli:
   - addr: 127.0.0.10
     port: 2300
+schema_version: '1.0'
+_id: nrf
+_name: nrf1
+_nf: nrf

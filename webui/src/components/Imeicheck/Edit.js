@@ -22,7 +22,7 @@ const schema = {
       "type": "number",
       "title": "状态*",
       "required": true,
-      "enum": [0, 1, 2],      
+      "enum": [1, 2, 3],      
       "enumNames": ["白名单", "黑名单", "灰名单"],
       default: 0,
     },
@@ -144,9 +144,9 @@ const uiSchema = {
     "ui:widget": myWidget, // 使用下拉选择框
     "ui:options": {
       enumOptions: [
-        { value: 0, label: "白名单" },
-        { value: 1, label: "黑名单" },
-        { value: 2, label: "灰名单" },
+        { value: 1, label: "白名单" },
+        { value: 2, label: "黑名单" },
+        { value: 3, label: "灰名单" },
       ],      
     },    
   },

@@ -17,6 +17,7 @@ export const ausfschema = {
     parameter: schemas.paraSchema,
     sbi: schemas.sbiSchema,
     logger: schemas.loggerSchema,
+    cli: schemas.cliSchema,
   },
 };
 
@@ -31,4 +32,5 @@ export const ausfuiSchema = {
     info: schemas.rtsupiInfoUiSchema,
     metrics: schemas.metricsUiSchema,
   },
+  cli: schemas.cliUiSchema,
 };

@@ -19,6 +19,7 @@ export const pcfschema = {
     db_uri: schemas.db_uriSchema,
     sbi: schemas.sbiSchema,
     logger: schemas.loggerSchema,
+    cli: schemas.cliSchema,
   },
 };
 
@@ -35,4 +36,5 @@ export const pcfuiSchema = {
     metrics: schemas.metricsUiSchema,
     info: schemas.supiRangeInfoUiSchema
   },
+  cli: schemas.cliUiSchema,
 };

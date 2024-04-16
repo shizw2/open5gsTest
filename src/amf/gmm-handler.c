@@ -921,6 +921,49 @@ int gmm_handle_identity_response(amf_ue_t *amf_ue,
 
     return OGS_OK;
 }
+int gmm_handle_identity_imei_response(amf_ue_t *amf_ue,
+        ogs_nas_5gs_identity_response_t *identity_response)
+{
+    ran_ue_t *ran_ue = NULL;
+
+    ogs_nas_5gs_mobile_identity_t *imei = NULL;
+    ogs_nas_mobile_identity_5gs_imei_t *mobile_identity_imei = NULL;
+
+
+    ogs_assert(identity_response);
+
+    ogs_assert(amf_ue);
+    ran_ue = ran_ue_cycle(amf_ue->ran_ue);
+    ogs_assert(ran_ue);
+
+    imei = &identity_response->mobile_identity;
+
+    if (!imei->length || !imei->buffer) {
+        ogs_error("No Mobile Identity");
+        return OGS_ERROR;
+    }
+
+    mobile_identity_imei =
+        (ogs_nas_mobile_identity_5gs_imei_t *)imei->buffer;
+
+    if (mobile_identity_imei->type == OGS_NAS_5GS_MOBILE_IDENTITY_IMEI) {
+        if (imei->length == sizeof(ogs_nas_mobile_identity_5gs_imei_t)) {
+            ogs_nas_imei_to_bcd(mobile_identity_imei, imei->length,
+                amf_ue->imei_bcd);
+        } else {
+            ogs_error("[%s] Unknown IMEI Length [%d]",
+                    amf_ue->supi, imei->length);
+            ogs_log_hexdump(OGS_LOG_ERROR, imei->buffer, imei->length);
+            return OGS_ERROR;
+        }
+    } else {
+        ogs_error("Not supported Identity type[%d]",
+                mobile_identity_imei->type);
+        return OGS_ERROR;
+    }
+
+    return OGS_OK;
+}
 
 ogs_nas_5gmm_cause_t gmm_handle_security_mode_complete(amf_ue_t *amf_ue,
     ogs_nas_5gs_security_mode_complete_t *security_mode_complete)

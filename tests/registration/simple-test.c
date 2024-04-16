@@ -154,7 +154,22 @@ static void test1_func(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
-
+ #if 0   
+    /* Receive Identity request */
+    ogs_info("Receive Identity request.");
+    recvbuf = testgnb_ngap_read(ngap);   
+    ABTS_PTR_NOTNULL(tc, recvbuf);
+    testngap_recv(test_ue, recvbuf);
+    
+    /* Send Identity response */
+    ogs_info("Send Identity response.");
+    gmmbuf = testgmm_build_identity_imei_response(test_ue);
+    ABTS_PTR_NOTNULL(tc, gmmbuf);
+    sendbuf = testngap_build_uplink_nas_transport(test_ue, gmmbuf);
+    ABTS_PTR_NOTNULL(tc, sendbuf);
+    rv = testgnb_ngap_send(ngap, sendbuf);
+    ABTS_INT_EQUAL(tc, OGS_OK, rv);
+#endif
     /* Receive InitialContextSetupRequest +
      * Registration accept */
     ogs_info("Receive InitialContextSetupRequest + Registration accept.");

@@ -10,6 +10,7 @@ import {
   FreeDiameterSection,
   MetricsSection,
   DbUriSection,
+  CLISection
 } from './ViewCfgSection';
 
 export const ViewUDR= ({ nfconfig }) => {
@@ -33,8 +34,8 @@ export const ViewUDR= ({ nfconfig }) => {
         )}
       </div>
 
-      <ParameterSection parameter={nfconfig.parameter} />
-
+      {parameter && <ParameterSection parameter={nfconfig.parameter} />}
+      {nfconfig && nfconfig.cli && <CLISection cli={nfconfig.cli} />}
       {/*
       <MaxSection max={max} />
       <TimeSection time={time} />
