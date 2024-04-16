@@ -94,6 +94,7 @@
         "stat.h": "c",
         "sbi-path.h": "c",
         "event.h": "c",
-        "ogs-app-timer.h": "c"
+        "ogs-app-timer.h": "c",
+        "string_view": "c"
     }
 }

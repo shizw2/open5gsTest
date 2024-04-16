@@ -397,6 +397,12 @@ OpenAPI_nf_profile_t *ogs_nnrf_nfm_build_nf_profile(
             NFProfile->smf_info_list = InfoList;
         } else if (nf_instance->nf_type == OpenAPI_nf_type_AMF) {
             NFProfile->amf_info_list = InfoList;
+        } else if (nf_instance->nf_type == OpenAPI_nf_type_UDR) {
+            NFProfile->udr_info_list = InfoList;       
+        } else if (nf_instance->nf_type == OpenAPI_nf_type_PCF) {
+            NFProfile->pcf_info_list = InfoList;
+        } else if (nf_instance->nf_type == OpenAPI_nf_type_AUSF) {
+            NFProfile->ausf_info_list = InfoList;
         } else {
             ogs_fatal("Not implemented NF-type[%s]",
                     OpenAPI_nf_type_ToString(nf_instance->nf_type));

@@ -541,7 +541,7 @@ static void handle_udr_info(
             &nf_instance->nf_info_list, OpenAPI_nf_type_UDR);
     ogs_assert(nf_info);
     
-    handle_supiRanges(&nf_info->udm.supiRanges,UdrInfo->supi_ranges);  
+    handle_supiRanges(&nf_info->udr.supiRanges,UdrInfo->supi_ranges);  
 }
 
 static void handle_pcf_info(
@@ -553,7 +553,7 @@ static void handle_pcf_info(
     ogs_assert(PcfInfo);
 
     nf_info = ogs_sbi_nf_info_add(
-            &nf_instance->nf_info_list, OpenAPI_nf_type_UDR);
+            &nf_instance->nf_info_list, OpenAPI_nf_type_PCF);
     ogs_assert(nf_info);
     
     handle_supiRanges(&nf_info->pcf.supiRanges,PcfInfo->supi_ranges);  

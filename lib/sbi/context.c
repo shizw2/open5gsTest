@@ -2314,6 +2314,9 @@ void ogs_sbi_xact_remove(ogs_sbi_xact_t *xact)
     if (xact->supi_id)
         ogs_free(xact->supi_id);
 
+    if (xact->routingIndicator)
+        ogs_free(xact->routingIndicator);
+
     ogs_list_remove(&sbi_object->xact_list, xact);
     ogs_pool_free(&xact_pool, xact);
 }
