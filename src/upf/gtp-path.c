@@ -55,6 +55,11 @@
 
 #define UPF_GTP_HANDLED     1
 
+typedef struct {
+    uint32_t ip_src;
+    uint16_t ip_id;
+} fragKey;
+
 const uint8_t proxy_mac_addr[] = { 0x0e, 0x00, 0x00, 0x00, 0x00, 0x01 };
 
 static ogs_pkbuf_pool_t *packet_pool = NULL;
@@ -99,6 +104,35 @@ static uint16_t _get_eth_type(uint8_t *data, uint len) {
     return 0;
 }
 
+static void getFragKey(const ogs_pkbuf_t *buf, fragKey *key) {
+    const struct ip *ip_header = (const struct ip *)buf->data;
+
+    key->ip_src = ntohl(ip_header->ip_src.s_addr);
+    key->ip_id = ntohs(ip_header->ip_id);
+}
+
+
+#define NON_FRAGMENTED_PACKET 0
+#define FIRST_FRAGMENT       1
+#define OTHER_FRAGMENT       2
+
+static int getFragmentType(const ogs_pkbuf_t *buf) {
+    const struct ip *ip_header = (const struct ip *)buf->data;
+    
+    // 判断是否为 IP 报文的分片标志位设置为 1（即非分片报文）
+    if ((ntohs(ip_header->ip_off) & IP_MF) == 0 && (ntohs(ip_header->ip_off) & IP_OFFMASK) == 0) {
+        return NON_FRAGMENTED_PACKET; // 非分片报文
+    }
+    // 判断是否为分片报文中的第一包
+    else if ((ntohs(ip_header->ip_off) & IP_MF) != 0 && (ntohs(ip_header->ip_off) & IP_OFFMASK) == 0) {
+        return FIRST_FRAGMENT; // 分片第一包
+    }
+    // 其他情况，为分片报文中的其他包
+    else {
+        return OTHER_FRAGMENT; // 分片其他包
+    }
+}
+
 static void _gtpv1_tun_recv_common_cb(
         short when, ogs_socket_t fd, bool has_eth, void *data)
 {
@@ -110,6 +144,7 @@ static void _gtpv1_tun_recv_common_cb(
     ogs_pfcp_far_t *far = NULL;
     ogs_pfcp_user_plane_report_t report;
     int i;
+    int pktType;
 
     recvbuf = ogs_tun_read(fd, packet_pool);
     if (!recvbuf) {
@@ -167,40 +202,58 @@ static void _gtpv1_tun_recv_common_cb(
     if (!sess)
         goto cleanup;
 
-    ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
-        far = pdr->far;
-        ogs_assert(far);
+    pktType = getFragmentType(recvbuf);
 
-        /* Check if PDR is Downlink */
-        if (pdr->src_if != OGS_PFCP_INTERFACE_CORE)
-            continue;
+    if (pktType == OTHER_FRAGMENT) {
+        fragKey key;
+        getFragKey(recvbuf, &key);
 
-        /* Save the Fallback PDR : Lowest precedence downlink PDR */
-        fallback_pdr = pdr;
+        // 判断是否是后续分片包，并获取对应的 IP 地址和 ID
+        // 根据 IP 地址和 ID 查找哈希表，如果找到则直接使用对应的 PDR
+        pdr = ogs_hash_get(upf_self()->frag_hash, &key, sizeof(key));
+    }else{
+        ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
+            far = pdr->far;
+            ogs_assert(far);
 
-        /* Check if FAR is Downlink */
-        if (far->dst_if != OGS_PFCP_INTERFACE_ACCESS)
-            continue;
+            /* Check if PDR is Downlink */
+            if (pdr->src_if != OGS_PFCP_INTERFACE_CORE)
+                continue;
 
-        /* Check if Outer header creation */
-        if (far->outer_header_creation.ip4 == 0 &&
-            far->outer_header_creation.ip6 == 0 &&
-            far->outer_header_creation.udp4 == 0 &&
-            far->outer_header_creation.udp6 == 0 &&
-            far->outer_header_creation.gtpu4 == 0 &&
-            far->outer_header_creation.gtpu6 == 0)
-            continue;
+            /* Save the Fallback PDR : Lowest precedence downlink PDR */
+            fallback_pdr = pdr;
 
-        /* Check if Rule List in PDR */
-        if (ogs_list_first(&pdr->rule_list) &&
-            ogs_pfcp_pdr_rule_find_by_packet(pdr, recvbuf) == NULL)
-            continue;
+            /* Check if FAR is Downlink */
+            if (far->dst_if != OGS_PFCP_INTERFACE_ACCESS)
+                continue;
 
-        break;
+            /* Check if Outer header creation */
+            if (far->outer_header_creation.ip4 == 0 &&
+                far->outer_header_creation.ip6 == 0 &&
+                far->outer_header_creation.udp4 == 0 &&
+                far->outer_header_creation.udp6 == 0 &&
+                far->outer_header_creation.gtpu4 == 0 &&
+                far->outer_header_creation.gtpu6 == 0)
+                continue;
+
+            /* Check if Rule List in PDR */
+            if (ogs_list_first(&pdr->rule_list) &&
+                ogs_pfcp_pdr_rule_find_by_packet(pdr, recvbuf) == NULL)
+                continue;
+
+            break;
+        }
+
+        if (!pdr)
+            pdr = fallback_pdr;
+
+        if (pktType == FIRST_FRAGMENT) {
+            fragKey key;
+            getFragKey(recvbuf, &key);
+
+            ogs_hash_set(upf_self()->frag_hash, &key, sizeof(key), pdr);
+        }
     }
-
-    if (!pdr)
-        pdr = fallback_pdr;
 
     if (!pdr) {
         if (ogs_app()->parameter.multicast) {

@@ -19,10 +19,12 @@
 
 #include "sbi-path.h"
 #include "ogs-app-timer.h"
+#include "telnet.h"
 
 static ogs_thread_t *thread;
 static void udm_main(void *data);
 static int initialized = 0;
+void setCommands(void);
 
 int udm_initialize(void)
 {
@@ -58,6 +60,9 @@ int udm_initialize(void)
     thread = ogs_thread_create(udm_main, NULL);
     if (!thread) return OGS_ERROR;
 
+    setCommands();
+    ogs_thread_create(telnetMain, &ogs_app()->cli_list);
+    
     initialized = 1;
 
     return OGS_OK;
