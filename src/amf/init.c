@@ -144,6 +144,10 @@ int amf_sps_initialize()
     rv = udp_ini_open();
     if (rv != OGS_OK) return rv;
 
+    /*启动yaml配置检测定时器*/
+    if (rv != OGS_OK) return rv;
+    rv = ogs_yaml_check_init();
+
     thread = ogs_thread_create(amf_sps_main, NULL);
     if (!thread) return OGS_ERROR;
     

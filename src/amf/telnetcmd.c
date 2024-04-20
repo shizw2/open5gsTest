@@ -6,8 +6,6 @@ void setCommands(void);
 void amf(void);
 void showgnb(uint32_t enbID);
 void showgnbBriefAll( void );
-void shownf(uint32_t id);
-void shownfBriefAll(void);
 void showranue( void );
 
 void showue(char* id);
@@ -21,13 +19,13 @@ void amf(void)
 
 telnet_command_t g_commands[] = {
     {"showgnb",     (GenericFunc)showgnb,        1, {INTEGER}},
-    {"shownf",      (GenericFunc)shownf,         1, {INTEGER}},
+    {"shownf",      (GenericFunc)shownf,         1, {STRING}},
     {"showranue",   (GenericFunc)showranue,      0, {}},
 };
 int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);
 
 telnet_command_t g_sps_commands[] = {
-    {"shownf",      (GenericFunc)shownf,         1, {INTEGER}},
+    {"shownf",      (GenericFunc)shownf,         1, {STRING}},
     {"showue",      (GenericFunc)showue,         1, {STRING}},
 };
 int g_spsnumCommands = sizeof(g_sps_commands) / sizeof(g_sps_commands[0]);
@@ -85,40 +83,6 @@ void showgnbBriefAll( void )
     printf("\r\n");
     
     return ;
-}
-
-void shownf(uint32_t id){
-    if(id == 0 ){
-        shownfBriefAll();
-    }else{
-        //showgnbDetail(id);
-    }
-
-    return;
-}
-
-void shownfBriefAll(void){
-    ogs_sbi_nf_instance_t *nf_instance = NULL;
-    char buf[OGS_ADDRSTRLEN];
-    
-    printf("\nnf instance Brief All(current %u nf count):\r\n", ogs_list_count(&ogs_sbi_self()->nf_instance_list));
-    printf("+--------------------------------------+---------+------------+----------+----------+--------------------+\n\r");
-    printf("|                 nf_id                | nf_type |    status  | capacity | ref_cnt  |    ipv4_address    |\n\r");
-    printf("+--------------------------------------+---------+------------+----------+----------+--------------------+\n\r");
-
-    ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
-        char addrInfo[OGS_ADDRSTRLEN] = {0};
-        if (nf_instance->num_of_ipv4 > 0){
-            sprintf(addrInfo,"%s:%d",OGS_ADDR(nf_instance->ipv4[0], buf), OGS_PORT(nf_instance->ipv4[0]));
-        }
-        printf("| %-36s | %-7s | %-10s | %-8d | %-8u | %-18s |\r\n",nf_instance->id, 
-        OpenAPI_nf_type_ToString(nf_instance->nf_type),
-        OpenAPI_nf_status_ToString(nf_instance->nf_status),
-        nf_instance->capacity,
-        nf_instance->reference_count,
-        addrInfo); 
-    }
-    printf("+--------------------------------------+---------+------------+----------+----------+--------------+\n\r");
 }
 
 void showranue( void )

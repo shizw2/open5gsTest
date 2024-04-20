@@ -476,6 +476,10 @@ OpenAPI_uri_scheme_e ogs_sbi_client_default_scheme(void);
 int ogs_sbi_server_default_port(void);
 int ogs_sbi_client_default_port(void);
 
+void shownf(char *id);
+void shownfBriefAll(void);
+void showgnfDetail(char *id);
+
 #define OGS_SBI_SETUP_NF_INSTANCE(__cTX, __nFInstance) \
     do { \
         ogs_assert(__nFInstance); \

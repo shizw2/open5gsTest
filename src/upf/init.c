@@ -33,6 +33,7 @@
 #endif
 
 static ogs_thread_t *thread;
+static ogs_thread_t *cli_thread;
 static void upf_main(void *data);
 void setCommands(void);
 static int initialized = 0;
@@ -123,7 +124,7 @@ int upf_initialize(void)
     if (!thread) return OGS_ERROR;
     
     setCommands();
-    ogs_thread_create(telnetMain, &ogs_app()->cli_list);
+    cli_thread = ogs_thread_create(telnetMain, &ogs_app()->cli_list);
     initialized = 1;
 
     return OGS_OK;
@@ -132,6 +133,8 @@ int upf_initialize(void)
 void upf_terminate(void)
 {
     if (!initialized) return;
+
+    ogs_free(cli_thread);
 
     upf_event_term();
 

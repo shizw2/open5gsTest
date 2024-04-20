@@ -2483,3 +2483,41 @@ ogs_sbi_subscription_data_t *ogs_sbi_subscription_data_find(char *id)
 
     return subscription_data;
 }
+
+void shownf(char *id){
+    if(id == NULL || strlen(id) == 0 ){
+        shownfBriefAll();
+    }else{
+        showgnfDetail(id);
+    }
+
+    return;
+}
+
+void shownfBriefAll(void){
+    ogs_sbi_nf_instance_t *nf_instance = NULL;
+    char buf[OGS_ADDRSTRLEN];
+    
+    printf("\nnf instance Brief All(current %u nf count):\r\n", ogs_list_count(&ogs_sbi_self()->nf_instance_list));
+    printf("+--------------------------------------+---------+------------+----------+----------+--------------------+\n\r");
+    printf("|                 nf_id                | nf_type |    status  | capacity | ref_cnt  |    ipv4_address    |\n\r");
+    printf("+--------------------------------------+---------+------------+----------+----------+--------------------+\n\r");
+
+    ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
+        char addrInfo[OGS_ADDRSTRLEN] = {0};
+        if (nf_instance->num_of_ipv4 > 0){
+            sprintf(addrInfo,"%s:%d",OGS_ADDR(nf_instance->ipv4[0], buf), OGS_PORT(nf_instance->ipv4[0]));
+        }
+        printf("| %-36s | %-7s | %-10s | %-8d | %-8u | %-18s |\r\n",nf_instance->id, 
+        OpenAPI_nf_type_ToString(nf_instance->nf_type),
+        OpenAPI_nf_status_ToString(nf_instance->nf_status),
+        nf_instance->capacity,
+        nf_instance->reference_count,
+        addrInfo); 
+    }
+    printf("+--------------------------------------+---------+------------+----------+----------+--------------------+\n\r");
+}
+
+void showgnfDetail(char *id){
+
+}

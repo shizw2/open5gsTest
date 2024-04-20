@@ -23,6 +23,7 @@
 #include "telnet.h"
 
 static ogs_thread_t *thread;
+static ogs_thread_t *cli_thread;
 static void pcf_main(void *data);
 static int initialized = 0;
 void setCommands(void);
@@ -69,7 +70,7 @@ int pcf_initialize(void)
     if (!thread) return OGS_ERROR;
 
     setCommands();
-    ogs_thread_create(telnetMain, &ogs_app()->cli_list);
+    cli_thread = ogs_thread_create(telnetMain, &ogs_app()->cli_list);
     
     initialized = 1;
 
@@ -105,6 +106,7 @@ void pcf_terminate(void)
     event_termination();
     ogs_thread_destroy(thread);
     ogs_timer_delete(t_termination_holding);
+    ogs_free(cli_thread);
 
     pcf_sbi_close();
 
