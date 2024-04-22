@@ -56,7 +56,10 @@
 #define UPF_GTP_HANDLED     1
 
 typedef struct {
-    uint32_t ip_src;
+    union{
+        uint32_t ip_src;
+        uint32_t ip6_src[4];
+    };
     uint16_t ip_id;
 } fragKey;
 
@@ -104,33 +107,89 @@ static uint16_t _get_eth_type(uint8_t *data, uint len) {
     return 0;
 }
 
-static void getFragKey(const ogs_pkbuf_t *buf, fragKey *key) {
+/*static void getFragKey(const ogs_pkbuf_t *buf, fragKey *key) {
     const struct ip *ip_header = (const struct ip *)buf->data;
 
     key->ip_src = ntohl(ip_header->ip_src.s_addr);
     key->ip_id = ntohs(ip_header->ip_id);
-}
+}*/
 
 
 #define NON_FRAGMENTED_PACKET 0
 #define FIRST_FRAGMENT       1
 #define OTHER_FRAGMENT       2
 
-static int getFragmentType(const ogs_pkbuf_t *buf) {
+/*static int getFragmentType(const ogs_pkbuf_t *buf, fragKey *key) {
     const struct ip *ip_header = (const struct ip *)buf->data;
-    
-    // 判断是否为 IP 报文的分片标志位设置为 1（即非分片报文）
-    if ((ntohs(ip_header->ip_off) & IP_MF) == 0 && (ntohs(ip_header->ip_off) & IP_OFFMASK) == 0) {
-        return NON_FRAGMENTED_PACKET; // 非分片报文
+
+    if (ip_header->ip_v == 4) {
+        // IPv4 分片判断
+        if ((ntohs(ip_header->ip_off) & IP_MF) == 0 && (ntohs(ip_header->ip_off) & IP_OFFMASK) == 0) {
+            return NON_FRAGMENTED_PACKET; // 非分片报文
+        } else if ((ntohs(ip_header->ip_off) & IP_MF) != 0 && (ntohs(ip_header->ip_off) & IP_OFFMASK) == 0) {
+            key->ip_src = ip_header->ip_src.s_addr;
+            key->ip_id = ip_header->ip_id;
+            return FIRST_FRAGMENT; // 分片第一包
+        } else {
+            key->ip_src = ip_header->ip_src.s_addr;
+            key->ip_id = ip_header->ip_id;
+            return OTHER_FRAGMENT; // 分片其他包
+        }
+    } else if (ip_header->ip_v == 6) {
+        // IPv6 分片判断
+        const struct ip6_hdr *ip6_header = (const struct ip6_hdr *)buf->data;
+        if (ip6_header->ip6_ctlun.ip6_un1.ip6_un1_nxt == IPPROTO_FRAGMENT) {
+            const struct ip6_frag *frag_header = (const struct ip6_frag *)((uint8_t *)ip6_header + sizeof(struct ip6_hdr));
+            uint16_t offset = ntohs(frag_header->ip6f_offlg & IP6F_OFF_MASK);
+            memcpy(key->ip6_src, &ip6_header->ip6_src, OGS_IPV6_LEN);
+            key->ip_id = ntohs(frag_header->ip6f_ident);
+            if (offset == 0) {                
+                return FIRST_FRAGMENT; // 分片第一包
+            } else {
+                return OTHER_FRAGMENT; // 分片其他包
+            }
+        } else {
+            return NON_FRAGMENTED_PACKET; // 非分片报文
+        }
     }
-    // 判断是否为分片报文中的第一包
-    else if ((ntohs(ip_header->ip_off) & IP_MF) != 0 && (ntohs(ip_header->ip_off) & IP_OFFMASK) == 0) {
-        return FIRST_FRAGMENT; // 分片第一包
+
+    return NON_FRAGMENTED_PACKET; // 未知协议类型
+}*/
+static int getFragmentType(const ogs_pkbuf_t *buf, fragKey *key) {
+    const struct ip *ip_header = (const struct ip *)buf->data;
+
+    if (ip_header->ip_v == 4) {
+        // IPv4 分片判断
+        if ((ntohs(ip_header->ip_off) & IP_MF) == 0 && (ntohs(ip_header->ip_off) & IP_OFFMASK) == 0) {
+            return NON_FRAGMENTED_PACKET; // 非分片报文
+        } else {
+            key->ip_src = ntohl(ip_header->ip_src.s_addr);
+            key->ip_id = ntohs(ip_header->ip_id);
+            if ((ntohs(ip_header->ip_off) & IP_OFFMASK) == 0) {
+                return FIRST_FRAGMENT; // 分片第一包
+            } else {
+                return OTHER_FRAGMENT; // 分片其他包
+            }
+        }
+    } else if (ip_header->ip_v == 6) {
+        // IPv6 分片判断
+        const struct ip6_hdr *ip6_header = (const struct ip6_hdr *)buf->data;
+        if (ip6_header->ip6_ctlun.ip6_un1.ip6_un1_nxt == IPPROTO_FRAGMENT) {
+            const struct ip6_frag *frag_header = (const struct ip6_frag *)((uint8_t *)ip6_header + sizeof(struct ip6_hdr));
+            uint16_t offset = ntohs(frag_header->ip6f_offlg & IP6F_OFF_MASK);
+            memcpy(key->ip6_src, &ip6_header->ip6_src, sizeof(uint32_t) * 4);
+            key->ip_id = ntohs(frag_header->ip6f_ident);
+            if (offset == 0) {
+                return FIRST_FRAGMENT; // 分片第一包
+            } else {
+                return OTHER_FRAGMENT; // 分片其他包
+            }
+        } else {
+            return NON_FRAGMENTED_PACKET; // 非分片报文
+        }
     }
-    // 其他情况，为分片报文中的其他包
-    else {
-        return OTHER_FRAGMENT; // 分片其他包
-    }
+
+    return NON_FRAGMENTED_PACKET; // 未知协议类型
 }
 
 static void _gtpv1_tun_recv_common_cb(
@@ -202,15 +261,14 @@ static void _gtpv1_tun_recv_common_cb(
     if (!sess)
         goto cleanup;
 
-    pktType = getFragmentType(recvbuf);
+    fragKey key;
+    pktType = getFragmentType(recvbuf, &key);
 
     if (pktType == OTHER_FRAGMENT) {
-        fragKey key;
-        getFragKey(recvbuf, &key);
-
         // 判断是否是后续分片包，并获取对应的 IP 地址和 ID
         // 根据 IP 地址和 ID 查找哈希表，如果找到则直接使用对应的 PDR
         pdr = ogs_hash_get(upf_self()->frag_hash, &key, sizeof(key));
+        ogs_info("it is a ohter frag, pdr:%p.",pdr );
     }else{
         ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
             far = pdr->far;
@@ -248,10 +306,8 @@ static void _gtpv1_tun_recv_common_cb(
             pdr = fallback_pdr;
 
         if (pktType == FIRST_FRAGMENT) {
-            fragKey key;
-            getFragKey(recvbuf, &key);
-
             ogs_hash_set(upf_self()->frag_hash, &key, sizeof(key), pdr);
+            ogs_info("it is a first frag, save pdr:%p.",pdr );
         }
     }
 
