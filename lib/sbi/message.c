@@ -1271,9 +1271,9 @@ static char *build_json(ogs_sbi_message_t *message)
         ogs_assert(item);
     }
     else if (message->eir_response) {        
-        /*item = OpenAPI_eir_response_data_convertToJSON(
+        item = OpenAPI_eir_response_data_convertToJSON(
             message->eir_response);
-        ogs_assert(item);*/ 
+        ogs_assert(item);
     }
     if (item) {
         content = cJSON_Print(item);
@@ -1334,8 +1334,8 @@ static int parse_json(ogs_sbi_message_t *message,
         SWITCH(message->h.service.name)
         CASE(OGS_SBI_SERVICE_NAME_N5G_EIR_EIC)
             if (message->res_status < 300) {
-                /*message->eir_response =
-                    OpenAPI_eir_response_data_parseFromJSON(item);*/
+                message->eir_response =
+                    OpenAPI_eir_response_data_parseFromJSON(item);
                 if (!message->eir_response) {
                     rv = OGS_ERROR;
                     ogs_error("JSON parse error");

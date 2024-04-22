@@ -57,8 +57,7 @@ char FILE_PATH_3[100];
 static void loadRunningTimeFromFile(void) {  
     if (strlen(g_program_name) == 0){  
         getProgramName(g_program_name);
-        printf("test:loadRunningTimeFromFile,g_program_name:%s\r\n",g_program_name);
-        
+       
         snprintf(FILE_PATH_1, sizeof(FILE_PATH_1), "/var/run/running_time_%s.data", g_program_name);
         snprintf(FILE_PATH_2, sizeof(FILE_PATH_2), "/var/log/5gc_time_%s.data", g_program_name);
         snprintf(FILE_PATH_3, sizeof(FILE_PATH_3), "/var/lib/run_seconds_%s.data", g_program_name);
@@ -107,7 +106,7 @@ static void saveRunningTimeToFile(const char* filePath) {
         printf("无法打开文件进行写入。\n");
         exit(1);
     }
-    printf("save file:%s,runningTime:%ld.\r\n",filePath,g_runtime_info.totalRunningTime); 
+
     enc_runtime_info.licenseCreateTime = encrypt_long(g_runtime_info.licenseCreateTime);
     enc_runtime_info.totalRunningTime  = encrypt_long(g_runtime_info.totalRunningTime);
     fwrite(&enc_runtime_info, sizeof(runtime_info_t), 1, file);
@@ -116,13 +115,11 @@ static void saveRunningTimeToFile(const char* filePath) {
 
 
 static void saveRunningTimeToFiles(void){
-    printf("test:saveRunningTimeToFiles.\r\n");
     if (strlen(g_program_name) == 0){
         getProgramName(g_program_name);
         snprintf(FILE_PATH_1, sizeof(FILE_PATH_1), "/var/run/running_time_%s.data", g_program_name);
         snprintf(FILE_PATH_2, sizeof(FILE_PATH_2), "/var/log/5gc_time_%s.data", g_program_name);
         snprintf(FILE_PATH_3, sizeof(FILE_PATH_3), "/var/lib/run_seconds_%s.data", g_program_name);
-        printf("test:saveRunningTimeToFiles,g_program_name:%s.\r\n",g_program_name);        
     }
     saveRunningTimeToFile(FILE_PATH_1);
     saveRunningTimeToFile(FILE_PATH_2);
@@ -336,8 +333,6 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
     }
     
     snprintf(FilePathName, sizeof(FilePathName), "%s/License.dat", programDir);
-    
-    printf("read license file:%s.\r\n",FilePathName);
 
     /* 读文件 */
     if ((LicenseInputFile = fopen(FilePathName, "rb")) == NULL) {
@@ -363,8 +358,6 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
    
     g_license_info.licenseCreateTime = decrypt_long(license_info.licenseCreateTime); 
   
-    printf("maxUserNum:%d,licenseDuration:%ld.\r\n",g_license_info.maxUserNum,g_license_info.licenseDuration);
-    
     /*拷贝系统信息到临时变量中*/
     dsGetSerialNumber(szSystemInfo, &iSystemInfoLen);
 

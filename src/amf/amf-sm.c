@@ -834,7 +834,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
         switch(e->h.timer_id) {
         case OGS_TIMER_LICENSE_CHECK:
-            license_state = checkLicenseAfterRuntime(LICENSE_CHECK_INTERVAL*5000,30);
+            license_state = checkLicenseAfterRuntime(LICENSE_CHECK_INTERVAL,30);
             ogs_info("license state:%s, runtime:%lu, durationtime:%lu, expireTime:%s.", 
                     get_license_state_name(license_state),
                     getLicenseRunTime(),
@@ -845,8 +845,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 ogs_warn("license soon to expire.");
             }else if (license_state == LICENSE_STATE_EXPIRED){
                 ogs_fatal("license expired.");
-                //exit(2);
-                 kill(getpid(), SIGTERM);
+                //exit(0);
+                kill(getpid(), SIGTERM);//exit导致线程无法正常退出,进而导致进程退出时coredump
             }
 
             license_check_restart();
@@ -1114,7 +1114,6 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
     case AMF_EVENT_INTERNEL_TIMER:
 		sock = e->internal_sock;
         ogs_assert(sock);
-        
 
         switch (e->h.timer_id) {
         case AMF_TIMER_INTERNEL_HEARTBEAT:
