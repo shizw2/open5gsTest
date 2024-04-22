@@ -89,7 +89,7 @@ int main(void)
 {
     int numUsers;
     int timeChoice;
-    long duration;
+    long duration = 0;
     int year, month, day;
     time_t currentTime;
     struct tm *localTime;

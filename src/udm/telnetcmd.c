@@ -8,7 +8,7 @@ void showueDetail( char * id );
 void setCommands(void);
 
 telnet_command_t g_commands[] = {
-    {"void showue(char *id)",      (GenericFunc)showue,         1, {STRING}},
+    {"showue",      (GenericFunc)showue,         1, {STRING}},
 };
 int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);
 

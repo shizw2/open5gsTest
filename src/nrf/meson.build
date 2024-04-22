@@ -36,7 +36,7 @@ libnrf = static_library('nrf',
     sources : libnrf_sources,
     dependencies : [libsbi_dep,
                     liblicense_dep,
-        		    libmetrics_dep,
+            	    libmetrics_dep,
                     libtelnet_dep],
     install : false)
 

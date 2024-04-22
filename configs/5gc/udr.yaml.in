@@ -453,7 +453,3 @@ time:
 cli:
   - addr: 127.0.0.20
     port: 2300
-schema_version: '1.0'
-_id: udr
-_name: udr1
-_nf: udr

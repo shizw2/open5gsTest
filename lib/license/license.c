@@ -13,6 +13,7 @@ static license_info_t g_license_info;
 static runtime_info_t g_runtime_info;
 
 int getProgramDirectory(char* programPath, size_t bufferSize);
+char g_program_name[100];
 
 #define PATH_MAX 100
 
@@ -49,6 +50,7 @@ char* convertSecondsToString(time_t timestamp) {
 
 // 从三个文件中读取时间，并且最后选择最大的那个时间(防止被篡改)
 static void loadRunningTimeFromFile(void) {
+    getProgramName(g_program_name);
     char FILE_PATH_1[100] = "/var/run/running_time.dat";
     char FILE_PATH_2[100] = "/var/log/5gc_time.dat";
     char FILE_PATH_3[100] = "/var/lib/run_seconds.dat";
@@ -166,6 +168,26 @@ int getProgramDirectory(char* programPath, size_t bufferSize) {
     }
 
     strncpy(programPath, path, bufferSize);
+
+    return 0;
+}
+
+int getProgramName(char* programName) {
+    // 获取当前程序的文件路径
+    char path[100];
+    if (readlink("/proc/self/exe", path, sizeof(path)) == -1) {
+        perror("readlink");
+        exit(EXIT_FAILURE);
+    }
+    
+    // 从文件路径中提取程序名称
+    char* programName = strrchr(path, '/');
+    if (programName != NULL) {
+        programName++; // 移动到下一个字符，跳过斜杠
+    } else {
+        programName = path; // 如果没有斜杠，则使用整个路径作为程序名称
+    }
+    strcpy(programName, programName);
 
     return 0;
 }

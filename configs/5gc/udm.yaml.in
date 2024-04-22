@@ -515,7 +515,3 @@ time:
 cli:
   - addr: 127.0.0.12
     port: 2300
-schema_version: '1.0'
-_id: udm
-_name: udm1
-_nf: udm

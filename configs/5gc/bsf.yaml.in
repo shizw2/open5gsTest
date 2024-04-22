@@ -448,7 +448,3 @@ time:
 cli:
   - addr: 127.0.0.15
     port: 2300
-schema_version: '1.0'
-_id: bsf
-_name: bsf1
-_nf: bsf

@@ -6,7 +6,7 @@ T_pttCmdParas       g_tCmdPara[128];
 void setCommands(void);
 
 telnet_command_t g_commands[] = {
-    {"shownf",      (GenericFunc)shownf,         1, {INTEGER}},
+    {"shownf",      (GenericFunc)shownf,         1, {STRING}},
 };
 int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);
 

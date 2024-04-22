@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 #define YAML_CONFIG_CHECK_INTERVAL 5
-#define LICENSE_CHECK_INTERVAL     (30*60)
+#define LICENSE_CHECK_INTERVAL     5//(30*60)
 
 void ogs_timer_yaml_config_check(void *data);
 void ogs_timer_license_check(void *data);

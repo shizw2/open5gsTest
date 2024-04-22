@@ -887,7 +887,3 @@ time:
 cli:
   - addr: 127.0.0.4
     port: 2300
-schema_version: '1.0'
-_id: smf
-_name: smf1
-_nf: smf

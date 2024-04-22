@@ -42,9 +42,9 @@ libudr_dep = declare_dependency(
     link_with : libudr,
     dependencies : [libdbi_dep,
         	    libmetrics_dep,
-                liblicense_dep,
-                libsbi_dep,
-                libtelnet_dep])
+                    liblicense_dep,
+                    libsbi_dep,
+                    libtelnet_dep])
 
 udr_sources = files('''
     app.c

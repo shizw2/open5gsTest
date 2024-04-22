@@ -8,7 +8,7 @@ void shownsi( void );
 
 telnet_command_t g_commands[] = {
     {"shownf",      (GenericFunc)shownf,         1, {STRING}},
-    {"shownsi",     (GenericFunc)shownf,         0, {}},
+    {"shownsi",     (GenericFunc)shownsi,        0, {}},
 };
 int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);
 
@@ -22,18 +22,24 @@ void shownsi( void )
     char buf[OGS_ADDRSTRLEN];
 
     printf("\nnssf nsi Brief All(current %u nsi count):\r\n", ogs_list_count(&nssf_self()->nsi_list));
-    printf("+----------------------+----------------------+----------------------+\n\r");
-    printf("|       nsi_id         |         addr         |       s_nssai        |\n\r");
-    printf("+----------------------+----------------------+----------------------+\n\r");
+    printf("+--------+----------------------+----------------------+\n\r");
+    printf("| nsi_id |         addr         |       s_nssai        |\n\r");
+    printf("+--------+----------------------+----------------------+\n\r");
     
     ogs_list_for_each(&nssf_self()->nsi_list, nsi) {
-        printf("| %-15s | [%s]:%d | SST:%d SD:0x%x|\r\n",
+        char addrStr[20];
+        char sstSdStr[20];
+        
+        snprintf(addrStr, sizeof(addrStr), "[%s]:%d", OGS_ADDR(nsi->addr, buf), OGS_PORT(nsi->addr));
+        snprintf(sstSdStr, sizeof(sstSdStr), "SST:%d SD:0x%x", nsi->s_nssai.sst, nsi->s_nssai.sd.v);
+
+        printf("| %-6s | %-20s | %-20s |\r\n",
 		   nsi->nsi_id,
-           OGS_ADDR(nsi->addr, buf), OGS_PORT(nsi->addr),
-           nsi->s_nssai.sst, nsi->s_nssai.sd.v);     
+           addrStr,
+           sstSdStr);     
     }	
     
-    printf("+----------------------+----------------------+----------------------+\n\r");
+    printf("+--------+----------------------+----------------------+\n\r");
     printf("\r\n");
     
     return ;

@@ -68,14 +68,10 @@ int upf_initialize(void)
     upf_context_init();
     upf_event_init();
     upf_gtp_init();
-    
-    char errorMsg[100];
-    size_t errorMsgSize = sizeof(errorMsg);
-    bool result = dsCheckLicense(errorMsg, errorMsgSize);
-    if (!result) {
-        ogs_fatal("License错误: %s\n", errorMsg);
-        return OGS_ERROR;
-    }    
+
+    rv = license_check_init();
+    if (rv != OGS_OK) return rv;
+
 
     rv = ogs_pfcp_xact_init();
     if (rv != OGS_OK) return rv;

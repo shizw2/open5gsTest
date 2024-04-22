@@ -451,7 +451,3 @@ time:
 cli:
   - addr: 127.0.0.13
     port: 2300
-schema_version: '1.0'
-_id: pcf
-_name: pcf1
-_nf: pcf

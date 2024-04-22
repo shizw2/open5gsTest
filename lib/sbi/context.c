@@ -2519,5 +2519,5 @@ void shownfBriefAll(void){
 }
 
 void showgnfDetail(char *id){
-
+    printf("to be finished\r\n");
 }

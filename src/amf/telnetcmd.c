@@ -91,13 +91,13 @@ void showranue( void )
     ran_ue_t *ran_ue = NULL;
     
     printf("\ngnb Brief All(current %u gnb count):\r\n", ogs_list_count(&amf_self()->gnb_list));
-    printf("+---------+----------------+----------------+--------+----------------------+--------+\n\r");
-    printf("| gnb_id  | ran_ue_ngap_id | amf_ue_ngap_id | sps_no |         supi         |  tmsi  |\n\r");
-    printf("+---------+----------------+----------------+--------+----------------------+--------+\n\r");
+    printf("+---------+----------------+----------------+--------+----------------------+------------+\n\r");
+    printf("| gnb_id  | ran_ue_ngap_id | amf_ue_ngap_id | sps_no |         supi         |    tmsi    |\n\r");
+    printf("+---------+----------------+----------------+--------+----------------------+------------+\n\r");
     
     ogs_list_for_each(&amf_self()->gnb_list, gnb) {
         ogs_list_for_each(&gnb->ran_ue_list, ran_ue) {
-            printf("| %-7u | %-14d | %-14lu | %-6d | %-15s | %-6u |\r\n",
+            printf("| %-7u | %-14d | %-14lu | %-6d | %-15s | %-10u |\r\n",
                gnb->gnb_id, 
                ran_ue->ran_ue_ngap_id,
                ran_ue->amf_ue_ngap_id,
@@ -107,8 +107,8 @@ void showranue( void )
         }
     }
     
-    printf("+---------+----------------+----------------+--------+----------------------+\n\r");
-    
+    printf("+---------+----------------+----------------+--------+----------------------+------------+\n\r");
+   
     printf("\r\n");
     
     return ;
@@ -132,14 +132,14 @@ void showueAll( void )
 	
     printf("\namf ue Brief All(current %u ue count):\r\n", ogs_list_count(&amf_self()->amf_ue_list));
     printf("+----------------------+---------------+---------------------+---------------------------+---------------------+\n\r");
-    printf("|         supi         | register_type |          tai        |            cgi --         |      timestamp      |\n\r");
+    printf("|         supi         | register_type |          tai        |            cgi            |      timestamp      |\n\r");
     printf("+----------------------+---------------+---------------------+---------------------------+---------------------+\n\r");
     
     ogs_list_for_each(&amf_self()->amf_ue_list, ue) {
 		time_t time = ogs_time_sec(ue->ue_location_timestamp);
 		struct tm *timeInfo = localtime(&time);  
         strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeInfo);    
-        printf("| %-15s | %-13u | MCC:%dMNC:%-3dTAC:%d | MCC:%dMNC:%-3dCELL:%lu | %s |\r\n",
+        printf("| %-15s | %-13u | MCC:%dMNC:%-3dTAC:%d | MCC:%dMNC:%-3dCELL:%-7lu | %s |\r\n",
 		   ue->supi,
            ue->nas.registration.value,
            ogs_plmn_id_mcc(&ue->nr_tai.plmn_id),

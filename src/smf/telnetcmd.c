@@ -44,7 +44,7 @@ void showueAll( void )
     printf("+----------------------+----------------------+----------------------+----------------------+-------------+\n\r");
     
     ogs_list_for_each(&smf_self()->smf_ue_list, ue) {
-		printf("| %-15s | %-15s | %-15s | %-15s | %d |\r\n",
+		printf("| %-20s | %-20s | %-20s | %-20s | %-11d |\r\n",
 		   ue->supi,
            ue->imsi_bcd,
            ue->msisdn_bcd,
@@ -60,5 +60,5 @@ void showueAll( void )
 
 void showueDetail( char * supi )
 {
-    
+    printf("to be finished");
 }

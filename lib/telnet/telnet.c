@@ -220,7 +220,7 @@ int pttCmdAnalyze(char *cmd)
     char *ptr = NULL;
     char *ptr_tmp;
 
-    if(strlen(cmd) < 1 || strlen(cmd) > 48) {
+    if(strlen(cmd) < 1 || strlen(cmd) > 60) {
         return -1;
     }
 
@@ -251,7 +251,7 @@ int pttCmdAnalyze(char *cmd)
     }
 
 #endif  
-    if(strlen(cmd) < 1 || strlen(cmd) > 48) 
+    if(strlen(cmd) < 1 || strlen(cmd) > 60) 
     {
         return -1;
     }
