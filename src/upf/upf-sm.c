@@ -112,7 +112,7 @@ void upf_state_operational(ogs_fsm_t *s, upf_event_t *e)
 
         switch(e->timer_id) {
         case OGS_TIMER_LICENSE_CHECK:
-            license_state = checkLicenseAfterRuntime(LICENSE_CHECK_INTERVAL,30);
+            license_state = checkLicenseAfterRuntime(LICENSE_CHECK_INTERVAL*5000,30);//test
             ogs_info("license state:%s, runtime:%lu, durationtime:%lu, expireTime:%s.", 
                     get_license_state_name(license_state),
                     getLicenseRunTime(),
@@ -123,7 +123,7 @@ void upf_state_operational(ogs_fsm_t *s, upf_event_t *e)
                 ogs_warn("license soon to expire.");
             }else if (license_state == LICENSE_STATE_EXPIRED){
                 ogs_fatal("license expired.");
-                exit(0);
+                exit(2);
             }
 
             license_check_restart();

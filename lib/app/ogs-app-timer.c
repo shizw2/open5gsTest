@@ -79,7 +79,7 @@ int license_check_init(void)
         ogs_fatal("License错误: %s\n", errorMsg);
         return OGS_ERROR;
     } 
-
+    
     //set timer
     t_license_check = ogs_timer_add(ogs_app()->timer_mgr,ogs_timer_license_check,0);
     ogs_timer_start(t_license_check,ogs_time_from_sec(LICENSE_CHECK_INTERVAL));

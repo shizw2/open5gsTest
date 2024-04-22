@@ -119,8 +119,8 @@ int upf_initialize(void)
     thread = ogs_thread_create(upf_main, NULL);
     if (!thread) return OGS_ERROR;
     
-    setCommands();
-    cli_thread = ogs_thread_create(telnetMain, &ogs_app()->cli_list);
+    //setCommands();
+    //cli_thread = ogs_thread_create(telnetMain, &ogs_app()->cli_list);
     initialized = 1;
 
     return OGS_OK;

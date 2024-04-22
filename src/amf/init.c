@@ -184,6 +184,7 @@ static void event_termination(void)
 
 void amf_terminate(void)
 {
+    ogs_info("amf_terminate initialized%d.",initialized);
     if (!initialized) return;
 
     /* Daemon terminating */
@@ -234,12 +235,17 @@ static void amf_main(void *data)
 
             rv = ogs_queue_trypop(ogs_app()->queue, (void**)&e);
             ogs_assert(rv != OGS_ERROR);
-
-            if (rv == OGS_DONE)
+            ogs_info("ogs_queue_trypop,rv:%d.",rv);
+            if (rv == OGS_DONE){
+                ogs_info("ogs done");
                 goto done;
-
-            if (rv == OGS_RETRY)
+            }
+            
+            if (rv == OGS_RETRY){
+                ogs_info("ogs OGS_RETRY");
+                
                 break;
+            }
 
             ogs_assert(e);
             ogs_fsm_dispatch(&amf_sm, e);
