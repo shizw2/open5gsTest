@@ -1,4 +1,6 @@
 #include "license.h"
+#include <errno.h>
+int getProgramDirectory(char* programPath, size_t bufferSize);
 
 static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimestamp)
 {
@@ -7,14 +9,23 @@ static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimes
     FILE  *LicenseInputFile;    
     FILE           *LicenseOutputFile;
     unsigned char   digest[16];
-    char FilePathName[32] = "Machine.id";
-    char OutFilePathName[32]="License.dat";
+    char FilePathName[200] = {};
+    char OutFilePathName[200]= {};
     time_t currentTime;
     time(&currentTime);
     long licenseDuration;
     license_info_t license_info;
     
     memset(&license_info,0,sizeof(license_info_t));
+
+    char programDir[100] = {};   
+
+    if (getProgramDirectory(programDir, sizeof(programDir)) != 0) {
+        printf("获取程序所在目录失败: %s.\r\n", strerror(errno));
+        return ;
+    }
+    
+    snprintf(FilePathName, sizeof(FilePathName), "%s/Machine.id", programDir);
 
     if ((LicenseInputFile = fopen(FilePathName, "rb")) == NULL)
     {
@@ -54,6 +65,7 @@ static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimes
     
     license_info.licenseCreateTime = encrypt_long(currentTime);
    
+    snprintf(OutFilePathName, sizeof(OutFilePathName), "%s/License.dat", programDir);
     /* 写文件 */
     if ((LicenseOutputFile = fopen(OutFilePathName, "wb")) == NULL)
     {
@@ -82,7 +94,7 @@ static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimes
 
     fclose(LicenseOutputFile);
 
-    printf("成功生成License文件，可以拷贝给用户!\r\n");   
+    printf("成功生成License文件:%s，可以拷贝给用户!\r\n",OutFilePathName);   
 }
 
 int main(void)
