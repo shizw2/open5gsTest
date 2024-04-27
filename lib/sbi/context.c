@@ -2484,6 +2484,9 @@ ogs_sbi_subscription_data_t *ogs_sbi_subscription_data_find(char *id)
     return subscription_data;
 }
 
+void print_ogs_sbi_nf_info(const ogs_sbi_nf_info_t *nf_info);
+void printf_supiRanges(ogs_supi_range_t *supiRanges);
+
 void shownf(char *id){
     if(id == NULL || strlen(id) == 0 ){
         shownfBriefAll();
@@ -2519,5 +2522,180 @@ void shownfBriefAll(void){
 }
 
 void showgnfDetail(char *id){
-    printf("to be finished\r\n");
+    ogs_sbi_nf_instance_t *nf_instance = NULL;
+    ogs_sbi_nf_info_t *nf_info = NULL;
+    int i;
+    char buf[OGS_ADDRSTRLEN];
+    char addrInfo[OGS_ADDRSTRLEN] = {0};
+    nf_instance = ogs_sbi_nf_instance_find(id);
+    
+    if (NULL == nf_instance){
+        printf("can not find nf_instance by id:%s.\r\n",id);
+        return;
+    }
+    
+    printf("  |--id                 : %s \r\n", nf_instance->id);
+    printf("  |--icps_id            : %s \r\n", nf_instance->icps_id);
+    printf("  |--nf_type            : %s \r\n", OpenAPI_nf_type_ToString(nf_instance->nf_type));
+    printf("  |--nf_status          : %s \r\n", OpenAPI_nf_status_ToString(nf_instance->nf_status));
+    printf("  |--fqdn               : %s \r\n", nf_instance->fqdn);
+
+    printf("  |--num_of_ipv4        : %d \r\n", nf_instance->num_of_ipv4);
+    for (i = 0; i < nf_instance->num_of_ipv4; i++) {        
+        sprintf(addrInfo,"%s:%d",OGS_ADDR(nf_instance->ipv4[i], buf), OGS_PORT(nf_instance->ipv4[i]));
+        printf("     |--ipv4[%d]        : %s \r\n", i, addrInfo);
+    }
+
+    printf("  |--num_of_ipv6        : %d \r\n", nf_instance->num_of_ipv6);
+    for (i = 0; i < nf_instance->num_of_ipv6; i++) {
+        sprintf(addrInfo,"%s:%d",OGS_ADDR(nf_instance->ipv6[i], buf), OGS_PORT(nf_instance->ipv6[i]));
+        printf("     |--ipv6[%d]        : %s \r\n", i, addrInfo);
+    }
+
+    printf("  |--num_of_allowed_nf_type: %d \r\n", nf_instance->num_of_allowed_nf_type);
+    for (i = 0; i < nf_instance->num_of_allowed_nf_type; i++) {
+        printf("     |--allowed_nf_type[%d]: %s \r\n", i, OpenAPI_nf_type_ToString(nf_instance->allowed_nf_type[i]));
+    }
+
+    printf("  |--priority           : %d \r\n", nf_instance->priority);
+    printf("  |--capacity           : %d \r\n", nf_instance->capacity);
+    printf("  |--load               : %d \r\n", nf_instance->load);
+    printf("  |--reference_count    : %d \r\n", nf_instance->reference_count);
+    
+    ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
+        print_ogs_sbi_nf_info(nf_info);
+    }
+}
+
+void print_ogs_sbi_nf_info(const ogs_sbi_nf_info_t *nf_info) {
+    int i,j;
+    
+    printf("  |--nf_type            : %d \r\n", nf_info->nf_type);
+
+    if (nf_info->nf_type == OpenAPI_nf_type_SMF) {
+        printf("     |--smf\n");
+        printf("        |--num_of_slice  : %d \r\n", nf_info->smf.num_of_slice);
+        for (i = 0; i < nf_info->smf.num_of_slice; i++) {
+            printf("        |--slice[%d]\n", i);
+            printf("           |--s_nssai    : SST:%d SD:0x%x \r\n", nf_info->smf.slice[i].s_nssai.sst,nf_info->smf.slice[i].s_nssai.sd.v);
+            printf("           |--num_of_dnn : %d \r\n", nf_info->smf.slice[i].num_of_dnn);
+            for (j = 0; j < nf_info->smf.slice[i].num_of_dnn; j++) {
+                printf("           |--dnn[%d]     : %s \r\n", j, nf_info->smf.slice[i].dnn[j]);
+            }
+        }
+        
+        printf("        |--num_of_nr_tai       : %d \r\n", nf_info->smf.num_of_nr_tai);
+        for (i = 0; i < nf_info->smf.num_of_nr_tai; i++) {            
+            printf("        |--nr_tai[%d]: MCC:%d,MNC:%-3dTAC:%d \r\n", i, ogs_plmn_id_mcc(&nf_info->smf.nr_tai[i].plmn_id),
+                                                               ogs_plmn_id_mnc(&nf_info->smf.nr_tai[i].plmn_id),
+                                                               nf_info->smf.nr_tai[i].tac.v);
+        }
+        printf("        |--num_of_nr_tai_range       : %d \r\n", nf_info->smf.num_of_nr_tai_range);
+        for (i = 0; i < nf_info->smf.num_of_nr_tai_range; i++) {
+            printf("        |--nr_tai_range[%d]\n", i);
+            printf("           |--plmn_id       : MCC:%d,MNC:%d \r\n", ogs_plmn_id_mcc(&nf_info->smf.nr_tai_range[i].plmn_id),ogs_plmn_id_mnc(&nf_info->smf.nr_tai_range[i].plmn_id));
+            printf("           |--num_of_tac_range       : %d \r\n", nf_info->smf.nr_tai_range[i].num_of_tac_range);
+            for (j = 0; j < nf_info->smf.nr_tai_range[i].num_of_tac_range; j++) {
+                printf("           |--start[%d]       : %d \r\n", j, nf_info->smf.nr_tai_range[i].start[j].v);
+                printf("           |--end[%d]       : %d \r\n", j, nf_info->smf.nr_tai_range[i].end[j].v);
+            }
+        }
+    } else if (nf_info->nf_type == OpenAPI_nf_type_AMF) {
+        printf("     |--amf\n");
+        printf("        |--amf_set_id       : %d \r\n", nf_info->amf.amf_set_id);
+        printf("        |--amf_region_id    : %d \r\n", nf_info->amf.amf_region_id);
+        printf("        |--num_of_guami     : %d \r\n", nf_info->amf.num_of_guami);
+        for (i = 0; i < nf_info->amf.num_of_guami; i++) {
+            printf("        |--guami[%d]\n", i);
+            printf("        |--amf_id           : region:%d,set1:%d,set2:%d,pointer:%d\r\n", 
+                    nf_info->amf.guami[i].amf_id.region,nf_info->amf.guami[i].amf_id.set1,nf_info->amf.guami[i].amf_id.set2,nf_info->amf.guami[i].amf_id.pointer);
+            printf("        |--plmn_id          : MCC:%d,MNC:%d \r\n", ogs_plmn_id_mcc(&nf_info->amf.guami[i].plmn_id),ogs_plmn_id_mnc(&nf_info->amf.guami[i].plmn_id));
+        }
+        
+        printf("        |--num_of_nr_tai       : %d \r\n", nf_info->amf.num_of_nr_tai);
+        for (i = 0; i < nf_info->amf.num_of_nr_tai; i++) {            
+            printf("        |--nr_tai[%d]: MCC:%d,MNC:%-3dTAC:%d \r\n", i, ogs_plmn_id_mcc(&nf_info->amf.nr_tai[i].plmn_id),
+                                                               ogs_plmn_id_mnc(&nf_info->amf.nr_tai[i].plmn_id),
+                                                               nf_info->amf.nr_tai[i].tac.v);
+        }
+        printf("        |--num_of_nr_tai_range       : %d \r\n", nf_info->amf.num_of_nr_tai_range);
+        for (i = 0; i < nf_info->amf.num_of_nr_tai_range; i++) {
+            printf("        |--nr_tai_range[%d]\n", i);
+            printf("           |--plmn_id       : MCC:%d,MNC:%d \r\n", ogs_plmn_id_mcc(&nf_info->amf.nr_tai_range[i].plmn_id),ogs_plmn_id_mnc(&nf_info->amf.nr_tai_range[i].plmn_id));
+            printf("           |--num_of_tac_range       : %d \r\n", nf_info->amf.nr_tai_range[i].num_of_tac_range);
+            for (j = 0; j < nf_info->amf.nr_tai_range[i].num_of_tac_range; j++) {
+                printf("           |--start[%d]       : %d \r\n", j, nf_info->amf.nr_tai_range[i].start[j].v);
+                printf("           |--end[%d]       : %d \r\n", j, nf_info->amf.nr_tai_range[i].end[j].v);
+            }
+        }
+    } else if (nf_info->nf_type == OpenAPI_nf_type_SCP) {
+        printf("     |--scp\n");
+        printf("        |--http            : %d \r\n", nf_info->scp.http.port);
+        printf("        |--https           : %d \r\n", nf_info->scp.https.port);
+        printf("        |--num_of_domain   : %d \r\n", nf_info->scp.num_of_domain);
+        for (i = 0; i < nf_info->scp.num_of_domain; i++) {
+            printf("        |--domain[%d]\n", i);
+            printf("           |--name         : %s \r\n", nf_info->scp.domain[i].name);
+            printf("           |--fqdn         : %s \r\n", nf_info->scp.domain[i].fqdn);
+            printf("           |--http         : %d \r\n", nf_info->scp.domain[i].http.port);
+            printf("           |--https        : %d \r\n", nf_info->scp.domain[i].https.port);
+        }
+    } else if (nf_info->nf_type == OpenAPI_nf_type_UDM) {
+        printf("     |--udm\n");
+        printf("        |--supiRanges.num_of_supi_range: %d \r\n", nf_info->udm.supiRanges.num_of_supi_range);
+        for (i = 0; i < nf_info->udm.supiRanges.num_of_supi_range; i++) {
+            printf("        |--supiRanges.supi_ranges[%d]\n", i);
+            printf("           |--start        : %s \r\n", nf_info->udm.supiRanges.supi_ranges[i].start);
+            printf("           |--end          : %s \r\n", nf_info->udm.supiRanges.supi_ranges[i].end);
+        }
+    } else if (nf_info->nf_type == OpenAPI_nf_type_UDR) {
+        printf("     |--udr\n");
+        printf("        |--supiRanges.num_of_supi_range: %d \r\n", nf_info->udr.supiRanges.num_of_supi_range);
+        for (i = 0; i < nf_info->udr.supiRanges.num_of_supi_range; i++) {
+            printf("        |--supiRanges.supi_ranges[%d]\n", i);
+            printf("           |--start        : %s \r\n", nf_info->udr.supiRanges.supi_ranges[i].start);
+            printf("           |--end          : %s \r\n", nf_info->udr.supiRanges.supi_ranges[i].end);
+        }
+    } else if (nf_info->nf_type == OpenAPI_nf_type_PCF) {
+        printf("     |--pcf\n");
+        printf("        |--supiRanges.num_of_supi_range: %d \r\n", nf_info->pcf.supiRanges.num_of_supi_range);
+        for (i = 0; i < nf_info->pcf.supiRanges.num_of_supi_range; i++) {
+            printf("        |--supiRanges.supi_ranges[%d]\n", i);
+            printf("           |--start        : %s \r\n", nf_info->pcf.supiRanges.supi_ranges[i].start);
+            printf("           |--end          : %s \r\n", nf_info->pcf.supiRanges.supi_ranges[i].end);
+        }
+        // 打印 pcf 相关字段...
+    } else if (nf_info->nf_type == OpenAPI_nf_type_AUSF) {
+        printf("     |--ausf\n");
+        printf("        |--supiRanges.num_of_supi_range: %d \r\n", nf_info->ausf.supiRanges.num_of_supi_range);
+        for (i = 0; i < nf_info->ausf.supiRanges.num_of_supi_range; i++) {
+            printf("        |--supiRanges.supi_ranges[%d]\n", i);
+            printf("           |--start        : %s \r\n", nf_info->ausf.supiRanges.supi_ranges[i].start);
+            printf("           |--end          : %s \r\n", nf_info->ausf.supiRanges.supi_ranges[i].end);
+        }
+        printf("        |--num_of_routing_indicator       : %d \r\n", nf_info->ausf.num_of_routing_indicator);
+        for (i = 0; i < nf_info->ausf.num_of_routing_indicator; i++) {
+            printf("        |--routing_indicators[%d]       : %s \r\n", i, nf_info->ausf.routing_indicators[i]);
+        }
+        // 打印 ausf 相关字段...
+    } /*else if (nf_info->nf_type == OpenAPI_nf_type_EIR) {
+        printf("     |--eir\n");
+        printf("        |--supiRanges.num_of_supi_range: %d \r\n", nf_info->eir.supiRanges.num_of_supi_range);
+        for (i = 0; i < nf_info->eir.supiRanges.num_of_supi_range; i++) {
+            printf("        |--supiRanges.supi_ranges[%d]\n", i);
+            printf("           |--start        : %s \r\n", nf_info->eir.supiRanges.supi_ranges[i].start);
+            printf("           |--end          : %s \r\n", nf_info->eir.supiRanges.supi_ranges[i].end);
+        }
+        // 打印 eir 相关字段...
+    }    */
+}
+
+void printf_supiRanges(ogs_supi_range_t *supiRanges){
+    int i;
+    printf("        |--supiRanges.num_of_supi_range: %d \r\n", supiRanges->num_of_supi_range);
+    for (i = 0; i < supiRanges->num_of_supi_range; i++) {
+        printf("        |--supiRanges.supi_ranges[%d]\n", i);
+        printf("           |--start        : %s \r\n", supiRanges->supi_ranges[i].start);
+        printf("           |--end          : %s \r\n", supiRanges->supi_ranges[i].end);
+    }
 }
