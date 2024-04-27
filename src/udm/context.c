@@ -163,6 +163,8 @@ int udm_context_parse_config(void)
                             ogs_assert(info_key);
                             if (!strcmp(info_key, "supi")) {
                                 is_nfinfo_changed = ogs_sbi_context_parse_supi_ranges(&info_iter, &udm_info->supiRanges);
+                            } else if (!strcmp(info_key, "routing_indicator")) {
+                                is_nfinfo_changed = ogs_sbi_context_parse_routing_indicator(&info_iter, &udm_info->routingIndicators); 
                             } else
                                 ogs_warn("unknown key `%s`", info_key);
                         }

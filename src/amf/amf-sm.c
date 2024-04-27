@@ -299,8 +299,12 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
             CASE(OGS_SBI_RESOURCE_NAME_SDMSUBSCRIPTION_NOTIFY)
                 if (is_amf_icps()){
-                    ogs_error("todo:OGS_SBI_RESOURCE_NAME_SDMSUBSCRIPTION_NOTIFY");
-                    udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,1);
+                    sps_id=spsid_find_by_supi(sbi_message.h.resource.component[0]);
+                    if (sps_id == 0 || sps_id > MAX_SPS_NUM){
+                        ogs_error("sps id %d is invalid.",sps_id);                                
+                        break;
+                    }   
+                    udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,sps_id);
                 }else{
                     amf_namf_callback_handle_sdm_data_change_notify(
                         stream, &sbi_message);

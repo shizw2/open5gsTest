@@ -9,6 +9,7 @@ void showsessDetail( char *id );
 void setCommands(void);
 
 telnet_command_t g_commands[] = {
+    {"shownf",        (GenericFunc)shownf,           1, {STRING}},   
     {"showsess",      (GenericFunc)showsess,         1, {STRING}},
 };
 int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);

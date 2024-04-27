@@ -507,14 +507,8 @@ int detect_interrupt_signal(const char *data, size_t len) {
     const int IAC = 255;
     const int INTERRUPT = 244; // F4的十进制表示
     int i;
-   
-    for (i = 0; i < strlen(data); i++) {
-        printf("%02x ", (unsigned char)data[i]);
-    }
-    
-    printf("\n");
+
     for (i = 0; i < len;) {
-        printf("%x %x \r\n",(unsigned char)data[i],(unsigned char)data[i + 1]);
         if ((unsigned char)data[i] == IAC) {
             // 检查是否是中断信号
             if (i + 1 < len && (unsigned char)data[i + 1] == INTERRUPT) {
