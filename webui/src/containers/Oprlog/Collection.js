@@ -559,7 +559,8 @@ class Collection extends Component {
               <option value="修改">修改</option>
               <option value="删除">删除</option>
               <option value="登入">登入</option>
-              <option value="登出">登出</option>              
+              <option value="登出">登出</option>
+              <option value="警示">警示</option>               
             </select>
           ):(            
             <span style={styles.selectval}>{this.state.searchOprtype}</span>

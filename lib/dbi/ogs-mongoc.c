@@ -204,6 +204,11 @@ int ogs_eir_dbi_init(const char *db_uri)
             ogs_mongoc()->client, ogs_mongoc()->name, "imeichecks");
         ogs_assert(self.collection.imeicheck);
     }
+    if (ogs_mongoc()->client && ogs_mongoc()->name) {
+        self.collection.ommlog = mongoc_client_get_collection(
+            ogs_mongoc()->client, ogs_mongoc()->name, "ommlogs");
+        ogs_assert(self.collection.ommlog);
+    }
 
     return OGS_OK;
 }
@@ -212,6 +217,9 @@ void ogs_eir_dbi_final(void)
 {
     if (self.collection.imeicheck) {
         mongoc_collection_destroy(self.collection.imeicheck);
+    }
+    if (self.collection.ommlog) {
+        mongoc_collection_destroy(self.collection.ommlog);
     }
 
 #if MONGOC_MAJOR_VERSION >= 1 && MONGOC_MINOR_VERSION >= 9

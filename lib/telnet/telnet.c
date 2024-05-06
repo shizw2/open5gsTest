@@ -223,8 +223,6 @@ int pttCmdAnalyze(char *cmd)
     if(strlen(cmd) < 1 || strlen(cmd) > 60) {
         return -1;
     }
-
-    
     /*去除多余的换行符及其他多余字符*/
     while((ptr = strstr(cmd, "\r")) != 0 ) {
         while(*ptr != 0) {

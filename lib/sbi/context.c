@@ -2542,7 +2542,7 @@ ogs_sbi_subscription_data_t *ogs_sbi_subscription_data_find(char *id)
 }
 
 void print_ogs_sbi_nf_info(ogs_sbi_nf_info_t *nf_info);
-void printf_supiRanges(ogs_supi_range_t *supiRanges);
+void print_supiRanges(ogs_supi_range_t *supiRanges);
 void print_ogs_sbi_nf_service(ogs_sbi_nf_service_t *nf_service);
 
 void shownf(char *id){
@@ -2704,18 +2704,18 @@ void print_ogs_sbi_nf_info(ogs_sbi_nf_info_t *nf_info) {
             printf("           |--https        : %d \r\n", nf_info->scp.domain[i].https.port);
         }
     } else if (nf_info->nf_type == OpenAPI_nf_type_UDM) {
-        printf_supiRanges(&nf_info->udm.supiRanges);
+        print_supiRanges(&nf_info->udm.supiRanges);
         printf("        |--num_of_routing_indicator     : %d \r\n", nf_info->udm.routingIndicators.num_of_routing_indicator);
         for (i = 0; i < nf_info->udm.routingIndicators.num_of_routing_indicator; i++) {
             printf("          |--routing_indicators[%d]     : %s \r\n", i, nf_info->udm.routingIndicators.routing_indicators[i]);
         }
     } else if (nf_info->nf_type == OpenAPI_nf_type_UDR) {
-        printf_supiRanges(&nf_info->udr.supiRanges);
+        print_supiRanges(&nf_info->udr.supiRanges);
     } else if (nf_info->nf_type == OpenAPI_nf_type_PCF) {
-        printf_supiRanges(&nf_info->pcf.supiRanges);
+        print_supiRanges(&nf_info->pcf.supiRanges);
         // 打印 pcf 相关字段...
     } else if (nf_info->nf_type == OpenAPI_nf_type_AUSF) {
-        printf_supiRanges(&nf_info->ausf.supiRanges);
+        print_supiRanges(&nf_info->ausf.supiRanges);
         printf("        |--num_of_routing_indicator     : %d \r\n", nf_info->ausf.routingIndicators.num_of_routing_indicator);
         for (i = 0; i < nf_info->ausf.routingIndicators.num_of_routing_indicator; i++) {
             printf("          |--routing_indicators[%d]     : %s \r\n", i, nf_info->ausf.routingIndicators.routing_indicators[i]);
@@ -2724,7 +2724,7 @@ void print_ogs_sbi_nf_info(ogs_sbi_nf_info_t *nf_info) {
     } 
 }
 
-void printf_supiRanges(ogs_supi_range_t *supiRanges){
+void print_supiRanges(ogs_supi_range_t *supiRanges){
     int i;
     printf("        |--supiRanges.num_of_supi_range: %d \r\n", supiRanges->num_of_supi_range);
     for (i = 0; i < supiRanges->num_of_supi_range; i++) {

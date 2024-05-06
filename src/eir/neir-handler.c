@@ -21,16 +21,16 @@
 #include "neir-handler.h"
 
 
-
 bool eir_neir_handle_imeicheck(
         ogs_sbi_stream_t *stream, ogs_sbi_message_t *recvmsg)
 {
     int rv;
-
+    bool r;
     ogs_sbi_message_t sendmsg;
     ogs_sbi_response_t *response = NULL;
     OpenAPI_eir_response_data_t eir_response;
     ImeicheckDocument document;
+    OmmlogSchema logdocument;
     char *pei = NULL;
     char *supi = NULL;
     char *supi_type = NULL;
@@ -99,29 +99,44 @@ bool eir_neir_handle_imeicheck(
         return false;
     }
     eir_response.status=document.status;
+    if(!eir_response.status) eir_response.status=1;//默认白名单
+    logdocument.optcommand=ogs_msprintf("操作对象：IMEI:%s-IMSI:%s",pei,supi);
+    if(eir_response.status==2){
+        logdocument.optcommand=ogs_mstrcatf(logdocument.optcommand,"%s"," 黑名单用户注册");
+    }else if(eir_response.status==3){
+        logdocument.optcommand=ogs_mstrcatf(logdocument.optcommand,"%s"," 灰名单用户注册");
+    }
     bool isFound = false;
     if(document.checkflag){
-        for (int i = 0; i < 10; i++) {
+        int i=0;
+        while(document.bindimsi[i].imsi[0]!='\0'){
             ogs_debug("supi=%s,imsi[%d]=%s",supi, i,document.bindimsi[i].imsi);
             if (strncmp(supi, document.bindimsi[i].imsi,15) == 0) {                
                 isFound = true;
                 break;
             }
+            i++;
         }
         if(!isFound){
             eir_response.status=2;//如果需要校验，没找到，则设置成黑名单
+            logdocument.optcommand=ogs_mstrcatf(logdocument.optcommand,"%s"," IMEI-IMSI:绑定校验失败");
         }
     }
-    if(!eir_response.status) eir_response.status=1;//默认白名单
     memset(&sendmsg, 0, sizeof(sendmsg));
     sendmsg.eir_response = &eir_response;
     response = ogs_sbi_build_response(&sendmsg, OGS_SBI_HTTP_STATUS_OK);
     ogs_assert(response);
     ogs_assert(true == ogs_sbi_server_send_response(stream, response));
+    if(eir_response.status==2||eir_response.status==3){
+        r=insert_document_to_collection(&logdocument);        
+        if(!r){
+            ogs_error("黑白名单写日志失败");
+        }
+    }
     ogs_free(supi);
     ogs_free(pei);
     ogs_free(pei_type);
     ogs_free(supi_type);
-
+    ogs_free(logdocument.optcommand);
     return true;
 }
