@@ -24,7 +24,7 @@ export const ViewEIR= ({ nfconfig }) => {
       <div>
         {eir && (
           <div className="nf-section">
-            <div className="nf-header">bsf:</div>
+            <div className="nf-header">eir:</div>
             <NF_SBI_Section sbi={eir.sbi} />
             <MetricsSection metrics={eir.metrics} />
           </div>

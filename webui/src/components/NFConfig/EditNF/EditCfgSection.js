@@ -469,13 +469,20 @@ export const nrfSchema = {
     sbi: {
       type: "array",
       title: "SBI Interface",
+      "minItems": 1,
+      "messages": {
+        "minItems": "At least 1 Item is required",
+      },
       items: {
         type: "object",
         properties: {
           addr: {
             type: "array",
             title:"IP Address",
-            minItems: 1,
+            "minItems": 1,
+            "messages": {
+              "minItems": "At least 1 Item is required",
+            },
             items: {
               type: "string",
               anyOf: [
@@ -1231,6 +1238,10 @@ export const securitySchema = {
     integrity_order: {
       type: "array",
       title: "Integrity Order",
+      "minItems": 1,
+      "messages": {
+        "minItems": "At least 1 Item is required",
+      },
       maxItems: 3,
       items: {
         type: "string",
@@ -1246,6 +1257,10 @@ export const securitySchema = {
     ciphering_order: {
       type: "array",
       title: "Ciphering Order",
+      "minItems": 1,
+      "messages": {
+        "minItems": "At least 1 Item is required",
+      },
       maxItems: 3,
       items: {
         type: "string",
@@ -1304,6 +1319,7 @@ export const network_nameUiSchema = {
 export const amf_nameSchema = {
   type: "string",
   title: "AMF Name",
+  required: true,
 };
 
 export const amf_nameUiSchema = {
@@ -1753,7 +1769,11 @@ export const smfinfoSchema = {
       s_nssai: {
         title: "S-NSSAI",
         type: "array",
-        maxItems: 8,
+        "minItems": 1,
+        "maxItems": 8,
+        "messages": {
+          "minItems": "At least 1 item is required",          
+        },
         items: {
           type: "object",
           properties: {
@@ -1898,6 +1918,10 @@ export const smfinfoUiSchema = {
 export const nsiSchema = {
   type: "array",
   title:"NSI",
+  "minItems": 1,
+  "messages": {
+    "minItems": "At least 1 item is required",          
+  },
   items: {
     type: "object",
     properties: {
@@ -2169,9 +2193,9 @@ export const supiRangeInfoSchema = {
     supi:{
       type: "array",
       title: "SUPI",
+      maxItems:16,
       items: {
         type: "object",
-        maxItems:16,
         properties: {
           range: {
             type: "string",
@@ -2227,9 +2251,9 @@ export const rtsupiInfoSchema = {
     supi:{
       type: "array",
       title: "SUPI",
+      maxItems:16,
       items: {
         type: "object",
-        maxItems:16,
         properties: {
           range: {
             type: "string",
@@ -2237,8 +2261,8 @@ export const rtsupiInfoSchema = {
             maxLength: 31,
             pattern: /^(\d+-\d+)$/,
             messages: {
-              pattern: "Format like 990-999 or 46001-46002",
-              type: "Format like 990-999 or 46001-46002",
+              pattern: "Format: x1...xn-y1...yn; xn, yn is digit; n<15; like 46001-46009",
+              type: "Format: x1...xn-y1...yn; xn, yn is digit; n<15; like 46001-46009",
             },
             required: true,
           },

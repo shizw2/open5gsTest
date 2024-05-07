@@ -322,10 +322,11 @@ udm:
     metrics:
       - addr: 127.0.0.12
         port: 9095    
-    info:
-        supi:
-           - range:
-
+#    info:
+#	   routing_indicator: 
+#	     - 1
+#      supi:
+#        - range: 46001-46002
 #
 #  <SBI Client>>
 #

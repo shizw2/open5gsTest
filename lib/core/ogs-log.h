@@ -101,6 +101,7 @@ void ogs_log_printf(ogs_log_level_e level, int domain_id,
 
 void ogs_log_hexdump_func(ogs_log_level_e level, int domain_id,
     const unsigned char *data, size_t len);
+void replacePattern(char* target, const char* pattern, const char* replacement);
 
 #define ogs_assert(expr) \
     do { \
