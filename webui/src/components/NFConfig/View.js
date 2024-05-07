@@ -34,6 +34,7 @@ import { ViewSMF } from './ViewNF/ViewSMF';
 import { ViewUDM } from './ViewNF/ViewUDM';
 import { ViewUDR } from './ViewNF/ViewUDR';
 import { ViewUPF } from './ViewNF/ViewUPF';
+import { ViewEIR } from './ViewNF/ViewEIR';
 
 const componentMap = {
   nrf: ViewNRF,
@@ -48,6 +49,7 @@ const componentMap = {
   udm: ViewUDM,
   udr: ViewUDR,
   upf: ViewUPF,
+  eir: ViewEIR,
   // 其他 nfconfig._id 对应的组件
 };
 
@@ -273,6 +275,13 @@ class View extends React.Component {
                 </Tooltip>
               </div>
             </Header>
+            {nfInsNum === 1 ? (
+            <Body>
+              <NFConfig>
+                {nfInsNum === 1 && nfconfig && componentMap[_nf] && React.createElement(componentMap[_nf], { nfconfig })}
+              </NFConfig>
+            </Body>
+            ) : (
             <Body style={{ overflow: 'hidden' }}>
               <NFConfig>
                 {nfInsNum > 1 && (
@@ -331,6 +340,62 @@ class View extends React.Component {
                       {nfname} 4
                     </button>
                     )}
+                    {nfInsNum > 4 && (
+                    <button 
+                      className={`nav-link ${this.state.selectedIns === 4  ? 'selected' : ''}`}
+                      style={{
+                        border: 'none',
+                        padding: '10px',
+                        backgroundColor: this.state.selectedIns === 4  ? '#5C7CFA' : 'lightgray',
+                        color: 'white'
+                      }}
+                      onClick={() => this.handleButtonClick(4, _nf)} 
+                    >
+                      {nfname} 5
+                    </button>
+                    )}
+                    {nfInsNum > 5 && (
+                    <button 
+                      className={`nav-link ${this.state.selectedIns === 5  ? 'selected' : ''}`}
+                      style={{
+                        border: 'none',
+                        padding: '10px',
+                        backgroundColor: this.state.selectedIns === 5  ? '#5C7CFA' : 'lightgray',
+                        color: 'white'
+                      }}
+                      onClick={() => this.handleButtonClick(5, _nf)} 
+                    >
+                      {nfname} 6
+                    </button>
+                    )}
+                    {nfInsNum > 6 && (
+                    <button 
+                      className={`nav-link ${this.state.selectedIns === 6  ? 'selected' : ''}`}
+                      style={{
+                        border: 'none',
+                        padding: '10px',
+                        backgroundColor: this.state.selectedIns === 6  ? '#5C7CFA' : 'lightgray',
+                        color: 'white'
+                      }}
+                      onClick={() => this.handleButtonClick(6, _nf)} 
+                    >
+                      {nfname} 7
+                    </button>
+                    )}
+                    {nfInsNum > 7 && (
+                    <button 
+                      className={`nav-link ${this.state.selectedIns === 7  ? 'selected' : ''}`}
+                      style={{
+                        border: 'none',
+                        padding: '10px',
+                        backgroundColor: this.state.selectedIns === 7  ? '#5C7CFA' : 'lightgray',
+                        color: 'white'
+                      }}
+                      onClick={() => this.handleButtonClick(7, _nf)} 
+                    >
+                      {nfname} 8
+                    </button>
+                    )}
                   </nav>
                   {/*
                     <Button className={activeTab === 0 ? 'selected' : ''} >{nfname} 1</Button>
@@ -345,13 +410,9 @@ class View extends React.Component {
                   {nfconfig && componentMap[_nf] && React.createElement(componentMap[_nf], { nfconfig })}
                 </div>
                 )}
-                {nfInsNum === 1 && (
-                  <div>
-                  {nfconfig && componentMap[_nf] && React.createElement(componentMap[_nf], { nfconfig })}
-                  </div>
-                )}
               </NFConfig>            
             </Body>
+            )}
           </Wrapper>
         </Modal>
         <Dimmed visible={visible}/>

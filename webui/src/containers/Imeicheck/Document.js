@@ -182,12 +182,15 @@ class Document extends Component {
       }
     }
     if(formData.bindimsi){
+      if(formData.bindimsi.length>10){
+        errors.bindimsi.addError(`绑定的IMSI不能大于10个`);
+      }
       if(formData.bindimsi.length>1){
         const imsiSet = new Set(); // 使用 Set 存储已经出现过的 imsi 值
 
         formData.bindimsi.forEach((item, index) => {
           if (imsiSet.has(item.imsi)) {
-            errors.bindimsi[index].imsi.addError(`'${item.imsi}' is duplicated`);
+            errors.bindimsi[index].imsi.addError(`IMSI：'${item.imsi}' 重复`);
           } else {
             imsiSet.add(item.imsi);
           }

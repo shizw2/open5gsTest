@@ -184,8 +184,8 @@ class Item extends Component {
         <Oprlog>
           <div className="optorder">{index}</div>
           <div className="opttime">{opttime}</div>
-          <div className="opuser">{opuser}</div>
-          <div className="optype">{optype}</div>          
+          <div className="opuser">{opuser}</div>          
+          <div className="optype" style={{ color: optype.includes("警示") ? "red" : "" }}>{optype}</div>           
           <div className="optfm">{optfm}</div>           
         </Oprlog>        
         </Scroll>       

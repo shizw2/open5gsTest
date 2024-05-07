@@ -1374,7 +1374,10 @@ static OpenAPI_udm_info_t *build_udm_info(ogs_sbi_nf_info_t *nf_info)
 {
     OpenAPI_udm_info_t *UdmInfo = NULL;
     OpenAPI_list_t *SupiRangeList = NULL;
-   
+    OpenAPI_list_t *RoutingIndicatorList = NULL;
+    char *RoutingIndicator = NULL;
+    int i;
+
     ogs_assert(nf_info);  
 
     UdmInfo = ogs_calloc(1, sizeof(*UdmInfo));
@@ -1389,36 +1392,26 @@ static OpenAPI_udm_info_t *build_udm_info(ogs_sbi_nf_info_t *nf_info)
         UdmInfo->supi_ranges = SupiRangeList;
     }
 
-    
-
-    /*SupiRangeList = OpenAPI_list_create();
-    if (!SupiRangeList) {
-        ogs_error("No SupiRangeList");
+    RoutingIndicatorList = OpenAPI_list_create();
+    if (!RoutingIndicatorList) {
+        ogs_error("No RoutingIndicatorList");
         free_udm_info(UdmInfo);
-        OpenAPI_list_free(SupiRangeList);
+        OpenAPI_list_free(RoutingIndicatorList);
         return NULL;
     }
 
     for (i = 0;
-            i < nf_info->udm.supiRanges.num_of_supi_range;
+            i < nf_info->udm.routingIndicators.num_of_routing_indicator;
             i++) {
-        SupiRangeItem = ogs_calloc(1, sizeof(*SupiRangeItem));
-        ogs_assert(SupiRangeItem);
+        RoutingIndicator = ogs_strdup(nf_info->udm.routingIndicators.routing_indicators[i]);
 
-        SupiRangeItem->start = ogs_strdup(nf_info->udm.supiRanges.supi_ranges[i].start);
-        ogs_assert(SupiRangeItem->start);
-        SupiRangeItem->end = ogs_strdup(nf_info->udm.supiRanges.supi_ranges[i].end);
-        ogs_assert(SupiRangeItem->end);
-        
-        ogs_warn("build_udm_info,start %s, end %s, num %d.",SupiRangeItem->start,SupiRangeItem->end,nf_info->udm.supiRanges.num_of_supi_range);
-
-        OpenAPI_list_add(SupiRangeList, SupiRangeItem);
+        OpenAPI_list_add(RoutingIndicatorList, RoutingIndicator);
     }  
 
-    if (SupiRangeList->count)
-        UdmInfo->supi_ranges = SupiRangeList;
+    if (RoutingIndicatorList->count)
+        UdmInfo->routing_indicators = RoutingIndicatorList;
     else
-        OpenAPI_list_free(SupiRangeList);*/
+        OpenAPI_list_free(RoutingIndicatorList);
 
     return UdmInfo;
 }
@@ -1504,9 +1497,9 @@ static OpenAPI_ausf_info_t *build_ausf_info(ogs_sbi_nf_info_t *nf_info)
     }
 
     for (i = 0;
-            i < nf_info->ausf.num_of_routing_indicator;
+            i < nf_info->ausf.routingIndicators.num_of_routing_indicator;
             i++) {
-        RoutingIndicator = ogs_strdup(nf_info->ausf.routing_indicators[i]);
+        RoutingIndicator = ogs_strdup(nf_info->ausf.routingIndicators.routing_indicators[i]);
 
         OpenAPI_list_add(RoutingIndicatorList, RoutingIndicator);
     }  
@@ -1748,26 +1741,13 @@ static void free_supi_ranges(OpenAPI_list_t *SupiRangeList)
 }
 
 static void free_udm_info(OpenAPI_udm_info_t *UdmInfo)
-{    
-    /*OpenAPI_list_t *SupiRangeList = NULL;
-    OpenAPI_supi_range_t *SupiRangeItem = NULL;
-
+{
     OpenAPI_lnode_t *node = NULL;
-
-    
-
-    SupiRangeList = UdmInfo->supi_ranges;
-    OpenAPI_list_for_each(SupiRangeList, node) {
-        SupiRangeItem = node->data;
-        ogs_assert(SupiRangeItem);
-        if (SupiRangeItem->start)
-            ogs_free(SupiRangeItem->start);
-        if (SupiRangeItem->end)
-            ogs_free(SupiRangeItem->end);
-
-        ogs_free(SupiRangeItem);
+    OpenAPI_list_for_each( UdmInfo->routing_indicators, node) {
+        ogs_info("free %s.",(char*)node->data);
+        ogs_free(node->data);
     }
-    OpenAPI_list_free(SupiRangeList);*/
+    OpenAPI_list_free(UdmInfo->routing_indicators);
     
     ogs_assert(UdmInfo);
     

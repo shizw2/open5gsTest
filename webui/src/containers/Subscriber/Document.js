@@ -357,7 +357,7 @@ class Document extends Component {
             for(let k = 0; k < formData.slice[i].session[j].pcc_rule.length; k++)
             {
               let index = formData.slice[i].session[j].pcc_rule[k].qos.index;
-              const nonGBRQCIs = [1, 2, 3, 4, 65, 66, 67, 75, 71, 72, 73, 74, 76, 82, 83, 84, 85, 86];
+              const nonGBRQCIs = [5, 6, 7, 8, 9, 69, 70, 79, 80];
               if( nonGBRQCIs.includes(index) )
               {
                 if (formData.slice[i].session[j].pcc_rule[k].qos.gbr.downlink.value)

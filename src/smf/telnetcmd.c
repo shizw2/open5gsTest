@@ -16,6 +16,7 @@ void printPDR(ogs_pfcp_pdr_t *pdr);
 void printFAR(ogs_pfcp_far_t *far);
 
 telnet_command_t g_commands[] = {
+    {"shownf",      (GenericFunc)shownf,         1, {STRING}},
     {"showue",      (GenericFunc)showue,         1, {INTEGER}},
 };
 int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);

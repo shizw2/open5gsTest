@@ -891,7 +891,51 @@ int ogs_sbi_context_parse_supi_ranges(ogs_yaml_iter_t *root_iter, ogs_supi_range
     } else {
         ogs_warn("No supi range info");
     }
-    return isCfgChanged;    
+    return isCfgChanged;
+}
+
+int ogs_sbi_context_parse_routing_indicator(ogs_yaml_iter_t *root_iter, ogs_routing_indicator_t *routingIndicators){
+    ogs_yaml_iter_t routing_indicator_iter;
+    int num_of_routing_indicator = 0;
+    bool isCfgChanged = false;
+
+    ogs_yaml_iter_recurse(root_iter,
+            &routing_indicator_iter);
+    ogs_assert(ogs_yaml_iter_type(
+                &routing_indicator_iter) !=
+        YAML_MAPPING_NODE);
+
+    do {
+        const char *v = NULL;
+
+        if (ogs_yaml_iter_type(&routing_indicator_iter) ==
+                YAML_SEQUENCE_NODE) {
+            if (!ogs_yaml_iter_next(
+                        &routing_indicator_iter))
+                break;
+        }
+
+        v = ogs_yaml_iter_value(&routing_indicator_iter);
+        if (v && strlen(v) > 0) {
+            ogs_info("new routing_indicator %s ",v);
+            ogs_assert(num_of_routing_indicator < OGS_MAX_NUM_OF_ROUTING_INDICATOR);
+            if (routingIndicators->routing_indicators[num_of_routing_indicator] != NULL){
+                if ( strcmp(routingIndicators->routing_indicators[num_of_routing_indicator],v) != 0){
+                    ogs_info("routing_indicator changed from %s to %s.",routingIndicators->routing_indicators[num_of_routing_indicator],v);
+                    isCfgChanged = true;
+                }
+                ogs_info("routing_indicator %s already exit.",routingIndicators->routing_indicators[num_of_routing_indicator]);
+                ogs_free(routingIndicators->routing_indicators[num_of_routing_indicator]);//先释放老的
+            }
+            routingIndicators->routing_indicators[num_of_routing_indicator] = ogs_strdup(v);
+            num_of_routing_indicator++;                                        
+        }
+    } while (
+        ogs_yaml_iter_type(&routing_indicator_iter) ==
+            YAML_SEQUENCE_NODE);
+            
+    routingIndicators->num_of_routing_indicator = num_of_routing_indicator;
+    return isCfgChanged;
 }
 
 bool ogs_sbi_nf_service_is_available(const char *name)
@@ -1328,9 +1372,22 @@ void ogs_sbi_nf_instances_find_by_routing_indicator(ogs_sbi_nf_instance_t *match
                 if (ogs_list_count(&nf_instance->nf_info_list) > 0) {
                     bool has_routing_indicator = false;
                     ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
-                        for (j = 0; j < nf_info->ausf.num_of_routing_indicator; j++) { 
+                        ogs_routing_indicator_t  routingIndicators;
+
+                        switch (nf_instance->nf_type) {
+                            case OpenAPI_nf_type_UDM:
+                                routingIndicators = nf_info->udm.routingIndicators;
+                                break;
+                            case OpenAPI_nf_type_AUSF:
+                                routingIndicators = nf_info->ausf.routingIndicators;
+                                break;
+                            default:
+                                break;
+                        }
+
+                        for (j = 0; j < routingIndicators.num_of_routing_indicator; j++) { 
                             has_routing_indicator = true;                        
-                            if (strcmp(nf_info->ausf.routing_indicators[j], desired_routing_indicator) == 0) {
+                            if (strcmp(routingIndicators.routing_indicators[j], desired_routing_indicator) == 0) {
                                 matched_nf_instances[tmp_matched_nf_count] = nf_instance;
                                 tmp_matched_nf_count++;
                                 break;
@@ -1402,16 +1459,16 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_conditions(OpenAPI_nf_type_e 
     int matched_nf_count = 0;
     
     ogs_sbi_nf_instances_find_by_discovery_param(matched_nf_instances,&matched_nf_count,target_nf_type, requester_nf_type, discovery_option);
-    ogs_info("after ogs_sbi_nf_instances_find_by_discovery_param,target_nf_type:%s, matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type),matched_nf_count);
+    ogs_info("after ogs_sbi_nf_instances_find_by_discovery_param,requester_nf_type:%s,target_nf_type:%s, matched_nf_count:%d.",OpenAPI_nf_type_ToString(requester_nf_type), OpenAPI_nf_type_ToString(target_nf_type),matched_nf_count);
 
     if (supi_id != NULL){
         ogs_sbi_nf_instances_find_by_supi(matched_nf_instances,&matched_nf_count,target_nf_type, requester_nf_type, discovery_option,supi_id);
-        ogs_info("after ogs_sbi_nf_instances_find_by_supi,target_nf_type:%s, supi:%s, matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type),supi_id, matched_nf_count);
+        ogs_info("after ogs_sbi_nf_instances_find_by_supi, supi:%s, requester_nf_type:%s,target_nf_type:%s, matched_nf_count:%d.",supi_id, OpenAPI_nf_type_ToString(requester_nf_type), OpenAPI_nf_type_ToString(target_nf_type),matched_nf_count);
     }
     
     if (routing_indicator != NULL && (target_nf_type == OpenAPI_nf_type_AUSF || target_nf_type == OpenAPI_nf_type_UDM)){
         ogs_sbi_nf_instances_find_by_routing_indicator(matched_nf_instances,&matched_nf_count,routing_indicator);
-        ogs_info("after ogs_sbi_nf_instances_find_by_routing_indicator,target_nf_type:%s ,routing_indicator:%s,matched_nf_count:%d.", OpenAPI_nf_type_ToString(target_nf_type),routing_indicator, matched_nf_count);
+        ogs_info("after ogs_sbi_nf_instances_find_by_routing_indicator, routing_indicator:%s, requester_nf_type:%s,target_nf_type:%s, matched_nf_count:%d.",routing_indicator, OpenAPI_nf_type_ToString(requester_nf_type), OpenAPI_nf_type_ToString(target_nf_type),matched_nf_count);
     }
     
     if (matched_nf_count > 0){//考虑到匹配的nf可能capacity为0，
@@ -1685,20 +1742,24 @@ static void supiRange_free(ogs_supi_range_t *supiRanges)
     supiRanges->num_of_supi_range = 0;
 }
 
+static void routingIndicator_free(ogs_routing_indicator_t *routingIndicators)
+{
+    int i;
+    ogs_assert(routingIndicators);
+    
+    for (i = 0; i < routingIndicators->num_of_routing_indicator; i++) {     
+        ogs_free(routingIndicators->routing_indicators[i]);
+    }
+    routingIndicators->num_of_routing_indicator = 0;
+}
+
 static void udm_info_free(ogs_sbi_udm_info_t *udm_info)
 {
     int i;
     ogs_assert(udm_info);
 
     supiRange_free(&udm_info->supiRanges);
-    
-    /*ogs_info("udm_info_free, num_of_supi_range:%d.",udm_info->supiRanges.num_of_supi_range);
-    for (i = 0; i < udm_info->supiRanges.num_of_supi_range; i++) {     
-        ogs_info("udm_info_free, start:%s.",udm_info->supiRanges.supi_ranges[i].start);    
-        ogs_free(udm_info->supiRanges.supi_ranges[i].start);
-        ogs_free(udm_info->supiRanges.supi_ranges[i].end);
-    }
-    udm_info->supiRanges.num_of_supi_range = 0;*/
+    routingIndicator_free(&udm_info->routingIndicators);
 }
 
 static void udr_info_free(ogs_sbi_udr_info_t *udr_info)
@@ -1717,12 +1778,8 @@ static void ausf_info_free(ogs_sbi_ausf_info_t *ausf_info)
 {
     int i;
     ogs_assert(ausf_info);
-    supiRange_free(&ausf_info->supiRanges);
-    
-    for (i = 0; i < ausf_info->num_of_routing_indicator; i++) {     
-        ogs_free(ausf_info->routing_indicators[i]);
-    }
-    ausf_info->num_of_routing_indicator = 0;
+    supiRange_free(&ausf_info->supiRanges);    
+    routingIndicator_free(&ausf_info->routingIndicators);
 }
 
 void ogs_sbi_nf_info_remove(ogs_list_t *list, ogs_sbi_nf_info_t *nf_info)
@@ -2484,8 +2541,9 @@ ogs_sbi_subscription_data_t *ogs_sbi_subscription_data_find(char *id)
     return subscription_data;
 }
 
-void print_ogs_sbi_nf_info(const ogs_sbi_nf_info_t *nf_info);
-void printf_supiRanges(ogs_supi_range_t *supiRanges);
+void print_ogs_sbi_nf_info(ogs_sbi_nf_info_t *nf_info);
+void print_supiRanges(ogs_supi_range_t *supiRanges);
+void print_ogs_sbi_nf_service(ogs_sbi_nf_service_t *nf_service);
 
 void shownf(char *id){
     if(id == NULL || strlen(id) == 0 ){
@@ -2524,6 +2582,8 @@ void shownfBriefAll(void){
 void showgnfDetail(char *id){
     ogs_sbi_nf_instance_t *nf_instance = NULL;
     ogs_sbi_nf_info_t *nf_info = NULL;
+    ogs_sbi_nf_service_t *nf_service = NULL;
+  
     int i;
     char buf[OGS_ADDRSTRLEN];
     char addrInfo[OGS_ADDRSTRLEN] = {0};
@@ -2562,46 +2622,50 @@ void showgnfDetail(char *id){
     printf("  |--load               : %d \r\n", nf_instance->load);
     printf("  |--reference_count    : %d \r\n", nf_instance->reference_count);
     
+    printf("  |--nf_service_count   : %d \r\n", ogs_list_count(&nf_instance->nf_service_list));
+    ogs_list_for_each(&nf_instance->nf_service_list, nf_service) {
+        print_ogs_sbi_nf_service(nf_service);
+    }
+    
+    printf("  |--nf_info_count      : %d \r\n", ogs_list_count(&nf_instance->nf_info_list));
     ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
         print_ogs_sbi_nf_info(nf_info);
     }
 }
 
-void print_ogs_sbi_nf_info(const ogs_sbi_nf_info_t *nf_info) {
+void print_ogs_sbi_nf_info(ogs_sbi_nf_info_t *nf_info) {
     int i,j;
     
-    printf("  |--nf_type            : %d \r\n", nf_info->nf_type);
+    printf("     |--nf_type            : %s(%d) \r\n", OpenAPI_nf_type_ToString(nf_info->nf_type),nf_info->nf_type);
 
     if (nf_info->nf_type == OpenAPI_nf_type_SMF) {
-        printf("     |--smf\n");
         printf("        |--num_of_slice  : %d \r\n", nf_info->smf.num_of_slice);
         for (i = 0; i < nf_info->smf.num_of_slice; i++) {
-            printf("        |--slice[%d]\n", i);
-            printf("           |--s_nssai    : SST:%d SD:0x%x \r\n", nf_info->smf.slice[i].s_nssai.sst,nf_info->smf.slice[i].s_nssai.sd.v);
-            printf("           |--num_of_dnn : %d \r\n", nf_info->smf.slice[i].num_of_dnn);
+            printf("           |--slice[%d]\n", i);
+            printf("             |--s_nssai    : SST:%d SD:0x%x \r\n", nf_info->smf.slice[i].s_nssai.sst,nf_info->smf.slice[i].s_nssai.sd.v);
+            printf("             |--num_of_dnn : %d \r\n", nf_info->smf.slice[i].num_of_dnn);
             for (j = 0; j < nf_info->smf.slice[i].num_of_dnn; j++) {
-                printf("           |--dnn[%d]     : %s \r\n", j, nf_info->smf.slice[i].dnn[j]);
+                printf("               |--dnn[%d]     : %s \r\n", j, nf_info->smf.slice[i].dnn[j]);
             }
         }
         
         printf("        |--num_of_nr_tai       : %d \r\n", nf_info->smf.num_of_nr_tai);
         for (i = 0; i < nf_info->smf.num_of_nr_tai; i++) {            
-            printf("        |--nr_tai[%d]: MCC:%d,MNC:%-3dTAC:%d \r\n", i, ogs_plmn_id_mcc(&nf_info->smf.nr_tai[i].plmn_id),
+            printf("          |--nr_tai[%d]: MCC:%d,MNC:%-3dTAC:%d \r\n", i, ogs_plmn_id_mcc(&nf_info->smf.nr_tai[i].plmn_id),
                                                                ogs_plmn_id_mnc(&nf_info->smf.nr_tai[i].plmn_id),
                                                                nf_info->smf.nr_tai[i].tac.v);
         }
         printf("        |--num_of_nr_tai_range       : %d \r\n", nf_info->smf.num_of_nr_tai_range);
         for (i = 0; i < nf_info->smf.num_of_nr_tai_range; i++) {
-            printf("        |--nr_tai_range[%d]\n", i);
-            printf("           |--plmn_id       : MCC:%d,MNC:%d \r\n", ogs_plmn_id_mcc(&nf_info->smf.nr_tai_range[i].plmn_id),ogs_plmn_id_mnc(&nf_info->smf.nr_tai_range[i].plmn_id));
-            printf("           |--num_of_tac_range       : %d \r\n", nf_info->smf.nr_tai_range[i].num_of_tac_range);
+            printf("          |--nr_tai_range[%d]\n", i);
+            printf("             |--plmn_id       : MCC:%d,MNC:%d \r\n", ogs_plmn_id_mcc(&nf_info->smf.nr_tai_range[i].plmn_id),ogs_plmn_id_mnc(&nf_info->smf.nr_tai_range[i].plmn_id));
+            printf("             |--num_of_tac_range       : %d \r\n", nf_info->smf.nr_tai_range[i].num_of_tac_range);
             for (j = 0; j < nf_info->smf.nr_tai_range[i].num_of_tac_range; j++) {
-                printf("           |--start[%d]       : %d \r\n", j, nf_info->smf.nr_tai_range[i].start[j].v);
-                printf("           |--end[%d]       : %d \r\n", j, nf_info->smf.nr_tai_range[i].end[j].v);
+                printf("               |--start[%d]       : %d \r\n", j, nf_info->smf.nr_tai_range[i].start[j].v);
+                printf("               |--end[%d]       : %d \r\n", j, nf_info->smf.nr_tai_range[i].end[j].v);
             }
         }
     } else if (nf_info->nf_type == OpenAPI_nf_type_AMF) {
-        printf("     |--amf\n");
         printf("        |--amf_set_id       : %d \r\n", nf_info->amf.amf_set_id);
         printf("        |--amf_region_id    : %d \r\n", nf_info->amf.amf_region_id);
         printf("        |--num_of_guami     : %d \r\n", nf_info->amf.num_of_guami);
@@ -2629,7 +2693,6 @@ void print_ogs_sbi_nf_info(const ogs_sbi_nf_info_t *nf_info) {
             }
         }
     } else if (nf_info->nf_type == OpenAPI_nf_type_SCP) {
-        printf("     |--scp\n");
         printf("        |--http            : %d \r\n", nf_info->scp.http.port);
         printf("        |--https           : %d \r\n", nf_info->scp.https.port);
         printf("        |--num_of_domain   : %d \r\n", nf_info->scp.num_of_domain);
@@ -2641,61 +2704,72 @@ void print_ogs_sbi_nf_info(const ogs_sbi_nf_info_t *nf_info) {
             printf("           |--https        : %d \r\n", nf_info->scp.domain[i].https.port);
         }
     } else if (nf_info->nf_type == OpenAPI_nf_type_UDM) {
-        printf("     |--udm\n");
-        printf("        |--supiRanges.num_of_supi_range: %d \r\n", nf_info->udm.supiRanges.num_of_supi_range);
-        for (i = 0; i < nf_info->udm.supiRanges.num_of_supi_range; i++) {
-            printf("        |--supiRanges.supi_ranges[%d]\n", i);
-            printf("           |--start        : %s \r\n", nf_info->udm.supiRanges.supi_ranges[i].start);
-            printf("           |--end          : %s \r\n", nf_info->udm.supiRanges.supi_ranges[i].end);
+        print_supiRanges(&nf_info->udm.supiRanges);
+        printf("        |--num_of_routing_indicator     : %d \r\n", nf_info->udm.routingIndicators.num_of_routing_indicator);
+        for (i = 0; i < nf_info->udm.routingIndicators.num_of_routing_indicator; i++) {
+            printf("          |--routing_indicators[%d]     : %s \r\n", i, nf_info->udm.routingIndicators.routing_indicators[i]);
         }
     } else if (nf_info->nf_type == OpenAPI_nf_type_UDR) {
-        printf("     |--udr\n");
-        printf("        |--supiRanges.num_of_supi_range: %d \r\n", nf_info->udr.supiRanges.num_of_supi_range);
-        for (i = 0; i < nf_info->udr.supiRanges.num_of_supi_range; i++) {
-            printf("        |--supiRanges.supi_ranges[%d]\n", i);
-            printf("           |--start        : %s \r\n", nf_info->udr.supiRanges.supi_ranges[i].start);
-            printf("           |--end          : %s \r\n", nf_info->udr.supiRanges.supi_ranges[i].end);
-        }
+        print_supiRanges(&nf_info->udr.supiRanges);
     } else if (nf_info->nf_type == OpenAPI_nf_type_PCF) {
-        printf("     |--pcf\n");
-        printf("        |--supiRanges.num_of_supi_range: %d \r\n", nf_info->pcf.supiRanges.num_of_supi_range);
-        for (i = 0; i < nf_info->pcf.supiRanges.num_of_supi_range; i++) {
-            printf("        |--supiRanges.supi_ranges[%d]\n", i);
-            printf("           |--start        : %s \r\n", nf_info->pcf.supiRanges.supi_ranges[i].start);
-            printf("           |--end          : %s \r\n", nf_info->pcf.supiRanges.supi_ranges[i].end);
-        }
+        print_supiRanges(&nf_info->pcf.supiRanges);
         // 打印 pcf 相关字段...
     } else if (nf_info->nf_type == OpenAPI_nf_type_AUSF) {
-        printf("     |--ausf\n");
-        printf("        |--supiRanges.num_of_supi_range: %d \r\n", nf_info->ausf.supiRanges.num_of_supi_range);
-        for (i = 0; i < nf_info->ausf.supiRanges.num_of_supi_range; i++) {
-            printf("        |--supiRanges.supi_ranges[%d]\n", i);
-            printf("           |--start        : %s \r\n", nf_info->ausf.supiRanges.supi_ranges[i].start);
-            printf("           |--end          : %s \r\n", nf_info->ausf.supiRanges.supi_ranges[i].end);
-        }
-        printf("        |--num_of_routing_indicator       : %d \r\n", nf_info->ausf.num_of_routing_indicator);
-        for (i = 0; i < nf_info->ausf.num_of_routing_indicator; i++) {
-            printf("        |--routing_indicators[%d]       : %s \r\n", i, nf_info->ausf.routing_indicators[i]);
+        print_supiRanges(&nf_info->ausf.supiRanges);
+        printf("        |--num_of_routing_indicator     : %d \r\n", nf_info->ausf.routingIndicators.num_of_routing_indicator);
+        for (i = 0; i < nf_info->ausf.routingIndicators.num_of_routing_indicator; i++) {
+            printf("          |--routing_indicators[%d]     : %s \r\n", i, nf_info->ausf.routingIndicators.routing_indicators[i]);
         }
         // 打印 ausf 相关字段...
-    } /*else if (nf_info->nf_type == OpenAPI_nf_type_EIR) {
-        printf("     |--eir\n");
-        printf("        |--supiRanges.num_of_supi_range: %d \r\n", nf_info->eir.supiRanges.num_of_supi_range);
-        for (i = 0; i < nf_info->eir.supiRanges.num_of_supi_range; i++) {
-            printf("        |--supiRanges.supi_ranges[%d]\n", i);
-            printf("           |--start        : %s \r\n", nf_info->eir.supiRanges.supi_ranges[i].start);
-            printf("           |--end          : %s \r\n", nf_info->eir.supiRanges.supi_ranges[i].end);
-        }
-        // 打印 eir 相关字段...
-    }    */
+    } 
 }
 
-void printf_supiRanges(ogs_supi_range_t *supiRanges){
+void print_supiRanges(ogs_supi_range_t *supiRanges){
     int i;
     printf("        |--supiRanges.num_of_supi_range: %d \r\n", supiRanges->num_of_supi_range);
     for (i = 0; i < supiRanges->num_of_supi_range; i++) {
-        printf("        |--supiRanges.supi_ranges[%d]\n", i);
-        printf("           |--start        : %s \r\n", supiRanges->supi_ranges[i].start);
-        printf("           |--end          : %s \r\n", supiRanges->supi_ranges[i].end);
+        printf("          |--supiRanges.supi_ranges[%d]:%s-%s\n", i,supiRanges->supi_ranges[i].start,supiRanges->supi_ranges[i].end);
     }
+}
+
+void print_ogs_sbi_nf_service(ogs_sbi_nf_service_t *nf_service) {
+    int i;
+    char buf[OGS_ADDRSTRLEN];
+
+    printf("    |--id                 : %s \r\n", nf_service->id);
+    printf("    |--name               : %s \r\n", nf_service->name);
+    printf("    |--scheme             : %s \r\n", OpenAPI_uri_scheme_ToString(nf_service->scheme));
+    printf("    |--status             : %s \r\n", OpenAPI_nf_service_status_ToString(nf_service->status));
+
+    printf("    |--num_of_version     : %d \r\n", nf_service->num_of_version);
+    for (i = 0; i < nf_service->num_of_version; i++) {
+        printf("       |--version[%d]     : \r\n", i);
+        printf("          |--in_uri       : %s \r\n", nf_service->version[i].in_uri);
+        printf("          |--full         : %s \r\n", nf_service->version[i].full);
+        printf("          |--expiry       : %s \r\n", nf_service->version[i].expiry);
+    }
+
+    printf("    |--fqdn               : %s \r\n", nf_service->fqdn);
+    printf("    |--num_of_addr        : %d \r\n", nf_service->num_of_addr);
+    for (i = 0; i < nf_service->num_of_addr; i++) {
+        printf("       |--addr[%d]        : \r\n", i);
+        if (nf_service->addr[i].ipv4 != NULL){
+            printf("          |--ipv4         : %s \r\n", OGS_ADDR(nf_service->addr[i].ipv4, buf));
+        }
+        if (nf_service->addr[i].ipv6 != NULL){
+            printf("          |--ipv6         : %s \r\n", OGS_ADDR(nf_service->addr[i].ipv6, buf));
+        }
+        printf("          |--is_port      : %d \r\n", nf_service->addr[i].is_port);
+        printf("          |--port         : %d \r\n", nf_service->addr[i].port);
+    }
+
+    printf("    |--num_of_allowed_nf_type   : %d \r\n", nf_service->num_of_allowed_nf_type);
+    for (i = 0; i < nf_service->num_of_allowed_nf_type; i++) {
+        printf("       |--allowed_nf_type[%d]    : %s \r\n", i, OpenAPI_nf_type_ToString(nf_service->allowed_nf_type[i]));
+    }
+
+    printf("    |--priority          : %d \r\n", nf_service->priority);
+    printf("    |--capacity          : %d \r\n", nf_service->capacity);
+    printf("    |--load              : %d \r\n", nf_service->load);
+
 }

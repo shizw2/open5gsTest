@@ -64,7 +64,7 @@ int ogs_dbi_imeicheck_data(char* imei, ImeicheckDocument* document)
                 bson_iter_t sub_iter;
                 bson_iter_recurse(&iter, &sub_iter);            
                 int i = 0;
-                while (bson_iter_next(&sub_iter) && i < 10) {
+                while (bson_iter_next(&sub_iter) && i < OGS_MAX_BIND_IMSI_NUM) {
                     if (BSON_ITER_HOLDS_DOCUMENT(&sub_iter)) {
                         bson_iter_t doc_iter;
                         bson_iter_recurse(&sub_iter, &doc_iter);
@@ -99,3 +99,42 @@ int ogs_dbi_imeicheck_data(char* imei, ImeicheckDocument* document)
     bson_destroy(query);
     return rv;
 }
+bool insert_document_to_collection(const OmmlogSchema *document) {
+    bson_error_t error;
+    bson_t *doc;
+    time_t currentTime;
+    struct tm *localTime;
+    char dateTimeString[20];   
+    currentTime = time(NULL);
+    localTime = localtime(&currentTime);
+    strftime(dateTimeString, sizeof(dateTimeString), "%Y/%m/%d %H:%M:%S", localTime);
+
+    doc = BCON_NEW(
+        "opttime", "[",
+            BCON_UTF8(dateTimeString),
+        "]",
+        "opuser","[",
+            BCON_UTF8("5gc"),
+        "]",
+        "optype", "[",
+            BCON_UTF8("警示"),
+        "]",
+        "optfm", "[",
+            BCON_UTF8("黑白名单"),
+        "]",
+        "optcommand", "[",
+            BCON_UTF8(document->optcommand),
+         "]"
+    );
+
+    if (!mongoc_collection_insert_one(ogs_mongoc()->collection.ommlog, doc, NULL, NULL, &error)) {
+        ogs_error("Failed to insert document: %s\n", error.message);
+        bson_destroy(doc);
+        return false;
+    }
+
+    bson_destroy(doc);
+    return true;
+
+}
+

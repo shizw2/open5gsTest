@@ -14,6 +14,7 @@ import { pcfschema, pcfuiSchema } from './EditNF/pcfConfigSchema';
 import { udmschema, udmuiSchema } from './EditNF/udmConfigSchema';
 import { upfschema, upfuiSchema } from './EditNF/upfConfigSchema';
 import { udrschema, udruiSchema } from './EditNF/udrConfigSchema';
+import { eirschema, eiruiSchema } from './EditNF/eirConfigSchema';
 
 class Edit extends Component {
   static propTypes = {
@@ -184,13 +185,15 @@ class Edit extends Component {
     }else if (formData._id === 'udr' || formData._nf === 'udr') {
       selectedSchema = udrschema;
       selectedUiSchema = udruiSchema;
+    }else if (formData._id === 'eir' || formData._nf === 'eir') {
+      selectedSchema = eirschema;
+      selectedUiSchema = eiruiSchema;
     }else {
       // 默认情况下，选择一个适当的“fallback”模式和 UI 模式
       console.log("Edit Default");     
       selectedSchema = nrfschema;
       selectedUiSchema = nrfuiSchema;
    }
-
 
     let state = {
       schema: selectedSchema,
