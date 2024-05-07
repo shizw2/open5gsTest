@@ -64,9 +64,7 @@ void upf_context_init(void)
     ogs_assert(self.ipv4_hash);
     self.ipv6_hash = ogs_hash_make();
     ogs_assert(self.ipv6_hash);
-    self.frag_hash = ogs_hash_make();
-    ogs_assert(self.frag_hash);
-    
+
     context_initialized = 1;
 }
 
@@ -95,9 +93,7 @@ void upf_context_final(void)
     ogs_hash_destroy(self.ipv4_hash);
     ogs_assert(self.ipv6_hash);
     ogs_hash_destroy(self.ipv6_hash);
-    ogs_assert(self.frag_hash);
-    ogs_hash_destroy(self.frag_hash);
-    
+
     free_upf_route_trie_node(self.ipv4_framed_routes);
     free_upf_route_trie_node(self.ipv6_framed_routes);
 

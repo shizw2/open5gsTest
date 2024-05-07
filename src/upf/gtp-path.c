@@ -55,14 +55,6 @@
 
 #define UPF_GTP_HANDLED     1
 
-typedef struct {
-    union{
-        uint32_t ip_src;
-        uint32_t ip6_src[4];
-    };
-    uint16_t ip_id;
-} fragKey;
-
 const uint8_t proxy_mac_addr[] = { 0x0e, 0x00, 0x00, 0x00, 0x00, 0x01 };
 
 static ogs_pkbuf_pool_t *packet_pool = NULL;
@@ -107,91 +99,6 @@ static uint16_t _get_eth_type(uint8_t *data, uint len) {
     return 0;
 }
 
-/*static void getFragKey(const ogs_pkbuf_t *buf, fragKey *key) {
-    const struct ip *ip_header = (const struct ip *)buf->data;
-
-    key->ip_src = ntohl(ip_header->ip_src.s_addr);
-    key->ip_id = ntohs(ip_header->ip_id);
-}*/
-
-
-#define NON_FRAGMENTED_PACKET 0
-#define FIRST_FRAGMENT       1
-#define OTHER_FRAGMENT       2
-
-/*static int getFragmentType(const ogs_pkbuf_t *buf, fragKey *key) {
-    const struct ip *ip_header = (const struct ip *)buf->data;
-
-    if (ip_header->ip_v == 4) {
-        // IPv4 分片判断
-        if ((ntohs(ip_header->ip_off) & IP_MF) == 0 && (ntohs(ip_header->ip_off) & IP_OFFMASK) == 0) {
-            return NON_FRAGMENTED_PACKET; // 非分片报文
-        } else if ((ntohs(ip_header->ip_off) & IP_MF) != 0 && (ntohs(ip_header->ip_off) & IP_OFFMASK) == 0) {
-            key->ip_src = ip_header->ip_src.s_addr;
-            key->ip_id = ip_header->ip_id;
-            return FIRST_FRAGMENT; // 分片第一包
-        } else {
-            key->ip_src = ip_header->ip_src.s_addr;
-            key->ip_id = ip_header->ip_id;
-            return OTHER_FRAGMENT; // 分片其他包
-        }
-    } else if (ip_header->ip_v == 6) {
-        // IPv6 分片判断
-        const struct ip6_hdr *ip6_header = (const struct ip6_hdr *)buf->data;
-        if (ip6_header->ip6_ctlun.ip6_un1.ip6_un1_nxt == IPPROTO_FRAGMENT) {
-            const struct ip6_frag *frag_header = (const struct ip6_frag *)((uint8_t *)ip6_header + sizeof(struct ip6_hdr));
-            uint16_t offset = ntohs(frag_header->ip6f_offlg & IP6F_OFF_MASK);
-            memcpy(key->ip6_src, &ip6_header->ip6_src, OGS_IPV6_LEN);
-            key->ip_id = ntohs(frag_header->ip6f_ident);
-            if (offset == 0) {                
-                return FIRST_FRAGMENT; // 分片第一包
-            } else {
-                return OTHER_FRAGMENT; // 分片其他包
-            }
-        } else {
-            return NON_FRAGMENTED_PACKET; // 非分片报文
-        }
-    }
-
-    return NON_FRAGMENTED_PACKET; // 未知协议类型
-}*/
-static int getFragmentType(const ogs_pkbuf_t *buf, fragKey *key) {
-    const struct ip *ip_header = (const struct ip *)buf->data;
-
-    if (ip_header->ip_v == 4) {
-        // IPv4 分片判断
-        if ((ntohs(ip_header->ip_off) & IP_MF) == 0 && (ntohs(ip_header->ip_off) & IP_OFFMASK) == 0) {
-            return NON_FRAGMENTED_PACKET; // 非分片报文
-        } else {
-            key->ip_src = ntohl(ip_header->ip_src.s_addr);
-            key->ip_id = ntohs(ip_header->ip_id);
-            if ((ntohs(ip_header->ip_off) & IP_OFFMASK) == 0) {
-                return FIRST_FRAGMENT; // 分片第一包
-            } else {
-                return OTHER_FRAGMENT; // 分片其他包
-            }
-        }
-    } else if (ip_header->ip_v == 6) {
-        // IPv6 分片判断
-        const struct ip6_hdr *ip6_header = (const struct ip6_hdr *)buf->data;
-        if (ip6_header->ip6_ctlun.ip6_un1.ip6_un1_nxt == IPPROTO_FRAGMENT) {
-            const struct ip6_frag *frag_header = (const struct ip6_frag *)((uint8_t *)ip6_header + sizeof(struct ip6_hdr));
-            uint16_t offset = ntohs(frag_header->ip6f_offlg & IP6F_OFF_MASK);
-            memcpy(key->ip6_src, &ip6_header->ip6_src, sizeof(uint32_t) * 4);
-            key->ip_id = ntohs(frag_header->ip6f_ident);
-            if (offset == 0) {
-                return FIRST_FRAGMENT; // 分片第一包
-            } else {
-                return OTHER_FRAGMENT; // 分片其他包
-            }
-        } else {
-            return NON_FRAGMENTED_PACKET; // 非分片报文
-        }
-    }
-
-    return NON_FRAGMENTED_PACKET; // 未知协议类型
-}
-
 static void _gtpv1_tun_recv_common_cb(
         short when, ogs_socket_t fd, bool has_eth, void *data)
 {
@@ -203,7 +110,6 @@ static void _gtpv1_tun_recv_common_cb(
     ogs_pfcp_far_t *far = NULL;
     ogs_pfcp_user_plane_report_t report;
     int i;
-    int pktType;
 
     recvbuf = ogs_tun_read(fd, packet_pool);
     if (!recvbuf) {
@@ -261,55 +167,40 @@ static void _gtpv1_tun_recv_common_cb(
     if (!sess)
         goto cleanup;
 
-    fragKey key;
-    pktType = getFragmentType(recvbuf, &key);
+    ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
+        far = pdr->far;
+        ogs_assert(far);
 
-    if (pktType == OTHER_FRAGMENT) {
-        // 判断是否是后续分片包，并获取对应的 IP 地址和 ID
-        // 根据 IP 地址和 ID 查找哈希表，如果找到则直接使用对应的 PDR
-        pdr = ogs_hash_get(upf_self()->frag_hash, &key, sizeof(key));
-        ogs_info("it is a ohter frag, pdr:%p.",pdr );
-    }else{
-        ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
-            far = pdr->far;
-            ogs_assert(far);
+        /* Check if PDR is Downlink */
+        if (pdr->src_if != OGS_PFCP_INTERFACE_CORE)
+            continue;
 
-            /* Check if PDR is Downlink */
-            if (pdr->src_if != OGS_PFCP_INTERFACE_CORE)
-                continue;
+        /* Save the Fallback PDR : Lowest precedence downlink PDR */
+        fallback_pdr = pdr;
 
-            /* Save the Fallback PDR : Lowest precedence downlink PDR */
-            fallback_pdr = pdr;
+        /* Check if FAR is Downlink */
+        if (far->dst_if != OGS_PFCP_INTERFACE_ACCESS)
+            continue;
 
-            /* Check if FAR is Downlink */
-            if (far->dst_if != OGS_PFCP_INTERFACE_ACCESS)
-                continue;
+        /* Check if Outer header creation */
+        if (far->outer_header_creation.ip4 == 0 &&
+            far->outer_header_creation.ip6 == 0 &&
+            far->outer_header_creation.udp4 == 0 &&
+            far->outer_header_creation.udp6 == 0 &&
+            far->outer_header_creation.gtpu4 == 0 &&
+            far->outer_header_creation.gtpu6 == 0)
+            continue;
 
-            /* Check if Outer header creation */
-            if (far->outer_header_creation.ip4 == 0 &&
-                far->outer_header_creation.ip6 == 0 &&
-                far->outer_header_creation.udp4 == 0 &&
-                far->outer_header_creation.udp6 == 0 &&
-                far->outer_header_creation.gtpu4 == 0 &&
-                far->outer_header_creation.gtpu6 == 0)
-                continue;
+        /* Check if Rule List in PDR */
+        if (ogs_list_first(&pdr->rule_list) &&
+            ogs_pfcp_pdr_rule_find_by_packet(pdr, recvbuf) == NULL)
+            continue;
 
-            /* Check if Rule List in PDR */
-            if (ogs_list_first(&pdr->rule_list) &&
-                ogs_pfcp_pdr_rule_find_by_packet(pdr, recvbuf) == NULL)
-                continue;
-
-            break;
-        }
-
-        if (!pdr)
-            pdr = fallback_pdr;
-
-        if (pktType == FIRST_FRAGMENT) {
-            ogs_hash_set(upf_self()->frag_hash, &key, sizeof(key), pdr);
-            ogs_info("it is a first frag, save pdr:%p.",pdr );
-        }
+        break;
     }
+
+    if (!pdr)
+        pdr = fallback_pdr;
 
     if (!pdr) {
         if (ogs_app()->parameter.multicast) {
