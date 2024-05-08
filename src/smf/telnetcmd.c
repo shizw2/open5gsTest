@@ -75,18 +75,18 @@ void showueDetail( char * supi )
     char buf2[OGS_ADDRSTRLEN];
     char buffer[20] = {};
     ue = smf_ue_find_by_supi(supi);
-    
+   
     if (NULL == ue){
         printf("can't find ue by supi:%s\r\n",supi);
         return;
     }
 
     ogs_list_for_each(&ue->sess_list, sess){
-        printf("The smf_sess_t Detail Info is the following: \r\n");
+        printf("The ue %s smf_sess %d Detail Info is the following: \r\n",supi,sess->index);
         //printf("  |--sbi                : %p \r\n", sess->sbi);
         printf("  |--index              : %u \r\n", sess->index);
         printf("  |--smf_n4_seid_node   : %d \r\n", *sess->smf_n4_seid_node);
-        //printf("  |--sm                : %p \r\n", sess->sm);
+        printf("  |--sm_data            :  \r\n");
         printf("     |--gx_ccr_init_in_flight   : %d \r\n", sess->sm_data.gx_ccr_init_in_flight);
         printf("     |--gx_cca_init_err         : %u \r\n", sess->sm_data.gx_cca_init_err);
         printf("     |--gy_ccr_init_in_flight   : %d \r\n", sess->sm_data.gy_ccr_init_in_flight);
@@ -137,7 +137,7 @@ void showueDetail( char * supi )
         time_t time = ogs_time_sec(sess->ue_location_timestamp);
         struct tm *timeInfo = localtime(&time);  
         strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeInfo);    
-        printf("  |--ue_location_timestamp      : %lu \r\n", sess->ue_location_timestamp);
+        printf("  |--ue_location_timestamp      : %s \r\n", buffer);
 
         printf("  |--pcf_id             : %s \r\n", sess->pcf_id);
         printf("  |--serving_nf_id      : %s \r\n", sess->serving_nf_id);
@@ -153,21 +153,21 @@ void showueDetail( char * supi )
         //printf("  |--session.ambr.mbr_dl       : %u \r\n", sess->session.ambr.mbr_dl);
         //printf("  |--session.ambr.mbr_ul       : %u \r\n", sess->session.ambr.mbr_ul);
 
-        printf("  |--ue_session_type       : %u \r\n", sess->ue_session_type);
-        printf("  |--ue_ssc_mode      : %u \r\n", sess->ue_ssc_mode);
+        printf("  |--ue_session_type    : %u \r\n", sess->ue_session_type);
+        printf("  |--ue_ssc_mode        : %u \r\n", sess->ue_ssc_mode);
 
         if (sess->ipv4 != NULL)
-            printf("  |--ipv4       : %s \r\n", OGS_INET_NTOP(&sess->ipv4->addr, buf1));
+            printf("  |--ipv4               : %s \r\n", OGS_INET_NTOP(&sess->ipv4->addr, buf1));
         
         if (sess->ipv6 != NULL)
-            printf("  |--ipv6       : %s \r\n", OGS_INET6_NTOP(&sess->ipv6->addr, buf2));
+            printf("  |--ipv6               : %s \r\n", OGS_INET6_NTOP(&sess->ipv6->addr, buf2));
 
-        printf("  |--gtp_rat_type      : %u \r\n", sess->gtp_rat_type);
-        printf("  |--sbi_rat_type      : %u \r\n", sess->sbi_rat_type);
+        printf("  |--gtp_rat_type       : %u \r\n", sess->gtp_rat_type);
+        printf("  |--sbi_rat_type       : %u \r\n", sess->sbi_rat_type);
 
-        printf("  |--gtp.version      : %u \r\n", sess->gtp.version);
-        printf("  |--gtp.create_session_response_apn_ambr      : %d \r\n", sess->gtp.create_session_response_apn_ambr);
-        printf("  |--gtp.create_session_response_bearer_qos      : %d \r\n", sess->gtp.create_session_response_bearer_qos);
+        printf("  |--gtp.version        : %u \r\n", sess->gtp.version);
+        printf("  |--gtp.create_session_response_apn_ambr: %d \r\n", sess->gtp.create_session_response_apn_ambr);
+        printf("  |--gtp.create_session_response_bearer_qos: %d \r\n", sess->gtp.create_session_response_bearer_qos);
        
         //printf("  |--nas.ue_epco               : %p \r\n", sess->nas.ue_epco);
         //printf("  |--policy.pcc_rule           : %p \r\n", sess->policy.pcc_rule);
@@ -176,25 +176,28 @@ void showueDetail( char * supi )
         printf("  |--ngap_state.pdu_session_resource_release : %d \r\n", sess->ngap_state.pdu_session_resource_release);
         //handover
         
-        printf("  |--charging.id               : %u \r\n", sess->charging.id);
-        printf("  |--cp2up_pdr                 :  \r\n");
+        printf("  |--charging.id        : %u \r\n", sess->charging.id);
+        printf("  |--cp2up_pdr          :  \r\n");
         print_pdr(sess->cp2up_pdr);
-        printf("  |--up2cp_pdr                 :  \r\n");
+        printf("  |--up2cp_pdr          :  \r\n");
         print_pdr(sess->up2cp_pdr);
-        printf("  |--cp2up_far                 :  \r\n");
+        printf("  |--cp2up_far          :  \r\n");
         print_far(sess->cp2up_far);
-        printf("  |--up2cp_far                 :  \r\n");
+        printf("  |--up2cp_far          :  \r\n");
         print_far(sess->up2cp_far);
-        //printf("  |--bearer_list               : %p \r\n", sess->bearer_list);
+        printf("  |--bearer_num         :  %d\r\n", ogs_list_count(&sess->bearer_list));
+        int bearer_idx = 0;
         ogs_list_for_each(&sess->bearer_list, bearer){
+            printf("  |--bearer_info %d     :  \r\n", bearer_idx);
             print_bearer(bearer);
+            bearer_idx++;
         }
         //printf("  |--pdr_to_modify_list        : %p \r\n", sess->pdr_to_modify_list);
         //printf("  |--qos_flow_to_modify_list   : %p \r\n", sess->qos_flow_to_modify_list);
         //printf("  |--gnode                     : %p \r\n", sess->gnode);
         //printf("  |--pfcp_node                 : %p \r\n", sess->pfcp_node);
-        printf("  |--n1_released               : %d \r\n", sess->n1_released);
-        printf("  |--n2_released               : %d \r\n", sess->n2_released);
+        printf("  |--n1_released        : %d \r\n", sess->n1_released);
+        printf("  |--n2_released        : %d \r\n", sess->n2_released);
     }
 }
 
@@ -212,9 +215,9 @@ void print_pdr(ogs_pfcp_pdr_t *pdr){
     printf("          |--src_if            : %s \r\n", ogs_pfcp_interface_get_name(pdr->src_if));
     printf("          |--dnn               : %s \r\n", pdr->dnn);
     printf("          |--f_teid            :  \r\n");
-    printf("              |--teid             : %d \r\n", pdr->f_teid.teid);
-    printf("              |--addr             : %s \r\n", OGS_INET_NTOP(&pdr->f_teid.addr, buf1) );
-    printf("              |--addr6            : %s \r\n", OGS_INET_NTOP(&pdr->f_teid.addr6, buf2) );
+    printf("              |--teid          : %d \r\n", pdr->f_teid.teid);
+    printf("              |--addr          : %s \r\n", OGS_INET_NTOP(&pdr->f_teid.addr, buf1) );
+    printf("              |--addr6         : %s \r\n", OGS_INET_NTOP(&pdr->f_teid.addr6, buf2) );
     printf("          |--chid              : %d \r\n", pdr->chid);
     printf("          |--choose_id         : %d \r\n", pdr->choose_id);
     printf("          |--qfi               : %d \r\n", pdr->qfi);
@@ -302,53 +305,58 @@ void print_bearer(smf_bearer_t *bearer){
         return;
     }       
     
-    //printf("  |--lnode              : %p \r\n", bearer->lnode);
     //printf("  |--to_modify_node     : %p \r\n", bearer->to_modify_node);
     //printf("  |--to_delete_node     : %p \r\n", bearer->to_delete_node);
-    printf("  |--dl_pdr             :  \r\n");
+    printf("    |--dl_pdr             :  \r\n");
     print_pdr(bearer->dl_pdr);
-    printf("  |--ul_pdr             :  \r\n");
+    printf("    |--ul_pdr             :  \r\n");
     print_pdr(bearer->ul_pdr);
-    printf("  |--dl_far             :  \r\n");
+    printf("    |--dl_far             :  \r\n");
     print_far(bearer->dl_far);
-    printf("  |--ul_far             :  \r\n");
+    printf("    |--ul_far             :  \r\n");
     print_far(bearer->ul_far);
     //printf("  |--urr                : %p \r\n", bearer->urr);
     //printf("  |--qer                : %p \r\n", bearer->qer);
     //printf("  |--qfi_node           : %d \r\n", *bearer->qfi_node);
-    printf("  |--qfi                : %d \r\n", bearer->qfi);
-    printf("  |--ebi                : %d \r\n", bearer->ebi);
+    printf("    |--qfi                : %d \r\n", bearer->qfi);
+    printf("    |--ebi                : %d \r\n", bearer->ebi);
     //printf("  |--pgw_s5u_teid       : %u \r\n", bearer->pgw_s5u_teid);
     //printf("  |--pgw_s5u_addr       : %p \r\n", bearer->pgw_s5u_addr);
     //printf("  |--pgw_s5u_addr6      : %p \r\n", bearer->pgw_s5u_addr6);
     //printf("  |--sgw_s5u_teid       : %u \r\n", bearer->sgw_s5u_teid);
     //printf("  |--sgw_s5u_ip         : %s \r\n", ogs_ip_to_string(bearer->sgw_s5u_ip));
-    printf("  |--pcc_rule.name      : %s \r\n", bearer->pcc_rule.name);
-    printf("  |--pcc_rule.id        : %s \r\n", bearer->pcc_rule.id);
-    printf("  |--qos                : \r\n");
-    printf("    |--mbr.uplink       : %lu \r\n", bearer->qos.mbr.uplink);
-    printf("    |--mbr.downlink     : %lu \r\n", bearer->qos.mbr.downlink);
-    printf("    |--gbr.uplink       : %lu \r\n", bearer->qos.gbr.uplink);
-    printf("    |--gbr.downlink     : %lu \r\n", bearer->qos.gbr.downlink);
-    printf("    |--index            : %u \r\n", bearer->qos.index);
-    printf("    |--arp.priority_level: %u \r\n", bearer->qos.arp.priority_level);
-    printf("    |--arp.pre_emption_capability: %u \r\n", bearer->qos.arp.pre_emption_capability);
-    printf("    |--arp.pre_emption_vulnerability: %u \r\n", bearer->qos.arp.pre_emption_vulnerability);
+    printf("    |--pcc_rule.name      : %s \r\n", bearer->pcc_rule.name);
+    printf("    |--pcc_rule.id        : %s \r\n", bearer->pcc_rule.id);
+    printf("    |--qos                : \r\n");
+    printf("      |--mbr.uplink       : %lu \r\n", bearer->qos.mbr.uplink);
+    printf("      |--mbr.downlink     : %lu \r\n", bearer->qos.mbr.downlink);
+    printf("      |--gbr.uplink       : %lu \r\n", bearer->qos.gbr.uplink);
+    printf("      |--gbr.downlink     : %lu \r\n", bearer->qos.gbr.downlink);
+    printf("      |--index            : %u \r\n", bearer->qos.index);
+    printf("      |--arp.priority_level: %u \r\n", bearer->qos.arp.priority_level);
+    printf("      |--arp.pre_emption_capability: %u \r\n", bearer->qos.arp.pre_emption_capability);
+    printf("      |--arp.pre_emption_vulnerability: %u \r\n", bearer->qos.arp.pre_emption_vulnerability);
 
     //printf("  |--pf_identifier_pool : %p \r\n", bearer->pf_identifier_pool);
-    printf("  |--pf_list            : %u \r\n", ogs_list_count(&bearer->pf_list));
+    printf("    |--pf_list num        : %u \r\n", ogs_list_count(&bearer->pf_list));
+    int pf_index = 0;
     ogs_list_for_each(&bearer->pf_list, pf){
-        printf("    |--direction        : %u \r\n", pf->direction);
-        printf("    |--identifier       : %u \r\n", pf->identifier);
-        printf("    |--flow_description : %s \r\n", pf->flow_description);
+        printf("    |--pf info %d       :  \r\n", pf_index);
+        printf("      |--direction        : %u \r\n", pf->direction);
+        printf("      |--identifier       : %u \r\n", pf->identifier);
+        printf("      |--flow_description : %s \r\n", pf->flow_description);
+        pf_index++;
     }
-    printf("  |--pf_to_add_list     : %u \r\n", ogs_list_count(&bearer->pf_to_add_list));
+    printf("    |--pf_to_add_list num : %u \r\n", ogs_list_count(&bearer->pf_to_add_list));
+    pf_index = 0;
     ogs_list_for_each(&bearer->pf_to_add_list, pf){
-        printf("    |--direction        : %u \r\n", pf->direction);
-        printf("    |--identifier       : %u \r\n", pf->identifier);
-        printf("    |--flow_description : %s \r\n", pf->flow_description);
+        printf("    |--pf info %d       :  \r\n", pf_index);
+        printf("      |--direction        : %u \r\n", pf->direction);
+        printf("      |--identifier       : %u \r\n", pf->identifier);
+        printf("      |--flow_description : %s \r\n", pf->flow_description);
+        pf_index++;
     }
-    printf("  |--num_of_pf_to_delete: %u \r\n", bearer->num_of_pf_to_delete);
+    printf("    |--num_of_pf_to_delete: %u \r\n", bearer->num_of_pf_to_delete);
     //printf("  |--pf_to_delete       : %p \r\n", bearer->pf_to_delete);
     //printf("  |--sess               : %p \r\n", bearer->sess);
 
