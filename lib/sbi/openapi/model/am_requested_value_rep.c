@@ -252,11 +252,22 @@ OpenAPI_am_requested_value_rep_t *OpenAPI_am_requested_value_rep_parseFromJSON(c
         access_typesList = OpenAPI_list_create();
 
         cJSON_ArrayForEach(access_types_local, access_types) {
+            OpenAPI_access_type_e localEnum = OpenAPI_access_type_NULL;
             if (!cJSON_IsString(access_types_local)) {
                 ogs_error("OpenAPI_am_requested_value_rep_parseFromJSON() failed [access_types]");
                 goto end;
             }
-            OpenAPI_list_add(access_typesList, (void *)OpenAPI_access_type_FromString(access_types_local->valuestring));
+            localEnum = OpenAPI_access_type_FromString(access_types_local->valuestring);
+            if (!localEnum) {
+                ogs_info("Enum value \"%s\" for field \"access_types\" is not supported. Ignoring it ...",
+                         access_types_local->valuestring);
+            } else {
+                OpenAPI_list_add(access_typesList, (void *)localEnum);
+            }
+        }
+        if (access_typesList->count == 0) {
+            ogs_error("OpenAPI_am_requested_value_rep_parseFromJSON() failed: Expected access_typesList to not be empty (after ignoring unsupported enum values).");
+            goto end;
         }
     }
 
@@ -271,11 +282,22 @@ OpenAPI_am_requested_value_rep_t *OpenAPI_am_requested_value_rep_parseFromJSON(c
         rat_typesList = OpenAPI_list_create();
 
         cJSON_ArrayForEach(rat_types_local, rat_types) {
+            OpenAPI_rat_type_e localEnum = OpenAPI_rat_type_NULL;
             if (!cJSON_IsString(rat_types_local)) {
                 ogs_error("OpenAPI_am_requested_value_rep_parseFromJSON() failed [rat_types]");
                 goto end;
             }
-            OpenAPI_list_add(rat_typesList, (void *)OpenAPI_rat_type_FromString(rat_types_local->valuestring));
+            localEnum = OpenAPI_rat_type_FromString(rat_types_local->valuestring);
+            if (!localEnum) {
+                ogs_info("Enum value \"%s\" for field \"rat_types\" is not supported. Ignoring it ...",
+                         rat_types_local->valuestring);
+            } else {
+                OpenAPI_list_add(rat_typesList, (void *)localEnum);
+            }
+        }
+        if (rat_typesList->count == 0) {
+            ogs_error("OpenAPI_am_requested_value_rep_parseFromJSON() failed: Expected rat_typesList to not be empty (after ignoring unsupported enum values).");
+            goto end;
         }
     }
 

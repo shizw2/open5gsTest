@@ -303,6 +303,8 @@ set_size("MS Time Zone", 2) # Wrongly specified as 1 in spec table
 set_c_type("Cause", 'uint')
 set_c_type("TLLI", 'uint')
 set_c_type("P-TMSI", 'uint')
+set_c_type("P-TMSI Signature", 'uint')
+set_c_type("MS Validated", 'uint')
 set_c_type("Recovery", 'uint')
 set_c_type("Tunnel Endpoint Identifier Data I", 'uint')
 set_c_type("Tunnel Endpoint Identifier Control Plane", 'uint')
@@ -635,8 +637,9 @@ f.write("""int ogs_gtp1_parse_msg(ogs_gtp1_message_t *gtp1_message, ogs_pkbuf_t 
 for (k, v) in sorted_msg_list:
     if "ies" in msg_list[k]:
         f.write("    case OGS_GTP1_%s_TYPE:\n" % v_upper(k))
-        f.write("        rv = ogs_tlv_parse_msg_desc(&gtp1_message->%s,\n" % v_lower(k))
-        f.write("                &ogs_gtp1_tlv_desc_%s, pkbuf, OGS_TLV_MODE_T1_L2);\n" % v_lower(k))
+        if k != "Echo Request" and k != "Forward Relocation Complete":
+            f.write("        rv = ogs_tlv_parse_msg_desc(&gtp1_message->%s,\n" % v_lower(k))
+            f.write("                &ogs_gtp1_tlv_desc_%s, pkbuf, OGS_TLV_MODE_T1_L2);\n" % v_lower(k))
         f.write("        break;\n")
 f.write("""    default:
         ogs_warn("Not implemented(type:%d)", gtp1_message->h.type);

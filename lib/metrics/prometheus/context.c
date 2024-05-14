@@ -66,7 +66,7 @@ void ogs_metrics_server_init(ogs_metrics_context_t *ctx)
 void ogs_metrics_server_open(ogs_metrics_context_t *ctx)
 {
     ogs_metrics_server_t *server = NULL;
-    printf("ogs_metrics_server_open in prometheus.\r\n");
+
     ogs_list_for_each(&ctx->server_list, server)
         ogs_metrics_context_server_start(server);
 }
@@ -279,7 +279,7 @@ static int ogs_metrics_context_server_start(ogs_metrics_server_t *server)
                 MHD_OPTION_ARRAY, mhd_ops,
                 MHD_OPTION_END);
     if (!server->mhd) {
-        ogs_error("Cannot start Prometheus HTTP server:[http://%s]:%d",OGS_ADDR(addr, buf), OGS_PORT(addr));
+        ogs_error("Cannot start Prometheus HTTP server");
         return OGS_ERROR;
     }
 

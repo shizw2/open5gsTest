@@ -46,6 +46,7 @@
 #include "model/auth_event.h"
 #include "model/amf3_gpp_access_registration.h"
 #include "model/amf3_gpp_access_registration_modification.h"
+#include "model/smf_registration.h"
 #include "model/access_and_mobility_subscription_data.h"
 #include "model/smf_selection_subscription_data.h"
 #include "model/ue_context_in_smf_data.h"
@@ -79,10 +80,13 @@
 #include "model/deregistration_data.h"
 #include "model/sdm_subscription.h"
 #include "model/modification_notification.h"
+#include "model/sec_negotiate_req_data.h"
+#include "model/sec_negotiate_rsp_data.h"
 #include "model/patch_item.h"
 #include "model/ue_authentication_ctx.h"
 #include "model/eir_response_data.h"
-
+#include "model/ue_context_transfer_req_data.h"
+#include "model/ue_context_transfer_rsp_data.h"
 
 #include "custom/links.h"
 

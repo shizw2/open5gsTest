@@ -103,6 +103,9 @@ void scp_terminate(void);
 int eir_initialize(void);
 void eir_terminate(void);
 
+int sepp_initialize(void);
+void sepp_terminate(void);
+
 #ifdef __cplusplus
 }
 #endif

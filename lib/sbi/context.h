@@ -59,6 +59,27 @@ typedef struct ogs_sbi_context_s {
         uint8_t key[OGS_ECCKEY_LEN]; /* 32 bytes Private Key */
     } hnet[OGS_HOME_NETWORK_PKI_VALUE_MAX+1]; /* PKI Value : 1 ~ 254 */
 
+    struct {
+        struct {
+            OpenAPI_uri_scheme_e scheme;
+
+            const char *private_key;
+            const char *cert;
+
+            bool verify_client;
+            const char *verify_client_cacert;
+        } server;
+        struct {
+            OpenAPI_uri_scheme_e scheme;
+
+            bool insecure_skip_verify;
+            const char *cacert;
+
+            const char *private_key;
+            const char *cert;
+        } client;
+    } tls;
+
     ogs_list_t server_list;
     ogs_list_t client_list;
 
@@ -71,6 +92,7 @@ typedef struct ogs_sbi_context_s {
     ogs_sbi_nf_instance_t *nf_instance;     /* SELF NF Instance */
     ogs_sbi_nf_instance_t *nrf_instance;    /* NRF Instance */
     ogs_sbi_nf_instance_t *scp_instance;    /* SCP Instance */
+    ogs_sbi_nf_instance_t *sepp_instance;   /* SEPP Instance */
 
     const char *content_encoding;
 
@@ -125,6 +147,9 @@ typedef struct ogs_sbi_nf_instance_s {
     (NF_INSTANCE_TYPE(__nFInstance) == OpenAPI_nf_type_NRF)
     OpenAPI_nf_type_e nf_type;
     OpenAPI_nf_status_e nf_status;
+
+    ogs_plmn_id_t plmn_id[OGS_MAX_NUM_OF_PLMN];
+    int num_of_plmn_id;
 
     char *fqdn;
 
@@ -192,6 +217,7 @@ typedef struct ogs_sbi_xact_s {
 
     ogs_sbi_stream_t *assoc_stream;
     int state;
+    char *target_apiroot;
 
     ogs_sbi_object_t *sbi_object;
 
@@ -264,6 +290,7 @@ typedef struct ogs_sbi_subscription_data_s {
     OpenAPI_nf_type_e req_nf_type;          /* reqNfType */
     OpenAPI_nf_status_e nf_status;
     char *notification_uri;
+    char *resource_uri;
 
     struct {
         OpenAPI_nf_type_e nf_type;          /* nfType */
@@ -273,7 +300,7 @@ typedef struct ogs_sbi_subscription_data_s {
     uint64_t requester_features;
     uint64_t nrf_supported_features;
 
-    void *client;                           /* only used in SERVER */
+    void *client;
 } ogs_sbi_subscription_data_t;
 
 typedef struct ogs_sbi_smf_info_s {
@@ -314,9 +341,13 @@ typedef struct ogs_sbi_scp_info_s {
 
 } ogs_sbi_scp_info_t;
 
+typedef struct ogs_sbi_sepp_info_s {
+    ogs_port_t http, https;
+} ogs_sbi_sepp_info_t;
+
 typedef struct ogs_sbi_amf_info_s {
-    int amf_set_id;
-    int amf_region_id;
+    uint8_t amf_set_id;
+    uint16_t amf_region_id;
 
     int num_of_guami;
     ogs_guami_t guami[OGS_MAX_NUM_OF_SERVED_GUAMI];
@@ -390,6 +421,7 @@ typedef struct ogs_sbi_nf_info_s {
         ogs_sbi_pcf_info_t pcf;
         ogs_sbi_ausf_info_t ausf;
         ogs_sbi_eir_info_t eir;
+        ogs_sbi_sepp_info_t sepp;
     };
 } ogs_sbi_nf_info_t;
 
@@ -401,6 +433,11 @@ int ogs_sbi_context_parse_config(
 int ogs_sbi_context_parse_hnet_config(ogs_yaml_iter_t *root_iter);
 int ogs_sbi_context_parse_supi_ranges(ogs_yaml_iter_t *root_iter, ogs_supi_range_t *supiRanges);
 int ogs_sbi_context_parse_routing_indicator(ogs_yaml_iter_t *root_iter, ogs_routing_indicator_t *routingIndicators);
+int ogs_sbi_context_parse_server_config(
+        ogs_yaml_iter_t *parent, const char *interface);
+ogs_sbi_client_t *ogs_sbi_context_parse_client_config(
+        ogs_yaml_iter_t *iter);
+
 bool ogs_sbi_nf_service_is_available(const char *name);
 
 ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_add(void);
@@ -453,6 +490,13 @@ void ogs_sbi_nf_info_remove_all(ogs_list_t *list);
 ogs_sbi_nf_info_t *ogs_sbi_nf_info_find(
         ogs_list_t *list, OpenAPI_nf_type_e nf_type);
 
+bool ogs_sbi_check_amf_info_guami(
+        ogs_sbi_amf_info_t *amf_info, ogs_guami_t *guami);
+bool ogs_sbi_check_smf_info_slice(
+        ogs_sbi_smf_info_t *smf_info, ogs_s_nssai_t *s_nssai, char *dnn);
+bool ogs_sbi_check_smf_info_tai(
+        ogs_sbi_smf_info_t *smf_info, ogs_5gs_tai_t *tai);
+
 void ogs_sbi_nf_instance_build_default(ogs_sbi_nf_instance_t *nf_instance);
 ogs_sbi_nf_service_t *ogs_sbi_nf_service_build_default(
         ogs_sbi_nf_instance_t *nf_instance, const char *name);
@@ -476,6 +520,8 @@ void ogs_sbi_nf_instances_find_by_routing_indicator(ogs_sbi_nf_instance_t *match
 
 void ogs_sbi_client_associate(ogs_sbi_nf_instance_t *nf_instance);
 
+int ogs_sbi_default_client_port(OpenAPI_uri_scheme_e scheme);
+
 OpenAPI_uri_scheme_e ogs_sbi_server_default_scheme(void);
 OpenAPI_uri_scheme_e ogs_sbi_client_default_scheme(void);
 int ogs_sbi_server_default_port(void);
@@ -490,7 +536,9 @@ void showgnfDetail(char *id);
         ogs_assert(__nFInstance); \
         \
         if ((__cTX).nf_instance) { \
-            ogs_warn("NF Instance updated [%s]", (__nFInstance)->id); \
+            ogs_warn("NF Instance [%s] updated [%s]", \
+                    OpenAPI_nf_type_ToString((__nFInstance)->nf_type), \
+                    (__nFInstance)->id); \
             ogs_sbi_nf_instance_remove((__cTX).nf_instance); \
         } \
         \
@@ -504,9 +552,22 @@ bool ogs_sbi_discovery_param_is_matched(
         OpenAPI_nf_type_e requester_nf_type,
         ogs_sbi_discovery_option_t *discovery_option);
 
+bool ogs_sbi_discovery_param_serving_plmn_list_is_matched(
+        ogs_sbi_nf_instance_t *nf_instance);
+
 bool ogs_sbi_discovery_option_is_matched(
         ogs_sbi_nf_instance_t *nf_instance,
         OpenAPI_nf_type_e requester_nf_type,
+        ogs_sbi_discovery_option_t *discovery_option);
+bool ogs_sbi_discovery_option_service_names_is_matched(
+        ogs_sbi_nf_instance_t *nf_instance,
+        OpenAPI_nf_type_e requester_nf_type,
+        ogs_sbi_discovery_option_t *discovery_option);
+bool ogs_sbi_discovery_option_requester_plmn_list_is_matched(
+        ogs_sbi_nf_instance_t *nf_instance,
+        ogs_sbi_discovery_option_t *discovery_option);
+bool ogs_sbi_discovery_option_target_plmn_list_is_matched(
+        ogs_sbi_nf_instance_t *nf_instance,
         ogs_sbi_discovery_option_t *discovery_option);
 
 void ogs_sbi_object_free(ogs_sbi_object_t *sbi_object);
@@ -527,6 +588,8 @@ void ogs_sbi_subscription_spec_remove(
 void ogs_sbi_subscription_spec_remove_all(void);
 
 ogs_sbi_subscription_data_t *ogs_sbi_subscription_data_add(void);
+void ogs_sbi_subscription_data_set_resource_uri(
+        ogs_sbi_subscription_data_t *subscription_data, char *resource_uri);
 void ogs_sbi_subscription_data_set_id(
         ogs_sbi_subscription_data_t *subscription_data, char *id);
 void ogs_sbi_subscription_data_remove(
@@ -542,6 +605,11 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_capacity(ogs_sbi_nf_instance_
 ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_conditions(OpenAPI_nf_type_e target_nf_type,
         OpenAPI_nf_type_e requester_nf_type,
         ogs_sbi_discovery_option_t *discovery_option, char * supi_id, char * routing_indicator);
+
+bool ogs_sbi_supi_in_vplmn(char *supi);
+bool ogs_sbi_plmn_id_in_vplmn(ogs_plmn_id_t *plmn_id);
+bool ogs_sbi_fqdn_in_vplmn(char *fqdn);
+
 #ifdef __cplusplus
 }
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -22,6 +22,9 @@
 
 int __ogs_app_domain;
 
+static int read_config(void);
+static int parse_config(void);
+
 int ogs_app_initialize(
         const char *version, const char *default_config,
         const char *const argv[])
@@ -39,6 +42,7 @@ int ogs_app_initialize(
     ogs_app_setup_log();
 
     ogs_app_context_init();
+    ogs_app_config_init();
     ogs_app()->version = version;
 
     /**************************************************************************
@@ -76,16 +80,16 @@ int ogs_app_initialize(
     else
         ogs_app()->file = default_config;
 
-    rv = ogs_app_config_read();
+    rv = read_config();
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_app_context_parse_config();
+    rv = parse_config();
     if (rv != OGS_OK) return rv;
 
     /**************************************************************************
      * Stage 3 : Initialize Default Memory Pool
      */
-    ogs_pkbuf_default_create(&ogs_app()->pool.defconfig);
+    ogs_pkbuf_default_create(&ogs_global_conf()->pkbuf_config);
 
     /**************************************************************************
      * Stage 4 : Setup LOG Module
@@ -110,6 +114,9 @@ int ogs_app_initialize(
     rv = ogs_log_config_domain(
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
+
+    ogs_log_set_timestamp(ogs_app()->logger_default.timestamp,
+                          ogs_app()->logger.timestamp);
 
     /**************************************************************************
      * Stage 5 : Setup Database Module
@@ -152,6 +159,7 @@ int ogs_app_initialize(
 
 void ogs_app_terminate(void)
 {
+    ogs_app_config_final();
     ogs_app_context_final();
 
     ogs_pkbuf_default_destroy();
@@ -175,7 +183,7 @@ int osg_app_is_config_modified(void) {
     return 0;
 }
 
-int ogs_app_config_read(void)
+static int read_config(void)
 {
     FILE *file;
     yaml_parser_t parser;
@@ -216,7 +224,7 @@ int ogs_app_config_read(void)
             break;
         case YAML_SCANNER_ERROR:
             if (parser.context)
-                ogs_error("Scanner error - %s at line %zu, column %zu"
+                ogs_error("Scanner error - %s at line %zu, column %zu "
                         "%s at line %zu, column %zu", parser.context,
                         parser.context_mark.line+1,
                         parser.context_mark.column+1,
@@ -229,7 +237,7 @@ int ogs_app_config_read(void)
             break;
         case YAML_PARSER_ERROR:
             if (parser.context)
-                ogs_error("Parser error - %s at line %zu, column %zu"
+                ogs_error("Parser error - %s at line %zu, column %zu "
                         "%s at line %zu, column %zu", parser.context,
                         parser.context_mark.line+1,
                         parser.context_mark.column+1,
@@ -260,6 +268,118 @@ int ogs_app_config_read(void)
 
     yaml_parser_delete(&parser);
     ogs_assert(!fclose(file));
+
+    return OGS_OK;
+}
+
+static int context_prepare(void)
+{
+#define USRSCTP_LOCAL_UDP_PORT      9899
+    ogs_app()->usrsctp.udp_port = USRSCTP_LOCAL_UDP_PORT;
+
+    return OGS_OK;
+}
+
+static int context_validation(void)
+{
+    return OGS_OK;
+}
+
+static void parse_config_logger_file(ogs_yaml_iter_t *logger_iter,
+                                     const char *logger_key)
+{
+    ogs_yaml_iter_t iter;
+
+    /* Legacy format:
+     *   logger:
+     *     file: /var/log/open5gs/mme.log */
+    if (!strcmp(logger_key, "file") && ogs_yaml_iter_has_value(logger_iter)) {
+        ogs_app()->logger.file = ogs_yaml_iter_value(logger_iter);
+
+        ogs_warn("Please change the configuration file as below.");
+        ogs_log_print(OGS_LOG_WARN, "\n<OLD Format>\n");
+        ogs_log_print(OGS_LOG_WARN, "logger:\n");
+        ogs_log_print(OGS_LOG_WARN, "  file: %s\n", ogs_app()->logger.file);
+        ogs_log_print(OGS_LOG_WARN, "\n<NEW Format>\n");
+        ogs_log_print(OGS_LOG_WARN, "logger:\n");
+        ogs_log_print(OGS_LOG_WARN, "  file:\n");
+        ogs_log_print(OGS_LOG_WARN, "    path: %s\n", ogs_app()->logger.file);
+        ogs_log_print(OGS_LOG_WARN, "\n\n\n");
+        return;
+    }
+
+    /* Current format:
+     *   logger:
+     *     default:
+     *       timestamp: false
+     *     file:
+     *       path: /var/log/open5gs/mme.log
+     *       timestamp: true */
+    ogs_yaml_iter_recurse(logger_iter, &iter);
+    while (ogs_yaml_iter_next(&iter)) {
+        const char *key = ogs_yaml_iter_key(&iter);
+        ogs_assert(key);
+        if (!strcmp(key, "timestamp")) {
+            ogs_log_ts_e ts = ogs_yaml_iter_bool(&iter)
+                              ? OGS_LOG_TS_ENABLED
+                              : OGS_LOG_TS_DISABLED;
+            if (!strcmp(logger_key, "default")) {
+                ogs_app()->logger_default.timestamp = ts;
+            } else if (!strcmp(logger_key, "file")) {
+                ogs_app()->logger.timestamp = ts;
+            }
+        } else if (!strcmp(key, "path")) {
+            if (!strcmp(logger_key, "file")) {
+                ogs_app()->logger.file = ogs_yaml_iter_value(&iter);
+            }
+        }
+    }
+}
+
+static int parse_config(void)
+{
+    int rv;
+    yaml_document_t *document = NULL;
+    ogs_yaml_iter_t root_iter;
+
+    document = ogs_app()->document;
+    ogs_assert(document);
+
+    rv = context_prepare();
+    if (rv != OGS_OK) return rv;
+
+    ogs_yaml_iter_init(&root_iter, document);
+    while (ogs_yaml_iter_next(&root_iter)) {
+        const char *root_key = ogs_yaml_iter_key(&root_iter);
+        ogs_assert(root_key);
+        if (!strcmp(root_key, "db_uri")) {
+            ogs_app()->db_uri = ogs_yaml_iter_value(&root_iter);
+        } else if (!strcmp(root_key, "logger")) {
+            ogs_yaml_iter_t logger_iter;
+            ogs_yaml_iter_recurse(&root_iter, &logger_iter);
+            while (ogs_yaml_iter_next(&logger_iter)) {
+                const char *logger_key = ogs_yaml_iter_key(&logger_iter);
+                ogs_assert(logger_key);
+                parse_config_logger_file(&logger_iter, logger_key);
+                if (!strcmp(logger_key, "level")) {
+                    ogs_app()->logger.level =
+                        ogs_yaml_iter_value(&logger_iter);
+                } else if (!strcmp(logger_key, "domain")) {
+                    ogs_app()->logger.domain =
+                        ogs_yaml_iter_value(&logger_iter);
+                }
+            }
+        } else if (!strcmp(root_key, "global")) {
+            rv = ogs_app_parse_global_conf(&root_iter);
+            if (rv != OGS_OK) {
+                ogs_error("ogs_global_conf_parse_config() failed");
+                return rv;
+            }
+        }
+    }
+
+    rv = context_validation();
+    if (rv != OGS_OK) return rv;
 
     return OGS_OK;
 }

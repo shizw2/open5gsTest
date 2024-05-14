@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2019 by Sukchan Lee <acetcom@gmail.com>
  * Copyright (C) 2022 by sysmocom - s.f.m.c. GmbH <info@sysmocom.de>
+ * Copyright (C) 2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -21,7 +22,7 @@
 /*******************************************************************************
  * This file had been created by gtp1-tlv.py script v0.1.0
  * Please do not modify this file but regenerate it via script.
- * Created on: 2023-03-05 12:29:34.542862 by acetcom
+ * Created on: 2023-12-11 17:21:37.071241 by pespin
  * from 29060-h40.docx
  ******************************************************************************/
 
@@ -117,7 +118,7 @@ ogs_tlv_desc_t ogs_gtp1_tlv_desc_map_cause =
 
 ogs_tlv_desc_t ogs_gtp1_tlv_desc_p_tmsi_signature =
 {
-    OGS_TV_FIXED_STR,
+    OGS_TV_UINT24,
     "P-TMSI Signature",
     OGS_GTP1_P_TMSI_SIGNATURE_TYPE,
     3,
@@ -128,7 +129,7 @@ ogs_tlv_desc_t ogs_gtp1_tlv_desc_p_tmsi_signature =
 
 ogs_tlv_desc_t ogs_gtp1_tlv_desc_ms_validated =
 {
-    OGS_TV_FIXED_STR,
+    OGS_TV_UINT8,
     "MS Validated",
     OGS_GTP1_MS_VALIDATED_TYPE,
     1,
@@ -2313,8 +2314,6 @@ int ogs_gtp1_parse_msg(ogs_gtp1_message_t *gtp1_message, ogs_pkbuf_t *pkbuf)
 
     switch(gtp1_message->h.type) {
     case OGS_GTP1_ECHO_REQUEST_TYPE:
-        rv = ogs_tlv_parse_msg_desc(&gtp1_message->echo_request,
-                &ogs_gtp1_tlv_desc_echo_request, pkbuf, OGS_TLV_MODE_T1_L2);
         break;
     case OGS_GTP1_ECHO_RESPONSE_TYPE:
         rv = ogs_tlv_parse_msg_desc(&gtp1_message->echo_response,
@@ -2425,8 +2424,6 @@ int ogs_gtp1_parse_msg(ogs_gtp1_message_t *gtp1_message, ogs_pkbuf_t *pkbuf)
                 &ogs_gtp1_tlv_desc_forward_relocation_response, pkbuf, OGS_TLV_MODE_T1_L2);
         break;
     case OGS_GTP1_FORWARD_RELOCATION_COMPLETE_TYPE:
-        rv = ogs_tlv_parse_msg_desc(&gtp1_message->forward_relocation_complete,
-                &ogs_gtp1_tlv_desc_forward_relocation_complete, pkbuf, OGS_TLV_MODE_T1_L2);
         break;
     case OGS_GTP1_RELOCATION_CANCEL_REQUEST_TYPE:
         rv = ogs_tlv_parse_msg_desc(&gtp1_message->relocation_cancel_request,

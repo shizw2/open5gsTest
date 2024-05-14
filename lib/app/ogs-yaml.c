@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -176,6 +176,34 @@ const char *ogs_yaml_iter_value(ogs_yaml_iter_t *iter)
 
     ogs_assert_if_reached();
     return NULL;
+}
+
+int ogs_yaml_iter_has_value(ogs_yaml_iter_t *iter)
+{
+    ogs_assert(iter);
+    ogs_assert(iter->document);
+    ogs_assert(iter->node);
+
+    if (iter->node->type == YAML_SCALAR_NODE) {
+        return 1;
+    } else if (iter->node->type == YAML_MAPPING_NODE) {
+        yaml_node_t *node = NULL;
+
+        ogs_assert(iter->pair);
+        node = yaml_document_get_node(iter->document, iter->pair->value);
+        ogs_assert(node);
+        return node->type == YAML_SCALAR_NODE;
+    } else if (iter->node->type == YAML_SEQUENCE_NODE) {
+        yaml_node_t *node = NULL;
+
+        ogs_assert(iter->item);
+        node = yaml_document_get_node(iter->document, *iter->item);
+        ogs_assert(node);
+        return node->type == YAML_SCALAR_NODE;
+    }
+
+    ogs_assert_if_reached();
+    return 0;
 }
 
 int ogs_yaml_iter_bool(ogs_yaml_iter_t *iter)

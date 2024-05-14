@@ -2610,11 +2610,22 @@ OpenAPI_nf_profile_t *OpenAPI_nf_profile_parseFromJSON(cJSON *nf_profileJSON)
         allowed_nf_typesList = OpenAPI_list_create();
 
         cJSON_ArrayForEach(allowed_nf_types_local, allowed_nf_types) {
+            OpenAPI_nf_type_e localEnum = OpenAPI_nf_type_NULL;
             if (!cJSON_IsString(allowed_nf_types_local)) {
                 ogs_error("OpenAPI_nf_profile_parseFromJSON() failed [allowed_nf_types]");
                 goto end;
             }
-            OpenAPI_list_add(allowed_nf_typesList, (void *)OpenAPI_nf_type_FromString(allowed_nf_types_local->valuestring));
+            localEnum = OpenAPI_nf_type_FromString(allowed_nf_types_local->valuestring);
+            if (!localEnum) {
+                ogs_info("Enum value \"%s\" for field \"allowed_nf_types\" is not supported. Ignoring it ...",
+                         allowed_nf_types_local->valuestring);
+            } else {
+                OpenAPI_list_add(allowed_nf_typesList, (void *)localEnum);
+            }
+        }
+        if (allowed_nf_typesList->count == 0) {
+            ogs_error("OpenAPI_nf_profile_parseFromJSON() failed: Expected allowed_nf_typesList to not be empty (after ignoring unsupported enum values).");
+            goto end;
         }
     }
 

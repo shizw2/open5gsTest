@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -30,6 +30,21 @@
 extern "C" {
 #endif
 
+#define OGS_YAML_ARRAY_RECURSE(ARRAY, ITERATOR) \
+    if (ogs_yaml_iter_type(ARRAY) == YAML_MAPPING_NODE) { \
+        memcpy((ITERATOR), (ARRAY), sizeof(ogs_yaml_iter_t)); \
+    } else if (ogs_yaml_iter_type(ARRAY) == YAML_SEQUENCE_NODE) { \
+        ogs_yaml_iter_recurse((ARRAY), (ITERATOR)); \
+    } else if (ogs_yaml_iter_type(ARRAY) == YAML_SCALAR_NODE) { \
+        break; \
+    } else \
+        ogs_assert_if_reached();
+
+#define OGS_YAML_ARRAY_NEXT(ARRAY, ITERATOR) \
+    if (ogs_yaml_iter_type(ARRAY) == YAML_SEQUENCE_NODE && \
+        !ogs_yaml_iter_next(ARRAY)) break; \
+    OGS_YAML_ARRAY_RECURSE(ARRAY, ITERATOR);
+
 typedef struct {
     yaml_document_t *document;
     yaml_node_t *node;
@@ -44,6 +59,7 @@ void ogs_yaml_iter_recurse(ogs_yaml_iter_t *parent, ogs_yaml_iter_t *iter);
 int ogs_yaml_iter_type(ogs_yaml_iter_t *iter);
 const char *ogs_yaml_iter_key(ogs_yaml_iter_t *iter);
 const char *ogs_yaml_iter_value(ogs_yaml_iter_t *iter);
+int ogs_yaml_iter_has_value(ogs_yaml_iter_t *iter);
 int ogs_yaml_iter_bool(ogs_yaml_iter_t *iter);
 
 #ifdef __cplusplus

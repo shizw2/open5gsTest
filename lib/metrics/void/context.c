@@ -35,7 +35,6 @@ void ogs_metrics_server_init(ogs_metrics_context_t *ctx)
 
 void ogs_metrics_server_open(ogs_metrics_context_t *ctx)
 {
-    printf("ogs_metrics_server_open in void\r\n");
 }
 
 void ogs_metrics_server_close(ogs_metrics_context_t *ctx)

@@ -32,6 +32,7 @@ OpenAPI_policy_association_request_t *OpenAPI_policy_association_request_create(
     OpenAPI_list_t *n3g_allowed_snssais,
     OpenAPI_guami_t *guami,
     char *service_name,
+    bool is_trace_req_null,
     OpenAPI_trace_data_t *trace_req,
     OpenAPI_list_t *nwdaf_datas,
     char *supp_feat
@@ -67,6 +68,7 @@ OpenAPI_policy_association_request_t *OpenAPI_policy_association_request_create(
     policy_association_request_local_var->n3g_allowed_snssais = n3g_allowed_snssais;
     policy_association_request_local_var->guami = guami;
     policy_association_request_local_var->service_name = service_name;
+    policy_association_request_local_var->is_trace_req_null = is_trace_req_null;
     policy_association_request_local_var->trace_req = trace_req;
     policy_association_request_local_var->nwdaf_datas = nwdaf_datas;
     policy_association_request_local_var->supp_feat = supp_feat;
@@ -549,6 +551,11 @@ cJSON *OpenAPI_policy_association_request_convertToJSON(OpenAPI_policy_associati
         ogs_error("OpenAPI_policy_association_request_convertToJSON() failed [trace_req]");
         goto end;
     }
+    } else if (policy_association_request->is_trace_req_null) {
+        if (cJSON_AddNullToObject(item, "traceReq") == NULL) {
+            ogs_error("OpenAPI_policy_association_request_convertToJSON() failed [trace_req]");
+            goto end;
+        }
     }
 
     if (policy_association_request->nwdaf_datas) {
@@ -745,11 +752,22 @@ OpenAPI_policy_association_request_t *OpenAPI_policy_association_request_parseFr
         access_typesList = OpenAPI_list_create();
 
         cJSON_ArrayForEach(access_types_local, access_types) {
+            OpenAPI_access_type_e localEnum = OpenAPI_access_type_NULL;
             if (!cJSON_IsString(access_types_local)) {
                 ogs_error("OpenAPI_policy_association_request_parseFromJSON() failed [access_types]");
                 goto end;
             }
-            OpenAPI_list_add(access_typesList, (void *)OpenAPI_access_type_FromString(access_types_local->valuestring));
+            localEnum = OpenAPI_access_type_FromString(access_types_local->valuestring);
+            if (!localEnum) {
+                ogs_info("Enum value \"%s\" for field \"access_types\" is not supported. Ignoring it ...",
+                         access_types_local->valuestring);
+            } else {
+                OpenAPI_list_add(access_typesList, (void *)localEnum);
+            }
+        }
+        if (access_typesList->count == 0) {
+            ogs_error("OpenAPI_policy_association_request_parseFromJSON() failed: Expected access_typesList to not be empty (after ignoring unsupported enum values).");
+            goto end;
         }
     }
 
@@ -807,11 +825,22 @@ OpenAPI_policy_association_request_t *OpenAPI_policy_association_request_parseFr
         rat_typesList = OpenAPI_list_create();
 
         cJSON_ArrayForEach(rat_types_local, rat_types) {
+            OpenAPI_rat_type_e localEnum = OpenAPI_rat_type_NULL;
             if (!cJSON_IsString(rat_types_local)) {
                 ogs_error("OpenAPI_policy_association_request_parseFromJSON() failed [rat_types]");
                 goto end;
             }
-            OpenAPI_list_add(rat_typesList, (void *)OpenAPI_rat_type_FromString(rat_types_local->valuestring));
+            localEnum = OpenAPI_rat_type_FromString(rat_types_local->valuestring);
+            if (!localEnum) {
+                ogs_info("Enum value \"%s\" for field \"rat_types\" is not supported. Ignoring it ...",
+                         rat_types_local->valuestring);
+            } else {
+                OpenAPI_list_add(rat_typesList, (void *)localEnum);
+            }
+        }
+        if (rat_typesList->count == 0) {
+            ogs_error("OpenAPI_policy_association_request_parseFromJSON() failed: Expected rat_typesList to not be empty (after ignoring unsupported enum values).");
+            goto end;
         }
     }
 
@@ -1010,10 +1039,12 @@ OpenAPI_policy_association_request_t *OpenAPI_policy_association_request_parseFr
 
     trace_req = cJSON_GetObjectItemCaseSensitive(policy_association_requestJSON, "traceReq");
     if (trace_req) {
+    if (!cJSON_IsNull(trace_req)) {
     trace_req_local_nonprim = OpenAPI_trace_data_parseFromJSON(trace_req);
     if (!trace_req_local_nonprim) {
         ogs_error("OpenAPI_trace_data_parseFromJSON failed [trace_req]");
         goto end;
+    }
     }
     }
 
@@ -1079,6 +1110,7 @@ OpenAPI_policy_association_request_t *OpenAPI_policy_association_request_parseFr
         n3g_allowed_snssais ? n3g_allowed_snssaisList : NULL,
         guami ? guami_local_nonprim : NULL,
         service_name && !cJSON_IsNull(service_name) ? ogs_strdup(service_name->valuestring) : NULL,
+        trace_req && cJSON_IsNull(trace_req) ? true : false,
         trace_req ? trace_req_local_nonprim : NULL,
         nwdaf_datas ? nwdaf_datasList : NULL,
         ogs_strdup(supp_feat->valuestring)

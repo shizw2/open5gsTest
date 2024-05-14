@@ -195,7 +195,7 @@ static SSL_CTX *create_ssl_ctx(const char *key_file, const char *cert_file)
 
     ogs_assert(key_file);
     ogs_assert(cert_file);
-    //centos下，需要升级openssl才行。
+
     ssl_ctx = SSL_CTX_new(TLS_server_method());
     if (!ssl_ctx) {
         ogs_error("Could not create SSL/TLS context: %s", ERR_error_string(ERR_get_error(), NULL));
@@ -316,57 +316,75 @@ static int server_start(ogs_sbi_server_t *server,
     ogs_assert(addr);
 
     /* Create SSL CTX */
-    if (ogs_app()->sbi.server.no_tls == false) {
+    if (server->scheme == OpenAPI_uri_scheme_https) {
 
-        server->ssl_ctx = create_ssl_ctx(
-                    ogs_app()->sbi.server.key,
-                    ogs_app()->sbi.server.cert);
+        server->ssl_ctx = create_ssl_ctx(server->private_key, server->cert);
         if (!server->ssl_ctx) {
             ogs_error("Cannot create SSL CTX");
             return OGS_ERROR;
         }
 
-        if (ogs_app()->sbi.server.no_verify == false) {
-            if (ogs_app()->sbi.server.cacert) {
-                STACK_OF(X509_NAME) *cert_names = NULL;
+        if (server->verify_client_cacert) {
+            char *context = NULL;
+            STACK_OF(X509_NAME) *cert_names = NULL;
 
-                if (SSL_CTX_load_verify_locations(server->ssl_ctx,
-                        ogs_app()->sbi.server.cacert, NULL) != 1) {
-                    ogs_error("Could not load trusted ca certificates "
-                            "from %s:%s", ogs_app()->sbi.server.cacert,
-                            ERR_error_string(ERR_get_error(), NULL));
-
-                    if (server->ssl_ctx)
-                        SSL_CTX_free(server->ssl_ctx);
-
-                    return OGS_ERROR;
-                }
-
-                /*
-                 * It is heard that SSL_CTX_load_verify_locations() may leave
-                 * error even though it returns success. See
-                 * http://forum.nginx.org/read.php?29,242540
-                 */
-                cert_names = SSL_load_client_CA_file(
-                        ogs_app()->sbi.server.cacert);
-                if (!cert_names) {
-                    ogs_error("Could not load ca certificates from %s:%s",
-                        ogs_app()->sbi.server.cacert,
+            if (SSL_CTX_load_verify_locations(
+                        server->ssl_ctx,
+                        server->verify_client_cacert, NULL) != 1) {
+                ogs_error("Could not load trusted ca certificates from %s:%s",
+                        server->verify_client_cacert,
                         ERR_error_string(ERR_get_error(), NULL));
 
-                    if (server->ssl_ctx)
-                        SSL_CTX_free(server->ssl_ctx);
+                SSL_CTX_free(server->ssl_ctx);
 
-                    return OGS_ERROR;
-                }
-                SSL_CTX_set_client_CA_list(server->ssl_ctx, cert_names);
+                return OGS_ERROR;
             }
 
-            SSL_CTX_set_verify(
-                    server->ssl_ctx,
-                    SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE |
-                    SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
-                    verify_callback);
+            /*
+             * It is heard that SSL_CTX_load_verify_locations() may leave
+             * error even though it returns success. See
+             * http://forum.nginx.org/read.php?29,242540
+             */
+            cert_names = SSL_load_client_CA_file(server->verify_client_cacert);
+            if (!cert_names) {
+                ogs_error("Could not load ca certificates from %s:%s",
+                    server->verify_client_cacert,
+                    ERR_error_string(ERR_get_error(), NULL));
+
+                SSL_CTX_free(server->ssl_ctx);
+
+                return OGS_ERROR;
+            }
+            SSL_CTX_set_client_CA_list(server->ssl_ctx, cert_names);
+
+            if (server->verify_client)
+                SSL_CTX_set_verify(
+                        server->ssl_ctx,
+                        SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE |
+                        SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
+                        verify_callback);
+
+            context = ogs_sbi_server_id_context(server);
+            if (!context) {
+                ogs_error("ogs_sbi_server_id_context() failed");
+
+                SSL_CTX_free(server->ssl_ctx);
+
+                return OGS_ERROR;
+            }
+
+            if (!SSL_CTX_set_session_id_context(
+                        server->ssl_ctx,
+                        (unsigned char *)context, strlen(context))) {
+                ogs_error("SSL_CTX_set_session_id_context() failed");
+
+                ogs_free(context);
+                SSL_CTX_free(server->ssl_ctx);
+
+                return OGS_ERROR;
+            }
+
+            ogs_free(context);
         }
     }
 
@@ -392,11 +410,13 @@ static int server_start(ogs_sbi_server_t *server,
 
     hostname = ogs_gethostname(addr);
     if (hostname)
-        ogs_info("nghttp2_server() [%s://%s]:%d",
+        ogs_info("nghttp2_server(%s) [%s://%s]:%d",
+                server->interface ? server->interface : "",
                 server->ssl_ctx ? "https" : "http",
                 hostname, OGS_PORT(addr));
     else
-        ogs_info("nghttp2_server() [%s://%s]:%d",
+        ogs_info("nghttp2_server(%s) [%s://%s]:%d",
+                server->interface ? server->interface : "",
                 server->ssl_ctx ? "https" : "http",
                 OGS_ADDR(addr, buf), OGS_PORT(addr));
 
@@ -596,7 +616,13 @@ static bool server_send_rspmem_persistent(
 
     i = 0;
 
-    ogs_assert(strlen(status_string[response->status]) == 3);
+    if (strlen(status_string[response->status]) != 3) {
+        ogs_fatal("response status [%d]", response->status);
+        ogs_fatal("status string [%s]", status_string[response->status]);
+        ogs_assert_if_reached();
+        return false;
+    }
+
     add_header(&nva[i++], ":status", status_string[response->status]);
 
     ogs_snprintf(srv_version, sizeof(srv_version),
@@ -761,13 +787,37 @@ static ogs_sbi_session_t *session_add(
     memcpy(sbi_sess->addr, &sock->remote_addr, sizeof(ogs_sockaddr_t));
 
     if (server->ssl_ctx) {
+        char *context = NULL;
+
         sbi_sess->ssl = SSL_new(server->ssl_ctx);
         if (!sbi_sess->ssl) {
             ogs_error("SSL_new() failed");
-            ogs_pool_free(&session_pool, sbi_sess);
             ogs_free(sbi_sess->addr);
+            ogs_pool_free(&session_pool, sbi_sess);
             return NULL;
         }
+
+        context = ogs_msprintf("%d",
+                (int)ogs_pool_index(&session_pool, sbi_sess));
+        if (!context) {
+            ogs_error("No memory for session id context");
+            SSL_free(sbi_sess->ssl);
+            ogs_free(sbi_sess->addr);
+            ogs_pool_free(&session_pool, sbi_sess);
+            return NULL;
+        }
+
+        if (!SSL_set_session_id_context(
+                    sbi_sess->ssl, (unsigned char *)context, strlen(context))) {
+            ogs_error("SSL_set_session_id_context() failed");
+            ogs_free(context);
+            ogs_free(sbi_sess->addr);
+            SSL_free(sbi_sess->ssl);
+            ogs_pool_free(&session_pool, sbi_sess);
+            return NULL;
+        }
+
+        ogs_free(context);
     }
 
     ogs_list_add(&server->session_list, sbi_sess);
@@ -910,6 +960,32 @@ static void recv_handler(short when, ogs_socket_t fd, void *data)
             ogs_error("nghttp2_session_mem_recv() failed (%d:%s)",
                         (int)readlen, nghttp2_strerror((int)readlen));
             session_remove(sbi_sess);
+        } else {
+            /*
+             * Issues #2385
+             *
+             * Nokia AMF is sending GOAWAY because it didn't get
+             * ACK SETTINGS packet for the SETTINGS it set,
+             * this is according to http2 RFC, all settings must be
+             * ACK or connection will be dropped.
+             *
+             * Open5GS is not ACKing pure settings packets,
+             * looks like it is waiting for a header
+             * like POST/GET first to trigger
+             * sending settings ACK and then headers reply.
+             */
+
+            /*
+             * [SOLVED]
+             *
+             * Whether or not to send a Setting ACK is determined
+             * by the nghttp2 library. Therefore, when nghttp2 informs us
+             * that it want to send an SETTING frame with ACK
+             * by nghttp2_session_want_write(), we need to call session_send()
+             * directly to send it.
+             */
+            if (nghttp2_session_want_write(sbi_sess->session))
+                session_send(sbi_sess);
         }
     } else {
         if (n < 0) {
@@ -1038,40 +1114,15 @@ static int on_frame_recv(nghttp2_session *session,
     ogs_assert(session);
     ogs_assert(frame);
 
-    stream = nghttp2_session_get_stream_user_data(session, frame->hd.stream_id);
-    if (!stream) {
-        if (frame->hd.type == NGHTTP2_SETTINGS) {
-            sbi_sess->settings.max_concurrent_streams =
-                nghttp2_session_get_remote_settings(
-                    session, NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS);
-            sbi_sess->settings.enable_push =
-                nghttp2_session_get_remote_settings(
-                    session, NGHTTP2_SETTINGS_ENABLE_PUSH);
-            ogs_debug("MAX_CONCURRENT_STREAMS = %d",
-                sbi_sess->settings.max_concurrent_streams);
-            ogs_debug("ENABLE_PUSH = %s",
-                sbi_sess->settings.enable_push ? "TRUE" : "false");
-
-        } else if (frame->hd.type == NGHTTP2_GOAWAY) {
-            rv = nghttp2_submit_goaway(
-                 session, NGHTTP2_FLAG_NONE, sbi_sess->last_stream_id,
-                 NGHTTP2_NO_ERROR, NULL, 0);
-            if (rv != 0) {
-                ogs_error("nghttp2_submit_goaway() failed (%d:%s)",
-                            rv, nghttp2_strerror(rv));
-                return OGS_ERROR;
-            }
-
-            session_send(sbi_sess);
-        }
-        return 0;
-    }
-
-    request = stream->request;
-    ogs_assert(request);
-
     switch (frame->hd.type) {
     case NGHTTP2_HEADERS:
+        stream = nghttp2_session_get_stream_user_data(
+                session, frame->hd.stream_id);
+        if (!stream) return 0;
+
+        request = stream->request;
+        ogs_assert(request);
+
         if (frame->headers.cat == NGHTTP2_HCAT_REQUEST) {
             const char *expect100 =
                 ogs_sbi_header_get(request->http.headers, OGS_SBI_EXPECT);
@@ -1094,6 +1145,13 @@ static int on_frame_recv(nghttp2_session *session,
         OGS_GNUC_FALLTHROUGH;
 
     case NGHTTP2_DATA:
+        stream = nghttp2_session_get_stream_user_data(
+                session, frame->hd.stream_id);
+        if (!stream) return 0;
+
+        request = stream->request;
+        ogs_assert(request);
+
         /* HEADERS or DATA frame with +END_STREAM flag */
         if (frame->hd.flags & NGHTTP2_FLAG_END_STREAM) {
             ogs_log_level_e level = OGS_LOG_DEBUG;
@@ -1107,7 +1165,7 @@ static int on_frame_recv(nghttp2_session *session,
             if (request->http.content_length && request->http.content) {
                 ogs_log_message(level, 0,
                         "RECEIVED: %d", (int)request->http.content_length);
-                ogs_log_message(level, 0, "%s", request->http.content); 
+                ogs_log_message(level, 0, "%s", request->http.content);
             }
 
             if (stream->memory_overflow == true) {
@@ -1120,12 +1178,70 @@ static int on_frame_recv(nghttp2_session *session,
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR, NULL,
-                        "server callback error", NULL));
+                        "server callback error", NULL, NULL));
 
                 return 0;
             }
-            break;
+        } else {
+            /* TODO : Need to implement the timeouf of reading STREAM */
         }
+        break;
+    case NGHTTP2_SETTINGS:
+        ogs_debug("FLAGS(0x%x) [%s]",
+                frame->hd.flags,
+                frame->hd.flags & NGHTTP2_FLAG_ACK ? "ACK" : "NO-ACK");
+
+        if ((frame->hd.flags & NGHTTP2_FLAG_ACK) == 0) {
+            sbi_sess->settings.max_concurrent_streams =
+                nghttp2_session_get_remote_settings(
+                    session, NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS);
+            sbi_sess->settings.enable_push =
+                nghttp2_session_get_remote_settings(
+                    session, NGHTTP2_SETTINGS_ENABLE_PUSH);
+            ogs_debug("MAX_CONCURRENT_STREAMS = %d",
+                sbi_sess->settings.max_concurrent_streams);
+            ogs_debug("ENABLE_PUSH = %s",
+                sbi_sess->settings.enable_push ? "TRUE" : "false");
+
+            return 0;
+        }
+
+        /*
+         * TODO:
+         *
+         * if Setting ACK received, need to stop Timer.
+         * Otherwise, we need to send NGHTTP2_GOAWAY
+         */
+        break;
+    case NGHTTP2_GOAWAY:
+#if 0 /* It is not neeed in other nghttp2 example */
+        rv = nghttp2_submit_goaway(
+             session, NGHTTP2_FLAG_NONE, sbi_sess->last_stream_id,
+             NGHTTP2_NO_ERROR, NULL, 0);
+        if (rv != 0) {
+            ogs_error("nghttp2_submit_goaway() failed (%d:%s)",
+                        rv, nghttp2_strerror(rv));
+            return OGS_ERROR;
+        }
+
+        session_send(sbi_sess);
+#endif
+        ogs_info("GOAWAY received: last-stream-id=%d",
+                frame->goaway.last_stream_id);
+        ogs_info("error_code=%d", frame->goaway.error_code);
+        break;
+    case NGHTTP2_RST_STREAM:
+        ogs_info("RST_STREAM received: stream_id=%d", frame->hd.stream_id);
+        break;
+    case NGHTTP2_PING:
+        if (frame->hd.flags & NGHTTP2_FLAG_ACK)
+            ogs_info("PING ACK received");
+        break;
+    case NGHTTP2_PUSH_PROMISE:
+        ogs_info("PUSH_PROMISE recieved: stream_id=%d", frame->hd.stream_id);
+        ogs_info("promised_stream_id=%d",
+                frame->push_promise.promised_stream_id);
+        break;
     default:
         break;
     }
@@ -1227,8 +1343,12 @@ static int on_header(nghttp2_session *session, const nghttp2_frame *frame,
 
         j = 0;
         while(params[j].key && params[j].val) {
-            ogs_sbi_header_set(request->http.params,
-                    params[j].key, params[j].val);
+            if (strlen(params[j].key))
+                ogs_sbi_header_set(request->http.params,
+                        params[j].key, params[j].val);
+            else
+                ogs_warn("No KEY in Query-Parms");
+
             j++;
         }
 

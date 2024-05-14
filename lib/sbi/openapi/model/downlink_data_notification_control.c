@@ -98,11 +98,22 @@ OpenAPI_downlink_data_notification_control_t *OpenAPI_downlink_data_notification
         notif_ctrl_indsList = OpenAPI_list_create();
 
         cJSON_ArrayForEach(notif_ctrl_inds_local, notif_ctrl_inds) {
+            OpenAPI_notification_control_indication_e localEnum = OpenAPI_notification_control_indication_NULL;
             if (!cJSON_IsString(notif_ctrl_inds_local)) {
                 ogs_error("OpenAPI_downlink_data_notification_control_parseFromJSON() failed [notif_ctrl_inds]");
                 goto end;
             }
-            OpenAPI_list_add(notif_ctrl_indsList, (void *)OpenAPI_notification_control_indication_FromString(notif_ctrl_inds_local->valuestring));
+            localEnum = OpenAPI_notification_control_indication_FromString(notif_ctrl_inds_local->valuestring);
+            if (!localEnum) {
+                ogs_info("Enum value \"%s\" for field \"notif_ctrl_inds\" is not supported. Ignoring it ...",
+                         notif_ctrl_inds_local->valuestring);
+            } else {
+                OpenAPI_list_add(notif_ctrl_indsList, (void *)localEnum);
+            }
+        }
+        if (notif_ctrl_indsList->count == 0) {
+            ogs_error("OpenAPI_downlink_data_notification_control_parseFromJSON() failed: Expected notif_ctrl_indsList to not be empty (after ignoring unsupported enum values).");
+            goto end;
         }
     }
 
@@ -117,11 +128,22 @@ OpenAPI_downlink_data_notification_control_t *OpenAPI_downlink_data_notification
         types_of_notifList = OpenAPI_list_create();
 
         cJSON_ArrayForEach(types_of_notif_local, types_of_notif) {
+            OpenAPI_dl_data_delivery_status_e localEnum = OpenAPI_dl_data_delivery_status_NULL;
             if (!cJSON_IsString(types_of_notif_local)) {
                 ogs_error("OpenAPI_downlink_data_notification_control_parseFromJSON() failed [types_of_notif]");
                 goto end;
             }
-            OpenAPI_list_add(types_of_notifList, (void *)OpenAPI_dl_data_delivery_status_FromString(types_of_notif_local->valuestring));
+            localEnum = OpenAPI_dl_data_delivery_status_FromString(types_of_notif_local->valuestring);
+            if (!localEnum) {
+                ogs_info("Enum value \"%s\" for field \"types_of_notif\" is not supported. Ignoring it ...",
+                         types_of_notif_local->valuestring);
+            } else {
+                OpenAPI_list_add(types_of_notifList, (void *)localEnum);
+            }
+        }
+        if (types_of_notifList->count == 0) {
+            ogs_error("OpenAPI_downlink_data_notification_control_parseFromJSON() failed: Expected types_of_notifList to not be empty (after ignoring unsupported enum values).");
+            goto end;
         }
     }
 

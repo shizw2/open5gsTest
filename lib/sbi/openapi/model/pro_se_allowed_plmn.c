@@ -110,11 +110,22 @@ OpenAPI_pro_se_allowed_plmn_t *OpenAPI_pro_se_allowed_plmn_parseFromJSON(cJSON *
         prose_direct_allowedList = OpenAPI_list_create();
 
         cJSON_ArrayForEach(prose_direct_allowed_local, prose_direct_allowed) {
+            OpenAPI_prose_direct_allowed_e localEnum = OpenAPI_prose_direct_allowed_NULL;
             if (!cJSON_IsString(prose_direct_allowed_local)) {
                 ogs_error("OpenAPI_pro_se_allowed_plmn_parseFromJSON() failed [prose_direct_allowed]");
                 goto end;
             }
-            OpenAPI_list_add(prose_direct_allowedList, (void *)OpenAPI_prose_direct_allowed_FromString(prose_direct_allowed_local->valuestring));
+            localEnum = OpenAPI_prose_direct_allowed_FromString(prose_direct_allowed_local->valuestring);
+            if (!localEnum) {
+                ogs_info("Enum value \"%s\" for field \"prose_direct_allowed\" is not supported. Ignoring it ...",
+                         prose_direct_allowed_local->valuestring);
+            } else {
+                OpenAPI_list_add(prose_direct_allowedList, (void *)localEnum);
+            }
+        }
+        if (prose_direct_allowedList->count == 0) {
+            ogs_error("OpenAPI_pro_se_allowed_plmn_parseFromJSON() failed: Expected prose_direct_allowedList to not be empty (after ignoring unsupported enum values).");
+            goto end;
         }
     }
 

@@ -31,11 +31,18 @@ static void handle_pcf_info(
         ogs_sbi_nf_instance_t *nf_instance, OpenAPI_pcf_info_t *PcfInfo);        
 static void handle_ausf_info(
         ogs_sbi_nf_instance_t *nf_instance, OpenAPI_ausf_info_t *AusfInfo);    
-        
+static void handle_scp_info(
+        ogs_sbi_nf_instance_t *nf_instance, OpenAPI_scp_info_t *ScpInfo);
+static void handle_sepp_info(
+        ogs_sbi_nf_instance_t *nf_instance, OpenAPI_sepp_info_t *SeppInfo);
+static void handle_amf_info(
+        ogs_sbi_nf_instance_t *nf_instance, OpenAPI_amf_info_t *AmfInfo);
+
 void ogs_nnrf_nfm_handle_nf_register(
         ogs_sbi_nf_instance_t *nf_instance, ogs_sbi_message_t *recvmsg)
 {
     OpenAPI_nf_profile_t *NFProfile = NULL;
+    OpenAPI_lnode_t *node;
 
     ogs_assert(recvmsg);
     ogs_assert(nf_instance);
@@ -49,6 +56,28 @@ void ogs_nnrf_nfm_handle_nf_register(
     /* TIME : Update heartbeat from NRF */
     if (NFProfile->is_heart_beat_timer == true)
         nf_instance->time.heartbeat_interval = NFProfile->heart_beat_timer;
+
+    if (NFProfile->plmn_list) {
+        nf_instance->num_of_plmn_id = 0;
+        OpenAPI_list_for_each(NFProfile->plmn_list, node) {
+            OpenAPI_plmn_id_t *PlmnId = node->data;
+            if (PlmnId) {
+                if (ogs_local_conf()->num_of_serving_plmn_id >=
+                        OGS_ARRAY_SIZE(ogs_local_conf()->serving_plmn_id)) {
+                    ogs_error("OVERFLOW NFProfile->plmn_list [%d:%d:%d]",
+                            ogs_local_conf()->num_of_serving_plmn_id,
+                            OGS_MAX_NUM_OF_PLMN,
+                            (int)OGS_ARRAY_SIZE(
+                                ogs_local_conf()->serving_plmn_id));
+                    break;
+                }
+                ogs_sbi_parse_plmn_id(
+                    &ogs_local_conf()->serving_plmn_id[
+                        ogs_local_conf()->num_of_serving_plmn_id], PlmnId);
+                ogs_local_conf()->num_of_serving_plmn_id++;
+            }
+        }
+    }
 }
 
 void ogs_nnrf_nfm_handle_nf_profile(
@@ -80,6 +109,23 @@ void ogs_nnrf_nfm_handle_nf_profile(
     if (NFProfile->is_load == true)
         nf_instance->load = NFProfile->load;
 
+    nf_instance->num_of_plmn_id = 0;
+    OpenAPI_list_for_each(NFProfile->plmn_list, node) {
+        OpenAPI_plmn_id_t *PlmnId = node->data;
+        if (PlmnId) {
+            if (nf_instance->num_of_plmn_id >=
+                    OGS_ARRAY_SIZE(nf_instance->plmn_id)) {
+                ogs_error("OVERFLOW NFProfile->plmn_list [%d:%d:%d]",
+                        nf_instance->num_of_plmn_id, OGS_MAX_NUM_OF_PLMN,
+                        (int)OGS_ARRAY_SIZE(nf_instance->plmn_id));
+                break;
+            }
+            ogs_sbi_parse_plmn_id(
+                &nf_instance->plmn_id[nf_instance->num_of_plmn_id], PlmnId);
+            nf_instance->num_of_plmn_id++;
+        }
+    }
+
     OpenAPI_list_for_each(NFProfile->ipv4_addresses, node) {
         ogs_sockaddr_t *addr = NULL;
 
@@ -90,9 +136,14 @@ void ogs_nnrf_nfm_handle_nf_profile(
 
         if (nf_instance->num_of_ipv4 < OGS_SBI_MAX_NUM_OF_IP_ADDRESS) {
 
-            rv = ogs_getaddrinfo(&addr, AF_UNSPEC,
-                    node->data, ogs_sbi_client_default_port(), 0);
-            if (rv != OGS_OK) continue;
+            rv = ogs_getaddrinfo(
+                    &addr, AF_UNSPEC,
+                    node->data,
+                    ogs_sbi_default_client_port(OpenAPI_uri_scheme_NULL), 0);
+            if (rv != OGS_OK) {
+                ogs_error("ogs_getaddrinfo[%s] failed", (char *)node->data);
+                continue;
+            }
 
             ogs_debug("test:nf_instance, addr:%s, port:%d.", OGS_ADDR(addr, buf), OGS_PORT(addr));
             nf_instance->ipv4[nf_instance->num_of_ipv4] = addr;
@@ -109,9 +160,14 @@ void ogs_nnrf_nfm_handle_nf_profile(
 
         if (nf_instance->num_of_ipv6 < OGS_SBI_MAX_NUM_OF_IP_ADDRESS) {
 
-            rv = ogs_getaddrinfo(&addr, AF_UNSPEC,
-                    node->data, ogs_sbi_client_default_port(), 0);
-            if (rv != OGS_OK) continue;
+            rv = ogs_getaddrinfo(
+                    &addr, AF_UNSPEC,
+                    node->data,
+                    ogs_sbi_default_client_port(OpenAPI_uri_scheme_NULL), 0);
+            if (rv != OGS_OK) {
+                ogs_error("ogs_getaddrinfo[%s] failed", (char *)node->data);
+                continue;
+            }
 
             nf_instance->ipv6[nf_instance->num_of_ipv6] = addr;
             nf_instance->num_of_ipv6++;
@@ -227,6 +283,18 @@ void ogs_nnrf_nfm_handle_nf_profile(
         if (SmfInfoMap && SmfInfoMap->value)
             handle_smf_info(nf_instance, SmfInfoMap->value);
     }
+    if (NFProfile->amf_info)
+        handle_amf_info(nf_instance, NFProfile->amf_info);
+
+    OpenAPI_list_for_each(NFProfile->amf_info_list, node) {
+        OpenAPI_map_t *AmfInfoMap = node->data;
+        if (AmfInfoMap && AmfInfoMap->value)
+            handle_amf_info(nf_instance, AmfInfoMap->value);
+    }
+    if (NFProfile->scp_info)
+        handle_scp_info(nf_instance, NFProfile->scp_info);
+    if (NFProfile->sepp_info)
+        handle_sepp_info(nf_instance, NFProfile->sepp_info);
 
     if (NFProfile->udm_info)
         handle_udm_info(nf_instance, NFProfile->udm_info);
@@ -303,7 +371,7 @@ static void handle_nf_service(
 
         if (nf_service->num_of_addr < OGS_SBI_MAX_NUM_OF_IP_ADDRESS) {
             if (!IpEndPoint->is_port)
-                port = ogs_sbi_client_default_port();
+                port = ogs_sbi_default_client_port(nf_service->scheme);
             else
                 port = IpEndPoint->port;
 
@@ -460,8 +528,12 @@ static void handle_smf_info(
         TaiRangeItem = node->data;
         if (TaiRangeItem && TaiRangeItem->plmn_id &&
                 TaiRangeItem->tac_range_list) {
-            ogs_assert(nf_info->smf.num_of_nr_tai_range <
-                    OGS_MAX_NUM_OF_TAI);
+
+            if (nf_info->smf.num_of_nr_tai_range >= OGS_MAX_NUM_OF_TAI) {
+                ogs_error("OVERFLOW TaiRangeItem [%d:%d]",
+                        nf_info->smf.num_of_nr_tai_range, OGS_MAX_NUM_OF_TAI);
+                break;
+            }
 
             ogs_sbi_parse_plmn_id(
                 &nf_info->smf.nr_tai_range
@@ -493,6 +565,270 @@ static void handle_smf_info(
             }
 
             nf_info->smf.num_of_nr_tai_range++;
+        }
+    }
+}
+
+static void handle_scp_info(
+        ogs_sbi_nf_instance_t *nf_instance, OpenAPI_scp_info_t *ScpInfo)
+{
+    ogs_sbi_nf_info_t *nf_info = NULL;
+
+    OpenAPI_list_t *PortList = NULL;
+    OpenAPI_map_t *PortMap = NULL;
+
+    OpenAPI_map_t *DomainInfoMap = NULL;
+    OpenAPI_scp_domain_info_t *DomainInfo = NULL;
+
+    OpenAPI_lnode_t *node = NULL, *node2 = NULL;
+
+    ogs_sbi_scp_info_t scp_info;
+
+    ogs_assert(nf_instance);
+    ogs_assert(ScpInfo);
+
+    memset(&scp_info, 0, sizeof(scp_info));
+
+    PortList = ScpInfo->scp_ports;
+    OpenAPI_list_for_each(PortList, node) {
+        PortMap = node->data;
+        if (PortMap) {
+            if (PortMap->key) {
+                double *port = PortMap->value;
+                if (strcmp(PortMap->key, "http") == 0) {
+                    if (port) {
+                        scp_info.http.presence = true;
+                        scp_info.http.port = *port;
+                    } else {
+                        ogs_error("No Port Value");
+                    }
+                } else if (strcmp(PortMap->key, "https") == 0) {
+                    if (port) {
+                        scp_info.https.presence = true;
+                        scp_info.https.port = *port;
+                    } else {
+                        ogs_error("No Port Value");
+                    }
+                } else {
+                    ogs_error("Unknown Port Key = %s", PortMap->key);
+                }
+            }
+        }
+    }
+
+    OpenAPI_list_for_each(ScpInfo->scp_domain_info_list, node) {
+        DomainInfoMap = node->data;
+        if (DomainInfoMap && DomainInfoMap->key && DomainInfoMap->value) {
+            scp_info.domain[scp_info.num_of_domain].name =
+                ogs_strdup(DomainInfoMap->key);
+            DomainInfo = DomainInfoMap->value;
+            if (DomainInfo->scp_fqdn)
+                scp_info.domain[scp_info.num_of_domain].fqdn =
+                    ogs_strdup(DomainInfo->scp_fqdn);
+            OpenAPI_list_for_each(DomainInfo->scp_ports, node2) {
+                PortMap = node2->data;
+                if (PortMap) {
+                    if (PortMap->key) {
+                        double *port = PortMap->value;
+                        if (strcmp(PortMap->key, "http") == 0) {
+                            if (port) {
+                                scp_info.domain[scp_info.num_of_domain].
+                                    http.presence = true;
+                                scp_info.domain[scp_info.num_of_domain].
+                                    http.port = *port;
+                            } else {
+                                ogs_error("No Port Value");
+                            }
+                        } else if (strcmp(PortMap->key, "https") == 0) {
+                            if (port) {
+                                scp_info.domain[scp_info.num_of_domain].
+                                    https.presence = true;
+                                scp_info.domain[scp_info.num_of_domain].
+                                    https.port = *port;
+                            } else {
+                                ogs_error("No Port Value");
+                            }
+                        } else {
+                            ogs_error("Unknown Port Key = %s", PortMap->key);
+                        }
+                    }
+                }
+            }
+            scp_info.num_of_domain++;
+        }
+    }
+
+    if (scp_info.http.presence || scp_info.https.presence) {
+        nf_info = ogs_sbi_nf_info_add(
+                &nf_instance->nf_info_list, OpenAPI_nf_type_SCP);
+        ogs_assert(nf_info);
+
+        memcpy(&nf_info->scp, &scp_info, sizeof(scp_info));
+    }
+}
+
+static void handle_sepp_info(
+        ogs_sbi_nf_instance_t *nf_instance, OpenAPI_sepp_info_t *SeppInfo)
+{
+    ogs_sbi_nf_info_t *nf_info = NULL;
+
+    OpenAPI_list_t *PortList = NULL;
+    OpenAPI_map_t *PortMap = NULL;
+
+    OpenAPI_lnode_t *node = NULL;
+
+    ogs_port_t http, https;
+
+    ogs_assert(nf_instance);
+    ogs_assert(SeppInfo);
+
+    http.port = 0;
+    https.port = 0;
+    http.presence = false;
+    https.presence = false;
+
+    PortList = SeppInfo->sepp_ports;
+    OpenAPI_list_for_each(PortList, node) {
+        PortMap = node->data;
+        if (PortMap) {
+            if (PortMap->key) {
+                double *port = PortMap->value;
+                if (strcmp(PortMap->key, "http") == 0) {
+                    if (port) {
+                        http.presence = true;
+                        http.port = *port;
+                    } else {
+                        ogs_error("No Port Value");
+                    }
+                } else if (strcmp(PortMap->key, "https") == 0) {
+                    if (port) {
+                        https.presence = true;
+                        https.port = *port;
+                    } else {
+                        ogs_error("No Port Value");
+                    }
+                } else {
+                    ogs_error("Unknown Port Key = %s", PortMap->key);
+                }
+            }
+        }
+    }
+
+    if (http.presence || https.presence) {
+        nf_info = ogs_sbi_nf_info_add(
+                &nf_instance->nf_info_list, OpenAPI_nf_type_SEPP);
+        ogs_assert(nf_info);
+
+        nf_info->sepp.http.presence = http.presence;
+        nf_info->sepp.http.port = http.port;
+
+        nf_info->sepp.https.presence = https.presence;
+        nf_info->sepp.https.port = https.port;
+    }
+}
+
+static void handle_amf_info(
+        ogs_sbi_nf_instance_t *nf_instance, OpenAPI_amf_info_t *AmfInfo)
+{
+    ogs_sbi_nf_info_t *nf_info = NULL;
+    OpenAPI_list_t *GuamiList = NULL;
+    OpenAPI_guami_t *GuamiAmfInfoItem = NULL;
+    OpenAPI_list_t *TaiList = NULL;
+    OpenAPI_tai_t *TaiItem = NULL;
+    OpenAPI_list_t *TaiRangeList = NULL;
+    OpenAPI_tai_range_t *TaiRangeItem = NULL;
+    OpenAPI_list_t *TacRangeList = NULL;
+    OpenAPI_tac_range_t *TacRangeItem = NULL;
+    OpenAPI_lnode_t *node = NULL, *node2 = NULL;
+
+    ogs_assert(nf_instance);
+    ogs_assert(AmfInfo);
+
+    nf_info = ogs_sbi_nf_info_add(
+            &nf_instance->nf_info_list, OpenAPI_nf_type_AMF);
+    ogs_assert(nf_info);
+
+    nf_info->amf.amf_set_id = ogs_uint64_from_string(AmfInfo->amf_set_id);
+    nf_info->amf.amf_region_id = ogs_uint64_from_string(AmfInfo->amf_region_id);
+    GuamiList = AmfInfo->guami_list;
+
+    OpenAPI_list_for_each(GuamiList, node) {
+        GuamiAmfInfoItem = node->data;
+        if (GuamiAmfInfoItem) {
+            ogs_assert(nf_info->amf.num_of_guami < OGS_MAX_NUM_OF_SERVED_GUAMI);
+
+            if (GuamiAmfInfoItem->amf_id && GuamiAmfInfoItem->plmn_id &&
+                    GuamiAmfInfoItem->plmn_id->mnc &&
+                    GuamiAmfInfoItem->plmn_id->mcc) {
+
+                ogs_sbi_parse_guami(
+                        &nf_info->amf.guami[nf_info->amf.num_of_guami],
+                        GuamiAmfInfoItem);
+                nf_info->amf.num_of_guami++;
+            }
+        }
+    }
+
+    TaiList = AmfInfo->tai_list;
+    OpenAPI_list_for_each(TaiList, node) {
+        TaiItem = node->data;
+        if (TaiItem && TaiItem->plmn_id && TaiItem->tac) {
+            ogs_5gs_tai_t *nr_tai = NULL;
+
+            if (nf_info->amf.num_of_nr_tai >= OGS_MAX_NUM_OF_TAI) {
+                ogs_error("OVERFLOW TaiItem [%d:%d]",
+                        nf_info->amf.num_of_nr_tai, OGS_MAX_NUM_OF_TAI);
+                break;
+            }
+
+            nr_tai = &nf_info->amf.nr_tai[nf_info->amf.num_of_nr_tai];
+            ogs_assert(nr_tai);
+            ogs_sbi_parse_plmn_id(&nr_tai->plmn_id, TaiItem->plmn_id);
+            nr_tai->tac = ogs_uint24_from_string(TaiItem->tac);
+            nf_info->amf.num_of_nr_tai++;
+        }
+    }
+
+    TaiRangeList = AmfInfo->tai_range_list;
+    OpenAPI_list_for_each(TaiRangeList, node) {
+        TaiRangeItem = node->data;
+        if (TaiRangeItem && TaiRangeItem->plmn_id &&
+                TaiRangeItem->tac_range_list) {
+            ogs_assert(nf_info->amf.num_of_nr_tai_range <
+                    OGS_MAX_NUM_OF_TAI);
+
+            if (nf_info->amf.num_of_nr_tai_range >= OGS_MAX_NUM_OF_TAI) {
+                ogs_error("OVERFLOW TaiRangeItem [%d:%d]",
+                        nf_info->amf.num_of_nr_tai_range, OGS_MAX_NUM_OF_TAI);
+                break;
+            }
+
+            ogs_sbi_parse_plmn_id(
+                &nf_info->amf.nr_tai_range
+                    [nf_info->amf.num_of_nr_tai_range].plmn_id,
+                TaiRangeItem->plmn_id);
+
+            TacRangeList = TaiRangeItem->tac_range_list;
+            OpenAPI_list_for_each(TacRangeList, node2) {
+                TacRangeItem = node2->data;
+                if (TacRangeItem &&
+                        TacRangeItem->start && TacRangeItem->end) {
+                    int tac_index = nf_info->amf.nr_tai_range
+                        [nf_info->amf.num_of_nr_tai_range].num_of_tac_range;
+                    ogs_assert(tac_index < OGS_MAX_NUM_OF_TAI);
+
+                    nf_info->amf.nr_tai_range
+                        [nf_info->amf.num_of_nr_tai_range].start[tac_index] =
+                                ogs_uint24_from_string(TacRangeItem->start);
+                    nf_info->amf.nr_tai_range
+                        [nf_info->amf.num_of_nr_tai_range].end[tac_index] =
+                                ogs_uint24_from_string(TacRangeItem->end);
+
+                    nf_info->amf.nr_tai_range
+                        [nf_info->amf.num_of_nr_tai_range].num_of_tac_range++;
+                }
+            }
+            nf_info->amf.num_of_nr_tai_range++;
         }
     }
 }
@@ -655,6 +991,17 @@ void ogs_nnrf_nfm_handle_nf_status_subscribe(
 {
     OpenAPI_subscription_data_t *SubscriptionData = NULL;
 
+    int rv;
+    ogs_sbi_message_t message;
+    ogs_sbi_header_t header;
+
+    bool rc;
+    ogs_sbi_client_t *client = NULL;
+    OpenAPI_uri_scheme_e scheme = OpenAPI_uri_scheme_NULL;
+    char *fqdn = NULL;
+    uint16_t fqdn_port = 0;
+    ogs_sockaddr_t *addr = NULL, *addr6 = NULL;
+
     ogs_assert(recvmsg);
     ogs_assert(subscription_data);
 
@@ -664,44 +1011,62 @@ void ogs_nnrf_nfm_handle_nf_status_subscribe(
         return;
     }
 
-    if (recvmsg->http.location) {
-        int rv;
-        ogs_sbi_message_t message;
-        ogs_sbi_header_t header;
-
-        memset(&header, 0, sizeof(header));
-        header.uri = recvmsg->http.location;
-
-        rv = ogs_sbi_parse_header(&message, &header);
-        if (rv != OGS_OK) {
-            ogs_error("Cannot parse http.location [%s]",
-                recvmsg->http.location);
-            return;
-        }
-
-        if (!message.h.resource.component[1]) {
-            ogs_error("No Subscription ID [%s]", recvmsg->http.location);
-            ogs_sbi_header_free(&header);
-            return;
-        }
-
-        ogs_sbi_subscription_data_set_id(
-                subscription_data, message.h.resource.component[1]);
-
-        ogs_sbi_header_free(&header);
-
-    } else if (SubscriptionData->subscription_id) {
-        /*
-         * For compatibility with v2.5.x and lower versions
-         *
-         * Deprecated : It will be removed soon.
-         */
-        ogs_sbi_subscription_data_set_id(
-            subscription_data, SubscriptionData->subscription_id);
-    } else {
-        ogs_error("No Subscription ID");
+    if (!recvmsg->http.location) {
+        ogs_error("No http.location");
         return;
     }
+
+    memset(&header, 0, sizeof(header));
+    header.uri = recvmsg->http.location;
+
+    rv = ogs_sbi_parse_header(&message, &header);
+    if (rv != OGS_OK) {
+        ogs_error("Cannot parse http.location [%s]",
+            recvmsg->http.location);
+        return;
+    }
+
+    if (!message.h.resource.component[1]) {
+        ogs_error("No Subscription ID [%s]", recvmsg->http.location);
+        ogs_sbi_header_free(&header);
+        return;
+    }
+
+    rc = ogs_sbi_getaddr_from_uri(
+            &scheme, &fqdn, &fqdn_port, &addr, &addr6, header.uri);
+    if (rc == false || scheme == OpenAPI_uri_scheme_NULL) {
+        ogs_error("Invalid URI [%s]", header.uri);
+        ogs_sbi_header_free(&header);
+        return;
+    }
+
+    client = ogs_sbi_client_find(scheme, fqdn, fqdn_port, addr, addr6);
+    if (!client) {
+        ogs_debug("%s: ogs_sbi_client_add()", OGS_FUNC);
+        client = ogs_sbi_client_add(scheme, fqdn, fqdn_port, addr, addr6);
+        if (!client) {
+            ogs_error("%s: ogs_sbi_client_add() failed", OGS_FUNC);
+
+            ogs_sbi_header_free(&header);
+            ogs_free(fqdn);
+            ogs_freeaddrinfo(addr);
+            ogs_freeaddrinfo(addr6);
+
+            return;
+        }
+    }
+    OGS_SBI_SETUP_CLIENT(subscription_data, client);
+
+    ogs_free(fqdn);
+    ogs_freeaddrinfo(addr);
+    ogs_freeaddrinfo(addr6);
+
+    ogs_sbi_subscription_data_set_resource_uri(
+            subscription_data, header.uri);
+    ogs_sbi_subscription_data_set_id(
+            subscription_data, message.h.resource.component[1]);
+
+    ogs_sbi_header_free(&header);
 
     /* SBI Features */
     if (SubscriptionData->nrf_supported_features) {
@@ -765,7 +1130,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
         if (isICPS){
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No NotificationData", NULL));
+                    recvmsg, "No NotificationData", NULL, NULL));
         }        
         return false;
     }
@@ -775,7 +1140,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
         if (isICPS){
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No nfInstanceUri", NULL));
+                    recvmsg, "No nfInstanceUri", NULL, NULL));
         }
         return false;
     }
@@ -789,7 +1154,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
         if (isICPS){
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "Cannot parse nfInstanceUri", header.uri));
+                    recvmsg, "Cannot parse nfInstanceUri", header.uri, NULL));
         }
         return false;
     }
@@ -799,7 +1164,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
         if (isICPS){
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "Cannot parse nfInstanceUri", header.uri));
+                    recvmsg, "Cannot parse nfInstanceUri", header.uri, NULL));
         }
         ogs_sbi_header_free(&header);
         return false;
@@ -812,7 +1177,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_FORBIDDEN,
                     recvmsg, "The notification is not allowed",
-                    message.h.resource.component[1]));
+                    message.h.resource.component[1], NULL));
         }
         ogs_sbi_header_free(&header);
         return false;
@@ -830,7 +1195,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No NFProfile", NULL));
+                        recvmsg, "No NFProfile", NULL), NULL);
             }
             ogs_sbi_header_free(&header);
             return false;
@@ -842,7 +1207,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No NFProfile.NFInstanceId", NULL));
+                        recvmsg, "No NFProfile.NFInstanceId", NULL, NULL));
             }
             ogs_sbi_header_free(&header);
             return false;
@@ -854,7 +1219,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No NFProfile.NFType", NULL));
+                        recvmsg, "No NFProfile.NFType", NULL, NULL));
             }
             ogs_sbi_header_free(&header);
             return false;
@@ -866,7 +1231,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No NFProfile.NFStatus", NULL));
+                        recvmsg, "No NFProfile.NFStatus", NULL, NULL));
             }
             ogs_sbi_header_free(&header);
             return false;
@@ -880,18 +1245,35 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
             ogs_sbi_nf_instance_set_id(
                     nf_instance, message.h.resource.component[1]);
             ogs_sbi_nf_fsm_init(nf_instance);
-        } else {
-            ogs_sbi_nf_fsm_tran(nf_instance, ogs_sbi_nf_state_registered);
 
-            ogs_warn("[%s] %s(NRF-notify) NF has already been added",
-                    message.h.resource.component[1], OpenAPI_nf_type_ToString(NFProfile->nf_type));
+            ogs_info("(NRF-notify) NF registered [%s:%d]",
+                    nf_instance->id, nf_instance->reference_count);
+        } else {
+            ogs_warn("[%s] (NRF-notify) NF has already been added [%s:%d]",
+                    nf_instance->nf_type ?
+                        OpenAPI_nf_type_ToString(nf_instance->nf_type) : "NULL",
+                    nf_instance->id, nf_instance->reference_count);
+
+            ogs_assert(OGS_FSM_STATE(&nf_instance->sm));
+            ogs_sbi_nf_fsm_tran(nf_instance, ogs_sbi_nf_state_registered);
         }
 
         ogs_nnrf_nfm_handle_nf_profile(nf_instance, NFProfile);
 
-        ogs_info("[%s] %s(NRF-notify) NF Profile updated.", nf_instance->id, OpenAPI_nf_type_ToString(nf_instance->nf_type));
+        ogs_info("[%s] (NRF-notify) NF Profile updated [%s:%d]",
+                    nf_instance->nf_type ?
+                        OpenAPI_nf_type_ToString(nf_instance->nf_type) : "NULL",
+                    nf_instance->id, nf_instance->reference_count);
 
         ogs_sbi_client_associate(nf_instance);
+
+        switch (nf_instance->nf_type) {
+        case OpenAPI_nf_type_SEPP:
+            ogs_sbi_self()->sepp_instance = nf_instance;
+            break;
+        default:
+            break;
+        }
 
     } else if (NotificationData->event ==
             OpenAPI_notification_event_type_NF_PROFILE_CHANGED) {
@@ -964,13 +1346,22 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
         if (nf_instance) {
             if (OGS_OBJECT_IS_REF(nf_instance)) {
                 /* There are references to other contexts. */
-                ogs_warn("[%s:%d] NF was referenced in other contexts",
+                ogs_warn("[%s] (NRF-notify) NF was referenced "
+                        "in other contexts [%s:%d]",
+                        nf_instance->nf_type ?
+                            OpenAPI_nf_type_ToString(nf_instance->nf_type) :
+                            "NULL",
                         nf_instance->id, nf_instance->reference_count);
+
+                ogs_assert(OGS_FSM_STATE(&nf_instance->sm));
                 ogs_sbi_nf_fsm_tran(
                         nf_instance, ogs_sbi_nf_state_de_registered);
             } else {
-                ogs_info("[%s:%d] %s NF removed",
-                        nf_instance->id, nf_instance->reference_count, OpenAPI_nf_type_ToString(nf_instance->nf_type));
+                ogs_info("[%s] (NRF-notify) NF_DEREGISTERED event [%s:%d]",
+                        nf_instance->nf_type ?
+                            OpenAPI_nf_type_ToString(nf_instance->nf_type) :
+                            "NULL",
+                        nf_instance->id, nf_instance->reference_count);
                 ogs_sbi_nf_fsm_fini((nf_instance));
                 ogs_sbi_nf_instance_remove(nf_instance);
             }
@@ -981,7 +1372,8 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_NOT_FOUND,
-                        recvmsg, "Not found", message.h.resource.component[1]));
+                        recvmsg, "Not found", message.h.resource.component[1],
+                    NULL));
             }
             ogs_sbi_header_free(&header);
             return false;
@@ -995,7 +1387,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
                     recvmsg, "Not supported event",
-                    eventstr ? eventstr : "Unknown"));
+                    eventstr ? eventstr : "Unknown", NULL));
         }
         ogs_sbi_header_free(&header);
         return false;
@@ -1054,18 +1446,32 @@ void ogs_nnrf_disc_handle_nf_discover_search_result(
             ogs_sbi_nf_instance_set_id(nf_instance, NFProfile->nf_instance_id);
             ogs_sbi_nf_fsm_init(nf_instance);
 
-            ogs_info("[%s] (NF-discover) NF registered,nf_instance_name:%s.", nf_instance->id,OpenAPI_nf_type_ToString(NFProfile->nf_type));
+            ogs_info("[%s] (NRF-discover) NF registered [%s:%d]",
+                    nf_instance->nf_type ?
+                        OpenAPI_nf_type_ToString(nf_instance->nf_type) : "NULL",
+                    nf_instance->id, nf_instance->reference_count);
         } else {
-            ogs_sbi_nf_fsm_tran(nf_instance, ogs_sbi_nf_state_registered);
+            ogs_warn("[%s] (NRF-discover) NF has already been added [%s:%d]",
+                    nf_instance->nf_type ?
+                        OpenAPI_nf_type_ToString(nf_instance->nf_type) : "NULL",
+                    nf_instance->id, nf_instance->reference_count);
 
-            ogs_warn("[%s] (NF-discover) NF has already been added,nf_instance_name:%s.",
-                    NFProfile->nf_instance_id, OpenAPI_nf_type_ToString(NFProfile->nf_type));
+            ogs_assert(OGS_FSM_STATE(&nf_instance->sm));
+            ogs_sbi_nf_fsm_tran(nf_instance, ogs_sbi_nf_state_registered);
         }
 
         if (NF_INSTANCE_ID_IS_OTHERS(nf_instance->id)) {
             ogs_nnrf_nfm_handle_nf_profile(nf_instance, NFProfile);
 
             ogs_sbi_client_associate(nf_instance);
+
+            switch (nf_instance->nf_type) {
+            case OpenAPI_nf_type_SEPP:
+                ogs_sbi_self()->sepp_instance = nf_instance;
+                break;
+            default:
+                break;
+            }
 
             /* TIME : Update validity from NRF */
             if (SearchResult->is_validity_period &&
@@ -1078,10 +1484,15 @@ void ogs_nnrf_disc_handle_nf_discover_search_result(
                     ogs_time_from_sec(nf_instance->time.validity_duration));
 
             } else
-                ogs_warn("[%s] NF Instance validity-time should not 0",
-                        nf_instance->id);
+                ogs_warn("[%s] NF Instance validity-time should not 0 [%s:%d]",
+                    nf_instance->nf_type ?
+                        OpenAPI_nf_type_ToString(nf_instance->nf_type) : "NULL",
+                    nf_instance->id, nf_instance->reference_count);
 
-            ogs_info("[%s] (NF-discover) NF Profile updated, nf_type:%s.", nf_instance->id,OpenAPI_nf_type_ToString(nf_instance->nf_type));
+            ogs_info("[%s] (NF-discover) NF Profile updated [%s:%d]",
+                    nf_instance->nf_type ?
+                        OpenAPI_nf_type_ToString(nf_instance->nf_type) : "NULL",
+                    nf_instance->id, nf_instance->reference_count);
         }
     }
 }

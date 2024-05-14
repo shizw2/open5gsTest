@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019,2020 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -35,17 +35,17 @@ ogs_mongoc_mongoc_client_get_server_status (mongoc_client_t *client, /* IN */
                                  bson_t *reply,                   /* OUT */
                                  bson_error_t *error)             /* OUT */
 {
-   bson_t cmd = BSON_INITIALIZER;
-   bool ret = false;
+    bson_t cmd = BSON_INITIALIZER;
+    bool ret = false;
 
-   BSON_ASSERT (client);
+    BSON_ASSERT (client);
 
-   BSON_APPEND_INT32 (&cmd, "ping", 1);
-   ret = mongoc_client_command_simple (
-      client, "admin", &cmd, read_prefs, reply, error);
-   bson_destroy (&cmd);
+    BSON_APPEND_INT32 (&cmd, "ping", 1);
+    ret = mongoc_client_command_simple (
+        client, "admin", &cmd, read_prefs, reply, error);
+    bson_destroy (&cmd);
 
-   return ret;
+    return ret;
 }
 
 static char *masked_db_uri(const char *db_uri)
@@ -104,7 +104,7 @@ int ogs_mongoc_init(const char *db_uri)
         return OGS_ERROR;
     }
 
-#if MONGOC_MAJOR_VERSION >= 1 && MONGOC_MINOR_VERSION >= 4
+#if MONGOC_CHECK_VERSION(1, 4, 0)
     mongoc_client_set_error_api(self.client, 2);
 #endif
 
@@ -182,7 +182,7 @@ void ogs_dbi_final(void)
         mongoc_collection_destroy(self.collection.subscriber);
     }
 
-#if MONGOC_MAJOR_VERSION >= 1 && MONGOC_MINOR_VERSION >= 9
+#if MONGOC_CHECK_VERSION(1, 9, 0)
     if (self.stream) {
         mongoc_change_stream_destroy(self.stream);
     }
@@ -222,7 +222,7 @@ void ogs_eir_dbi_final(void)
         mongoc_collection_destroy(self.collection.ommlog);
     }
 
-#if MONGOC_MAJOR_VERSION >= 1 && MONGOC_MINOR_VERSION >= 9
+#if MONGOC_CHECK_VERSION(1, 9, 0)
     if (self.stream) {
         mongoc_change_stream_destroy(self.stream);
     }
@@ -233,7 +233,7 @@ void ogs_eir_dbi_final(void)
 
 int ogs_dbi_collection_watch_init(void)
 {
-#if MONGOC_MAJOR_VERSION >= 1 && MONGOC_MINOR_VERSION >= 9
+#if MONGOC_CHECK_VERSION(1, 9, 0)
     bson_t empty = BSON_INITIALIZER;    
     const bson_t *err_doc;
     bson_error_t error;
@@ -253,37 +253,6 @@ int ogs_dbi_collection_watch_init(void)
         return OGS_ERROR;
     } else {
         ogs_info("Change Streams are Enabled.");
-    }
-
-    return OGS_OK;
-# else
-    return OGS_ERROR;
-#endif
-}
-
-int ogs_dbi_poll_change_stream(void)
-{
-#if MONGOC_MAJOR_VERSION >= 1 && MONGOC_MINOR_VERSION >= 9
-    int rv;
-    
-    const bson_t *document;
-    const bson_t *err_document;
-    bson_error_t error;
-
-    while (mongoc_change_stream_next(ogs_mongoc()->stream, &document)) {
-        rv = ogs_dbi_process_change_stream(document);
-        if (rv != OGS_OK) return rv;
-    }
-
-    if (mongoc_change_stream_error_document(ogs_mongoc()->stream, &error, 
-            &err_document)) {
-        if (!bson_empty (err_document)) {
-            ogs_debug("Server Error: %s\n",
-            bson_as_relaxed_extended_json(err_document, NULL));
-        } else {
-            ogs_debug("Client Error: %s\n", error.message);
-        }
-        return OGS_ERROR;
     }
 
     return OGS_OK;

@@ -259,11 +259,22 @@ OpenAPI_partial_success_report_t *OpenAPI_partial_success_report_parseFromJSON(c
         policy_dec_failure_reportsList = OpenAPI_list_create();
 
         cJSON_ArrayForEach(policy_dec_failure_reports_local, policy_dec_failure_reports) {
+            OpenAPI_policy_decision_failure_code_e localEnum = OpenAPI_policy_decision_failure_code_NULL;
             if (!cJSON_IsString(policy_dec_failure_reports_local)) {
                 ogs_error("OpenAPI_partial_success_report_parseFromJSON() failed [policy_dec_failure_reports]");
                 goto end;
             }
-            OpenAPI_list_add(policy_dec_failure_reportsList, (void *)OpenAPI_policy_decision_failure_code_FromString(policy_dec_failure_reports_local->valuestring));
+            localEnum = OpenAPI_policy_decision_failure_code_FromString(policy_dec_failure_reports_local->valuestring);
+            if (!localEnum) {
+                ogs_info("Enum value \"%s\" for field \"policy_dec_failure_reports\" is not supported. Ignoring it ...",
+                         policy_dec_failure_reports_local->valuestring);
+            } else {
+                OpenAPI_list_add(policy_dec_failure_reportsList, (void *)localEnum);
+            }
+        }
+        if (policy_dec_failure_reportsList->count == 0) {
+            ogs_error("OpenAPI_partial_success_report_parseFromJSON() failed: Expected policy_dec_failure_reportsList to not be empty (after ignoring unsupported enum values).");
+            goto end;
         }
     }
 

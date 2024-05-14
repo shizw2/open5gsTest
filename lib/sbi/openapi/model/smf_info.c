@@ -391,11 +391,22 @@ OpenAPI_smf_info_t *OpenAPI_smf_info_parseFromJSON(cJSON *smf_infoJSON)
         access_typeList = OpenAPI_list_create();
 
         cJSON_ArrayForEach(access_type_local, access_type) {
+            OpenAPI_access_type_e localEnum = OpenAPI_access_type_NULL;
             if (!cJSON_IsString(access_type_local)) {
                 ogs_error("OpenAPI_smf_info_parseFromJSON() failed [access_type]");
                 goto end;
             }
-            OpenAPI_list_add(access_typeList, (void *)OpenAPI_access_type_FromString(access_type_local->valuestring));
+            localEnum = OpenAPI_access_type_FromString(access_type_local->valuestring);
+            if (!localEnum) {
+                ogs_info("Enum value \"%s\" for field \"access_type\" is not supported. Ignoring it ...",
+                         access_type_local->valuestring);
+            } else {
+                OpenAPI_list_add(access_typeList, (void *)localEnum);
+            }
+        }
+        if (access_typeList->count == 0) {
+            ogs_error("OpenAPI_smf_info_parseFromJSON() failed: Expected access_typeList to not be empty (after ignoring unsupported enum values).");
+            goto end;
         }
     }
 

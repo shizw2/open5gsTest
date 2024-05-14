@@ -184,11 +184,22 @@ OpenAPI_non_ue_n2_info_subscription_create_data_t *OpenAPI_non_ue_n2_info_subscr
         an_type_listList = OpenAPI_list_create();
 
         cJSON_ArrayForEach(an_type_list_local, an_type_list) {
+            OpenAPI_access_type_e localEnum = OpenAPI_access_type_NULL;
             if (!cJSON_IsString(an_type_list_local)) {
                 ogs_error("OpenAPI_non_ue_n2_info_subscription_create_data_parseFromJSON() failed [an_type_list]");
                 goto end;
             }
-            OpenAPI_list_add(an_type_listList, (void *)OpenAPI_access_type_FromString(an_type_list_local->valuestring));
+            localEnum = OpenAPI_access_type_FromString(an_type_list_local->valuestring);
+            if (!localEnum) {
+                ogs_info("Enum value \"%s\" for field \"an_type_list\" is not supported. Ignoring it ...",
+                         an_type_list_local->valuestring);
+            } else {
+                OpenAPI_list_add(an_type_listList, (void *)localEnum);
+            }
+        }
+        if (an_type_listList->count == 0) {
+            ogs_error("OpenAPI_non_ue_n2_info_subscription_create_data_parseFromJSON() failed: Expected an_type_listList to not be empty (after ignoring unsupported enum values).");
+            goto end;
         }
     }
 

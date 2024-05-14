@@ -278,11 +278,22 @@ OpenAPI_udr_info_t *OpenAPI_udr_info_parseFromJSON(cJSON *udr_infoJSON)
         supported_data_setsList = OpenAPI_list_create();
 
         cJSON_ArrayForEach(supported_data_sets_local, supported_data_sets) {
+            OpenAPI_data_set_id_e localEnum = OpenAPI_data_set_id_NULL;
             if (!cJSON_IsString(supported_data_sets_local)) {
                 ogs_error("OpenAPI_udr_info_parseFromJSON() failed [supported_data_sets]");
                 goto end;
             }
-            OpenAPI_list_add(supported_data_setsList, (void *)OpenAPI_data_set_id_FromString(supported_data_sets_local->valuestring));
+            localEnum = OpenAPI_data_set_id_FromString(supported_data_sets_local->valuestring);
+            if (!localEnum) {
+                ogs_info("Enum value \"%s\" for field \"supported_data_sets\" is not supported. Ignoring it ...",
+                         supported_data_sets_local->valuestring);
+            } else {
+                OpenAPI_list_add(supported_data_setsList, (void *)localEnum);
+            }
+        }
+        if (supported_data_setsList->count == 0) {
+            ogs_error("OpenAPI_udr_info_parseFromJSON() failed: Expected supported_data_setsList to not be empty (after ignoring unsupported enum values).");
+            goto end;
         }
     }
 
