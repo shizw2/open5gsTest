@@ -98,13 +98,6 @@ void *ogs_nas_to_plmn_id(
     return plmn_id;
 }
 
-char *ogs_serving_network_name_from_plmn_id(ogs_plmn_id_t *plmn_id)
-{
-    ogs_assert(plmn_id);
-    return ogs_msprintf("5G:mnc%03d.mcc%03d.3gppnetwork.org",
-            ogs_plmn_id_mnc(plmn_id), ogs_plmn_id_mcc(plmn_id));
-}
-
 char *ogs_plmn_id_mcc_string(const ogs_plmn_id_t *plmn_id)
 {
     ogs_assert(plmn_id);
@@ -867,19 +860,6 @@ void ogs_subscription_data_free(ogs_subscription_data_t *subscription_data)
     subscription_data->num_of_slice = 0;
 
     subscription_data->num_of_msisdn = 0;
-}
-
-void ogs_session_data_free(ogs_session_data_t *session_data)
-{
-    int i;
-
-    ogs_assert(session_data);
-
-    if (session_data->session.name)
-        ogs_free(session_data->session.name);
-
-    for (i = 0; i < session_data->num_of_pcc_rule; i++)
-        OGS_PCC_RULE_FREE(&session_data->pcc_rule[i]);
 }
 
 void ogs_ims_data_free(ogs_ims_data_t *ims_data)

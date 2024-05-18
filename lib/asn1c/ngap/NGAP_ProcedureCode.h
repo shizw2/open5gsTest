@@ -106,6 +106,10 @@ per_type_encoder_f NGAP_ProcedureCode_encode_aper;
 #define NGAP_ProcedureCode_id_MulticastGroupPaging	((NGAP_ProcedureCode_t)74)
 #define NGAP_ProcedureCode_id_BroadcastSessionReleaseRequired	((NGAP_ProcedureCode_t)75)
 
+#define NGAP_ProcedureCode_id_HandoverResourceAllocation_Fail ((NGAP_ProcedureCode_t)213)//私自扩展
+#define NGAP_ProcedureCode_id_InitialContextSetup_Fail ((NGAP_ProcedureCode_t)214)//私自扩展
+
+
 #ifdef __cplusplus
 }
 #endif
