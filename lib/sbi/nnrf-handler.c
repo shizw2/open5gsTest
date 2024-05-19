@@ -1195,7 +1195,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No NFProfile", NULL), NULL);
+                        recvmsg, "No NFProfile", NULL, NULL));
             }
             ogs_sbi_header_free(&header);
             return false;
@@ -1287,7 +1287,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No NFProfile", NULL));
+                        recvmsg, "No NFProfile", NULL, NULL));
             }
             ogs_sbi_header_free(&header);
             return false;
@@ -1299,7 +1299,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No NFProfile.NFInstanceId", NULL));
+                        recvmsg, "No NFProfile.NFInstanceId", NULL, NULL));
             }
             ogs_sbi_header_free(&header);
             return false;
@@ -1311,7 +1311,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No NFProfile.NFType", NULL));
+                        recvmsg, "No NFProfile.NFType", NULL, NULL));
             }
             ogs_sbi_header_free(&header);
             return false;
@@ -1323,7 +1323,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No NFProfile.NFStatus", NULL));
+                        recvmsg, "No NFProfile.NFStatus", NULL, NULL));
             }
             ogs_sbi_header_free(&header);
             return false;

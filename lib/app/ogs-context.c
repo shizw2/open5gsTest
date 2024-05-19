@@ -50,7 +50,6 @@ void ogs_app_context_final(void)
     if (self.queue)
         ogs_queue_destroy(self.queue);
 
-    ogs_socknode_remove_all(&self.cli_list);
     initialized = 0;
 }
 

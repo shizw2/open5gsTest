@@ -63,6 +63,8 @@ typedef struct ogs_global_conf_s {
 
         int no_pfcp_rr_select;
         int no_time_zone_information;
+
+        int capacity;
     } parameter;
 
     struct {
@@ -79,6 +81,8 @@ typedef struct ogs_global_conf_s {
 
     ogs_pkbuf_config_t pkbuf_config;
 
+    uint32_t        cli_port;      /* cli local port */
+    ogs_list_t      cli_list;      /* cli Server List */
 } ogs_app_global_conf_t;
 
 typedef struct ogs_local_conf_s {

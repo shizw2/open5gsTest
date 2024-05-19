@@ -1249,7 +1249,7 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_add(void)
             ogs_local_conf()->time.nf_instance.heartbeat_interval;
 
     nf_instance->priority = OGS_SBI_DEFAULT_PRIORITY;
-    nf_instance->capacity = ogs_app()->parameter.capacity;//capacity支持为0的配置
+    nf_instance->capacity = ogs_global_conf()->parameter.capacity;//capacity支持为0的配置
     //nf_instance->capacity = OGS_SBI_DEFAULT_CAPACITY;
     nf_instance->load = OGS_SBI_DEFAULT_LOAD;
 
@@ -2366,38 +2366,6 @@ ogs_sbi_nf_service_t *ogs_sbi_nf_service_build_default(
     return nf_service;
 }
 
-static ogs_sbi_client_t *find_client_by_fqdn(
-        OpenAPI_uri_scheme_e scheme, char *fqdn)
-{
-    int rv;
-    ogs_sockaddr_t *addr = NULL;
-    ogs_sbi_client_t *client = NULL;
-
-    ogs_assert(scheme == OpenAPI_uri_scheme_https ||
-                scheme == OpenAPI_uri_scheme_http);
-    ogs_assert(fqdn);
-
-    rv = ogs_getaddrinfo(
-            &addr, AF_UNSPEC, fqdn,
-            scheme == OpenAPI_uri_scheme_https ?
-                OGS_SBI_HTTPS_PORT : OGS_SBI_HTTP_PORT,
-            0);
-    if (rv != OGS_OK) {
-        ogs_error("Invalid NFProfile.fqdn");
-        return NULL;
-    }
-
-    client = ogs_sbi_client_find(scheme, addr);
-    if (!client) {
-        client = ogs_sbi_client_add(scheme, addr);
-        ogs_assert(client);
-    }
-
-    ogs_freeaddrinfo(addr);
-
-    return client;
-}
-
 static ogs_sbi_client_t *nf_instance_find_client(
         ogs_sbi_nf_instance_t *nf_instance)
 {
@@ -2775,25 +2743,6 @@ int ogs_sbi_default_client_port(OpenAPI_uri_scheme_e scheme)
     return scheme == OpenAPI_uri_scheme_https ?
             OGS_SBI_HTTPS_PORT : OGS_SBI_HTTP_PORT;
 }
-
-OpenAPI_uri_scheme_e ogs_sbi_server_default_scheme(void)
-{
-    return ogs_app()->sbi.server.no_tls == false ?
-            OpenAPI_uri_scheme_https : OpenAPI_uri_scheme_http;
-}
-
-OpenAPI_uri_scheme_e ogs_sbi_client_default_scheme(void)
-{
-    return ogs_app()->sbi.client.no_tls == false ?
-            OpenAPI_uri_scheme_https : OpenAPI_uri_scheme_http;
-}
-
-int ogs_sbi_server_default_port(void)
-{
-    return ogs_app()->sbi.server.no_tls == false ?
-            OGS_SBI_HTTPS_PORT : OGS_SBI_HTTP_PORT;
-}
-
 
 ogs_sbi_client_t *ogs_sbi_client_find_by_service_name(
         ogs_sbi_nf_instance_t *nf_instance, char *name, char *version)
