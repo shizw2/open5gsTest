@@ -127,7 +127,7 @@ ogs_sbi_request_t *smf_namf_comm_build_n1_n2_message_transfer(
     }
 
     if (param->n1n2_failure_txf_notif_uri == true) {
-        server = ogs_list_first(&ogs_sbi_self()->server_list);
+        server = ogs_sbi_server_first();
         ogs_assert(server);
 
         memset(&header, 0, sizeof(header));
@@ -169,8 +169,6 @@ ogs_sbi_request_t *smf_namf_callback_build_sm_context_status(
 
     ogs_assert(sess);
     ogs_assert(sess->sm_context_status_uri);
-
-    ogs_info("test:smf_namf_callback_build_sm_context_status,sm_context_status_uri:%s.",sess->sm_context_status_uri);
 
     memset(&StatusInfo, 0, sizeof(StatusInfo));
     StatusInfo.resource_status = OpenAPI_resource_status_RELEASED;

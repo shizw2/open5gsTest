@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -31,13 +31,16 @@ static ogs_thread_t *cli_thread;
 static ogs_thread_t *thread;
 static void smf_main(void *data);
 
-
 static int initialized = 0;
 
 int smf_initialize(void)
 {
     int rv;
-    setAffinity(7);
+
+#define APP_NAME "smf"
+    rv = ogs_app_parse_local_conf(APP_NAME);
+    if (rv != OGS_OK) return rv;
+
     smf_metrics_init();
 
     ogs_gtp_context_init(ogs_app()->pool.nf * OGS_MAX_NUM_OF_GTPU_RESOURCE);
@@ -45,23 +48,23 @@ int smf_initialize(void)
     ogs_sbi_context_init(OpenAPI_nf_type_SMF);
 
     smf_context_init();
-    
+
     rv = ogs_gtp_xact_init();
     if (rv != OGS_OK) return rv;
 
     rv = ogs_pfcp_xact_init();
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_gtp_context_parse_config("smf", "upf");
+    rv = ogs_gtp_context_parse_config(APP_NAME, "upf");
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_pfcp_context_parse_config("smf", "upf");
+    rv = ogs_pfcp_context_parse_config(APP_NAME, "upf");
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_sbi_context_parse_config("smf", "nrf", "scp");
+    rv = ogs_sbi_context_parse_config(APP_NAME, "nrf", "scp");
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_metrics_context_parse_config("smf");
+    rv = ogs_metrics_context_parse_config(APP_NAME);
     if (rv != OGS_OK) return rv;
 
     rv = smf_context_parse_config(false);
@@ -159,7 +162,6 @@ static void smf_main(void *data)
 {
     ogs_fsm_t smf_sm;
     int rv;
-    setAffinity(7);
 
     ogs_fsm_init(&smf_sm, smf_state_initial, smf_state_final, 0);
 

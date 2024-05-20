@@ -83,9 +83,9 @@ bool _parse_nd(EthernetII &pdu)
 {
     if (pdu.payload_type() == ETHERTYPE_IPV6) {
         try {
-        const ICMPv6& icmp6 = pdu.rfind_pdu<ICMPv6>();
-        return icmp6.type() == ICMPv6::NEIGHBOUR_SOLICIT;
-    }
+            const ICMPv6& icmp6 = pdu.rfind_pdu<ICMPv6>();
+            return icmp6.type() == ICMPv6::NEIGHBOUR_SOLICIT;
+        }
         catch (Tins::pdu_not_found& e) {
             /* If it is not an ICMPv6 message, it can not be a NEIGHBOUR_SOLICIT */
             return false;

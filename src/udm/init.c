@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -30,13 +30,17 @@ void setCommands(void);
 int udm_initialize(void)
 {
     int rv;
+
+#define APP_NAME "udm"
+    rv = ogs_app_parse_local_conf(APP_NAME);
+    if (rv != OGS_OK) return rv;
     
     udm_metrics_init();
 
     ogs_sbi_context_init(OpenAPI_nf_type_UDM);
     udm_context_init();
 
-    rv = ogs_sbi_context_parse_config("udm", "nrf", "scp");
+    rv = ogs_sbi_context_parse_config(APP_NAME, "nrf", "scp");
     if (rv != OGS_OK) return rv;
 
     rv = ogs_metrics_context_parse_config("udm");
@@ -112,7 +116,7 @@ static void udm_main(void *data)
 {
     ogs_fsm_t udm_sm;
     int rv;
-setAffinity(3);
+
     ogs_fsm_init(&udm_sm, udm_state_initial, udm_state_final, 0);
 
     for ( ;; ) {

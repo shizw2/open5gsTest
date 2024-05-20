@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -60,6 +60,10 @@ int upf_initialize(void)
 {
     int rv;
 
+#define APP_NAME "upf"
+    rv = ogs_app_parse_local_conf(APP_NAME);
+    if (rv != OGS_OK) return rv;
+
     upf_metrics_init();
 
     ogs_gtp_context_init(OGS_MAX_NUM_OF_GTPU_RESOURCE);
@@ -76,13 +80,13 @@ int upf_initialize(void)
     rv = ogs_pfcp_xact_init();
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_gtp_context_parse_config("upf", "smf");
+    rv = ogs_gtp_context_parse_config(APP_NAME, "smf");
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_pfcp_context_parse_config("upf", "smf");
+    rv = ogs_pfcp_context_parse_config(APP_NAME, "smf");
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_metrics_context_parse_config("upf");
+    rv = ogs_metrics_context_parse_config(APP_NAME);
     if (rv != OGS_OK) return rv;
 
     rv = upf_context_parse_config();

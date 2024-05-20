@@ -73,20 +73,6 @@ static void _gtpv1v2_c_recv_cb(short when, ogs_socket_t fd, void *data)
 
     ogs_pkbuf_trim(pkbuf, size);
 
-    gtp_ver = ((ogs_gtp2_header_t *)pkbuf->data)->version;
-    switch (gtp_ver) {
-    case 1:
-        e = smf_event_new(SMF_EVT_GN_MESSAGE);
-        break;
-    case 2:
-        e = smf_event_new(SMF_EVT_S5C_MESSAGE);
-        break;
-    default:
-        ogs_warn("Rx unexpected GTP version %u", gtp_ver);
-        ogs_pkbuf_free(pkbuf);
-        return;
-    }
-
     gnode = ogs_gtp_node_find_by_addr(&smf_self()->sgw_s5c_list, &from);
     if (!gnode) {
         gnode = ogs_gtp_node_add_by_addr(&smf_self()->sgw_s5c_list, &from);
@@ -99,6 +85,20 @@ static void _gtpv1v2_c_recv_cb(short when, ogs_socket_t fd, void *data)
         gnode->sock = data;
         smf_gtp_node_new(gnode);
         smf_metrics_inst_global_inc(SMF_METR_GLOB_GAUGE_GTP_PEERS_ACTIVE);
+    }
+
+    gtp_ver = ((ogs_gtp2_header_t *)pkbuf->data)->version;
+    switch (gtp_ver) {
+    case 1:
+        e = smf_event_new(SMF_EVT_GN_MESSAGE);
+        break;
+    case 2:
+        e = smf_event_new(SMF_EVT_S5C_MESSAGE);
+        break;
+    default:
+        ogs_warn("Rx unexpected GTP version %u", gtp_ver);
+        ogs_pkbuf_free(pkbuf);
+        return;
     }
     ogs_assert(e);
     e->gnode = gnode->data_ptr; /* smf_gtp_node_t */
@@ -122,9 +122,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
     ogs_sockaddr_t from;
 
     ogs_gtp2_header_t *gtp_h = NULL;
-
-    uint32_t teid;
-    uint8_t qfi;
+    ogs_gtp2_header_desc_t header_desc;
 
     ogs_assert(fd != INVALID_SOCKET);
 
@@ -151,7 +149,13 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
         goto cleanup;
     }
 
-    if (gtp_h->type == OGS_GTPU_MSGTYPE_ECHO_REQ) {
+    len = ogs_gtpu_parse_header(&header_desc, pkbuf);
+    if (len < 0) {
+        ogs_error("[DROP] Cannot decode GTPU packet");
+        ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
+        goto cleanup;
+    }
+    if (header_desc.type == OGS_GTPU_MSGTYPE_ECHO_REQ) {
         ogs_pkbuf_t *echo_rsp;
 
         ogs_debug("[RECV] Echo Request from [%s]", OGS_ADDR(&from, buf));
@@ -172,58 +176,27 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
         }
         goto cleanup;
     }
-
-    teid = be32toh(gtp_h->teid);
+    if (header_desc.type != OGS_GTPU_MSGTYPE_END_MARKER &&
+        pkbuf->len <= len) {
+        ogs_error("[DROP] Small GTPU packet(type:%d len:%d)",
+                header_desc.type, len);
+        ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
+        goto cleanup;
+    }
 
     ogs_debug("[RECV] GPU-U Type [%d] from [%s] : TEID[0x%x]",
-            gtp_h->type, OGS_ADDR(&from, buf), teid);
-
-    qfi = 0;
-    if (gtp_h->flags & OGS_GTPU_FLAGS_E) {
-        /*
-         * TS29.281
-         * 5.2.1 General format of the GTP-U Extension Header
-         * Figure 5.2.1-3: Definition of Extension Header Type
-         *
-         * Note 4 : For a GTP-PDU with several Extension Headers, the PDU
-         *          Session Container should be the first Extension Header
-         */
-        ogs_gtp2_extension_header_t *extension_header =
-            (ogs_gtp2_extension_header_t *)(pkbuf->data + OGS_GTPV1U_HEADER_LEN);
-        ogs_assert(extension_header);
-        if (extension_header->type ==
-                OGS_GTP2_EXTENSION_HEADER_TYPE_PDU_SESSION_CONTAINER) {
-            if (extension_header->pdu_type ==
-                OGS_GTP2_EXTENSION_HEADER_PDU_TYPE_UL_PDU_SESSION_INFORMATION) {
-                    ogs_debug("   QFI [0x%x]",
-                            extension_header->qos_flow_identifier);
-                    qfi = extension_header->qos_flow_identifier;
-            }
-        }
-    }
+            header_desc.type, OGS_ADDR(&from, buf), header_desc.teid);
 
     /* Remove GTP header and send packets to TUN interface */
-    len = ogs_gtpu_header_len(pkbuf);
-    if (len < 0) {
-        ogs_error("[DROP] Cannot decode GTPU packet");
-        ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
-        goto cleanup;
-    }
-    if (gtp_h->type != OGS_GTPU_MSGTYPE_END_MARKER &&
-        pkbuf->len <= len) {
-        ogs_error("[DROP] Small GTPU packet(type:%d len:%d)", gtp_h->type, len);
-        ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
-        goto cleanup;
-    }
     ogs_assert(ogs_pkbuf_pull(pkbuf, len));
 
-    if (gtp_h->type == OGS_GTPU_MSGTYPE_GPDU) {
+    if (header_desc.type == OGS_GTPU_MSGTYPE_GPDU) {
         smf_sess_t *sess = NULL;
         ogs_pfcp_far_t *far = NULL;
 
-        far = ogs_pfcp_far_find_by_teid(teid);
+        far = ogs_pfcp_far_find_by_teid(header_desc.teid);
         if (!far) {
-            ogs_error("No FAR for TEID [%d]", teid);
+            ogs_error("No FAR for TEID [%d]", header_desc.teid);
             goto cleanup;
         }
 
@@ -232,8 +205,8 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             goto cleanup;
         }
 
-        if (qfi) {
-            ogs_error("QFI[%d] Found", qfi);
+        if (header_desc.qos_flow_identifier) {
+            ogs_error("QFI[%d] Found", header_desc.qos_flow_identifier);
             goto cleanup;
         }
 
@@ -247,7 +220,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             send_router_advertisement(sess, ip6_h->ip6_src.s6_addr);
         }
     } else {
-        ogs_error("[DROP] Invalid GTPU Type [%d]", gtp_h->type);
+        ogs_error("[DROP] Invalid GTPU Type [%d]", header_desc.type);
         ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
     }
 
@@ -278,6 +251,9 @@ int smf_gtp_open(void)
     }
 
     OGS_SETUP_GTPC_SERVER;
+    /* If we only use 5G, we don't need GTP-C, so there is no check routine. */
+    if (!ogs_gtp_self()->gtpc_sock  && !ogs_gtp_self()->gtpc_sock6)
+        ogs_warn("No GTP-C configuration");
 
     ogs_list_for_each(&ogs_gtp_self()->gtpu_list, node) {
         sock = ogs_gtp_server(node);
@@ -670,7 +646,6 @@ static void send_router_advertisement(smf_sess_t *sess, uint8_t *ip6_dst)
     ogs_assert(pkbuf);
     ogs_pkbuf_reserve(pkbuf, OGS_GTPV1U_5GC_HEADER_LEN);
     ogs_pkbuf_put(pkbuf, 200);
-    pkbuf->len = sizeof *ip6_h + sizeof *advert_h + sizeof *prefix;
     memset(pkbuf->data, 0, pkbuf->len);
 
     p = (uint8_t *)pkbuf->data;
@@ -698,15 +673,29 @@ static void send_router_advertisement(smf_sess_t *sess, uint8_t *ip6_dst)
             ue_ip->addr, (OGS_IPV6_DEFAULT_PREFIX_LEN >> 3));
 
     /* For IPv6 Pseudo-Header */
-    plen = htobe16(sizeof *advert_h + sizeof *prefix);
+    plen = sizeof *advert_h + sizeof *prefix;
     nxt = IPPROTO_ICMPV6;
+
+    if (smf_self()->mtu) {
+        struct nd_opt_mtu *mtu =
+            (struct nd_opt_mtu *)((uint8_t*)prefix + sizeof *prefix);
+
+        mtu->nd_opt_mtu_type = ND_OPT_MTU;
+        mtu->nd_opt_mtu_len = 1; /* 8bytes */
+        mtu->nd_opt_mtu_mtu = htobe32(smf_self()->mtu);
+
+        plen += sizeof *mtu;
+    }
+
+    pkbuf->len = sizeof *ip6_h + plen;
 
     memcpy(p, src_ipsub.sub, sizeof src_ipsub.sub);
     p += sizeof src_ipsub.sub;
     memcpy(p, ip6_dst, OGS_IPV6_LEN);
     p += OGS_IPV6_LEN;
-    p += 2; memcpy(p, &plen, 2); p += 2;
+    p += 2; plen = htobe16(plen); memcpy(p, &plen, 2); p += 2;
     p += 3; *p = nxt; p += 1;
+
     advert_h->nd_ra_cksum = ogs_in_cksum((uint16_t *)pkbuf->data, pkbuf->len);
 
     ip6_h->ip6_flow = htobe32(0x60000001);
@@ -718,20 +707,18 @@ static void send_router_advertisement(smf_sess_t *sess, uint8_t *ip6_dst)
 
     ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
         if (pdr->src_if == OGS_PFCP_INTERFACE_CP_FUNCTION && pdr->gnode) {
-            ogs_gtp2_header_t gtp_hdesc;
-            ogs_gtp2_extension_header_t ext_hdesc;
+            ogs_gtp2_header_desc_t header_desc;
             ogs_pkbuf_t *newbuf = NULL;
 
-            memset(&gtp_hdesc, 0, sizeof(gtp_hdesc));
-            memset(&ext_hdesc, 0, sizeof(ext_hdesc));
+            memset(&header_desc, 0, sizeof(header_desc));
 
-            gtp_hdesc.type = OGS_GTPU_MSGTYPE_GPDU;
-            gtp_hdesc.teid = pdr->f_teid.teid;
+            header_desc.type = OGS_GTPU_MSGTYPE_GPDU;
+            header_desc.teid = pdr->f_teid.teid;
 
             newbuf = ogs_pkbuf_copy(pkbuf);
             ogs_assert(newbuf);
 
-            ogs_gtp2_send_user_plane(pdr->gnode, &gtp_hdesc, &ext_hdesc, newbuf);
+            ogs_gtp2_send_user_plane(pdr->gnode, &header_desc, newbuf);
 
             ogs_debug("      Send Router Advertisement");
             break;

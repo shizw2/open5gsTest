@@ -140,7 +140,7 @@ typedef struct smf_ue_s {
         ogs_assert(__sESS); \
         smf_ue = (__sESS)->smf_ue; \
         ogs_assert(smf_ue); \
-        smf_metrics_inst_by_slice_add(&(__sESS)->plmn_id, \
+        smf_metrics_inst_by_slice_add(&(__sESS)->serving_plmn_id, \
                 &(__sESS)->s_nssai, SMF_METR_GAUGE_SM_SESSIONNBR, -1); \
         if (SMF_UE_IS_LAST_SESSION(smf_ue)) \
             smf_ue_remove(smf_ue); \
@@ -160,6 +160,8 @@ ED3(uint8_t spare:2;,
     uint8_t identifier:4;)
 
     uint8_t precedence;             /* Only used in EPC */
+
+    uint32_t sdf_filter_id;         /* SDF Filter ID */
 
     uint8_t *identifier_node;       /* Pool-Node for Identifier */
     uint8_t *precedence_node;       /* Pool-Node for Precedence */
@@ -226,6 +228,8 @@ typedef struct smf_sess_s {
         uint32_t gx_cca_init_err; /* Gx CCA RXed error code */
         bool gy_ccr_init_in_flight; /* Waiting for Gy CCA */
         uint32_t gy_cca_init_err; /* Gy CCA RXed error code */
+        bool s6b_aar_in_flight; /* Waiting for S6B AAR */
+        uint32_t s6b_aaa_err; /* S6B AAA RXed error code */
         bool gx_ccr_term_in_flight; /* Waiting for Gx CCA */
         uint32_t gx_cca_term_err; /* Gx CCA RXed error code */
         bool gy_ccr_term_in_flight; /* Waiting for Gy CCA */
@@ -280,12 +284,40 @@ typedef struct smf_sess_s {
 
     /* PCF sends the RESPONSE
      * of [POST] /npcf-smpolocycontrol/v1/policies */
-    char *policy_association_id;
+#define PCF_SM_POLICY_ASSOCIATED(__sESS) \
+    ((__sESS) && ((__sESS)->policy_association.id))
+#define PCF_SM_POLICY_CLEAR(__sESS) \
+    do { \
+        ogs_assert((__sESS)); \
+        if ((__sESS)->policy_association.resource_uri) \
+            ogs_free((__sESS)->policy_association.resource_uri); \
+        (__sESS)->policy_association.resource_uri = NULL; \
+        if ((__sESS)->policy_association.id) \
+            ogs_free((__sESS)->policy_association.id); \
+        (__sESS)->policy_association.id = NULL; \
+    } while(0)
+#define PCF_SM_POLICY_STORE(__sESS, __rESOURCE_URI, __iD) \
+    do { \
+        ogs_assert((__sESS)); \
+        ogs_assert((__rESOURCE_URI)); \
+        ogs_assert((__iD)); \
+        PCF_SM_POLICY_CLEAR(__sESS); \
+        (__sESS)->policy_association.resource_uri = ogs_strdup(__rESOURCE_URI); \
+        ogs_assert((__sESS)->policy_association.resource_uri); \
+        (__sESS)->policy_association.id = ogs_strdup(__iD); \
+        ogs_assert((__sESS)->policy_association.id); \
+    } while(0)
+    struct {
+        char *resource_uri;
+        char *id;
+        ogs_sbi_client_t *client;
+    } policy_association;
 
     OpenAPI_up_cnx_state_e up_cnx_state;
 
-    /* PLMN ID & NID */
-    ogs_plmn_id_t   plmn_id;
+    /* Serving PLMN ID & Home PLMN ID */
+    ogs_plmn_id_t serving_plmn_id;
+    ogs_plmn_id_t home_plmn_id;
 
     /* LTE Location */
     ogs_eps_tai_t   e_tai;
@@ -317,6 +349,9 @@ typedef struct smf_sess_s {
     uint8_t ue_session_type;
     uint8_t ue_ssc_mode;
 
+    /* DNN */
+    char *full_dnn;
+
     ogs_pfcp_ue_ip_t *ipv4;
     ogs_pfcp_ue_ip_t *ipv6;
 
@@ -327,6 +362,7 @@ typedef struct smf_sess_s {
     struct {
         uint8_t version; /* GTPC version */
         ogs_tlv_octet_t ue_pco;
+        ogs_tlv_octet_t ue_apco;
         ogs_tlv_octet_t ue_epco;
         ogs_tlv_octet_t user_location_information;
         ogs_tlv_octet_t ue_timezone;
@@ -348,6 +384,9 @@ typedef struct smf_sess_s {
         uint64_t dl_octets;
         ogs_time_t duration;
         uint32_t reporting_reason; /* OGS_DIAM_GY_REPORTING_REASON_* */
+        /* Whether Gy Final-Unit-Indication was received.
+         * Triggers session release upon Rx of next PFCP Report Req */
+        bool final_unit;
         /* Snapshot of measurement when last report was sent: */
         struct {
             uint64_t ul_octets;
@@ -379,6 +418,11 @@ typedef struct smf_sess_s {
     struct {
         int pdu_session_resource_release;
     } ngap_state;
+
+#define SMF_UECM_STATE_NONE                                     0
+#define SMF_UECM_STATE_REGISTERED                               1
+#define SMF_UECM_STATE_DEREGISTERED_BY_AMF                      2
+#define SMF_UECM_STATE_DEREGISTERED_BY_N1_N2_RELEASE            3
 
     /* Handover */
     struct {

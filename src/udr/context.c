@@ -86,7 +86,13 @@ int udr_context_parse_config(void)
             while (ogs_yaml_iter_next(&udr_iter)) {
                 const char *udr_key = ogs_yaml_iter_key(&udr_iter);
                 ogs_assert(udr_key);
-                if (!strcmp(udr_key, "sbi")) {
+                if (!strcmp(udr_key, "default")) {
+                    /* handle config in sbi library */
+                } else if (!strcmp(udr_key, "sbi")) {
+                    /* handle config in sbi library */
+                } else if (!strcmp(udr_key, "nrf")) {
+                    /* handle config in sbi library */
+                } else if (!strcmp(udr_key, "scp")) {
                     /* handle config in sbi library */
                 } else if (!strcmp(udr_key, "service_name")) {
                     /* handle config in sbi library */
@@ -189,9 +195,9 @@ int yaml_check_proc(void)
     if (rv != OGS_OK) return rv;
     
     bool needReRegister = false;
-    if (ogs_app()->parameter.capacity != ogs_sbi_self()->nf_instance->capacity){
-        ogs_info("capacity changed from %d to %d.",ogs_sbi_self()->nf_instance->capacity,ogs_app()->parameter.capacity);
-        ogs_sbi_nf_instance_set_capacity(ogs_sbi_self()->nf_instance,ogs_app()->parameter.capacity);
+    if (ogs_global_conf()->parameter.capacity != ogs_sbi_self()->nf_instance->capacity){
+        ogs_info("capacity changed from %d to %d.",ogs_sbi_self()->nf_instance->capacity,ogs_global_conf()->parameter.capacity);
+        ogs_sbi_nf_instance_set_capacity(ogs_sbi_self()->nf_instance,ogs_global_conf()->parameter.capacity);
         needReRegister = true;
     }
     

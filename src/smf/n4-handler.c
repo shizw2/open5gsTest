@@ -389,7 +389,7 @@ void smf_5gc_n4_handle_session_modification_response(
                     smf_5gc_pfcp_send_all_pdr_modification_request(
                         sess, stream,
                         OGS_PFCP_MODIFY_INDIRECT|OGS_PFCP_MODIFY_REMOVE,
-                        ogs_app()->time.handover.duration));
+                        ogs_local_conf()->time.handover.duration));
             }
 
             smf_sbi_send_sm_context_updated_data_ho_state(
@@ -401,7 +401,12 @@ void smf_5gc_n4_handle_session_modification_response(
                 smf_sbi_send_sm_context_updated_data_up_cnx_state(
                         sess, stream, OpenAPI_up_cnx_state_ACTIVATED);
             } else {
-                ogs_assert(true == ogs_sbi_send_http_status_no_content(stream));
+                int r = smf_sbi_discover_and_send(
+                        OGS_SBI_SERVICE_TYPE_NUDM_UECM, NULL,
+                        smf_nudm_uecm_build_registration,
+                        sess, stream, SMF_UECM_STATE_REGISTERED, NULL);
+                ogs_expect(r == OGS_OK);
+                ogs_assert(r != OGS_ERROR);
             }
         }
 
@@ -490,7 +495,7 @@ void smf_5gc_n4_handle_session_modification_response(
             ogs_list_for_each_entry_safe(&sess->qos_flow_to_modify_list,
                     next, qos_flow, to_modify_node) {
                 smf_metrics_inst_by_5qi_add(
-                        &qos_flow->sess->plmn_id,
+                        &qos_flow->sess->serving_plmn_id,
                         &qos_flow->sess->s_nssai,
                         qos_flow->sess->session.qos.index,
                         SMF_METR_GAUGE_SM_QOSFLOWNBR, -1);
@@ -522,7 +527,7 @@ void smf_5gc_n4_handle_session_modification_response(
             ogs_list_for_each_entry_safe(&sess->qos_flow_to_modify_list,
                     next, qos_flow, to_modify_node) {
                 smf_metrics_inst_by_5qi_add(
-                        &qos_flow->sess->plmn_id,
+                        &qos_flow->sess->serving_plmn_id,
                         &qos_flow->sess->s_nssai,
                         qos_flow->sess->session.qos.index,
                         SMF_METR_GAUGE_SM_QOSFLOWNBR, -1);
@@ -543,40 +548,37 @@ void smf_5gc_n4_handle_session_modification_response(
                 NULL, OpenAPI_n2_sm_info_type_HANDOVER_CMD, n2smbuf);
 
         } else if (flags & OGS_PFCP_MODIFY_NETWORK_REQUESTED) {
-             /*& ogs_list_count(&sess->qos_flow_to_modify_list) is add 0516*/
-            ogs_info("the count of sess->qos_flow_to_modify_list is [%d]",ogs_list_count(&sess->qos_flow_to_modify_list));
-            if(ogs_list_count(&sess->qos_flow_to_modify_list)){
-                smf_n1_n2_message_transfer_param_t param;
+            smf_n1_n2_message_transfer_param_t param;
 
-                ogs_assert(flags & OGS_PFCP_MODIFY_SESSION);
+            ogs_assert(flags & OGS_PFCP_MODIFY_SESSION);
 
-                /*
-                 * TS24.501
-                 * 6.2 General on elementary 5GSM procedures
-                 * 6.2.1 Principles of PTI handling for 5GSM procedures
-                 *
-                 * If a command message is not sent as result of
-                 * a received request message, the sending entity shall
-                 * include in the command message the PTI value set to
-                 * "no procedure transaction identity assigned"
-                 * (see examples in figure 6.2.1.4).
-                 */
-                sess->pti = OGS_NAS_PROCEDURE_TRANSACTION_IDENTITY_UNASSIGNED;
+            /*
+             * TS24.501
+             * 6.2 General on elementary 5GSM procedures
+             * 6.2.1 Principles of PTI handling for 5GSM procedures
+             *
+             * If a command message is not sent as result of
+             * a received request message, the sending entity shall
+             * include in the command message the PTI value set to
+             * "no procedure transaction identity assigned"
+             * (see examples in figure 6.2.1.4).
+             */
+            sess->pti = OGS_NAS_PROCEDURE_TRANSACTION_IDENTITY_UNASSIGNED;
 
-                memset(&param, 0, sizeof(param));
-                param.state = SMF_NETWORK_REQUESTED_QOS_FLOW_MODIFICATION;
-                param.n1smbuf = gsm_build_pdu_session_modification_command(
-                        sess,
-                        OGS_NAS_QOS_CODE_CREATE_NEW_QOS_RULE,
-                        OGS_NAS_CREATE_NEW_QOS_FLOW_DESCRIPTION);
-                ogs_assert(param.n1smbuf);
-                param.n2smbuf =
-                    ngap_build_pdu_session_resource_modify_request_transfer(
-                            sess, true);
-                ogs_assert(param.n2smbuf);
+            memset(&param, 0, sizeof(param));
+            param.state = SMF_NETWORK_REQUESTED_QOS_FLOW_MODIFICATION;
+            param.n1smbuf = gsm_build_pdu_session_modification_command(
+                    sess,
+                    OGS_NAS_QOS_CODE_CREATE_NEW_QOS_RULE,
+                    OGS_NAS_CREATE_NEW_QOS_FLOW_DESCRIPTION);
+            ogs_assert(param.n1smbuf);
+            param.n2smbuf =
+                ngap_build_pdu_session_resource_modify_request_transfer(
+                        sess, true);
+            ogs_assert(param.n2smbuf);
 
-                smf_namf_comm_send_n1_n2_message_transfer(sess, &param);
-            }
+            smf_namf_comm_send_n1_n2_message_transfer(sess, &param);
+
         } else {
             ogs_fatal("Unknown flags [0x%llx]", (long long)flags);
             ogs_assert_if_reached();
@@ -703,7 +705,7 @@ int smf_5gc_n4_handle_session_deletion_response(
             ogs_assert(stream);
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
-                    stream, status, NULL, strerror, NULL));
+                    stream, status, NULL, strerror, NULL, NULL));
         } else if (trigger == OGS_PFCP_DELETE_TRIGGER_PCF_INITIATED) {
             /* No stream - Nothing */
         } else {
@@ -1145,7 +1147,9 @@ uint8_t smf_epc_n4_handle_session_deletion_response(
     return OGS_PFCP_CAUSE_REQUEST_ACCEPTED;
 }
 
-void smf_n4_handle_session_report_request(
+/* Returns OGS_PFCP_CAUSE_REQUEST_ACCEPTED on success,
+ * other cause value on failure */
+uint8_t smf_n4_handle_session_report_request(
         smf_sess_t *sess, ogs_pfcp_xact_t *pfcp_xact,
         ogs_pfcp_session_report_request_t *pfcp_req)
 {
@@ -1183,7 +1187,7 @@ void smf_n4_handle_session_report_request(
         ogs_pfcp_send_error_message(pfcp_xact, 0,
                 OGS_PFCP_SESSION_REPORT_RESPONSE_TYPE,
                 cause_value, 0);
-        return;
+        return cause_value;
     }
 
     ogs_assert(sess);
@@ -1223,7 +1227,7 @@ void smf_n4_handle_session_report_request(
                         ogs_pfcp_send_error_message(pfcp_xact, 0,
                                 OGS_PFCP_SESSION_REPORT_RESPONSE_TYPE,
                                 OGS_PFCP_CAUSE_SERVICE_NOT_SUPPORTED, 0);
-                        return;
+                        return OGS_PFCP_CAUSE_SERVICE_NOT_SUPPORTED;
                     }
 
                     if (qfi) {
@@ -1233,7 +1237,7 @@ void smf_n4_handle_session_report_request(
                             ogs_pfcp_send_error_message(pfcp_xact, 0,
                                 OGS_PFCP_SESSION_REPORT_RESPONSE_TYPE,
                                 OGS_PFCP_CAUSE_SESSION_CONTEXT_NOT_FOUND, 0);
-                            return;
+                            return OGS_PFCP_CAUSE_SESSION_CONTEXT_NOT_FOUND;
                         }
                     }
                 } else {
@@ -1258,7 +1262,7 @@ void smf_n4_handle_session_report_request(
             ogs_pfcp_send_error_message(pfcp_xact, 0,
                     OGS_PFCP_SESSION_REPORT_RESPONSE_TYPE,
                     OGS_PFCP_CAUSE_SESSION_CONTEXT_NOT_FOUND, 0);
-            return;
+            return OGS_PFCP_CAUSE_SESSION_CONTEXT_NOT_FOUND;
         }
 
         switch (sess->up_cnx_state) {
@@ -1330,14 +1334,21 @@ void smf_n4_handle_session_report_request(
             sess->gy.reporting_reason =
                 smf_pfcp_urr_usage_report_trigger2diam_gy_reporting_reason(&rep_trig);
         }
-        switch(smf_use_gy_iface()) {
+        switch (smf_use_gy_iface()) {
         case 1:
-            smf_gy_send_ccr(sess, pfcp_xact,
-                    OGS_DIAM_GY_CC_REQUEST_TYPE_UPDATE_REQUEST);
+            if (!sess->gy.final_unit) {
+                smf_gy_send_ccr(sess, pfcp_xact,
+                        OGS_DIAM_GY_CC_REQUEST_TYPE_UPDATE_REQUEST);
+            } else {
+                ogs_debug("[%s:%s] Rx PFCP report after Gy Final Unit Indication",
+                          smf_ue->imsi_bcd, sess->session.name);
+                /* This effectively triggers session release: */
+                cause_value = OGS_PFCP_CAUSE_NO_RESOURCES_AVAILABLE;
+            }
             break;
         case -1:
             ogs_error("No Gy Diameter Peer");
-            /* TODO: terminate connection */
+            cause_value = OGS_PFCP_CAUSE_NO_RESOURCES_AVAILABLE;
             break;
         /* default: continue below */
         }
@@ -1377,4 +1388,5 @@ void smf_n4_handle_session_report_request(
                     0));
         }
     }
+    return cause_value;
 }

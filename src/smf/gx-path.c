@@ -1,5 +1,5 @@
-/*
- * Copyright (C) 2019 by Sukchan Lee <acetcom@gmail.com>
+/* Gx Interface, 3GPP TS 29.212 section 4
+ * Copyright (C) 2019-2024 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -87,6 +87,7 @@ static void state_cleanup(struct sess_state *sess_data, os0_t sid, void *opaque)
     ogs_thread_mutex_unlock(&sess_state_mutex);
 }
 
+/* 3GPP TS 29.212 5.6.2 Credit-Control-Request */
 void smf_gx_send_ccr(smf_sess_t *sess, ogs_gtp_xact_t *xact,
         uint32_t cc_request_type)
 {
@@ -522,7 +523,8 @@ void smf_gx_send_ccr(smf_sess_t *sess, ogs_gtp_xact_t *xact,
         /* Set 3GPP-SGSN-MCC-MNC */
         ret = fd_msg_avp_new(ogs_diam_gx_3gpp_sgsn_mcc_mnc, 0, &avp);
         ogs_assert(ret == 0);
-        val.os.data = (uint8_t *)ogs_plmn_id_to_string(&sess->plmn_id, buf);
+        val.os.data = (uint8_t *)ogs_plmn_id_to_string(
+                &sess->serving_plmn_id, buf);
         val.os.len = strlen(buf);
         ret = fd_msg_avp_setvalue(avp, &val);
         ogs_assert(ret == 0);
@@ -700,6 +702,7 @@ void smf_gx_send_ccr(smf_sess_t *sess, ogs_gtp_xact_t *xact,
     ogs_assert(pthread_mutex_unlock(&ogs_diam_logger_self()->stats_lock) == 0);
 }
 
+/* 3GPP TS 29.212 5b.6.5 Credit-Control-Answer */
 static void smf_gx_cca_cb(void *data, struct msg **msg)
 {
     int rv;
@@ -1042,14 +1045,14 @@ out:
         rv = ogs_queue_push(ogs_app()->queue, e);
         if (rv != OGS_OK) {
             ogs_error("ogs_queue_push() failed:%d", (int)rv);
-            ogs_session_data_free(&gx_message->session_data);
+            OGS_SESSION_DATA_FREE(&gx_message->session_data);
             ogs_free(gx_message);
             ogs_event_free(e);
         } else {
             ogs_pollset_notify(ogs_app()->pollset);
         }
     } else {
-        ogs_session_data_free(&gx_message->session_data);
+        OGS_SESSION_DATA_FREE(&gx_message->session_data);
         ogs_free(gx_message);
     }
 
@@ -1285,7 +1288,7 @@ static int smf_gx_rar_cb( struct msg **msg, struct avp *avp,
     rv = ogs_queue_push(ogs_app()->queue, e);
     if (rv != OGS_OK) {
         ogs_error("ogs_queue_push() failed:%d", (int)rv);
-        ogs_session_data_free(&gx_message->session_data);
+        OGS_SESSION_DATA_FREE(&gx_message->session_data);
         ogs_free(gx_message);
         ogs_event_free(e);
     } else {
@@ -1340,7 +1343,7 @@ out:
     ret = fd_msg_send(msg, NULL, NULL);
     ogs_assert(ret == 0);
 
-    ogs_session_data_free(&gx_message->session_data);
+    OGS_SESSION_DATA_FREE(&gx_message->session_data);
     ogs_free(gx_message);
 
     return 0;
@@ -1566,6 +1569,9 @@ static int decode_pcc_rule_definition(
             break;
         case OGS_DIAM_GX_AVP_CODE_PRECEDENCE:
             pcc_rule->precedence = hdr->avp_value->i32;
+            break;
+        case OGS_DIAM_GX_AVP_CODE_RATING_GROUP:
+            pcc_rule->rating_group = hdr->avp_value->i32;
             break;
         default:
             ogs_error("Not implemented(%d)", hdr->avp_code);
