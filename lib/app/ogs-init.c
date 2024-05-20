@@ -25,6 +25,10 @@ int __ogs_app_domain;
 static int read_config(void);
 static int parse_config(void);
 
+int ogs_app_context_parse_config(void){
+    return parse_config();
+}
+
 int ogs_app_initialize(
         const char *version, const char *default_config,
         const char *const argv[])

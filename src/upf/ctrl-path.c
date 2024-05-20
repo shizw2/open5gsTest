@@ -70,8 +70,8 @@ static int copy_pfcp_pdr(ogs_pfcp_pdr_t *new, ogs_pfcp_pdr_t *old, ogs_pfcp_sess
     }
 
     for (flow = 0; flow < old->num_of_flow; flow++) {
-        new->flow_description[flow] = dpdk_malloc(strlen(old->flow_description[flow]) + 1);
-        memcpy(new->flow_description[flow], old->flow_description[flow], strlen(old->flow_description[flow]) + 1);
+        new->flow[flow].description = dpdk_malloc(strlen(old->flow[flow].description) + 1);
+        memcpy(new->flow[flow].description, old->flow[flow].description, strlen(old->flow[flow].description) + 1);
     }
 
     ogs_list_init(&new->rule_list);
@@ -192,7 +192,7 @@ static void free_pfcp_pdr(ogs_pfcp_pdr_t *pdr) {
     }
 
     for (flow = 0; flow < pdr->num_of_flow; flow++) {
-        dpdk_free(pdr->flow_description[flow]);
+        dpdk_free(pdr->flow[flow].description);
     }
 
     ogs_list_for_each(&pdr->rule_list, rule) {

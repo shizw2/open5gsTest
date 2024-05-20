@@ -134,7 +134,7 @@ void showsessDetail( uint32_t id )
         }
         printf("          |--num_of_flow       : %d \r\n", pdr->num_of_flow);
         for (i = 0; i < pdr->num_of_flow; i++){
-            printf("              |--flow_description[%d] : %s \r\n", i,pdr->flow_description[i]);
+            printf("              |--flow_description[%d] : %s \r\n", i,pdr->flow[i].description);
         }
         printf("          |--num of rule_list  : %d \r\n", ogs_list_count(&pdr->rule_list));
         ogs_list_for_each(&pdr->rule_list, rule){
