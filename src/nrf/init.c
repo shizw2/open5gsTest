@@ -60,7 +60,7 @@ int nrf_initialize(void)
     if (!thread) return OGS_ERROR;
 
     setCommands();
-    cli_thread = ogs_thread_create(telnetMain, &ogs_app()->cli_list);
+    cli_thread = ogs_thread_create(telnetMain, &ogs_global_conf()->cli_list);
     if (!cli_thread) return OGS_ERROR;
 
     initialized = 1;

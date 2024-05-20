@@ -82,7 +82,7 @@ int amf_initialize(void)
 
     //set_telnet_cmd_callback(telnet_proc_cmd);
     setCommands();
-    cli_thread = ogs_thread_create(telnetMain, &ogs_app()->cli_list);
+    cli_thread = ogs_thread_create(telnetMain, &ogs_global_conf()->cli_list);
     if (!cli_thread) return OGS_ERROR;
     
     return OGS_OK;
@@ -95,7 +95,7 @@ void amf_sps_update_cli_port(void){
     char buf[OGS_ADDRSTRLEN];
     int port;
     
-    ogs_list_for_each(&ogs_app()->cli_list, node) {
+    ogs_list_for_each(&ogs_global_conf()->cli_list, node) {
         addr = node->addr;
         port = OGS_PORT(addr);
         addr->ogs_sin_port = htobe16(be16toh(addr->ogs_sin_port) + 1);
@@ -153,7 +153,7 @@ int amf_sps_initialize()
     
     setCommands();
     amf_sps_update_cli_port();
-    cli_thread = ogs_thread_create(telnetMain, &ogs_app()->cli_list);
+    cli_thread = ogs_thread_create(telnetMain, &ogs_global_conf()->cli_list);
     if (!cli_thread) return OGS_ERROR;
 
     initialized = 1;

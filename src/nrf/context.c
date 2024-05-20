@@ -139,7 +139,7 @@ int yaml_check_proc(void)
     if (rv != OGS_OK) return rv;
 
     //1、app级配置    
-    rv = ogs_app_context_parse_config();
+    rv = parse_config();
     if (rv != OGS_OK) return rv;
 
     //1.1重新设置日志级别
