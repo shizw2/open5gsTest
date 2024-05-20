@@ -247,20 +247,28 @@ int gtp_send_user_plane(
     ogs_gtp2_extension_header_t *ext_h = NULL;
     uint8_t flags;
     uint8_t gtp_hlen = 0;
+    int i = 0;
 
     flags = gtp_hdesc->flags;
     flags |= OGS_GTPU_FLAGS_V | OGS_GTPU_FLAGS_PT;
-    if (ext_hdesc->qos_flow_identifier) {
+    if (ext_hdesc->array[0].type && ext_hdesc->array[0].len)
         flags |= OGS_GTPU_FLAGS_E;
-    }
 
+    /* Define GTP Header Size */
     if (flags & OGS_GTPU_FLAGS_E) {
-        gtp_hlen = OGS_GTPV1U_HEADER_LEN + 8;
-    } else if (flags & (OGS_GTPU_FLAGS_S | OGS_GTPU_FLAGS_PN)) {
-        gtp_hlen = OGS_GTPV1U_HEADER_LEN + 4;
-    } else {
+
+        gtp_hlen = OGS_GTPV1U_HEADER_LEN+OGS_GTPV1U_EXTENSION_HEADER_LEN;
+
+        i = 0;
+        while(ext_hdesc->array[i].len) {
+            gtp_hlen += (ext_hdesc->array[i].len*4);
+            i++;
+        }
+
+    } else if (flags & (OGS_GTPU_FLAGS_S|OGS_GTPU_FLAGS_PN))
+        gtp_hlen = OGS_GTPV1U_HEADER_LEN+OGS_GTPV1U_EXTENSION_HEADER_LEN;
+    else
         gtp_hlen = OGS_GTPV1U_HEADER_LEN;
-    }
 
     char *ptr = rte_pktmbuf_mtod(m, char *);
     struct packet *pkt = (struct packet *)(m->buf_addr);
@@ -273,13 +281,41 @@ int gtp_send_user_plane(
     gtp_h->teid = htobe32(gtp_hdesc->teid);
     gtp_h->length = htobe16(m->pkt_len - pkt->l2_len + gtp_hlen - OGS_GTPV1U_HEADER_LEN);
 
-    if (gtp_h->flags & OGS_GTPU_FLAGS_E) {
+    /*if (gtp_h->flags & OGS_GTPU_FLAGS_E) {
         ext_h = (ogs_gtp2_extension_header_t *)((char *)gtp_h + OGS_GTPV1U_HEADER_LEN);
         ext_h->type = OGS_GTP2_EXTENSION_HEADER_TYPE_PDU_SESSION_CONTAINER;
         ext_h->len = 1;
         ext_h->pdu_type = ext_hdesc->pdu_type;
         ext_h->qos_flow_identifier = ext_hdesc->qos_flow_identifier;
         ext_h->next_type = OGS_GTP2_EXTENSION_HEADER_TYPE_NO_MORE_EXTENSION_HEADERS;
+    }*/
+
+    /* Fill Extention Header */
+    if (gtp_h->flags & OGS_GTPU_FLAGS_E) {
+        uint8_t *ext_h = (uint8_t *)(gtp_h + OGS_GTPV1U_HEADER_LEN + OGS_GTPV1U_EXTENSION_HEADER_LEN);//不确定
+        ogs_assert(ext_h);
+
+        /* Copy Header Type */
+        *(ext_h-1) = ext_hdesc->array[0].type;
+
+        i = 0;
+        while (i < OGS_GTP2_NUM_OF_EXTENSION_HEADER &&
+                (ext_h - gtp_h) < gtp_hlen) {
+            int len = ext_hdesc->array[i].len*4;
+
+            /* Copy Header Content */
+            memcpy(ext_h, &ext_hdesc->array[i].len, len-1);
+
+            /* Check if Next Header is Available */
+            if (ext_hdesc->array[i+1].len)
+                ext_h[len-1] = ext_hdesc->array[i+1].type;
+            else
+                ext_h[len-1] =
+                    OGS_GTP2_EXTENSION_HEADER_TYPE_NO_MORE_EXTENSION_HEADERS;
+
+            ext_h += len;
+            i++;
+        }
     }
 
     struct rte_udp_hdr *udp_h = (struct rte_udp_hdr *)((char *)gtp_h - UDP_HDR_LEN);
