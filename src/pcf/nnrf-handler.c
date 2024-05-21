@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -82,12 +82,14 @@ void pcf_nnrf_handle_nf_discover(
     }
     
     if (!nf_instance) {
-        ogs_error("(NF discover) No [%s:%s]",
+        ogs_error("[%s:%d] (NF discover) No [%s:%s]",
+                    pcf_ue ? pcf_ue->supi : "Unknown",
+                    sess ? sess->psi : 0,
                     ogs_sbi_service_type_to_name(service_type),
                     OpenAPI_nf_type_ToString(requester_nf_type));
         return;
     }
-    
+
     OGS_SBI_SETUP_NF_INSTANCE(
             sbi_object->service_type_array[service_type], nf_instance);
 

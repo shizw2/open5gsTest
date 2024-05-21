@@ -298,7 +298,7 @@ static int32_t handle_n6_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
     pdr = n6_pdr_find_by_local_sess(sess, l3_head);
     if (!pdr) {
         ogs_error("%s, unfound pdr by local session, ip %s\n", __func__, ip_printf(l3_head, 1));
-        if (ogs_app()->parameter.multicast) {
+        if (ogs_global_conf()->parameter.multicast) {
             return upf_gtp_handle_multicast(m);
         }
         return -1;

@@ -354,7 +354,7 @@ bool smf_nudm_sdm_handle_get(smf_sess_t *sess, ogs_sbi_stream_t *stream,
     ogs_assert(response);
     ogs_assert(true == ogs_sbi_server_send_response(stream, response));
 
-    smf_metrics_inst_by_slice_add(&sess->plmn_id, &sess->s_nssai,
+    smf_metrics_inst_by_slice_add(&sess->serving_plmn_id, &sess->s_nssai,
             SMF_METR_CTR_SM_PDUSESSIONCREATIONSUCC, 1);
 
     ogs_free(sendmsg.http.location);
@@ -373,7 +373,7 @@ cleanup:
     ogs_error("%s", strerror);
     ogs_assert(true ==
         ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-            recvmsg, strerror, NULL));
+            recvmsg, strerror, NULL, NULL));
     ogs_free(strerror);
 
     return false;

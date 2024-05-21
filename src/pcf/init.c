@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -18,6 +18,7 @@
  */
 
 #include "sbi-path.h"
+#include "metrics.h"
 #include "pcf-fd-path.h"
 #include "ogs-app-timer.h"
 #include "telnet.h"
@@ -32,15 +33,19 @@ int pcf_initialize(void)
 {
     int rv;
 
+#define APP_NAME "pcf"
+    rv = ogs_app_parse_local_conf(APP_NAME);
+    if (rv != OGS_OK) return rv;
+
     pcf_metrics_init();
 
     ogs_sbi_context_init(OpenAPI_nf_type_PCF);
     pcf_context_init();
-    
-    rv = ogs_sbi_context_parse_config("pcf", "nrf", "scp");
+
+    rv = ogs_sbi_context_parse_config(APP_NAME, "nrf", "scp");
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_metrics_context_parse_config("pcf");
+    rv = ogs_metrics_context_parse_config(APP_NAME);
     if (rv != OGS_OK) return rv;
 
     rv = pcf_context_parse_config(false);
@@ -52,8 +57,10 @@ int pcf_initialize(void)
 
     ogs_metrics_context_open(ogs_metrics_self());
 
-    rv = ogs_dbi_init(ogs_app()->db_uri);
-    if (rv != OGS_OK) return rv;
+    if (ogs_app()->db_uri) {
+        rv = ogs_dbi_init(ogs_app()->db_uri);
+        if (rv != OGS_OK) return rv;
+    }
 
     rv = pcf_sbi_open();
     if (rv != OGS_OK) return rv;
@@ -112,7 +119,9 @@ void pcf_terminate(void)
 
     ogs_metrics_context_close(ogs_metrics_self());
 
-    ogs_dbi_final();
+    if (ogs_app()->db_uri) {
+        ogs_dbi_final();
+    }
 
     pcf_context_final();
     ogs_sbi_context_final();
@@ -124,7 +133,7 @@ static void pcf_main(void *data)
 {
     ogs_fsm_t pcf_sm;
     int rv;
-setAffinity(4);
+
     ogs_fsm_init(&pcf_sm, pcf_state_initial, pcf_state_final, 0);
 
     for ( ;; ) {

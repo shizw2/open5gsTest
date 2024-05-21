@@ -86,12 +86,48 @@ struct pcf_sess_s {
 
     /* BSF sends the RESPONSE
      * of [POST] /nbsf-management/v1/PcfBindings */
-    char *binding_id;
+#define PCF_BINDING_ASSOCIATED(__sESS) \
+    ((__sESS) && ((__sESS)->binding.id))
+#define PCF_BINDING_CLEAR(__sESS) \
+    do { \
+        ogs_assert((__sESS)); \
+        if ((__sESS)->binding.resource_uri) \
+            ogs_free((__sESS)->binding.resource_uri); \
+        (__sESS)->binding.resource_uri = NULL; \
+        if ((__sESS)->binding.id) \
+            ogs_free((__sESS)->binding.id); \
+        (__sESS)->binding.id = NULL; \
+    } while(0)
+#define PCF_BINDING_STORE(__sESS, __rESOURCE_URI, __iD) \
+    do { \
+        ogs_assert((__sESS)); \
+        ogs_assert((__rESOURCE_URI)); \
+        ogs_assert((__iD)); \
+        PCF_BINDING_CLEAR(__sESS); \
+        (__sESS)->binding.resource_uri = ogs_strdup(__rESOURCE_URI); \
+        ogs_assert((__sESS)->binding.resource_uri); \
+        (__sESS)->binding.id = ogs_strdup(__iD); \
+        ogs_assert((__sESS)->binding.id); \
+    } while(0)
+    struct {
+        char *resource_uri;
+        char *id;
+        ogs_sbi_client_t *client;
+    } binding;
 
     uint8_t psi; /* PDU Session Identity */
 
     uint8_t pdu_session_type;
+
+    /* DNN */
     char *dnn;
+    char *full_dnn;
+
+    /* Serving PLMN ID & Home PLMN ID */
+    struct {
+        bool presence;
+        ogs_plmn_id_t plmn_id;
+    } serving, home;
 
     char *notification_uri;
     struct {
@@ -183,7 +219,10 @@ pcf_app_t *pcf_app_find(uint32_t index);
 pcf_app_t *pcf_app_find_by_app_session_id(char *app_session_id);
 int pcf_instance_get_load(void);
 
-int pcf_db_qos_data(char *imsi_bcd, char *apn, ogs_session_data_t *session_data);
+int pcf_db_qos_data(char *supi,
+        ogs_plmn_id_t *plmn_id, ogs_s_nssai_t *s_nssai, char *dnn,
+        ogs_session_data_t *session_data);
+
 #ifdef __cplusplus
 }
 #endif

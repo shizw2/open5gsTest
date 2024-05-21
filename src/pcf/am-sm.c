@@ -65,7 +65,7 @@ void pcf_am_state_operational(ogs_fsm_t *s, pcf_event_t *e)
 
         SWITCH(message->h.method)
         CASE(OGS_SBI_HTTP_METHOD_POST)
-            handled = pcf_npcf_am_policy_contrtol_handle_create(
+            handled = pcf_npcf_am_policy_control_handle_create(
                     pcf_ue, stream, message);
             if (!handled) {
                 ogs_error("[%s] Cannot handle SBI message", pcf_ue->supi);
@@ -83,8 +83,8 @@ void pcf_am_state_operational(ogs_fsm_t *s, pcf_event_t *e)
                     pcf_ue->supi, message->h.method);
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream,
-                    OGS_SBI_HTTP_STATUS_FORBIDDEN, message,
-                    "Invalid HTTP method", message->h.method));
+                    OGS_SBI_HTTP_STATUS_METHOD_NOT_ALLOWED, message,
+                    "Invalid HTTP method", message->h.method, NULL));
         END
         break;
 
@@ -113,7 +113,8 @@ void pcf_am_state_operational(ogs_fsm_t *s, pcf_event_t *e)
                         ogs_assert(true ==
                             ogs_sbi_server_send_error(
                                 stream, message->res_status,
-                                NULL, "HTTP response error", pcf_ue->supi));
+                                NULL, "HTTP response error", pcf_ue->supi,
+                                NULL));
                         break;
                     }
 
@@ -140,7 +141,8 @@ void pcf_am_state_operational(ogs_fsm_t *s, pcf_event_t *e)
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream,
                     OGS_SBI_HTTP_STATUS_BAD_REQUEST, message,
-                    "Invalid API name", message->h.resource.component[0]));
+                    "Invalid API name", message->h.resource.component[0],
+                    NULL));
         END
         break;
 

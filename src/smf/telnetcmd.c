@@ -125,9 +125,9 @@ void showueDetail( char * supi )
         printf("  |--pti                : %u \r\n", sess->pti);
         printf("  |--sm_context_status_uri      : %s \r\n", sess->sm_context_status_uri);
         //printf("  |--namf.client        : %p \r\n", sess->namf.client);
-        printf("  |--policy_association_id      : %s \r\n", sess->policy_association_id);
+        printf("  |--policy_association_id      : %s \r\n", sess->policy_association.id);
         printf("  |--up_cnx_state       : %d \r\n", sess->up_cnx_state);
-        printf("  |--plmn_id            : %s \r\n", ogs_plmn_id_to_string(&sess->plmn_id,buf));
+        printf("  |--serving_plmn_id    : %s \r\n", ogs_plmn_id_to_string(&sess->serving_plmn_id,buf));
         printf("  |--nr_tai             : MCC:%d,MNC:%-3dTAC:%d \r\n", ogs_plmn_id_mcc(&sess->nr_tai.plmn_id),
                                                                    ogs_plmn_id_mnc(&sess->nr_tai.plmn_id),
                                                                    sess->nr_tai.tac.v);
@@ -248,7 +248,7 @@ void print_pdr(ogs_pfcp_pdr_t *pdr){
     }
     printf("          |--num_of_flow       : %d \r\n", pdr->num_of_flow);
     for (i = 0; i < pdr->num_of_flow; i++){
-        printf("              |--flow_description[%d] : %s \r\n", i,pdr->flow_description[i]);
+        printf("              |--flow_description[%d] : %s \r\n", i,pdr->flow[i].description);
     }
     printf("          |--num of rule_list  : %d \r\n", ogs_list_count(&pdr->rule_list));
     ogs_list_for_each(&pdr->rule_list, rule){

@@ -37,6 +37,7 @@ ogs_sbi_request_t *smf_npcf_smpolicycontrol_build_create(
 
     ogs_assert(sess);
     ogs_assert(sess->sm_context_ref);
+    ogs_assert(sess->session.name);
     smf_ue = sess->smf_ue;
     ogs_assert(smf_ue);
 
@@ -65,13 +66,62 @@ ogs_sbi_request_t *smf_npcf_smpolicycontrol_build_create(
         ogs_error("No pdu_session_type");
         goto end;
     }
-    SmPolicyContextData.dnn = sess->session.name;
-    if (!SmPolicyContextData.dnn) {
-        ogs_error("No dnn");
-        goto end;
+
+    /*
+     * Use ogs_sbi_supi_in_vplmn() instead of ogs_sbi_plmn_id_in_vplmn().
+     * This is because some vendors might not use the full DNN in LBO and
+     * Open5GS cannot derive the home PLMN ID without the full DNN.
+     *
+     * TS29.502
+     * 6.1 Nsmf_PDUSession Service API
+     * Table 6.1.6.2.2-1: Definition of type SmContextCreateData
+     *
+     * NAME: dnn
+     * Data type: Dnn
+     * P: C
+     * Cardinality: 0..1
+     *
+     * This IE shall be present, except during an EPS to 5GS Idle mode mobility
+     * or handover using the N26 interface.
+     *
+     * When present, it shall contain the requested DNN; the DNN shall
+     * be the full DNN (i.e. with both the Network Identifier and
+     * Operator Identifier) for a HR PDU session, and it should be
+     * the full DNN in LBO and non-roaming scenarios. If the Operator Identifier
+     * is absent, the serving core network operator shall be assumed.
+     *
+     * TS29.512
+     * 5 Npcf_SMPolicyControl Service API
+     * 5.6 Data Model
+     * 5.6.2 Structured data types
+     * Table 5.6.2.3-1: Definition of type SmPolicyContextData
+     *
+     * NAME: dnn
+     * Data type: Dnn
+     * P: M
+     * Cardinality: 1
+     * The DNN of the PDU session, a full DNN with both the Network Identifier
+     * and Operator Identifier, or a DNN with the Network Identifier only
+     */
+    if (ogs_sbi_supi_in_vplmn(smf_ue->supi) == true) {
+        char *home_network_domain = NULL;
+
+        home_network_domain =
+            ogs_home_network_domain_from_plmn_id(&sess->home_plmn_id);
+        ogs_assert(home_network_domain);
+
+        SmPolicyContextData.dnn =
+            ogs_msprintf("%s.%s", sess->session.name, home_network_domain);
+        ogs_assert(SmPolicyContextData.dnn);
+
+        ogs_free(home_network_domain);
+
+    } else {
+        SmPolicyContextData.dnn = ogs_strdup(sess->session.name);
+        ogs_assert(SmPolicyContextData.dnn);
     }
 
-    server = ogs_list_first(&ogs_sbi_self()->server_list);
+    server = ogs_sbi_server_first();
     if (!server) {
         ogs_error("No server");
         goto end;
@@ -86,6 +136,13 @@ ogs_sbi_request_t *smf_npcf_smpolicycontrol_build_create(
     SmPolicyContextData.notification_uri = ogs_sbi_server_uri(server, &header);
     if (!SmPolicyContextData.notification_uri) {
         ogs_error("No notification_uri");
+        goto end;
+    }
+
+    SmPolicyContextData.serving_network =
+        ogs_sbi_build_plmn_id_nid(&sess->serving_plmn_id);
+    if (!SmPolicyContextData.serving_network) {
+        ogs_error("No serving_network");
         goto end;
     }
 
@@ -201,6 +258,11 @@ end:
     if (SmPolicyContextData.gpsi)
         ogs_free(SmPolicyContextData.gpsi);
 
+    if (SmPolicyContextData.dnn)
+        ogs_free(SmPolicyContextData.dnn);
+    if (SmPolicyContextData.serving_network)
+        ogs_sbi_free_plmn_id_nid(SmPolicyContextData.serving_network);
+
     if (sNssai.sd)
         ogs_free(sNssai.sd);
 
@@ -241,15 +303,13 @@ ogs_sbi_request_t *smf_npcf_smpolicycontrol_build_delete(
     ogs_assert(sess->sm_context_ref);
     smf_ue = sess->smf_ue;
     ogs_assert(smf_ue);
-    ogs_assert(sess->policy_association_id);
+    ogs_assert(sess->policy_association.resource_uri);
 
     memset(&message, 0, sizeof(message));
     message.h.method = (char *)OGS_SBI_HTTP_METHOD_POST;
-    message.h.service.name = (char *)OGS_SBI_SERVICE_NAME_NPCF_SMPOLICYCONTROL;
-    message.h.api.version = (char *)OGS_SBI_API_V1;
-    message.h.resource.component[0] = (char *)OGS_SBI_RESOURCE_NAME_SM_POLICIES;
-    message.h.resource.component[1] = sess->policy_association_id;
-    message.h.resource.component[2] = (char *)OGS_SBI_RESOURCE_NAME_DELETE;
+    message.h.uri = ogs_msprintf("%s/%s",
+            sess->policy_association.resource_uri,
+            OGS_SBI_RESOURCE_NAME_DELETE);
 
     memset(&SmPolicyDeleteData, 0, sizeof(SmPolicyDeleteData));
 
@@ -323,7 +383,7 @@ ogs_sbi_request_t *smf_npcf_smpolicycontrol_build_delete(
     }
 
     SmPolicyDeleteData.serving_network =
-        ogs_sbi_build_plmn_id_nid(&sess->plmn_id);
+        ogs_sbi_build_plmn_id_nid(&sess->serving_plmn_id);
     if (!SmPolicyDeleteData.serving_network) {
         ogs_error("SmPolicyDeleteData.serving_network");
         goto end;
@@ -337,6 +397,9 @@ ogs_sbi_request_t *smf_npcf_smpolicycontrol_build_delete(
     ogs_expect(request);
 
 end:
+
+    if (message.h.uri)
+        ogs_free(message.h.uri);
 
     if (ueLocation.nr_location) {
         if (ueLocation.nr_location->ue_location_timestamp)

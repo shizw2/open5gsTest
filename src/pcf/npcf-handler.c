@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019,2020 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -22,7 +22,7 @@
 #include "npcf-handler.h"
 #include "pcf-fd-path.h"
 
-bool pcf_npcf_am_policy_contrtol_handle_create(pcf_ue_t *pcf_ue,
+bool pcf_npcf_am_policy_control_handle_create(pcf_ue_t *pcf_ue,
         ogs_sbi_stream_t *stream, ogs_sbi_message_t *message)
 {
     bool rc;
@@ -34,12 +34,17 @@ bool pcf_npcf_am_policy_contrtol_handle_create(pcf_ue_t *pcf_ue,
 
     uint64_t supported_features = 0;
 
+    ogs_sbi_server_t *server = NULL;
     ogs_sbi_client_t *client = NULL;
     OpenAPI_uri_scheme_e scheme = OpenAPI_uri_scheme_NULL;
-    ogs_sockaddr_t *addr = NULL;
+    char *fqdn = NULL;
+    uint16_t fqdn_port = 0;
+    ogs_sockaddr_t *addr = NULL, *addr6 = NULL;
 
     ogs_assert(pcf_ue);
     ogs_assert(stream);
+    server = ogs_sbi_server_from_stream(stream);
+    ogs_assert(server);
     ogs_assert(message);
 
     PolicyAssociationRequest = message->PolicyAssociationRequest;
@@ -47,7 +52,8 @@ bool pcf_npcf_am_policy_contrtol_handle_create(pcf_ue_t *pcf_ue,
         ogs_error("[%s] No PolicyAssociationRequest", pcf_ue->supi);
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                message, "[%s] No PolicyAssociationRequest", pcf_ue->supi));
+                message, "[%s] No PolicyAssociationRequest", pcf_ue->supi,
+                NULL));
         return false;
     }
 
@@ -55,7 +61,7 @@ bool pcf_npcf_am_policy_contrtol_handle_create(pcf_ue_t *pcf_ue,
         ogs_error("[%s] No notificationUri", pcf_ue->supi);
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                message, "No notificationUri", pcf_ue->supi));
+                message, "No notificationUri", pcf_ue->supi, NULL));
         return false;
     }
 
@@ -63,7 +69,7 @@ bool pcf_npcf_am_policy_contrtol_handle_create(pcf_ue_t *pcf_ue,
         ogs_error("[%s] No supi", pcf_ue->supi);
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                message, "No supi", pcf_ue->supi));
+                message, "No supi", pcf_ue->supi, NULL));
         return false;
     }
 
@@ -71,18 +77,18 @@ bool pcf_npcf_am_policy_contrtol_handle_create(pcf_ue_t *pcf_ue,
         ogs_error("[%s] No suppFeat", pcf_ue->supi);
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                message, "No suppFeat", pcf_ue->supi));
+                message, "No suppFeat", pcf_ue->supi, NULL));
         return false;
     }
 
-    rc = ogs_sbi_getaddr_from_uri(&scheme, &addr,
+    rc = ogs_sbi_getaddr_from_uri(&scheme, &fqdn, &fqdn_port, &addr, &addr6,
             PolicyAssociationRequest->notification_uri);
     if (rc == false || scheme == OpenAPI_uri_scheme_NULL) {
         ogs_error("[%s] Invalid URI [%s]",
                 pcf_ue->supi, PolicyAssociationRequest->notification_uri);
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                message, "[%s] Invalid URI", pcf_ue->supi));
+                message, "[%s] Invalid URI", pcf_ue->supi, NULL));
         return false;
     }
 
@@ -92,13 +98,25 @@ bool pcf_npcf_am_policy_contrtol_handle_create(pcf_ue_t *pcf_ue,
             PolicyAssociationRequest->notification_uri);
     ogs_assert(pcf_ue->notification_uri);
 
-    client = ogs_sbi_client_find(scheme, addr);
+    client = ogs_sbi_client_find(scheme, fqdn, fqdn_port, addr, addr6);
     if (!client) {
-        client = ogs_sbi_client_add(scheme, addr);
-        ogs_assert(client);
+        ogs_debug("%s: ogs_sbi_client_add()", OGS_FUNC);
+        client = ogs_sbi_client_add(scheme, fqdn, fqdn_port, addr, addr6);
+        if (!client) {
+            ogs_error("%s: ogs_sbi_client_add() failed", OGS_FUNC);
+
+            ogs_free(fqdn);
+            ogs_freeaddrinfo(addr);
+            ogs_freeaddrinfo(addr6);
+
+            return false;
+        }
     }
     OGS_SBI_SETUP_CLIENT(&pcf_ue->namf, client);
+
+    ogs_free(fqdn);
     ogs_freeaddrinfo(addr);
+    ogs_freeaddrinfo(addr6);
 
     supported_features =
         ogs_uint64_from_string(PolicyAssociationRequest->supp_feat);
@@ -150,12 +168,50 @@ bool pcf_npcf_am_policy_contrtol_handle_create(pcf_ue_t *pcf_ue,
         pcf_ue->subscribed_ue_ambr = OpenAPI_ambr_copy(
                 pcf_ue->subscribed_ue_ambr, PolicyAssociationRequest->ue_ambr);
 
-    r = pcf_ue_sbi_discover_and_send(OGS_SBI_SERVICE_TYPE_NUDR_DR, NULL,
-            pcf_nudr_dr_build_query_am_data, pcf_ue, stream, NULL);
-    ogs_expect(r == OGS_OK);
-    ogs_assert(r != OGS_ERROR);
+    if (ogs_sbi_supi_in_vplmn(pcf_ue->supi) == true) {
+        /* Visited PLMN */
+        OpenAPI_policy_association_t PolicyAssociation;
 
-    return (r == OGS_OK);
+        ogs_sbi_message_t sendmsg;
+        ogs_sbi_header_t header;
+        ogs_sbi_response_t *response = NULL;
+
+        memset(&PolicyAssociation, 0, sizeof(PolicyAssociation));
+        PolicyAssociation.request = pcf_ue->policy_association_request;
+        PolicyAssociation.supp_feat =
+            ogs_uint64_to_string(pcf_ue->am_policy_control_features);
+        ogs_assert(PolicyAssociation.supp_feat);
+
+        memset(&header, 0, sizeof(header));
+        header.service.name =
+            (char *)OGS_SBI_SERVICE_NAME_NPCF_AM_POLICY_CONTROL;
+        header.api.version = (char *)OGS_SBI_API_V1;
+        header.resource.component[0] = (char *)OGS_SBI_RESOURCE_NAME_POLICIES;
+        header.resource.component[1] = pcf_ue->association_id;
+
+        memset(&sendmsg, 0, sizeof(sendmsg));
+        sendmsg.PolicyAssociation = &PolicyAssociation;
+        sendmsg.http.location = ogs_sbi_server_uri(server, &header);
+
+        response = ogs_sbi_build_response(
+                &sendmsg, OGS_SBI_HTTP_STATUS_CREATED);
+        ogs_assert(response);
+        ogs_assert(true == ogs_sbi_server_send_response(stream, response));
+
+        ogs_free(sendmsg.http.location);
+
+        ogs_free(PolicyAssociation.supp_feat);
+
+        return true;
+    } else {
+        /* Home PLMN */
+        r = pcf_ue_sbi_discover_and_send(OGS_SBI_SERVICE_TYPE_NUDR_DR, NULL,
+                pcf_nudr_dr_build_query_am_data, pcf_ue, stream, NULL);
+        ogs_expect(r == OGS_OK);
+        ogs_assert(r != OGS_ERROR);
+
+        return (r == OGS_OK);
+    }
 }
 
 bool pcf_npcf_smpolicycontrol_handle_create(pcf_sess_t *sess,
@@ -168,11 +224,16 @@ bool pcf_npcf_smpolicycontrol_handle_create(pcf_sess_t *sess,
     pcf_ue_t *pcf_ue = NULL;
 
     OpenAPI_sm_policy_context_data_t *SmPolicyContextData = NULL;
+    OpenAPI_plmn_id_nid_t *servingNetwork = NULL;
     OpenAPI_snssai_t *sliceInfo = NULL;
 
     ogs_sbi_client_t *client = NULL;
     OpenAPI_uri_scheme_e scheme = OpenAPI_uri_scheme_NULL;
-    ogs_sockaddr_t *addr = NULL;
+    char *fqdn = NULL;
+    uint16_t fqdn_port = 0;
+    ogs_sockaddr_t *addr = NULL, *addr6 = NULL;
+
+    char *home_network_domain = NULL;
 
     ogs_assert(sess);
     pcf_ue = sess->pcf_ue;
@@ -246,7 +307,25 @@ bool pcf_npcf_smpolicycontrol_handle_create(pcf_sess_t *sess,
         goto cleanup;
     }
 
-    rc = ogs_sbi_getaddr_from_uri(&scheme, &addr,
+    servingNetwork = SmPolicyContextData->serving_network;
+    if (servingNetwork) {
+        if (!servingNetwork->mcc) {
+            strerror = ogs_msprintf("[%s:%d] No servingNetwork->mcc",
+                    pcf_ue->supi, sess->psi);
+            status = OGS_SBI_HTTP_STATUS_BAD_REQUEST;
+            goto cleanup;
+        }
+        if (!servingNetwork->mnc) {
+            strerror = ogs_msprintf("[%s:%d] No servingNetwork->mnc",
+                    pcf_ue->supi, sess->psi);
+            status = OGS_SBI_HTTP_STATUS_BAD_REQUEST;
+            goto cleanup;
+        }
+    } else {
+        ogs_warn("No servingNetwork");
+    }
+
+    rc = ogs_sbi_getaddr_from_uri(&scheme, &fqdn, &fqdn_port, &addr, &addr6,
             SmPolicyContextData->notification_uri);
     if (rc == false || scheme == OpenAPI_uri_scheme_NULL) {
         strerror = ogs_msprintf("[%s:%d] Invalid URI [%s]",
@@ -265,23 +344,112 @@ bool pcf_npcf_smpolicycontrol_handle_create(pcf_sess_t *sess,
 
     sess->pdu_session_type = SmPolicyContextData->pdu_session_type;
 
-    if (sess->dnn)
-        ogs_free(sess->dnn);
-    sess->dnn = ogs_strdup(SmPolicyContextData->dnn);
-    ogs_assert(sess->dnn);
+    /* Serving PLMN & Home PLMN */
+    if (servingNetwork) {
+        sess->serving.presence = true;
+        ogs_sbi_parse_plmn_id_nid(&sess->serving.plmn_id, servingNetwork);
+
+        sess->home.presence = true;
+        memcpy(&sess->home.plmn_id, &sess->serving.plmn_id, OGS_PLMN_ID_LEN);
+    }
+
+    /*
+     * TS29.512
+     * 5 Npcf_SMPolicyControl Service API
+     * 5.6 Data Model
+     * 5.6.2 Structured data types
+     * Table 5.6.2.3-1: Definition of type SmPolicyContextData
+     *
+     * NAME: dnn
+     * Data type: Dnn
+     * P: M
+     * Cardinality: 1
+     * The DNN of the PDU session, a full DNN with both the Network Identifier
+     * and Operator Identifier, or a DNN with the Network Identifier only
+     */
+    home_network_domain = ogs_home_network_domain_from_fqdn(
+            SmPolicyContextData->dnn);
+
+    if (home_network_domain) {
+        char dnn_network_identifer[OGS_MAX_DNN_LEN+1];
+        uint16_t mcc = 0, mnc = 0;
+
+        ogs_assert(home_network_domain > SmPolicyContextData->dnn);
+
+        ogs_cpystrn(dnn_network_identifer, SmPolicyContextData->dnn,
+            ogs_min(OGS_MAX_DNN_LEN,
+                home_network_domain - SmPolicyContextData->dnn));
+
+        if (sess->dnn)
+            ogs_free(sess->dnn);
+        sess->dnn = ogs_strdup(dnn_network_identifer);
+        ogs_assert(sess->dnn);
+
+        if (sess->full_dnn)
+            ogs_free(sess->full_dnn);
+        sess->full_dnn = ogs_strdup(SmPolicyContextData->dnn);
+        ogs_assert(sess->full_dnn);
+
+        mcc = ogs_plmn_id_mcc_from_fqdn(sess->full_dnn);
+        mnc = ogs_plmn_id_mnc_from_fqdn(sess->full_dnn);
+
+        /*
+         * To generate the Home PLMN ID of the SMF-UE,
+         * the length of the MNC is obtained
+         * by comparing the MNC part of the SUPI and full-DNN.
+         */
+        if (mcc && mnc &&
+            strncmp(pcf_ue->supi, "imsi-", strlen("imsi-")) == 0) {
+            int mnc_len = 0;
+            char buf[OGS_PLMNIDSTRLEN];
+
+            ogs_snprintf(buf, OGS_PLMNIDSTRLEN, "%03d%02d", mcc, mnc);
+            if (strncmp(pcf_ue->supi + 5, buf, strlen(buf)) == 0)
+                mnc_len = 2;
+
+            ogs_snprintf(buf, OGS_PLMNIDSTRLEN, "%03d%03d", mcc, mnc);
+            if (strncmp(pcf_ue->supi + 5, buf, strlen(buf)) == 0)
+                mnc_len = 3;
+
+            /* Change Home PLMN for VPLMN */
+            if (mnc_len == 2 || mnc_len == 3) {
+                if (sess->home.presence == true)
+                    ogs_plmn_id_build(&sess->home.plmn_id, mcc, mnc, mnc_len);
+            }
+        }
+    } else {
+        if (sess->dnn)
+            ogs_free(sess->dnn);
+        sess->dnn = ogs_strdup(SmPolicyContextData->dnn);
+        ogs_assert(sess->dnn);
+
+        if (sess->full_dnn)
+            ogs_free(sess->full_dnn);
+        sess->full_dnn = NULL;
+    }
 
     if (sess->notification_uri)
         ogs_free(sess->notification_uri);
     sess->notification_uri = ogs_strdup(SmPolicyContextData->notification_uri);
     ogs_assert(sess->notification_uri);
 
-    client = ogs_sbi_client_find(scheme, addr);
+    client = ogs_sbi_client_find(scheme, fqdn, fqdn_port, addr, addr6);
     if (!client) {
-        client = ogs_sbi_client_add(scheme, addr);
-        ogs_assert(client);
+        ogs_debug("%s: ogs_sbi_client_add()", OGS_FUNC);
+        client = ogs_sbi_client_add(scheme, fqdn, fqdn_port, addr, addr6);
+        if (!client) {
+            strerror = ogs_msprintf("%s: ogs_sbi_client_add() failed",
+                    OGS_FUNC);
+            status = OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR;
+            ogs_freeaddrinfo(addr);
+            goto cleanup;
+        }
     }
     OGS_SBI_SETUP_CLIENT(&sess->nsmf, client);
+
+    ogs_free(fqdn);
     ogs_freeaddrinfo(addr);
+    ogs_freeaddrinfo(addr6);
 
     if (SmPolicyContextData->ipv4_address)
         ogs_assert(true ==
@@ -331,20 +499,70 @@ bool pcf_npcf_smpolicycontrol_handle_create(pcf_sess_t *sess,
         sess->subscribed_default_qos = OpenAPI_subscribed_default_qos_copy(
             sess->subscribed_default_qos, SmPolicyContextData->subs_def_qos);
 
-    r = pcf_sess_sbi_discover_and_send(
-            OGS_SBI_SERVICE_TYPE_NUDR_DR, NULL,
-            pcf_nudr_dr_build_query_sm_data, sess, stream, NULL);
-    ogs_expect(r == OGS_OK);
-    ogs_assert(r != OGS_ERROR);
+    if (ogs_sbi_supi_in_vplmn(pcf_ue->supi) == true) {
+        /* Visited PLMN */
+        ogs_sbi_nf_instance_t *nf_instance = NULL;
+        ogs_sbi_service_type_e service_type = OGS_SBI_SERVICE_TYPE_NULL;
 
-    return (r == OGS_OK);
+        service_type = OGS_SBI_SERVICE_TYPE_NPCF_POLICYAUTHORIZATION;
+
+        nf_instance = sess->sbi.service_type_array[service_type].nf_instance;
+        if (!nf_instance) {
+            OpenAPI_nf_type_e requester_nf_type =
+                        NF_INSTANCE_TYPE(ogs_sbi_self()->nf_instance);
+            ogs_assert(requester_nf_type);
+            nf_instance = ogs_sbi_nf_instance_find_by_service_type(
+                            service_type, requester_nf_type);
+            if (nf_instance)
+                OGS_SBI_SETUP_NF_INSTANCE(
+                        sess->sbi.service_type_array[service_type],
+                        nf_instance);
+        }
+
+        if (nf_instance) {
+            r = pcf_sess_sbi_discover_and_send(
+                        OGS_SBI_SERVICE_TYPE_NBSF_MANAGEMENT, NULL,
+                        pcf_nbsf_management_build_register,
+                        sess, stream, nf_instance);
+            ogs_expect(r == OGS_OK);
+            ogs_assert(r != OGS_ERROR);
+        } else {
+            r = pcf_sess_sbi_discover_only(sess, stream, service_type);
+            ogs_expect(r == OGS_OK);
+            ogs_assert(r != OGS_ERROR);
+        }
+
+        return (r == OGS_OK);
+    } else {
+        /* Home PLMN */
+        r = pcf_sess_sbi_discover_and_send(
+                OGS_SBI_SERVICE_TYPE_NUDR_DR, NULL,
+                pcf_nudr_dr_build_query_sm_data, sess, stream, NULL);
+        ogs_expect(r == OGS_OK);
+        ogs_assert(r != OGS_ERROR);
+
+        return (r == OGS_OK);
+    }
 
 cleanup:
     ogs_assert(status);
     ogs_assert(strerror);
     ogs_error("%s", strerror);
+    /*
+     * TS29.512
+     * 4.2.2.2 SM Policy Association establishment 
+     *
+     * If the PCF is, due to incomplete, erroneous or missing
+     * information (e.g. QoS, RAT type, subscriber information)
+     * not able to provision a policy decision as response to
+     * the request for PCC rules by the SMF, the PCF may reject
+     * the request and include in an HTTP "400 Bad Request"
+     * response message the "cause" attribute of the ProblemDetails
+     * data structure set to "ERROR_INITIAL_PARAMETERS". 
+     */
     ogs_assert(true ==
-        ogs_sbi_server_send_error(stream, status, message, strerror, NULL));
+            ogs_sbi_server_send_error(stream, status, message,
+                    strerror, NULL, "ERROR_INITIAL_PARAMETERS"));
     ogs_free(strerror);
 
     return false;
@@ -412,7 +630,8 @@ cleanup:
     ogs_assert(strerror);
     ogs_error("%s", strerror);
     ogs_assert(true ==
-        ogs_sbi_server_send_error(stream, status, message, strerror, NULL));
+        ogs_sbi_server_send_error(stream, status, message, strerror, NULL,
+                NULL));
     ogs_free(strerror);
 
     return false;
@@ -421,7 +640,6 @@ cleanup:
 bool pcf_npcf_policyauthorization_handle_create(pcf_sess_t *sess,
         ogs_sbi_stream_t *stream, ogs_sbi_message_t *recvmsg)
 {
-    ogs_debug("pcf_npcf_policyauthorization_handle_create");
     bool rc;
     int i, j, rv, status = 0;
     char *strerror = NULL;
@@ -430,7 +648,9 @@ bool pcf_npcf_policyauthorization_handle_create(pcf_sess_t *sess,
 
     ogs_sbi_client_t *client = NULL;
     OpenAPI_uri_scheme_e scheme = OpenAPI_uri_scheme_NULL;
-    ogs_sockaddr_t *addr = NULL;
+    char *fqdn = NULL;
+    uint16_t fqdn_port = 0;
+    ogs_sockaddr_t *addr = NULL, *addr6 = NULL;
 
     OpenAPI_app_session_context_t *AppSessionContext = NULL;
     OpenAPI_app_session_context_req_data_t *AscReqData = NULL;
@@ -518,7 +738,8 @@ bool pcf_npcf_policyauthorization_handle_create(pcf_sess_t *sess,
         goto cleanup;
     }
 
-    rc = ogs_sbi_getaddr_from_uri(&scheme, &addr, AscReqData->notif_uri);
+    rc = ogs_sbi_getaddr_from_uri(&scheme, &fqdn, &fqdn_port, &addr, &addr6,
+            AscReqData->notif_uri);
     if (rc == false || scheme == OpenAPI_uri_scheme_NULL) {
         strerror = ogs_msprintf("[%s:%d] Invalid URI [%s]",
                 pcf_ue->supi, sess->psi, AscReqData->notif_uri);
@@ -542,6 +763,15 @@ bool pcf_npcf_policyauthorization_handle_create(pcf_sess_t *sess,
         if (MediaComponentMap) {
             MediaComponent = MediaComponentMap->value;
             if (MediaComponent) {
+                if (ims_data.num_of_media_component >=
+                        OGS_ARRAY_SIZE(ims_data.media_component)) {
+                    ogs_error("OVERFLOW ims_data.num_of_media_component "
+                            "[%d:%d:%d]",
+                            ims_data.num_of_media_component,
+                            OGS_MAX_NUM_OF_MEDIA_COMPONENT,
+                            (int)OGS_ARRAY_SIZE(ims_data.media_component));
+                    break;
+                }
                 media_component = &ims_data.
                     media_component[ims_data.num_of_media_component];
                 media_component->media_component_number =
@@ -569,6 +799,15 @@ bool pcf_npcf_policyauthorization_handle_create(pcf_sess_t *sess,
 
                 SubComponentList = MediaComponent->med_sub_comps;
                 OpenAPI_list_for_each(SubComponentList, node2) {
+                    if (media_component->num_of_sub >=
+                            OGS_ARRAY_SIZE(media_component->sub)) {
+                        ogs_error("OVERFLOW media_component->num_of_sub "
+                                "[%d:%d:%d]",
+                                media_component->num_of_sub,
+                                OGS_MAX_NUM_OF_MEDIA_SUB_COMPONENT,
+                                (int)OGS_ARRAY_SIZE(media_component->sub));
+                        break;
+                    }
                     sub = &media_component->sub[media_component->num_of_sub];
 
                     SubComponentMap = node2->data;
@@ -582,8 +821,15 @@ bool pcf_npcf_policyauthorization_handle_create(pcf_sess_t *sess,
                             OpenAPI_list_for_each(fDescList, node3) {
                                 ogs_flow_t *flow = NULL;
 
-                                ogs_assert(sub->num_of_flow <
-                                    OGS_MAX_NUM_OF_FLOW_IN_MEDIA_SUB_COMPONENT);
+                                if (sub->num_of_flow >=
+                                        OGS_ARRAY_SIZE(sub->flow)) {
+                                    ogs_error(
+                                        "OVERFLOW sub->num_of_flow [%d:%d:%d]",
+                                        sub->num_of_flow,
+                                        OGS_MAX_NUM_OF_FLOW_IN_MEDIA_SUB_COMPONENT,
+                                        (int)OGS_ARRAY_SIZE(sub->flow));
+                                    break;
+                                }
                                 flow = &sub->flow[sub->num_of_flow];
                                 if (node3->data) {
                                     flow->description = ogs_strdup(node3->data);
@@ -609,18 +855,28 @@ bool pcf_npcf_policyauthorization_handle_create(pcf_sess_t *sess,
     app_session->notif_uri = ogs_strdup(AscReqData->notif_uri);
     ogs_assert(app_session->notif_uri);
 
-    //char buf[OGS_ADDRSTRLEN];
-    //ogs_error("pcf_npcf_policyauthorization_handle_create,addr:%s,notif_uri:%s.", OGS_ADDR(addr, buf), AscReqData->notif_uri);
-    client = ogs_sbi_client_find(scheme, addr);
+    client = ogs_sbi_client_find(scheme, fqdn, fqdn_port, addr, addr6);
     if (!client) {
-        client = ogs_sbi_client_add(scheme, addr);
-        ogs_assert(client);
+        ogs_debug("%s: ogs_sbi_client_add()", OGS_FUNC);
+        client = ogs_sbi_client_add(scheme, fqdn, fqdn_port, addr, addr6);
+        if (!client) {
+            strerror = ogs_msprintf("%s: ogs_sbi_client_add() failed",
+                    OGS_FUNC);
+            status = OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR;
+            ogs_freeaddrinfo(addr);
+            goto cleanup;
+        }
     }
     OGS_SBI_SETUP_CLIENT(&app_session->naf, client);
-    ogs_freeaddrinfo(addr);
 
-    rv = ogs_dbi_session_data(
-            pcf_ue->supi, &sess->s_nssai, sess->dnn, &session_data);
+    ogs_free(fqdn);
+    ogs_freeaddrinfo(addr);
+    ogs_freeaddrinfo(addr6);
+
+    rv = pcf_db_qos_data(
+            pcf_ue->supi,
+            sess->home.presence == true ? &sess->home.plmn_id : NULL,
+            &sess->s_nssai, sess->dnn, &session_data);
     if (rv != OGS_OK) {
         strerror = ogs_msprintf("[%s:%d] Cannot find SUPI in DB",
                 pcf_ue->supi, sess->psi);
@@ -857,7 +1113,7 @@ bool pcf_npcf_policyauthorization_handle_create(pcf_sess_t *sess,
     OpenAPI_list_free(QosDecisionList);
 
     ogs_ims_data_free(&ims_data);
-    ogs_session_data_free(&session_data);
+    OGS_SESSION_DATA_FREE(&session_data);
 
     return true;
 
@@ -866,7 +1122,8 @@ cleanup:
     ogs_assert(strerror);
     ogs_error("%s", strerror);
     ogs_assert(true ==
-        ogs_sbi_server_send_error(stream, status, recvmsg, strerror, NULL));
+        ogs_sbi_server_send_error(stream, status, recvmsg, strerror, NULL,
+                NULL));
     ogs_free(strerror);
 
     OpenAPI_list_for_each(PccRuleList, node) {
@@ -892,7 +1149,7 @@ cleanup:
     OpenAPI_list_free(QosDecisionList);
 
     ogs_ims_data_free(&ims_data);
-    ogs_session_data_free(&session_data);
+    OGS_SESSION_DATA_FREE(&session_data);
 
     return false;
 }
@@ -924,7 +1181,7 @@ bool pcf_npcf_policyauthorization_handle_update(
 
     OpenAPI_list_t *SubComponentList = NULL;
     OpenAPI_map_t *SubComponentMap = NULL;
-    OpenAPI_media_sub_component_t *SubComponent = NULL;
+    OpenAPI_media_sub_component_rm_t *SubComponent = NULL;
 
     OpenAPI_list_t *fDescList = NULL;
 
@@ -979,6 +1236,15 @@ bool pcf_npcf_policyauthorization_handle_update(
         if (MediaComponentMap) {
             MediaComponent = MediaComponentMap->value;
             if (MediaComponent) {
+                if (ims_data.num_of_media_component >=
+                        OGS_ARRAY_SIZE(ims_data.media_component)) {
+                    ogs_error("OVERFLOW ims_data.num_of_media_component "
+                            "[%d:%d:%d]",
+                            ims_data.num_of_media_component,
+                            OGS_MAX_NUM_OF_MEDIA_COMPONENT,
+                            (int)OGS_ARRAY_SIZE(ims_data.media_component));
+                    break;
+                }
                 media_component = &ims_data.
                     media_component[ims_data.num_of_media_component];
 
@@ -1007,6 +1273,15 @@ bool pcf_npcf_policyauthorization_handle_update(
 
                 SubComponentList = MediaComponent->med_sub_comps;
                 OpenAPI_list_for_each(SubComponentList, node2) {
+                    if (media_component->num_of_sub >=
+                            OGS_ARRAY_SIZE(media_component->sub)) {
+                        ogs_error("OVERFLOW media_component->num_of_sub "
+                                "[%d:%d:%d]",
+                                media_component->num_of_sub,
+                                OGS_MAX_NUM_OF_MEDIA_SUB_COMPONENT,
+                                (int)OGS_ARRAY_SIZE(media_component->sub));
+                        break;
+                    }
                     sub = &media_component->sub[media_component->num_of_sub];
 
                     SubComponentMap = node2->data;
@@ -1020,8 +1295,15 @@ bool pcf_npcf_policyauthorization_handle_update(
                             OpenAPI_list_for_each(fDescList, node3) {
                                 ogs_flow_t *flow = NULL;
 
-                                ogs_assert(sub->num_of_flow <
-                                    OGS_MAX_NUM_OF_FLOW_IN_MEDIA_SUB_COMPONENT);
+                                if (sub->num_of_flow >=
+                                        OGS_ARRAY_SIZE(sub->flow)) {
+                                    ogs_error(
+                                        "OVERFLOW sub->num_of_flow [%d:%d:%d]",
+                                        sub->num_of_flow,
+                                        OGS_MAX_NUM_OF_FLOW_IN_MEDIA_SUB_COMPONENT,
+                                        (int)OGS_ARRAY_SIZE(sub->flow));
+                                    break;
+                                }
                                 flow = &sub->flow[sub->num_of_flow];
                                 if (node3->data) {
                                     flow->description = ogs_strdup(node3->data);
@@ -1039,8 +1321,10 @@ bool pcf_npcf_policyauthorization_handle_update(
         }
     }
 
-    rv = ogs_dbi_session_data(
-            pcf_ue->supi, &sess->s_nssai, sess->dnn, &session_data);
+    rv = pcf_db_qos_data(
+            pcf_ue->supi,
+            sess->home.presence == true ? &sess->home.plmn_id : NULL,
+            &sess->s_nssai, sess->dnn, &session_data);
     if (rv != OGS_OK) {
         strerror = ogs_msprintf("[%s:%d] Cannot find SUPI in DB",
                 pcf_ue->supi, sess->psi);
@@ -1267,7 +1551,7 @@ bool pcf_npcf_policyauthorization_handle_update(
     OpenAPI_list_free(QosDecisionList);
 
     ogs_ims_data_free(&ims_data);
-    ogs_session_data_free(&session_data);
+    OGS_SESSION_DATA_FREE(&session_data);
 
     return true;
 
@@ -1276,7 +1560,8 @@ cleanup:
     ogs_assert(strerror);
     ogs_error("%s", strerror);
     ogs_assert(true ==
-        ogs_sbi_server_send_error(stream, status, recvmsg, strerror, NULL));
+        ogs_sbi_server_send_error(stream, status, recvmsg, strerror,
+                NULL, NULL));
     ogs_free(strerror);
 
     OpenAPI_list_for_each(PccRuleList, node) {
@@ -1302,7 +1587,7 @@ cleanup:
     OpenAPI_list_free(QosDecisionList);
 
     ogs_ims_data_free(&ims_data);
-    ogs_session_data_free(&session_data);
+    OGS_SESSION_DATA_FREE(&session_data);
 
     return false;
 }
@@ -1869,7 +2154,7 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
         }
     }
     OpenAPI_list_free(QosDecisionList);
-    ogs_session_data_free(&session_data);
+    OGS_SESSION_DATA_FREE(&session_data);
     return OGS_OK;
 
 #if 0
@@ -1976,7 +2261,7 @@ out:
         }
     }
     OpenAPI_list_free(QosDecisionList);
-    ogs_session_data_free(&session_data);
+    OGS_SESSION_DATA_FREE(&session_data);
     
     return OGS_ERROR;
 }

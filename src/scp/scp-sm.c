@@ -73,7 +73,8 @@ void scp_state_operational(ogs_fsm_t *s, scp_event_t *e)
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    NULL, "cannot parse HTTP sbi_message", NULL));
+                    NULL, "cannot parse HTTP sbi_message", NULL,
+                    NULL));
             break;
         }
 
@@ -82,7 +83,7 @@ void scp_state_operational(ogs_fsm_t *s, scp_event_t *e)
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    &message, "Not supported version", NULL));
+                    &message, "Not supported version", NULL, NULL));
             ogs_sbi_message_free(&message);
             break;
         }
@@ -102,7 +103,8 @@ void scp_state_operational(ogs_fsm_t *s, scp_event_t *e)
                     ogs_assert(true ==
                         ogs_sbi_server_send_error(stream,
                             OGS_SBI_HTTP_STATUS_FORBIDDEN, &message,
-                            "Invalid HTTP method", message.h.method));
+                            "Invalid HTTP method", message.h.method,
+                            NULL));
                 END
                 break;
 
@@ -113,7 +115,7 @@ void scp_state_operational(ogs_fsm_t *s, scp_event_t *e)
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_BAD_REQUEST, &message,
                         "Invalid resource name",
-                        message.h.resource.component[0]));
+                        message.h.resource.component[0], NULL));
             END
             break;
 
@@ -122,7 +124,7 @@ void scp_state_operational(ogs_fsm_t *s, scp_event_t *e)
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream,
                     OGS_SBI_HTTP_STATUS_BAD_REQUEST, &message,
-                    "Invalid API name", message.h.service.name));
+                    "Invalid API name", message.h.service.name, NULL));
         END
 
         /* In lib/sbi/server.c, notify_completed() releases 'request' buffer. */
@@ -315,7 +317,7 @@ void scp_state_operational(ogs_fsm_t *s, scp_event_t *e)
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_GATEWAY_TIMEOUT, NULL,
-                        "Cannot receive SBI message", NULL));
+                        "Cannot receive SBI message", NULL, NULL));
             }
             break;
 
