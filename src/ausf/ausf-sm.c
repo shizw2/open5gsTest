@@ -74,7 +74,7 @@ void ausf_state_operational(ogs_fsm_t *s, ausf_event_t *e)
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    NULL, "cannot parse HTTP message", NULL));
+                    NULL, "cannot parse HTTP message", NULL, NULL));
             break;
         }
 
@@ -83,7 +83,7 @@ void ausf_state_operational(ogs_fsm_t *s, ausf_event_t *e)
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    &message, "Not supported version", NULL));
+                    &message, "Not supported version", NULL, NULL));
             ogs_sbi_message_free(&message);
             break;
         }
@@ -105,7 +105,8 @@ void ausf_state_operational(ogs_fsm_t *s, ausf_event_t *e)
                         ogs_sbi_server_send_error(stream,
                             OGS_SBI_HTTP_STATUS_FORBIDDEN,
                             &message,
-                            "Invalid HTTP method", message.h.method));
+                            "Invalid HTTP method", message.h.method,
+                            NULL));
                 END
                 break;
 
@@ -116,7 +117,7 @@ void ausf_state_operational(ogs_fsm_t *s, ausf_event_t *e)
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_BAD_REQUEST, &message,
                         "Unknown resource name",
-                        message.h.resource.component[0]));
+                        message.h.resource.component[0], NULL));
             END
             break;
 
@@ -130,7 +131,6 @@ void ausf_state_operational(ogs_fsm_t *s, ausf_event_t *e)
                     if (!ausf_ue) {
                         ausf_ue = ausf_ue_add(
                                 message.AuthenticationInfo->supi_or_suci);
-                        ogs_assert(ausf_ue);
                     }
                 }
                 break;
@@ -149,7 +149,7 @@ void ausf_state_operational(ogs_fsm_t *s, ausf_event_t *e)
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_NOT_FOUND,
-                        &message, "Not found", message.h.method));
+                        &message, "Not found", message.h.method, NULL));
                 break;
             }
 
@@ -169,7 +169,8 @@ void ausf_state_operational(ogs_fsm_t *s, ausf_event_t *e)
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream,
                     OGS_SBI_HTTP_STATUS_BAD_REQUEST, &message,
-                    "Invalid API name", message.h.resource.component[0]));
+                    "Invalid API name", message.h.resource.component[0],
+                    NULL));
         END
 
         /* In lib/sbi/server.c, notify_completed() releases 'request' buffer. */
@@ -256,7 +257,7 @@ void ausf_state_operational(ogs_fsm_t *s, ausf_event_t *e)
                     ogs_assert_if_reached();
                 END
                 break;
-            
+
             DEFAULT
                 ogs_error("Invalid resource name [%s]",
                         message.h.resource.component[0]);
@@ -323,6 +324,9 @@ void ausf_state_operational(ogs_fsm_t *s, ausf_event_t *e)
             ogs_fsm_dispatch(&ausf_ue->sm, e);
             if (OGS_FSM_CHECK(&ausf_ue->sm, ausf_ue_state_exception)) {
                 ogs_error("[%s] State machine exception", ausf_ue->suci);
+                ausf_ue_remove(ausf_ue);
+            } else if (OGS_FSM_CHECK(&ausf_ue->sm, ausf_ue_state_deleted)) {
+                ogs_debug("[%s] AUSF-UE removed", ausf_ue->supi);
                 ausf_ue_remove(ausf_ue);
             }
             break;
@@ -427,7 +431,7 @@ void ausf_state_operational(ogs_fsm_t *s, ausf_event_t *e)
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream,
                     OGS_SBI_HTTP_STATUS_GATEWAY_TIMEOUT, NULL,
-                    "Cannot receive SBI message", NULL));
+                    "Cannot receive SBI message", NULL, NULL));
             break;
         default:
             ogs_error("Unknown timer[%s:%d]",

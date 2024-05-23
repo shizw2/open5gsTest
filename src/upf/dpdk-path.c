@@ -300,7 +300,7 @@ int gtp_send_user_plane(
 
         i = 0;
         while (i < OGS_GTP2_NUM_OF_EXTENSION_HEADER &&
-                (ext_h - gtp_h) < gtp_hlen) {
+                (ext_h - (uint8_t *)gtp_h) < gtp_hlen) {
             int len = ext_hdesc->array[i].len*4;
 
             /* Copy Header Content */
@@ -459,7 +459,13 @@ int pfcp_send_g_pdu(ogs_pfcp_pdr_t *pdr, struct rte_mbuf *m)
     gtp_hdesc.type = OGS_GTPU_MSGTYPE_GPDU;
     gtp_hdesc.teid = far->outer_header_creation.teid;
     if (pdr->qer && pdr->qer->qfi) {
-        ext_hdesc.qos_flow_identifier = pdr->qer->qfi;
+        //ext_hdesc.qos_flow_identifier = pdr->qer->qfi;
+        
+        ext_hdesc.array[0].type =
+            OGS_GTP2_EXTENSION_HEADER_TYPE_PDU_SESSION_CONTAINER;
+        ext_hdesc.array[0].len = 1;
+        ext_hdesc.array[0].pdu_type = OGS_GTP2_EXTENSION_HEADER_PDU_TYPE_DL_PDU_SESSION_INFORMATION;
+        ext_hdesc.array[0].qos_flow_identifier = pdr->qer->qfi;
     }
 
     return gtp_send_user_plane(gnode, &gtp_hdesc, &ext_hdesc, m);
@@ -619,14 +625,14 @@ ogs_pfcp_pdr_t *n3_pdr_find_by_local_sess(upf_sess_t *sess, ogs_gtp2_header_t *g
 {
     uint8_t qfi = 0;
     int teid = be32toh(gtp_h->teid);
-
+    /*TODO：临时做，确保这是第一个扩展头，否则会有问题*/
     if (LIKELY(gtp_h->flags & OGS_GTPU_FLAGS_E)) {
         ogs_gtp2_extension_header_t *ext_header =
             (ogs_gtp2_extension_header_t *)((char *)gtp_h + OGS_GTPV1U_HEADER_LEN);
-        if (ext_header->type == OGS_GTP2_EXTENSION_HEADER_TYPE_PDU_SESSION_CONTAINER &&
-                ext_header->pdu_type == OGS_GTP2_EXTENSION_HEADER_PDU_TYPE_UL_PDU_SESSION_INFORMATION) {
-            ogs_debug("   QFI [0x%x]", ext_header->qos_flow_identifier);
-            qfi = ext_header->qos_flow_identifier;
+        if (ext_header->array[0].type == OGS_GTP2_EXTENSION_HEADER_TYPE_PDU_SESSION_CONTAINER &&
+                ext_header->array[0].pdu_type == OGS_GTP2_EXTENSION_HEADER_PDU_TYPE_UL_PDU_SESSION_INFORMATION) {
+            ogs_debug("   QFI [0x%x]", ext_header->array[0].qos_flow_identifier);
+            qfi = ext_header->array[0].qos_flow_identifier;
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -30,12 +30,17 @@ static int initialized = 0;
 int nrf_initialize(void)
 {
     int rv;
+
+#define APP_NAME "nrf"
+    rv = ogs_app_parse_local_conf(APP_NAME);
+    if (rv != OGS_OK) return rv;
+
     nrf_metrics_init();
 
     ogs_sbi_context_init(OpenAPI_nf_type_NRF);
     nrf_context_init();
 
-    rv = ogs_sbi_context_parse_config("nrf", NULL, "scp");
+    rv = ogs_sbi_context_parse_config(APP_NAME, NULL, NULL);
     if (rv != OGS_OK) return rv;
     
     rv = ogs_metrics_context_parse_config("nrf");

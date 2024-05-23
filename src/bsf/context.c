@@ -100,7 +100,13 @@ int bsf_context_parse_config(void)
             while (ogs_yaml_iter_next(&bsf_iter)) {
                 const char *bsf_key = ogs_yaml_iter_key(&bsf_iter);
                 ogs_assert(bsf_key);
-                if (!strcmp(bsf_key, "sbi")) {
+                if (!strcmp(bsf_key, "default")) {
+                    /* handle config in sbi library */
+                } else if (!strcmp(bsf_key, "sbi")) {
+                    /* handle config in sbi library */
+                } else if (!strcmp(bsf_key, "nrf")) {
+                    /* handle config in sbi library */
+                } else if (!strcmp(bsf_key, "scp")) {
                     /* handle config in sbi library */
                 } else if (!strcmp(bsf_key, "service_name")) {
                     /* handle config in sbi library */
@@ -108,7 +114,7 @@ int bsf_context_parse_config(void)
                     /* handle config in sbi library */
                 } else if (!strcmp(bsf_key, "metrics")) {
                     /* handle config in sbi library */
-                }else
+                } else
                     ogs_warn("unknown key `%s`", bsf_key);
             }
         }

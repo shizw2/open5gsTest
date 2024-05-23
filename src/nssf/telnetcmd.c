@@ -23,19 +23,19 @@ void shownsi( void )
 
     printf("\nnssf nsi Brief All(current %u nsi count):\r\n", ogs_list_count(&nssf_self()->nsi_list));
     printf("+--------+----------------------+----------------------+\n\r");
-    printf("| nsi_id |         addr         |       s_nssai        |\n\r");
+    printf("| nsi_id |        nrf_id        |       s_nssai        |\n\r");
     printf("+--------+----------------------+----------------------+\n\r");
     
     ogs_list_for_each(&nssf_self()->nsi_list, nsi) {
-        char addrStr[20];
+        //char addrStr[20];
         char sstSdStr[20];
         
-        snprintf(addrStr, sizeof(addrStr), "[%s]:%d", OGS_ADDR(nsi->addr, buf), OGS_PORT(nsi->addr));
+        //snprintf(addrStr, sizeof(addrStr), "[%s]:%d", OGS_ADDR(nsi->addr, buf), OGS_PORT(nsi->addr));
         snprintf(sstSdStr, sizeof(sstSdStr), "SST:%d SD:0x%x", nsi->s_nssai.sst, nsi->s_nssai.sd.v);
 
         printf("| %-6s | %-20s | %-20s |\r\n",
 		   nsi->nsi_id,
-           addrStr,
+           nsi->nrf_id,
            sstSdStr);     
     }	
     

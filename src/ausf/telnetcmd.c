@@ -83,7 +83,7 @@ void showueDetail( char *id )
 	printf("  |--suci               : %s \r\n", ue->suci);
 	printf("  |--serving_network_name: %s \r\n", ue->serving_network_name);
 	printf("  |--auth_type          : %s(%d) \r\n", OpenAPI_auth_type_ToString(ue->auth_type),ue->auth_type);
-    printf("  |--auth_events_url    : %s \r\n", ue->auth_events_url);
+    printf("  |--resource_uri       : %s \r\n", ue->auth_event.resource_uri);
     printf("  |--auth_result        : %s(%d) \r\n", OpenAPI_auth_result_ToString(ue->auth_result),ue->auth_result);
     printf("  |--rand               : %s \r\n", rand_string);
     printf("  |--xres_star          : %s \r\n", xres_star_string);

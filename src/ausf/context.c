@@ -37,7 +37,7 @@ void ausf_context_init(void)
 
     ogs_log_install_domain(&__ausf_log_domain, "ausf", ogs_core()->log.level);
 
-    ogs_pool_init(&ausf_ue_pool, ogs_app()->max.ue);
+    ogs_pool_init(&ausf_ue_pool, ogs_global_conf()->max.ue);
 
     ogs_list_init(&self.ausf_ue_list);
     self.suci_hash = ogs_hash_make();
@@ -104,7 +104,13 @@ int ausf_context_parse_config(void)
             while (ogs_yaml_iter_next(&ausf_iter)) {
                 const char *ausf_key = ogs_yaml_iter_key(&ausf_iter);
                 ogs_assert(ausf_key);
-                if (!strcmp(ausf_key, "sbi")) {
+                if (!strcmp(ausf_key, "default")) {
+                    /* handle config in sbi library */
+                } else if (!strcmp(ausf_key, "sbi")) {
+                    /* handle config in sbi library */
+                } else if (!strcmp(ausf_key, "nrf")) {
+                    /* handle config in sbi library */
+                } else if (!strcmp(ausf_key, "scp")) {
                     /* handle config in sbi library */
                 } else if (!strcmp(ausf_key, "service_name")) {
                     /* handle config in sbi library */
@@ -189,6 +195,10 @@ ausf_ue_t *ausf_ue_add(char *suci)
     ogs_assert(suci);
 
     ogs_pool_alloc(&ausf_ue_pool, &ausf_ue);
+    if (!ausf_ue) {
+        ogs_error("ogs_pool_alloc() failed");
+        return NULL;
+    }
     ogs_assert(ausf_ue);
     memset(ausf_ue, 0, sizeof *ausf_ue);
 
@@ -237,8 +247,9 @@ void ausf_ue_remove(ausf_ue_t *ausf_ue)
         ogs_free(ausf_ue->supi);
     }
 
-    if (ausf_ue->auth_events_url)
-        ogs_free(ausf_ue->auth_events_url);
+    AUTH_EVENT_CLEAR(ausf_ue);
+    if (ausf_ue->auth_event.client)
+        ogs_sbi_client_remove(ausf_ue->auth_event.client);
 
     if (ausf_ue->serving_network_name)
         ogs_free(ausf_ue->serving_network_name);

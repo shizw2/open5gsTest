@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -20,35 +20,7 @@
 #include "sbi-path.h"
 
 static int client_notify_cb(
-        int status, ogs_sbi_response_t *response, void *data)
-{
-    int rv;
-    ogs_sbi_message_t message;
-
-    if (status != OGS_OK) {
-        ogs_log_message(
-                status == OGS_DONE ? OGS_LOG_DEBUG : OGS_LOG_WARN, 0,
-                "client_notify_cb() failed [%d]", status);
-        return OGS_ERROR;
-    }
-
-    ogs_assert(response);
-
-    rv = ogs_sbi_parse_response(&message, response);
-    if (rv != OGS_OK) {
-        ogs_error("cannot parse HTTP response");
-        ogs_sbi_message_free(&message);
-        ogs_sbi_response_free(response);
-        return OGS_ERROR;
-    }
-
-    if (message.res_status != OGS_SBI_HTTP_STATUS_NO_CONTENT)
-        ogs_warn("Subscription notification failed [%d]", message.res_status);
-
-    ogs_sbi_message_free(&message);
-    ogs_sbi_response_free(response);
-    return OGS_OK;
-}
+        int status, ogs_sbi_response_t *response, void *data);
 
 int nrf_sbi_open(void)
 {
@@ -121,16 +93,14 @@ bool nrf_nnrf_nfm_send_nf_status_notify_all(
             strcmp(subscription_data->req_nf_instance_id, nf_instance->id) == 0)
             continue;
 
-        if (subscription_data->subscr_cond.nf_type &&
-            subscription_data->subscr_cond.nf_type != nf_instance->nf_type)
-            continue;
+    /* Issue #2630 : The format of subscrCond is invalid. Must be 'oneOf'. */
+        if (subscription_data->subscr_cond.nf_type) {
 
-        if (subscription_data->req_nf_type &&
-            ogs_sbi_nf_instance_is_allowed_nf_type(
-                nf_instance, subscription_data->req_nf_type) == false)
-            continue;
+            if (subscription_data->subscr_cond.nf_type != nf_instance->nf_type)
+                continue;
 
-        if (subscription_data->subscr_cond.service_name) {
+        } else if (subscription_data->subscr_cond.service_name) {
+
             ogs_sbi_nf_service_t *nf_service =
                 ogs_sbi_nf_service_find_by_name(nf_instance,
                     subscription_data->subscr_cond.service_name);
@@ -142,6 +112,11 @@ bool nrf_nnrf_nfm_send_nf_status_notify_all(
                 continue;
         }
 
+        if (subscription_data->req_nf_type &&
+            ogs_sbi_nf_instance_is_allowed_nf_type(
+                nf_instance, subscription_data->req_nf_type) == false)
+            continue;
+
         rc = nrf_nnrf_nfm_send_nf_status_notify(
                 subscription_data, event, nf_instance);
         if (rc == false) {
@@ -151,4 +126,35 @@ bool nrf_nnrf_nfm_send_nf_status_notify_all(
     }
 
     return true;
+}
+
+static int client_notify_cb(
+        int status, ogs_sbi_response_t *response, void *data)
+{
+    int rv;
+    ogs_sbi_message_t message;
+
+    if (status != OGS_OK) {
+        ogs_log_message(
+                status == OGS_DONE ? OGS_LOG_DEBUG : OGS_LOG_WARN, 0,
+                "client_notify_cb() failed [%d]", status);
+        return OGS_ERROR;
+    }
+
+    ogs_assert(response);
+
+    rv = ogs_sbi_parse_response(&message, response);
+    if (rv != OGS_OK) {
+        ogs_error("cannot parse HTTP response");
+        ogs_sbi_message_free(&message);
+        ogs_sbi_response_free(response);
+        return OGS_ERROR;
+    }
+
+    if (message.res_status != OGS_SBI_HTTP_STATUS_NO_CONTENT)
+        ogs_warn("Subscription notification failed [%d]", message.res_status);
+
+    ogs_sbi_message_free(&message);
+    ogs_sbi_response_free(response);
+    return OGS_OK;
 }
