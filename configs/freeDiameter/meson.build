@@ -1,6 +1,6 @@
 # Copyright (C) 2019 by Sukchan Lee <acetcom@gmail.com>
 
-# This file is part of 5G Core Network.
+# This file is part of Open5GS.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,6 @@ freediameter_conf = '''
     hss.conf
     smf.conf
     pcrf.conf
-    pcf.conf
 '''.split()
 
 foreach file : freediameter_conf

@@ -48,7 +48,7 @@ bool eir_neir_handle_imeicheck(
         ogs_error("No SUPPORT PEI Type");
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No SUPPORT PEI Type", NULL));
+                recvmsg, "No SUPPORT PEI Type", NULL, NULL));
         ogs_free(pei_type);
         return false;
     }
@@ -58,7 +58,7 @@ bool eir_neir_handle_imeicheck(
         ogs_error("No PEI");
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No PEI", NULL));
+                recvmsg, "No PEI", NULL, NULL));
         ogs_free(pei_type);
         return false;
     }
@@ -68,7 +68,7 @@ bool eir_neir_handle_imeicheck(
         ogs_error("No SUPPORT supi_type Type");
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No SUPPORT supi_type Type", NULL));
+                recvmsg, "No SUPPORT supi_type Type", NULL, NULL));
         ogs_free(pei_type);
         ogs_free(supi_type);
         ogs_free(pei);
@@ -79,7 +79,7 @@ bool eir_neir_handle_imeicheck(
         ogs_error("No SUPI");
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No SUPI", NULL));
+                recvmsg, "No SUPI", NULL, NULL));
         ogs_free(pei);
         ogs_free(pei_type);
         ogs_free(supi_type);
@@ -91,7 +91,7 @@ bool eir_neir_handle_imeicheck(
         ogs_warn("[%s] Cannot find IMEI in DB", pei);
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_NOT_FOUND,
-                recvmsg, "Cannot find PEI", pei));
+                recvmsg, "Cannot find PEI", pei, NULL));
         ogs_free(supi);
         ogs_free(pei);
         ogs_free(pei_type);
