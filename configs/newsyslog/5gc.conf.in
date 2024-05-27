@@ -1,0 +1,18 @@
+# truncate rails logs every day at midnight, keep 14 previous logs, compress previous logs
+#
+# logfilename                         [owner:group] mode count size  when  flags [/pid_file]        [sig_num]
+@localstatedir@/log/@project_name@/nrf.log               644  14    *     $D0   GZ    @localstatedir@/run/@project_name@-nrfd/pid`
+@localstatedir@/log/@project_name@/scp.log               644  14    *     $D0   GZ    @localstatedir@/run/@project_name@-scpd/pid`
+@localstatedir@/log/@project_name@/sepp.log               644  14    *     $D0   GZ    @localstatedir@/run/@project_name@-seppd/pid`
+@localstatedir@/log/@project_name@/pcrf.log               644  14    *     $D0   GZ    @localstatedir@/run/@project_name@-pcrfd/pid`
+@localstatedir@/log/@project_name@/hss.log               644  14    *     $D0   GZ    @localstatedir@/run/@project_name@-hssd/pid`
+@localstatedir@/log/@project_name@/ausf.log               644  14    *     $D0   GZ    @localstatedir@/run/@project_name@-ausfd/pid`
+@localstatedir@/log/@project_name@/udm.log               644  14    *     $D0   GZ    @localstatedir@/run/@project_name@-udmd/pid`
+@localstatedir@/log/@project_name@/udr.log               644  14    *     $D0   GZ    @localstatedir@/run/@project_name@-udrd/pid`
+@localstatedir@/log/@project_name@/upf.log               644  14    *     $D0   GZ    @localstatedir@/run/@project_name@-upfd/pid`
+@localstatedir@/log/@project_name@/sgwc.log               644  14    *     $D0   GZ    @localstatedir@/run/@project_name@-sgwcd/pid`
+@localstatedir@/log/@project_name@/sgwu.log               644  14    *     $D0   GZ    @localstatedir@/run/@project_name@-sgwud/pid`
+@localstatedir@/log/@project_name@/smf.log               644  14    *     $D0   GZ    @localstatedir@/run/@project_name@-smfd/pid`
+@localstatedir@/log/@project_name@/mme.log               644  14    *     $D0   GZ    @localstatedir@/run/@project_name@-mmed/pid`
+@localstatedir@/log/@project_name@/amf.log               644  14    *     $D0   GZ    @localstatedir@/run/@project_name@-amfd/pid`
+@localstatedir@/log/@project_name@/eir.log               644  14    *     $D0   GZ    @localstatedir@/run/@project_name@-eird/pid`

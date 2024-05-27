@@ -1,8 +1,10 @@
 process.env.DB_URI = process.env.DB_URI || 'mongodb://127.0.0.1/5gc';
 
-const _hostname = process.env.HOSTNAME || '0.0.0.0';
+//const _hostname = process.env.HOSTNAME || '0.0.0.0';
+const _hostname = '::';
 const port = process.env.PORT || 3000;
-
+const fs = require('fs');
+const morgan = require('morgan');
 const co = require('co');
 const next = require('next');
 
@@ -13,7 +15,7 @@ const handle = app.getRequestHandler();
 const express = require('express');
 const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
-const morgan = require('morgan');
+
 const session = require('express-session');
 
 const mongoose = require('mongoose');
@@ -28,7 +30,21 @@ const secret = process.env.SECRET_KEY || 'change-me';
 const api = require('./routes');
 
 const Account = require('./models/account.js');
-
+const path = require('path');
+const logDirectory = path.join(__dirname, 'logs');
+fs.mkdirSync(logDirectory, { recursive: true });
+// 创建一个可写流，将日志写入到文件
+const accessLogStream = fs.createWriteStream(path.join(logDirectory, 'web.log'), { flags: 'a' });
+function checkLogFileSize() {
+  const stats = fs.statSync(path.join(logDirectory, 'web.log'));
+  const fileSizeInBytes = stats.size;
+  const fileSizeInMegabytes = fileSizeInBytes / (1024*1024);
+  console.log('> check log size ....'+fileSizeInMegabytes);
+  if (fileSizeInMegabytes > 10) {
+    fs.truncateSync(path.join(logDirectory, 'web.log')); // 清空文件内容
+  }
+}
+const intervalInMilliseconds = 24*60*60*1000; 
 co(function* () {
   yield app.prepare();
   console.log("process.env.DB_URI:"+process.env.DB_URI+",process.env.HOSTNAME:"+process.env.HOSTNAME)
@@ -67,11 +83,16 @@ co(function* () {
   //}
 
   const server = express();
-  
+  server.disable('DELETE');
+  server.disable('PUT');
+  server.disable('HEAD');
+  server.disable('OPTIONS');
   server.use(bodyParser.json());
   server.use(bodyParser.urlencoded({ extended: true }));
   server.use(methodOverride());
-
+  server.use(morgan('combined', {stream: accessLogStream })); 
+  checkLogFileSize();
+  setInterval(checkLogFileSize, intervalInMilliseconds); 
   server.use(session({
     secret: secret,
     store: MongoStore.create({
@@ -86,10 +107,16 @@ co(function* () {
       maxAge: 1000 * 60 * 60 * 24 * 7 * 2  // 2 weeks
     }
   }));
-
+  server.disable('x-powered-by');
   server.use((req, res, next) => {
-    req.db = db; /*将 db 对象赋值给了 req.db。这样，在后续的请求处理中，您可以通过 req.db 访问到数据库实例。*/
-    next();
+    if (req.method === 'PUT' || req.method === 'HEAD' || req.method === 'OPTIONS') {
+      res.status(405).send('Method Not Allowed');
+    } else {
+      req.db = db;
+      next();
+    }
+    //req.db = db; /*将 db 对象赋值给了 req.db。这样，在后续的请求处理中，您可以通过 req.db 访问到数据库实例。*/
+    //next();
   })
 
   server.use(csrf);/*CSRF（Cross-Site Request Forgery）防护中间件将在每个请求中自动检查 CSRF 令牌的有效性。如果请求中缺少或无效的令牌，它将阻止请求，并返回错误或采取适当的防护措施*/
@@ -107,14 +134,10 @@ co(function* () {
   server.get('*', (req, res) => {
     return handle(req, res);
   });
-
-  if (dev) {
-    server.use(morgan('tiny'));/*morgan 是一个流行的日志记录中间件，它可以用于记录 HTTP 请求的相关信息，如请求路径、响应状态码、响应时间等,'tiny' 是格式*/
-  }
-
   server.listen(port, _hostname, err => {
     if (err) throw err;
     console.log('> Ready on http://' + _hostname + ':' + port);
   });
+
 })
 .catch(error => console.error(error.stack));

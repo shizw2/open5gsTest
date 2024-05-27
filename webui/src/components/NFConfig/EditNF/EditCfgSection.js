@@ -1242,12 +1242,12 @@ export const securitySchema = {
       "messages": {
         "minItems": "At least 1 Item is required",
       },
-      maxItems: 3,
+      maxItems: 4,
       items: {
         type: "string",
-        enum: ["NIA0", "NIA1", "NIA2"],
-        default: "NIA0",
-        //require: true
+        enum: ["NIA0", "NIA1", "NIA2", "NIA3"],
+        //default: "NIA0",
+        required: true
       },
       contains: {
         type: "string",
@@ -1261,11 +1261,12 @@ export const securitySchema = {
       "messages": {
         "minItems": "At least 1 Item is required",
       },
-      maxItems: 3,
+      maxItems: 4,
       items: {
         type: "string",
-        enum: ["NEA0", "NEA1", "NEA2"],
-        default: "NEA2",
+        enum: ["NEA0", "NEA1", "NEA2", "NEA3"],
+        //default: "NEA0",
+        required: true
       },
       contains: {
         type: "string",

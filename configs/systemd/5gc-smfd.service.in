@@ -1,0 +1,18 @@
+[Unit]
+Description=@project_name@ SMF Daemon
+After=network-online.target
+
+[Service]
+Type=simple
+
+User=@5g_user@
+Group=@5g_user@
+
+Restart=always
+ExecStart=@bindir@/@project_name@-smfd -c @sysconfdir@/@project_name@/smf.yaml
+RestartSec=2
+RestartPreventExitStatus=1
+ExecReload=/bin/kill -HUP $MAINPID
+Environment="LD_LIBRARY_PATH=@libdir@:%LD_LIBRARY_PATH%" 
+[Install]
+WantedBy=multi-user.target

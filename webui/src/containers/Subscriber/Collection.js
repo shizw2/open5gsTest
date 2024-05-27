@@ -118,6 +118,7 @@ class Collection extends Component {
     }
 
     if (status.error && !prevProps.status.error) {
+      const response = status.error.response || {};
       let title = 'Unknown Code';
       let message = 'Unknown Error';
 

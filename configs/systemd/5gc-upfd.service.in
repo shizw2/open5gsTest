@@ -1,19 +1,19 @@
 [Unit]
-Description=Open5GS UPF Daemon
+Description=@project_name@ UPF Daemon
 After=network-online.target systemd-networkd.service
 Wants=systemd-networkd.service
 
 [Service]
 Type=simple
 
-User=open5gs
-Group=open5gs
+User=@5g_user@
+Group=@5g_user@
 
 Restart=always
-ExecStart=@bindir@/open5gs-upfd -c @sysconfdir@/open5gs/upf.yaml
+ExecStart=@bindir@/@project_name@-upfd -c @sysconfdir@/@project_name@/upf.yaml
 RestartSec=2
 RestartPreventExitStatus=1
 ExecReload=/bin/kill -HUP $MAINPID
-
+Environment="LD_LIBRARY_PATH=@libdir@:%LD_LIBRARY_PATH%" 
 [Install]
 WantedBy=multi-user.target

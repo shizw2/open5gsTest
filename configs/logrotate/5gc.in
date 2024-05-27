@@ -1,0 +1,16 @@
+@localstatedir@/log/@project_name@/*.log {
+    daily
+    sharedscripts
+    missingok
+    compress
+    rotate 14
+    create 640 @project_name@ @project_name@
+
+    postrotate
+        for i in nrfd scpd seppd pcrfd hssd ausfd udmd udrd upfd sgwcd sgwud smfd mmed amfd eird; do
+            if systemctl --quiet is-active @project_name@-$i; then
+                 systemctl reload @project_name@-$i
+            fi
+        done
+    endscript
+}

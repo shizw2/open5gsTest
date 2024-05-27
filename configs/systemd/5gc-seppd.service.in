@@ -1,15 +1,15 @@
 [Unit]
-Description=Open5GS BSF Daemon
+Description=@project_name@ SEPP Daemon
 Wants=mongodb.service mongod.service
 
 [Service]
 Type=simple
 
-User=open5gs
-Group=open5gs
+User=@5g_user@
+Group=@5g_user@
 
 Restart=always
-ExecStart=@bindir@/open5gs-bsfd -c @sysconfdir@/open5gs/bsf.yaml
+ExecStart=@bindir@/@project_name@-seppd -c @sysconfdir@/@project_name@/sepp1.yaml
 RestartSec=2
 RestartPreventExitStatus=1
 ExecReload=/bin/kill -HUP $MAINPID

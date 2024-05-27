@@ -113,16 +113,15 @@ componentDidUpdate(prevProps) {
 
   if (status.error && prevProps.status.error !== status.error) {
     let title = 'Unknown Code';
-    let message = 'Unknown Error';
-
-    if (status.response && status.response.data && status.response.data.name && status.response.data.message) {
-      title = status.response.data.name;
-      message = status.response.data.message;
-    } else if (status.response && status.response.status && status.response.statusText) {
-      title = status.response.status;
-      message = status.response.statusText;
+    let message = 'Unknown Error';    
+    if (status.error.response && status.error.response.data && status.error.response.data.name && status.error.response.data.message) {
+      title = status.error.response.data.name;
+      message = status.error.response.data.message;
+    } else if (status.error.response && status.error.response.status && status.error.response.statusText) {
+      title = status.error.response.status;
+      message = status.error.response.statusText;
     } else {
-      console.log('Error object:', status.response);
+      console.log('Error object:', status.error.response);
     }
 
     dispatch(Notification.error({

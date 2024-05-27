@@ -34,6 +34,7 @@ tls_security = '''
     smf.key
     udm.key
     udr.key
+    eir.key
     amf.crt
     ausf.crt
     bsf.crt
@@ -47,6 +48,7 @@ tls_security = '''
     smf.crt
     udm.crt
     udr.crt
+    eir.crt
     sepp1.key
     sepp1.crt
     sepp2.key

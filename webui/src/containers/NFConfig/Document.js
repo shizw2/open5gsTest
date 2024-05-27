@@ -302,6 +302,46 @@ componentDidUpdate(prevProps) {
   validate = (formData, errors) => {
     const { nfconfigs, action, status } = this.props;
 
+    if (formData.amf && formData.amf.security && formData.amf.security.integrity_order)
+    {
+      let NIAs = formData.amf.security.integrity_order.map(integrity_order => {
+        return integrity_order;
+      });
+
+      let duplicates = {};
+      for (let i = 0; i < NIAs.length; i++) {
+        if (duplicates.hasOwnProperty(NIAs[i])) {
+          duplicates[NIAs[i]].push(i);
+        } else if (NIAs.lastIndexOf(NIAs[i]) !== i) {
+          duplicates[NIAs[i]] = [i];
+        }
+      }
+      for (let key in duplicates) {
+        duplicates[key].forEach(index => 
+          errors.amf.security.integrity_order[index].addError(`${key} is duplicated`));
+      }
+    }
+
+    if (formData.amf && formData.amf.security && formData.amf.security.ciphering_order)
+    {
+      let NEAs = formData.amf.security.ciphering_order.map(ciphering_order => {
+        return ciphering_order;
+      });
+
+      let duplicates = {};
+      for (let i = 0; i < NEAs.length; i++) {
+        if (duplicates.hasOwnProperty(NEAs[i])) {
+          duplicates[NEAs[i]].push(i);
+        } else if (NEAs.lastIndexOf(NEAs[i]) !== i) {
+          duplicates[NEAs[i]] = [i];
+        }
+      }
+      for (let key in duplicates) {
+        duplicates[key].forEach(index => 
+          errors.amf.security.ciphering_order[index].addError(`${key} is duplicated`));
+      }
+    }
+
     if (formData.udm && formData.udm.hnet)
     {
       let ids = formData.udm.hnet.map(hnet => {

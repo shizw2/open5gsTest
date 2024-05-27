@@ -21,6 +21,9 @@ amf:
   ngap:
     server:
       - address: 127.0.0.5
+  icps:
+    spsnum: 3
+    port: 9777
   metrics:
     server:
       - address: 127.0.0.5
@@ -49,7 +52,8 @@ amf:
   network_name:
     full: Open5GS
     short: Next
-  amf_name: open5gs-amf0
+  amf_name: 5gc-amf0
+  imeicheck：false
   time:
 #    t3502:
 #      value: 720   # 12 minutes * 60 = 720 seconds
