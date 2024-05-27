@@ -1,4 +1,4 @@
-# Copyright (C) 2019 by Sukchan Lee <acetcom@gmail.com>
+# Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
 
 # This file is part of Open5GS.
 
@@ -20,11 +20,14 @@ libhss_sources = files('''
     hss-fd-path.h
     hss-s6a-path.h
     hss-event.h
+    hss-timer.h
     hss-sm.h
+    metrics.h
 
     hss-init.c
     hss-context.c
     hss-event.c
+    hss-timer.c
     hss-sm.c
 
     hss-s6a-path.c
@@ -32,11 +35,15 @@ libhss_sources = files('''
     hss-swx-path.c
 
     hss-fd-path.c
+
+    metrics.c
 '''.split())
 
 libhss = static_library('hss',
     sources : libhss_sources,
-    dependencies : [libapp_dep,
+    dependencies : [libmetrics_dep,
+                    libapp_dep,
+                    libcrypt_dep,
                     libdbi_dep,
                     libdiameter_s6a_dep,
                     libdiameter_cx_dep,
@@ -45,7 +52,9 @@ libhss = static_library('hss',
 
 libhss_dep = declare_dependency(
     link_with : libhss,
-    dependencies : [libapp_dep,
+    dependencies : [libmetrics_dep,
+                    libapp_dep,
+                    libcrypt_dep,
                     libdbi_dep,
                     libdiameter_s6a_dep,
                     libdiameter_cx_dep,

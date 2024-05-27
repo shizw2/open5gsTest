@@ -83,7 +83,7 @@ ogs_pkbuf_t *s1ap_build_setup_rsp(void)
                 strlen(mme_self()->mme_name), MMEname);
     }
 
-    for (i = 0; i < mme_self()->max_num_of_served_gummei; i++) {
+    for (i = 0; i < mme_self()->num_of_served_gummei; i++) {
         S1AP_ServedGUMMEIsItem_t *ServedGUMMEIsItem = NULL;
         ServedGUMMEIsItem = (S1AP_ServedGUMMEIsItem_t *)
             CALLOC(1, sizeof(S1AP_ServedGUMMEIsItem_t));
@@ -188,6 +188,88 @@ ogs_pkbuf_t *s1ap_build_setup_failure(
     return ogs_s1ap_encode(&pdu);
 }
 
+ogs_pkbuf_t *s1ap_build_enb_configuration_update_ack(void)
+{
+    S1AP_S1AP_PDU_t pdu;
+    S1AP_SuccessfulOutcome_t *successfulOutcome = NULL;
+
+    ogs_debug("ENBConfigurationUpdateAcknowledge");
+
+    memset(&pdu, 0, sizeof (S1AP_S1AP_PDU_t));
+    pdu.present = S1AP_S1AP_PDU_PR_successfulOutcome;
+    pdu.choice.successfulOutcome = CALLOC(1, sizeof(S1AP_SuccessfulOutcome_t));
+
+    successfulOutcome = pdu.choice.successfulOutcome;
+    successfulOutcome->procedureCode =
+        S1AP_ProcedureCode_id_ENBConfigurationUpdate;
+    successfulOutcome->criticality = S1AP_Criticality_reject;
+    successfulOutcome->value.present =
+        S1AP_SuccessfulOutcome__value_PR_ENBConfigurationUpdateAcknowledge;
+
+    return ogs_s1ap_encode(&pdu);
+}
+
+ogs_pkbuf_t *s1ap_build_enb_configuration_update_failure(
+    S1AP_Cause_PR group, long cause, long time_to_wait)
+{
+    S1AP_S1AP_PDU_t pdu;
+    S1AP_UnsuccessfulOutcome_t *unsuccessfulOutcome = NULL;
+    S1AP_ENBConfigurationUpdateFailure_t *ENBConfigurationUpdateFailure = NULL;
+
+    S1AP_ENBConfigurationUpdateFailureIEs_t *ie = NULL;
+    S1AP_Cause_t *Cause = NULL;
+    S1AP_TimeToWait_t *TimeToWait = NULL;
+
+    ogs_debug("ENBConfigurationUpdateFailure");
+
+    ogs_debug("    Group[%d] Cause[%d] TimeToWait[%ld]",
+            group, (int)cause, time_to_wait);
+
+    memset(&pdu, 0, sizeof (S1AP_S1AP_PDU_t));
+    pdu.present = S1AP_S1AP_PDU_PR_unsuccessfulOutcome;
+    pdu.choice.unsuccessfulOutcome =
+        CALLOC(1, sizeof(S1AP_UnsuccessfulOutcome_t));
+
+    unsuccessfulOutcome = pdu.choice.unsuccessfulOutcome;
+    unsuccessfulOutcome->procedureCode =
+        S1AP_ProcedureCode_id_ENBConfigurationUpdate;
+    unsuccessfulOutcome->criticality = S1AP_Criticality_reject;
+    unsuccessfulOutcome->value.present =
+        S1AP_UnsuccessfulOutcome__value_PR_ENBConfigurationUpdateFailure;
+
+    ENBConfigurationUpdateFailure =
+        &unsuccessfulOutcome->value.choice.ENBConfigurationUpdateFailure;
+
+    ie = CALLOC(1, sizeof(S1AP_ENBConfigurationUpdateFailureIEs_t));
+    ASN_SEQUENCE_ADD(&ENBConfigurationUpdateFailure->protocolIEs, ie);
+
+    ie->id = S1AP_ProtocolIE_ID_id_Cause;
+    ie->criticality = S1AP_Criticality_ignore;
+    ie->value.present = S1AP_ENBConfigurationUpdateFailureIEs__value_PR_Cause;
+
+    Cause = &ie->value.choice.Cause;
+
+    if (time_to_wait > -1) {
+        ie = CALLOC(1, sizeof(S1AP_ENBConfigurationUpdateFailureIEs_t));
+        ASN_SEQUENCE_ADD(&ENBConfigurationUpdateFailure->protocolIEs, ie);
+
+        ie->id = S1AP_ProtocolIE_ID_id_TimeToWait;
+        ie->criticality = S1AP_Criticality_ignore;
+        ie->value.present =
+            S1AP_ENBConfigurationUpdateFailureIEs__value_PR_TimeToWait;
+
+        TimeToWait = &ie->value.choice.TimeToWait;
+    }
+
+    Cause->present = group;
+    Cause->choice.radioNetwork = cause;
+
+    if (TimeToWait)
+        *TimeToWait = time_to_wait;
+
+    return ogs_s1ap_encode(&pdu);
+}
+
 ogs_pkbuf_t *s1ap_build_downlink_nas_transport(
     enb_ue_t *enb_ue, ogs_pkbuf_t *emmbuf)
 {
@@ -261,11 +343,72 @@ ogs_pkbuf_t *s1ap_build_downlink_nas_transport(
     return ogs_s1ap_encode(&pdu);
 }
 
+static void fill_e_rab_to_be_setup(
+        S1AP_E_RABToBeSetupItemCtxtSUReq_t *e_rab, mme_bearer_t *bearer)
+{
+    int rv;
+    S1AP_GBR_QosInformation_t *gbrQosInformation = NULL;
+
+    ogs_assert(e_rab);
+    ogs_assert(bearer);
+
+    e_rab->e_RAB_ID = bearer->ebi;
+    e_rab->e_RABlevelQoSParameters.qCI = bearer->qos.index;
+
+    ogs_debug("    EBI[%d] QCI[%d] SGW-S1U-TEID[%d]",
+            bearer->ebi, bearer->qos.index, bearer->sgw_s1u_teid);
+    ogs_debug("    ARP[%d:%d:%d]",
+            bearer->qos.arp.priority_level,
+            bearer->qos.arp.pre_emption_capability,
+            bearer->qos.arp.pre_emption_vulnerability);
+
+    e_rab->e_RABlevelQoSParameters.allocationRetentionPriority.
+        priorityLevel = bearer->qos.arp.priority_level;
+    e_rab->e_RABlevelQoSParameters.allocationRetentionPriority.
+        pre_emptionCapability =
+            !(bearer->qos.arp.pre_emption_capability);
+    e_rab->e_RABlevelQoSParameters.allocationRetentionPriority.
+        pre_emptionVulnerability =
+            !(bearer->qos.arp.pre_emption_vulnerability);
+
+    if (bearer->qos.mbr.downlink || bearer->qos.mbr.uplink ||
+        bearer->qos.gbr.downlink || bearer->qos.gbr.uplink) {
+        ogs_assert(bearer->qos.mbr.downlink);
+        ogs_assert(bearer->qos.mbr.uplink);
+        ogs_assert(bearer->qos.gbr.downlink);
+        ogs_assert(bearer->qos.gbr.uplink);
+
+        ogs_debug("    MBR[DL:%lld,UL:%lld]",
+            (long long)bearer->qos.mbr.downlink,
+            (long long)bearer->qos.mbr.uplink);
+        ogs_debug("    GBR[DL:%lld,UL:%lld]",
+            (long long)bearer->qos.gbr.downlink,
+            (long long)bearer->qos.gbr.uplink);
+
+        gbrQosInformation =
+                CALLOC(1, sizeof(struct S1AP_GBR_QosInformation));
+        asn_uint642INTEGER(&gbrQosInformation->e_RAB_MaximumBitrateDL,
+                bearer->qos.mbr.downlink);
+        asn_uint642INTEGER(&gbrQosInformation->e_RAB_MaximumBitrateUL,
+                bearer->qos.mbr.uplink);
+        asn_uint642INTEGER(&gbrQosInformation->
+                e_RAB_GuaranteedBitrateDL, bearer->qos.gbr.downlink);
+        asn_uint642INTEGER(&gbrQosInformation->
+                e_RAB_GuaranteedBitrateUL, bearer->qos.gbr.uplink);
+        e_rab->e_RABlevelQoSParameters.gbrQosInformation =
+                gbrQosInformation;
+    }
+
+    rv = ogs_asn_ip_to_BIT_STRING(
+            &bearer->sgw_s1u_ip, &e_rab->transportLayerAddress);
+    ogs_assert(rv == OGS_OK);
+    ogs_asn_uint32_to_OCTET_STRING(
+            bearer->sgw_s1u_teid, &e_rab->gTP_TEID);
+}
+
 ogs_pkbuf_t *s1ap_build_initial_context_setup_request(
             mme_ue_t *mme_ue, ogs_pkbuf_t *emmbuf)
 {
-    int rv;
-
     S1AP_S1AP_PDU_t pdu;
     S1AP_InitiatingMessage_t *initiatingMessage = NULL;
     S1AP_InitialContextSetupRequest_t *InitialContextSetupRequest = NULL;
@@ -361,50 +504,26 @@ ogs_pkbuf_t *s1ap_build_initial_context_setup_request(
             &UEAggregateMaximumBitrate->uEaggregateMaximumBitRateDL,
             mme_ue->ambr.downlink);
 
-    ogs_list_for_each(&mme_ue->sess_list, sess) {
-        ogs_list_for_each(&sess->bearer_list, bearer) {
+    S1AP_E_RABToBeSetupItemCtxtSUReqIEs_t *item = NULL;
+    S1AP_E_RABToBeSetupItemCtxtSUReq_t *e_rab = NULL;
+    S1AP_NAS_PDU_t *nasPdu = NULL;
 
-            S1AP_E_RABToBeSetupItemCtxtSUReqIEs_t *item = NULL;
-            S1AP_E_RABToBeSetupItemCtxtSUReq_t *e_rab = NULL;
-            S1AP_GBR_QosInformation_t *gbrQosInformation = NULL;
-            S1AP_NAS_PDU_t *nasPdu = NULL;
+    if (mme_ue->nas_eps.type == MME_EPS_TYPE_ATTACH_REQUEST) {
+        /*
+         * For Attach Request,
+         * Delete Session Request/Response removes ALL session/bearers.
+         *
+         * Since all bearers are INACTIVE,
+         * we should not check the bearer activation.
+         */
+        sess = ogs_list_first(&mme_ue->sess_list);
+        /*
+         * Issue #3072 : Only first Bearer should be included.
+         */
+        if (sess)
+            bearer = ogs_list_first(&sess->bearer_list);
 
-            if (mme_ue->nas_eps.type == MME_EPS_TYPE_ATTACH_REQUEST) {
-                /*
-                 * For Attach Request,
-                 * Delete Session Request/Response removes ALL session/bearers.
-                 *
-                 * Since all bearers are INACTIVE,
-                 * we should not check the bearer activation.
-                 */
-            } else if (OGS_FSM_CHECK(&bearer->sm, esm_state_inactive)) {
-                /*
-                 * For Service Request/TAU Request/Extended Service Request,
-                 * Only the active EPS bearer can be included.
-                 *
-                 * If MME received Create Bearer Request and
-                 * if MME does not receive Activate EPS Bearer Context Accept,
-                 * We should not include the INACTIVE bearer.
-                 *
-                 * For example,
-                 * 1. SGW->MME : Create Bearer Request
-                 * 2. MME->UE : S1 Paging
-                 * 3. UE->MME : Service Request
-                 * 4. MME->UE : Initial Context Setup Request
-                 *              (We should not include INACTIVE BEARER)
-                 * 5. UE->MME : Initial Context Setup Response
-                 * 6. MME->UE : Activate dedicated EPS Bearer Context Request
-                 * 7. UE->MME : Activate dedicated EPS Bearer Context Accept
-                 * 8. MME->SGW : Create Bearer Response
-                 */
-                ogs_warn("No active EPS bearer [%d]", bearer->ebi);
-                ogs_warn("    IMSI[%s] NAS-EPS Type[%d] "
-                        "ENB_UE_S1AP_ID[%d] MME_UE_S1AP_ID[%d]",
-                        mme_ue->imsi_bcd, mme_ue->nas_eps.type,
-                        enb_ue->enb_ue_s1ap_id, enb_ue->mme_ue_s1ap_id);
-                continue;
-            }
-
+        if (sess && bearer) {
             item = CALLOC(1, sizeof(S1AP_E_RABToBeSetupItemCtxtSUReqIEs_t));
             ASN_SEQUENCE_ADD(&E_RABToBeSetupListCtxtSUReq->list, item);
 
@@ -414,58 +533,7 @@ ogs_pkbuf_t *s1ap_build_initial_context_setup_request(
 
             e_rab = &item->value.choice.E_RABToBeSetupItemCtxtSUReq;
 
-            e_rab->e_RAB_ID = bearer->ebi;
-            e_rab->e_RABlevelQoSParameters.qCI = bearer->qos.index;
-
-            ogs_debug("    EBI[%d] QCI[%d] SGW-S1U-TEID[%d]",
-                    bearer->ebi, bearer->qos.index, bearer->sgw_s1u_teid);
-            ogs_debug("    ARP[%d:%d:%d]",
-                    bearer->qos.arp.priority_level,
-                    bearer->qos.arp.pre_emption_capability,
-                    bearer->qos.arp.pre_emption_vulnerability);
-
-            e_rab->e_RABlevelQoSParameters.allocationRetentionPriority.
-                priorityLevel = bearer->qos.arp.priority_level;
-            e_rab->e_RABlevelQoSParameters.allocationRetentionPriority.
-                pre_emptionCapability =
-                    !(bearer->qos.arp.pre_emption_capability);
-            e_rab->e_RABlevelQoSParameters.allocationRetentionPriority.
-                pre_emptionVulnerability =
-                    !(bearer->qos.arp.pre_emption_vulnerability);
-
-            if (bearer->qos.mbr.downlink || bearer->qos.mbr.uplink ||
-                bearer->qos.gbr.downlink || bearer->qos.gbr.uplink) {
-                ogs_assert(bearer->qos.mbr.downlink);
-                ogs_assert(bearer->qos.mbr.uplink);
-                ogs_assert(bearer->qos.gbr.downlink);
-                ogs_assert(bearer->qos.gbr.uplink);
-
-                ogs_debug("    MBR[DL:%lld,UL:%lld]",
-                    (long long)bearer->qos.mbr.downlink,
-                    (long long)bearer->qos.mbr.uplink);
-                ogs_debug("    GBR[DL:%lld,UL:%lld]",
-                    (long long)bearer->qos.gbr.downlink,
-                    (long long)bearer->qos.gbr.uplink);
-
-                gbrQosInformation =
-                        CALLOC(1, sizeof(struct S1AP_GBR_QosInformation));
-                asn_uint642INTEGER(&gbrQosInformation->e_RAB_MaximumBitrateDL,
-                        bearer->qos.mbr.downlink);
-                asn_uint642INTEGER(&gbrQosInformation->e_RAB_MaximumBitrateUL,
-                        bearer->qos.mbr.uplink);
-                asn_uint642INTEGER(&gbrQosInformation->
-                        e_RAB_GuaranteedBitrateDL, bearer->qos.gbr.downlink);
-                asn_uint642INTEGER(&gbrQosInformation->
-                        e_RAB_GuaranteedBitrateUL, bearer->qos.gbr.uplink);
-                e_rab->e_RABlevelQoSParameters.gbrQosInformation =
-                        gbrQosInformation;
-            }
-
-            rv = ogs_asn_ip_to_BIT_STRING(
-                    &bearer->sgw_s1u_ip, &e_rab->transportLayerAddress);
-            ogs_assert(rv == OGS_OK);
-            ogs_asn_uint32_to_OCTET_STRING(
-                    bearer->sgw_s1u_teid, &e_rab->gTP_TEID);
+            fill_e_rab_to_be_setup(e_rab, bearer);
 
             if (emmbuf && emmbuf->len) {
                 ogs_debug("    NASPdu[%p:%d]", emmbuf, emmbuf->len);
@@ -484,6 +552,66 @@ ogs_pkbuf_t *s1ap_build_initial_context_setup_request(
                 emmbuf = NULL;
             }
         }
+    } else {
+        /*
+         * For Service Request/TAU Request/Extended Service Request,
+         * Only the active EPS bearer can be included.
+         *
+         * If MME received Create Bearer Request and
+         * if MME does not receive Activate EPS Bearer Context Accept,
+         * We should not include the INACTIVE bearer.
+         *
+         * For example,
+         * 1. SGW->MME : Create Bearer Request
+         * 2. MME->UE : S1 Paging
+         * 3. UE->MME : Service Request
+         * 4. MME->UE : Initial Context Setup Request
+         *              (We should not include INACTIVE BEARER)
+         * 5. UE->MME : Initial Context Setup Response
+         * 6. MME->UE : Activate dedicated EPS Bearer Context Request
+         * 7. UE->MME : Activate dedicated EPS Bearer Context Accept
+         * 8. MME->SGW : Create Bearer Response
+         */
+        ogs_list_for_each(&mme_ue->sess_list, sess) {
+            ogs_list_for_each(&sess->bearer_list, bearer) {
+                if (OGS_FSM_CHECK(&bearer->sm, esm_state_inactive)) {
+                    ogs_warn("No active EPS bearer [%d]", bearer->ebi);
+                    ogs_warn("    IMSI[%s] NAS-EPS Type[%d] "
+                            "ENB_UE_S1AP_ID[%d] MME_UE_S1AP_ID[%d]",
+                            mme_ue->imsi_bcd, mme_ue->nas_eps.type,
+                            enb_ue->enb_ue_s1ap_id, enb_ue->mme_ue_s1ap_id);
+                    continue;
+                }
+
+                item = CALLOC(1, sizeof(S1AP_E_RABToBeSetupItemCtxtSUReqIEs_t));
+                ASN_SEQUENCE_ADD(&E_RABToBeSetupListCtxtSUReq->list, item);
+
+                item->id = S1AP_ProtocolIE_ID_id_E_RABToBeSetupItemCtxtSUReq;
+                item->criticality = S1AP_Criticality_reject;
+                item->value.present = S1AP_E_RABToBeSetupItemCtxtSUReqIEs__value_PR_E_RABToBeSetupItemCtxtSUReq;
+
+                e_rab = &item->value.choice.E_RABToBeSetupItemCtxtSUReq;
+
+                fill_e_rab_to_be_setup(e_rab, bearer);
+
+                if (emmbuf && emmbuf->len) {
+                    ogs_debug("    NASPdu[%p:%d]", emmbuf, emmbuf->len);
+
+                    nasPdu = (S1AP_NAS_PDU_t *)CALLOC(1, sizeof(S1AP_NAS_PDU_t));
+                    nasPdu->size = emmbuf->len;
+                    nasPdu->buf = CALLOC(nasPdu->size, sizeof(uint8_t));
+                    memcpy(nasPdu->buf, emmbuf->data, nasPdu->size);
+                    e_rab->nAS_PDU = nasPdu;
+                    ogs_pkbuf_free(emmbuf);
+
+                    ogs_log_hexdump(OGS_LOG_DEBUG, nasPdu->buf, nasPdu->size);
+
+                    /* Since Tracking area update accept is used only once,
+                     * set emmbuf to NULL as shown below */
+                    emmbuf = NULL;
+                }
+            }
+        }
     }
 
     if (emmbuf && emmbuf->len) {
@@ -492,7 +620,25 @@ ogs_pkbuf_t *s1ap_build_initial_context_setup_request(
         emmbuf = NULL;
     }
 
-    ogs_assert(E_RABToBeSetupListCtxtSUReq->list.count);
+    if (!E_RABToBeSetupListCtxtSUReq->list.count) {
+        MME_UE_CHECK(OGS_LOG_ERROR, mme_ue);
+        ogs_list_for_each(&mme_ue->sess_list, sess) {
+            ogs_error("    APN[%s]",
+                    sess->session ? sess->session->name : "Unknown");
+            ogs_list_for_each(&sess->bearer_list, bearer) {
+                if (OGS_FSM_CHECK(&bearer->sm, esm_state_inactive))
+                    ogs_error("    IN-ACTIVE");
+                else if (OGS_FSM_CHECK(&bearer->sm, esm_state_active))
+                    ogs_error("    ACTIVE");
+                else
+                    ogs_error("    OTHER STATE");
+
+                ogs_error("    EBI[%d] QCI[%d] SGW-S1U-TEID[%d]",
+                        bearer->ebi, bearer->qos.index, bearer->sgw_s1u_teid);
+            }
+        }
+        return NULL;
+    }
 
     ie = CALLOC(1, sizeof(S1AP_InitialContextSetupRequestIEs_t));
     ASN_SEQUENCE_ADD(&InitialContextSetupRequest->protocolIEs, ie);

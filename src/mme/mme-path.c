@@ -83,11 +83,8 @@ void mme_send_delete_session_or_detach(mme_ue_t *mme_ue)
                         S1AP_Cause_PR_nas, S1AP_CauseNas_normal_release,
                         S1AP_UE_CTX_REL_UE_CONTEXT_REMOVE, 0));
             } else {
-                if (mme_ue->location_updated_but_not_canceled_yet == true) {
-                    mme_s6a_send_pur(mme_ue);
-                } else {
-                    mme_ue_remove(mme_ue);
-                }
+                MME_UE_CHECK(OGS_LOG_WARN, mme_ue);
+                mme_ue_remove(mme_ue);
             }
         }
         break;
@@ -296,4 +293,7 @@ void mme_send_after_paging(mme_ue_t *mme_ue, bool failed)
 cleanup:
     CLEAR_SERVICE_INDICATOR(mme_ue);
     MME_CLEAR_PAGING_INFO(mme_ue);
+    /* the above will clear the failure flag, restore it if we failed */
+    if (failed)
+        mme_ue->paging.failed = true;
 }

@@ -20,6 +20,7 @@
 #include "mme-event.h"
 #include "mme-timer.h"
 #include "s1ap-handler.h"
+#include "mme-gn-handler.h"
 #include "mme-fd-path.h"
 #include "emm-handler.h"
 #include "emm-build.h"
@@ -144,6 +145,7 @@ void emm_state_registered(ogs_fsm_t *s, mme_event_t *e)
                 ogs_warn("Paging to IMSI[%s] failed. Stop paging",
                         mme_ue->imsi_bcd);
                 CLEAR_MME_UE_TIMER(mme_ue->t3413);
+                mme_ue->paging.failed = true;
 
                 if (MME_PAGING_ONGOING(mme_ue))
                     mme_send_after_paging(mme_ue, true);
@@ -242,7 +244,7 @@ void emm_state_registered(ogs_fsm_t *s, mme_event_t *e)
          * T3412, the MME sets the mobile reachable timer and the implicit
          * detach timer such that the sum of the timer values is greater than
          * timer T3346.
-             */
+         */
             ogs_debug("[%s] Starting Implicit Detach timer",
                 mme_ue->imsi_bcd);
             ogs_timer_start(mme_ue->t_implicit_detach.timer,
@@ -285,7 +287,9 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
 
     mme_ue_t *mme_ue = NULL;
     enb_ue_t *enb_ue = NULL;
+    mme_sgsn_t *sgsn = NULL;
     ogs_nas_eps_message_t *message = NULL;
+    ogs_nas_rai_t rai;
     ogs_nas_security_header_type_t h;
 
     ogs_assert(e);
@@ -314,7 +318,7 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
             if (state != EMM_COMMON_STATE_REGISTERED) {
                 ogs_info("Service request : Not registered[%s]",
                         mme_ue->imsi_bcd);
-                r = nas_eps_send_service_reject(mme_ue,
+                r = nas_eps_send_service_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK);
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
@@ -332,7 +336,7 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
 
             if (!MME_UE_HAVE_IMSI(mme_ue)) {
                 ogs_info("Service request : Unknown UE");
-                r = nas_eps_send_service_reject(mme_ue,
+                r = nas_eps_send_service_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK);
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
@@ -342,7 +346,7 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
 
             if (!SECURITY_CONTEXT_IS_VALID(mme_ue)) {
                 ogs_error("No Security Context : IMSI[%s]", mme_ue->imsi_bcd);
-                r = nas_eps_send_service_reject(mme_ue,
+                r = nas_eps_send_service_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK);
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
@@ -352,7 +356,7 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
 
             if (!SESSION_CONTEXT_IS_AVAILABLE(mme_ue)) {
                 ogs_error("No Session Context : IMSI[%s]", mme_ue->imsi_bcd);
-                r = nas_eps_send_service_reject(mme_ue,
+                r = nas_eps_send_service_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK);
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
@@ -362,13 +366,20 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
 
             if (!ACTIVE_EPS_BEARERS_IS_AVAIABLE(mme_ue)) {
                 ogs_error("No active EPS bearers : IMSI[%s]", mme_ue->imsi_bcd);
-                r = nas_eps_send_service_reject(mme_ue,
+                r = nas_eps_send_service_reject(enb_ue, mme_ue,
                         OGS_NAS_EMM_CAUSE_NO_EPS_BEARER_CONTEXT_ACTIVATED);
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
                 OGS_FSM_TRAN(s, &emm_state_exception);
                 break;
             }
+
+            /*
+             * If the OLD ENB_UE is being maintained in MME-UE Context,
+             * it deletes the S1 Context after exchanging
+             * the UEContextReleaseCommand/Complete with the eNB
+             */
+            CLEAR_S1_CONTEXT(mme_ue);
 
             r = s1ap_send_initial_context_setup_request(mme_ue);
             ogs_expect(r == OGS_OK);
@@ -379,6 +390,16 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
 
         switch (message->emm.h.message_type) {
         case OGS_NAS_EPS_IDENTITY_RESPONSE:
+            if (mme_ue->nas_eps.type == 0) {
+                ogs_warn("No Received NAS message");
+                r = s1ap_send_error_indication2(mme_ue,
+                    S1AP_Cause_PR_protocol, S1AP_CauseProtocol_semantic_error);
+                ogs_expect(r == OGS_OK);
+                ogs_assert(r != OGS_ERROR);
+                OGS_FSM_TRAN(s, emm_state_exception);
+                break;
+            }
+
             ogs_info("Identity response");
             CLEAR_MME_UE_TIMER(mme_ue->t3470);
 
@@ -402,7 +423,7 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
             if (!MME_SESSION_RELEASE_PENDING(mme_ue) &&
                 mme_ue_xact_count(mme_ue, OGS_GTP_LOCAL_ORIGINATOR) ==
                     xact_count) {
-                mme_s6a_send_air(mme_ue, NULL);
+                mme_s6a_send_air(enb_ue, mme_ue, NULL);
             }
 
             OGS_FSM_TRAN(s, &emm_state_authentication);
@@ -427,6 +448,13 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
             }
 
             if (h.integrity_protected && SECURITY_CONTEXT_IS_VALID(mme_ue)) {
+                /*
+                 * If the OLD ENB_UE is being maintained in MME-UE Context,
+                 * it deletes the S1 Context after exchanging
+                 * the UEContextReleaseCommand/Complete with the eNB
+                 */
+                CLEAR_S1_CONTEXT(mme_ue);
+
                 mme_gtp_send_delete_all_sessions(mme_ue,
                     OGS_GTP_DELETE_HANDLE_PDN_CONNECTIVITY_REQUEST);
 
@@ -437,7 +465,7 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
                             &mme_ue->pdn_connectivity_request);
                     if (rv != OGS_OK) {
                         ogs_error("nas_eps_send_emm_to_esm() failed");
-                        r = nas_eps_send_attach_reject(mme_ue,
+                        r = nas_eps_send_attach_reject(enb_ue, mme_ue,
                                 OGS_NAS_EMM_CAUSE_PROTOCOL_ERROR_UNSPECIFIED,
                                 OGS_NAS_ESM_CAUSE_PROTOCOL_ERROR_UNSPECIFIED);
                         ogs_expect(r == OGS_OK);
@@ -456,7 +484,7 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
                 if (!MME_SESSION_RELEASE_PENDING(mme_ue) &&
                     mme_ue_xact_count(mme_ue, OGS_GTP_LOCAL_ORIGINATOR) ==
                         xact_count) {
-                    mme_s6a_send_air(mme_ue, NULL);
+                    mme_s6a_send_air(enb_ue, mme_ue, NULL);
                 }
 
                 OGS_FSM_TRAN(s, &emm_state_authentication);
@@ -474,9 +502,29 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
                 break;
             }
 
+            if (emm_tau_request_ue_comes_from_gb_or_iu(&message->emm.tracking_area_update_request)) {
+                ogs_info("TAU request : UE comes from SGSN, attempt retrieving context");
+                guti_to_rai_ptmsi(&mme_ue->next.guti, &rai, NULL, NULL);
+                sgsn = mme_sgsn_find_by_routing_address(&rai, 0xffff);
+                if (!sgsn) {
+                    ogs_plmn_id_t plmn_id;
+                    ogs_nas_to_plmn_id(&plmn_id, &rai.lai.nas_plmn_id);
+                    ogs_warn("No SGSN route matching RAI[MCC:%u MNC:%u LAC:%u RAC:%u]",
+                             ogs_plmn_id_mcc(&plmn_id), ogs_plmn_id_mnc(&plmn_id),
+                             rai.lai.lac, rai.rac);
+                    r = nas_eps_send_tau_reject(enb_ue, mme_ue,
+                    OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK);
+                    OGS_FSM_TRAN(s, &emm_state_exception);
+                    break;
+                }
+                mme_gtp1_send_sgsn_context_request(sgsn, mme_ue);
+                /* FIXME: use a specific FSM state here to state we are waiting for resolution from Gn? */
+                break;
+            }
+
             if (!MME_UE_HAVE_IMSI(mme_ue)) {
                 ogs_info("TAU request : Unknown UE");
-                r = nas_eps_send_tau_reject(mme_ue,
+                r = nas_eps_send_tau_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK);
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
@@ -486,7 +534,7 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
 
             if (!SESSION_CONTEXT_IS_AVAILABLE(mme_ue)) {
                 ogs_warn("No PDN Connection : UE[%s]", mme_ue->imsi_bcd);
-                r = nas_eps_send_tau_reject(mme_ue,
+                r = nas_eps_send_tau_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK);
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
@@ -496,7 +544,7 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
 
             if (!ACTIVE_EPS_BEARERS_IS_AVAIABLE(mme_ue)) {
                 ogs_warn("No active EPS bearers : IMSI[%s]", mme_ue->imsi_bcd);
-                r = nas_eps_send_tau_reject(mme_ue,
+                r = nas_eps_send_tau_reject(enb_ue, mme_ue,
                         OGS_NAS_EMM_CAUSE_NO_EPS_BEARER_CONTEXT_ACTIVATED);
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
@@ -505,10 +553,17 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
             }
 
             if (!h.integrity_protected || !SECURITY_CONTEXT_IS_VALID(mme_ue)) {
-                mme_s6a_send_air(mme_ue, NULL);
+                mme_s6a_send_air(enb_ue, mme_ue, NULL);
                 OGS_FSM_TRAN(&mme_ue->sm, &emm_state_authentication);
                 break;
             }
+
+            /*
+             * If the OLD ENB_UE is being maintained in MME-UE Context,
+             * it deletes the S1 Context after exchanging
+             * the UEContextReleaseCommand/Complete with the eNB
+             */
+            CLEAR_S1_CONTEXT(mme_ue);
 
             /*
              * <EMM-IDLE State>
@@ -641,7 +696,7 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
 
             if (!MME_UE_HAVE_IMSI(mme_ue)) {
                 ogs_warn("Extended Service request : Unknown UE");
-                r = nas_eps_send_service_reject(mme_ue,
+                r = nas_eps_send_service_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK);
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
@@ -651,7 +706,7 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
 
             if (!SESSION_CONTEXT_IS_AVAILABLE(mme_ue)) {
                 ogs_warn("No PDN Connection : UE[%s]", mme_ue->imsi_bcd);
-                r = nas_eps_send_service_reject(mme_ue,
+                r = nas_eps_send_service_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK);
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
@@ -660,8 +715,8 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
             }
 
             if (!SECURITY_CONTEXT_IS_VALID(mme_ue)) {
-                ogs_warn("No Security Context : IMSI[%s]", mme_ue->imsi_bcd);
-                r = nas_eps_send_service_reject(mme_ue,
+                ogs_error("No Security Context : IMSI[%s]", mme_ue->imsi_bcd);
+                r = nas_eps_send_service_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK);
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
@@ -669,12 +724,19 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
                 break;
             }
 
+            /*
+             * If the OLD ENB_UE is being maintained in MME-UE Context,
+             * it deletes the S1 Context after exchanging
+             * the UEContextReleaseCommand/Complete with the eNB
+             */
+            CLEAR_S1_CONTEXT(mme_ue);
+
             if (e->s1ap_code == S1AP_ProcedureCode_id_initialUEMessage) {
                 ogs_debug("    Initial UE Message");
 
                 if (!MME_P_TMSI_IS_AVAILABLE(mme_ue)) {
                     ogs_warn("No P-TMSI : UE[%s]", mme_ue->imsi_bcd);
-                    r = nas_eps_send_service_reject(mme_ue,
+                    r = nas_eps_send_service_reject(enb_ue, mme_ue,
                         OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK);
                     ogs_expect(r == OGS_OK);
                     ogs_assert(r != OGS_ERROR);
@@ -701,7 +763,7 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
                 } else {
                     ogs_warn(" Unknown CSFB Service Type[%d]",
                             mme_ue->nas_eps.service.value);
-                    r = nas_eps_send_service_reject(mme_ue,
+                    r = nas_eps_send_service_reject(enb_ue, mme_ue,
                         OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK);
                     ogs_expect(r == OGS_OK);
                     ogs_assert(r != OGS_ERROR);
@@ -719,7 +781,7 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
 
                 if (!MME_P_TMSI_IS_AVAILABLE(mme_ue)) {
                     ogs_warn("No P-TMSI : UE[%s]", mme_ue->imsi_bcd);
-                    r = nas_eps_send_service_reject(mme_ue,
+                    r = nas_eps_send_service_reject(enb_ue, mme_ue,
                         OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK);
                     ogs_expect(r == OGS_OK);
                     ogs_assert(r != OGS_ERROR);
@@ -744,7 +806,7 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
                 } else {
                     ogs_warn(" Unknown CSFB Service Type[%d]",
                             mme_ue->nas_eps.service.value);
-                    r = nas_eps_send_service_reject(mme_ue,
+                    r = nas_eps_send_service_reject(enb_ue, mme_ue,
                         OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK);
                     ogs_expect(r == OGS_OK);
                     ogs_assert(r != OGS_ERROR);
@@ -762,9 +824,7 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
 
         case OGS_NAS_EPS_EMM_STATUS:
             ogs_warn("EMM STATUS : IMSI[%s] Cause[%d]",
-                    mme_ue->imsi_bcd,
-                    message->emm.emm_status.emm_cause);
-            OGS_FSM_TRAN(s, &emm_state_exception);
+                    mme_ue->imsi_bcd, message->emm.emm_status.emm_cause);
             break;
 
         case OGS_NAS_EPS_DETACH_REQUEST:
@@ -780,20 +840,27 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
             if (!MME_UE_HAVE_IMSI(mme_ue)) {
                 ogs_warn("Detach request : Unknown UE");
                 ogs_assert(OGS_OK ==
-                    nas_eps_send_service_reject(mme_ue,
+                    nas_eps_send_service_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK));
                 OGS_FSM_TRAN(s, &emm_state_exception);
                 break;
             }
 
             if (!SECURITY_CONTEXT_IS_VALID(mme_ue)) {
-                ogs_warn("No Security Context : IMSI[%s]", mme_ue->imsi_bcd);
+                ogs_error("No Security Context : IMSI[%s]", mme_ue->imsi_bcd);
                 ogs_assert(OGS_OK ==
-                    nas_eps_send_service_reject(mme_ue,
+                    nas_eps_send_service_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK));
                 OGS_FSM_TRAN(s, &emm_state_exception);
                 break;
             }
+
+            /*
+             * If the OLD ENB_UE is being maintained in MME-UE Context,
+             * it deletes the S1 Context after exchanging
+             * the UEContextReleaseCommand/Complete with the eNB
+             */
+            CLEAR_S1_CONTEXT(mme_ue);
 
             if (MME_P_TMSI_IS_AVAILABLE(mme_ue)) {
                 ogs_assert(OGS_OK == sgsap_send_detach_indication(mme_ue));
@@ -833,7 +900,7 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
                 MME_UE_S1AP_ID = enb_ue->mme_ue_s1ap_id;
                 ENB_UE_S1AP_ID = enb_ue->enb_ue_s1ap_id;
 
-                r = s1ap_send_error_indication(enb_ue->enb, 
+                r = s1ap_send_error_indication(enb_ue->enb,
                         &MME_UE_S1AP_ID, &ENB_UE_S1AP_ID,
                         S1AP_Cause_PR_transport,
                         S1AP_CauseTransport_transport_resource_unavailable);
@@ -867,15 +934,17 @@ void emm_state_authentication(ogs_fsm_t *s, mme_event_t *e)
 {
     int r, rv;
     mme_ue_t *mme_ue = NULL;
+    enb_ue_t *enb_ue = NULL;
     ogs_nas_eps_message_t *message = NULL;
 
     ogs_assert(s);
     ogs_assert(e);
-    
+
     mme_sm_debug(e);
 
     mme_ue = e->mme_ue;
     ogs_assert(mme_ue);
+    MME_UE_CHECK(OGS_LOG_DEBUG, mme_ue);
 
     switch (e->id) {
     case OGS_FSM_ENTRY_SIG:
@@ -885,6 +954,9 @@ void emm_state_authentication(ogs_fsm_t *s, mme_event_t *e)
     case MME_EVENT_EMM_MESSAGE:
         message = e->nas_message;
         ogs_assert(message);
+
+        enb_ue = enb_ue_cycle(mme_ue->enb_ue);
+        ogs_assert(enb_ue);
 
         switch (message->emm.h.message_type) {
         case OGS_NAS_EPS_AUTHENTICATION_RESPONSE:
@@ -897,7 +969,6 @@ void emm_state_authentication(ogs_fsm_t *s, mme_event_t *e)
                         authentication_response_parameter;
 
             ogs_debug("Authentication response");
-            MME_UE_LIST_CHECK;
             ogs_debug("    IMSI[%s]", mme_ue->imsi_bcd);
 
             CLEAR_MME_UE_TIMER(mme_ue->t3460);
@@ -926,7 +997,7 @@ void emm_state_authentication(ogs_fsm_t *s, mme_event_t *e)
             ogs_nas_eps_authentication_failure_t *authentication_failure =
                 &message->emm.authentication_failure;
             ogs_nas_authentication_failure_parameter_t
-                *authentication_failure_parameter = 
+                *authentication_failure_parameter =
                     &authentication_failure->
                         authentication_failure_parameter;
 
@@ -946,7 +1017,7 @@ void emm_state_authentication(ogs_fsm_t *s, mme_event_t *e)
                 break;
             case OGS_NAS_EMM_CAUSE_SYNCH_FAILURE:
                 ogs_info("Authentication failure(Synch failure)");
-                mme_s6a_send_air(mme_ue,
+                mme_s6a_send_air(enb_ue, mme_ue,
                         authentication_failure_parameter);
                 return;
             default:
@@ -973,14 +1044,12 @@ void emm_state_authentication(ogs_fsm_t *s, mme_event_t *e)
                 break;
             }
 
-            mme_s6a_send_air(mme_ue, NULL);
+            mme_s6a_send_air(enb_ue, mme_ue, NULL);
             OGS_FSM_TRAN(s, &emm_state_authentication);
             break;
         case OGS_NAS_EPS_EMM_STATUS:
             ogs_warn("EMM STATUS : IMSI[%s] Cause[%d]",
-                    mme_ue->imsi_bcd,
-                    message->emm.emm_status.emm_cause);
-            OGS_FSM_TRAN(s, &emm_state_exception);
+                    mme_ue->imsi_bcd, message->emm.emm_status.emm_cause);
             break;
         case OGS_NAS_EPS_DETACH_REQUEST:
             ogs_warn("[%s] Detach request", mme_ue->imsi_bcd);
@@ -995,20 +1064,27 @@ void emm_state_authentication(ogs_fsm_t *s, mme_event_t *e)
             if (!MME_UE_HAVE_IMSI(mme_ue)) {
                 ogs_warn("Detach request : Unknown UE");
                 ogs_assert(OGS_OK ==
-                    nas_eps_send_service_reject(mme_ue,
+                    nas_eps_send_service_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK));
                 OGS_FSM_TRAN(s, &emm_state_exception);
                 break;
             }
 
             if (!SECURITY_CONTEXT_IS_VALID(mme_ue)) {
-                ogs_warn("No Security Context : IMSI[%s]", mme_ue->imsi_bcd);
+                ogs_error("No Security Context : IMSI[%s]", mme_ue->imsi_bcd);
                 ogs_assert(OGS_OK ==
-                    nas_eps_send_service_reject(mme_ue,
+                    nas_eps_send_service_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK));
                 OGS_FSM_TRAN(s, &emm_state_exception);
                 break;
             }
+
+            /*
+             * If the OLD ENB_UE is being maintained in MME-UE Context,
+             * it deletes the S1 Context after exchanging
+             * the UEContextReleaseCommand/Complete with the eNB
+             */
+            CLEAR_S1_CONTEXT(mme_ue);
 
             if (MME_P_TMSI_IS_AVAILABLE(mme_ue)) {
                 ogs_assert(OGS_OK == sgsap_send_detach_indication(mme_ue));
@@ -1058,6 +1134,7 @@ void emm_state_security_mode(ogs_fsm_t *s, mme_event_t *e)
 {
     int r, rv;
     mme_ue_t *mme_ue = NULL;
+    enb_ue_t *enb_ue = NULL;
     ogs_nas_eps_message_t *message = NULL;
     ogs_nas_security_header_type_t h;
 
@@ -1082,10 +1159,13 @@ void emm_state_security_mode(ogs_fsm_t *s, mme_event_t *e)
         message = e->nas_message;
         ogs_assert(message);
 
+        enb_ue = enb_ue_cycle(mme_ue->enb_ue);
+        ogs_assert(enb_ue);
+
         if (message->emm.h.security_header_type
                 == OGS_NAS_SECURITY_HEADER_FOR_SERVICE_REQUEST_MESSAGE) {
             ogs_debug("Service request");
-            r = nas_eps_send_service_reject(mme_ue,
+            r = nas_eps_send_service_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_SECURITY_MODE_REJECTED_UNSPECIFIED);
             ogs_expect(r == OGS_OK);
             ogs_assert(r != OGS_ERROR);
@@ -1123,9 +1203,16 @@ void emm_state_security_mode(ogs_fsm_t *s, mme_event_t *e)
             }
 
             if (!SECURITY_CONTEXT_IS_VALID(mme_ue)) {
-                ogs_warn("[%s] No Security Context", mme_ue->imsi_bcd);
+                ogs_error("[%s] No Security Context", mme_ue->imsi_bcd);
                 break;
             }
+
+            /*
+             * If the OLD ENB_UE is being maintained in MME-UE Context,
+             * it deletes the S1 Context after exchanging
+             * the UEContextReleaseCommand/Complete with the eNB
+             */
+            CLEAR_S1_CONTEXT(mme_ue);
 
             emm_handle_security_mode_complete(
                     mme_ue, &message->emm.security_mode_complete);
@@ -1138,7 +1225,7 @@ void emm_state_security_mode(ogs_fsm_t *s, mme_event_t *e)
             /* Create New GUTI */
             mme_ue_new_guti(mme_ue);
 
-            mme_s6a_send_ulr(mme_ue);
+            mme_s6a_send_ulr(enb_ue, mme_ue);
 
             if (mme_ue->next.m_tmsi) {
                 OGS_FSM_TRAN(s, &emm_state_initial_context_setup);
@@ -1165,12 +1252,12 @@ void emm_state_security_mode(ogs_fsm_t *s, mme_event_t *e)
                 break;
             }
 
-            mme_s6a_send_air(mme_ue, NULL);
+            mme_s6a_send_air(enb_ue, mme_ue, NULL);
             OGS_FSM_TRAN(s, &emm_state_authentication);
             break;
         case OGS_NAS_EPS_TRACKING_AREA_UPDATE_REQUEST:
             ogs_debug("Tracking area update request");
-            r = nas_eps_send_tau_reject(mme_ue,
+            r = nas_eps_send_tau_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_SECURITY_MODE_REJECTED_UNSPECIFIED);
             ogs_expect(r == OGS_OK);
             ogs_assert(r != OGS_ERROR);
@@ -1178,9 +1265,7 @@ void emm_state_security_mode(ogs_fsm_t *s, mme_event_t *e)
             break;
         case OGS_NAS_EPS_EMM_STATUS:
             ogs_warn("EMM STATUS : IMSI[%s] Cause[%d]",
-                    mme_ue->imsi_bcd,
-                    message->emm.emm_status.emm_cause);
-            OGS_FSM_TRAN(s, &emm_state_exception);
+                    mme_ue->imsi_bcd, message->emm.emm_status.emm_cause);
             break;
         case OGS_NAS_EPS_DETACH_REQUEST:
             ogs_warn("[%s] Detach request", mme_ue->imsi_bcd);
@@ -1195,20 +1280,27 @@ void emm_state_security_mode(ogs_fsm_t *s, mme_event_t *e)
             if (!MME_UE_HAVE_IMSI(mme_ue)) {
                 ogs_warn("Detach request : Unknown UE");
                 ogs_assert(OGS_OK ==
-                    nas_eps_send_service_reject(mme_ue,
+                    nas_eps_send_service_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK));
                 OGS_FSM_TRAN(s, &emm_state_exception);
                 break;
             }
 
             if (!SECURITY_CONTEXT_IS_VALID(mme_ue)) {
-                ogs_warn("No Security Context : IMSI[%s]", mme_ue->imsi_bcd);
+                ogs_error("No Security Context : IMSI[%s]", mme_ue->imsi_bcd);
                 ogs_assert(OGS_OK ==
-                    nas_eps_send_service_reject(mme_ue,
+                    nas_eps_send_service_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK));
                 OGS_FSM_TRAN(s, &emm_state_exception);
                 break;
             }
+
+            /*
+             * If the OLD ENB_UE is being maintained in MME-UE Context,
+             * it deletes the S1 Context after exchanging
+             * the UEContextReleaseCommand/Complete with the eNB
+             */
+            CLEAR_S1_CONTEXT(mme_ue);
 
             if (MME_P_TMSI_IS_AVAILABLE(mme_ue)) {
                 ogs_assert(OGS_OK == sgsap_send_detach_indication(mme_ue));
@@ -1232,7 +1324,7 @@ void emm_state_security_mode(ogs_fsm_t *s, mme_event_t *e)
                         "Stop retransmission", mme_ue->imsi_bcd);
                 OGS_FSM_TRAN(&mme_ue->sm, &emm_state_exception);
 
-                r = nas_eps_send_attach_reject(mme_ue,
+                r = nas_eps_send_attach_reject(mme_ue->enb_ue, mme_ue,
                         OGS_NAS_EMM_CAUSE_SECURITY_MODE_REJECTED_UNSPECIFIED,
                         OGS_NAS_ESM_CAUSE_PROTOCOL_ERROR_UNSPECIFIED);
                 ogs_expect(r == OGS_OK);
@@ -1260,6 +1352,7 @@ void emm_state_initial_context_setup(ogs_fsm_t *s, mme_event_t *e)
 {
     int r, rv, xact_count;
     mme_ue_t *mme_ue = NULL;
+    enb_ue_t *enb_ue = NULL;
     ogs_nas_eps_message_t *message = NULL;
     ogs_nas_security_header_type_t h;
 
@@ -1280,12 +1373,15 @@ void emm_state_initial_context_setup(ogs_fsm_t *s, mme_event_t *e)
         message = e->nas_message;
         ogs_assert(message);
 
+        enb_ue = enb_ue_cycle(mme_ue->enb_ue);
+        ogs_assert(enb_ue);
+
         xact_count = mme_ue_xact_count(mme_ue, OGS_GTP_LOCAL_ORIGINATOR);
 
         if (message->emm.h.security_header_type
                 == OGS_NAS_SECURITY_HEADER_FOR_SERVICE_REQUEST_MESSAGE) {
             ogs_debug("Service request");
-            r = nas_eps_send_service_reject(mme_ue,
+            r = nas_eps_send_service_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK);
             ogs_expect(r == OGS_OK);
             ogs_assert(r != OGS_ERROR);
@@ -1320,9 +1416,16 @@ void emm_state_initial_context_setup(ogs_fsm_t *s, mme_event_t *e)
             }
 
             if (!SECURITY_CONTEXT_IS_VALID(mme_ue)) {
-                ogs_warn("[%s] No Security Context", mme_ue->imsi_bcd);
+                ogs_error("[%s] No Security Context", mme_ue->imsi_bcd);
                 break;
             }
+
+            /*
+             * If the OLD ENB_UE is being maintained in MME-UE Context,
+             * it deletes the S1 Context after exchanging
+             * the UEContextReleaseCommand/Complete with the eNB
+             */
+            CLEAR_S1_CONTEXT(mme_ue);
 
             CLEAR_MME_UE_TIMER(mme_ue->t3450);
 
@@ -1372,9 +1475,16 @@ void emm_state_initial_context_setup(ogs_fsm_t *s, mme_event_t *e)
             }
 
             if (!SECURITY_CONTEXT_IS_VALID(mme_ue)) {
-                ogs_warn("[%s] No Security Context", mme_ue->imsi_bcd);
+                ogs_error("[%s] No Security Context", mme_ue->imsi_bcd);
                 break;
             }
+
+            /*
+             * If the OLD ENB_UE is being maintained in MME-UE Context,
+             * it deletes the S1 Context after exchanging
+             * the UEContextReleaseCommand/Complete with the eNB
+             */
+            CLEAR_S1_CONTEXT(mme_ue);
 
             CLEAR_MME_UE_TIMER(mme_ue->t3450);
 
@@ -1401,7 +1511,7 @@ void emm_state_initial_context_setup(ogs_fsm_t *s, mme_event_t *e)
             if (!MME_SESSION_RELEASE_PENDING(mme_ue) &&
                 mme_ue_xact_count(mme_ue, OGS_GTP_LOCAL_ORIGINATOR) ==
                     xact_count) {
-                mme_s6a_send_air(mme_ue, NULL);
+                mme_s6a_send_air(enb_ue, mme_ue, NULL);
             }
 
             OGS_FSM_TRAN(s, &emm_state_authentication);
@@ -1409,9 +1519,7 @@ void emm_state_initial_context_setup(ogs_fsm_t *s, mme_event_t *e)
 
         case OGS_NAS_EPS_EMM_STATUS:
             ogs_warn("EMM STATUS : IMSI[%s] Cause[%d]",
-                    mme_ue->imsi_bcd,
-                    message->emm.emm_status.emm_cause);
-            OGS_FSM_TRAN(s, &emm_state_exception);
+                    mme_ue->imsi_bcd, message->emm.emm_status.emm_cause);
             break;
         case OGS_NAS_EPS_DETACH_REQUEST:
             ogs_warn("[%s] Detach request", mme_ue->imsi_bcd);
@@ -1426,20 +1534,27 @@ void emm_state_initial_context_setup(ogs_fsm_t *s, mme_event_t *e)
             if (!MME_UE_HAVE_IMSI(mme_ue)) {
                 ogs_warn("Detach request : Unknown UE");
                 ogs_assert(OGS_OK ==
-                    nas_eps_send_service_reject(mme_ue,
+                    nas_eps_send_service_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK));
                 OGS_FSM_TRAN(s, &emm_state_exception);
                 break;
             }
 
             if (!SECURITY_CONTEXT_IS_VALID(mme_ue)) {
-                ogs_warn("No Security Context : IMSI[%s]", mme_ue->imsi_bcd);
+                ogs_error("No Security Context : IMSI[%s]", mme_ue->imsi_bcd);
                 ogs_assert(OGS_OK ==
-                    nas_eps_send_service_reject(mme_ue,
+                    nas_eps_send_service_reject(enb_ue, mme_ue,
                     OGS_NAS_EMM_CAUSE_UE_IDENTITY_CANNOT_BE_DERIVED_BY_THE_NETWORK));
                 OGS_FSM_TRAN(s, &emm_state_exception);
                 break;
             }
+
+            /*
+             * If the OLD ENB_UE is being maintained in MME-UE Context,
+             * it deletes the S1 Context after exchanging
+             * the UEContextReleaseCommand/Complete with the eNB
+             */
+            CLEAR_S1_CONTEXT(mme_ue);
 
             if (MME_P_TMSI_IS_AVAILABLE(mme_ue)) {
                 ogs_assert(OGS_OK == sgsap_send_detach_indication(mme_ue));
@@ -1487,7 +1602,8 @@ void emm_state_initial_context_setup(ogs_fsm_t *s, mme_event_t *e)
                 ogs_timer_start(mme_ue->t3450.timer,
                         mme_timer_cfg(MME_TIMER_T3450)->duration);
 
-                r = nas_eps_send_to_downlink_nas_transport(mme_ue, emmbuf);
+                r = nas_eps_send_to_downlink_nas_transport(
+                        mme_ue->enb_ue, emmbuf);
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
             }
@@ -1560,6 +1676,13 @@ void emm_state_exception(ogs_fsm_t *s, mme_event_t *e)
             }
 
             if (h.integrity_protected && SECURITY_CONTEXT_IS_VALID(mme_ue)) {
+                /*
+                 * If the OLD ENB_UE is being maintained in MME-UE Context,
+                 * it deletes the S1 Context after exchanging
+                 * the UEContextReleaseCommand/Complete with the eNB
+                 */
+                CLEAR_S1_CONTEXT(mme_ue);
+
                 mme_gtp_send_delete_all_sessions(mme_ue,
                     OGS_GTP_DELETE_HANDLE_PDN_CONNECTIVITY_REQUEST);
 
@@ -1570,7 +1693,7 @@ void emm_state_exception(ogs_fsm_t *s, mme_event_t *e)
                             &mme_ue->pdn_connectivity_request);
                     if (rv != OGS_OK) {
                         ogs_error("nas_eps_send_emm_to_esm() failed");
-                        r = nas_eps_send_attach_reject(mme_ue,
+                        r = nas_eps_send_attach_reject(enb_ue, mme_ue,
                                 OGS_NAS_EMM_CAUSE_PROTOCOL_ERROR_UNSPECIFIED,
                                 OGS_NAS_ESM_CAUSE_PROTOCOL_ERROR_UNSPECIFIED);
                         ogs_expect(r == OGS_OK);
@@ -1589,7 +1712,7 @@ void emm_state_exception(ogs_fsm_t *s, mme_event_t *e)
                 if (!MME_SESSION_RELEASE_PENDING(mme_ue) &&
                     mme_ue_xact_count(mme_ue, OGS_GTP_LOCAL_ORIGINATOR) ==
                         xact_count) {
-                    mme_s6a_send_air(mme_ue, NULL);
+                    mme_s6a_send_air(enb_ue, mme_ue, NULL);
                 }
 
                 OGS_FSM_TRAN(s, &emm_state_authentication);

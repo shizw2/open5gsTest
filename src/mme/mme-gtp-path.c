@@ -203,6 +203,8 @@ int mme_gtp_open(void)
     }
 
     OGS_SETUP_GTPC_SERVER;
+    ogs_assert(ogs_gtp_self()->gtpc_sock || ogs_gtp_self()->gtpc_sock6);
+    ogs_assert(ogs_gtp_self()->gtpc_addr || ogs_gtp_self()->gtpc_addr6);
 
     mme_self()->pgw_addr = mme_pgw_addr_find_by_apn_enb(
             &mme_self()->pgw_list, AF_INET, NULL);
@@ -268,7 +270,7 @@ int mme_gtp_send_create_session_request(mme_sess_t *sess, int create_action)
         return OGS_ERROR;
     }
     xact->create_action = create_action;
-    xact->local_teid = mme_ue->mme_s11_teid;
+    xact->local_teid = mme_ue->gn.mme_gn_teid;
 
     rv = ogs_gtp_xact_commit(xact);
     ogs_expect(rv == OGS_OK);
@@ -307,7 +309,7 @@ int mme_gtp_send_modify_bearer_request(
         return OGS_ERROR;
     }
     xact->modify_action = modify_action;
-    xact->local_teid = mme_ue->mme_s11_teid;
+    xact->local_teid = mme_ue->gn.mme_gn_teid;
 
     rv = ogs_gtp_xact_commit(xact);
     ogs_expect(rv == OGS_OK);
@@ -346,7 +348,8 @@ int mme_gtp_send_delete_session_request(
         return OGS_ERROR;
     }
     xact->delete_action = action;
-    xact->local_teid = mme_ue->mme_s11_teid;
+    xact->local_teid = mme_ue->gn.mme_gn_teid;
+    ogs_debug("delete_session_request - xact:%p, sess:%p", xact, sess);
 
     rv = ogs_gtp_xact_commit(xact);
     ogs_expect(rv == OGS_OK);
@@ -364,6 +367,7 @@ void mme_gtp_send_delete_all_sessions(mme_ue_t *mme_ue, int action)
     ogs_assert(sgw_ue);
     ogs_assert(action);
 
+    MME_UE_CHECK(OGS_LOG_DEBUG, mme_ue);
     ogs_list_for_each_safe(&mme_ue->sess_list, next_sess, sess) {
         if (MME_HAVE_SGW_S1U_PATH(sess)) {
             mme_gtp_send_delete_session_request(sgw_ue, sess, action);
@@ -537,7 +541,7 @@ int mme_gtp_send_release_access_bearers_request(mme_ue_t *mme_ue, int action)
         return OGS_ERROR;
     }
     xact->release_action = action;
-    xact->local_teid = mme_ue->mme_s11_teid;
+    xact->local_teid = mme_ue->gn.mme_gn_teid;
 
     rv = ogs_gtp_xact_commit(xact);
     ogs_expect(rv == OGS_OK);
@@ -670,7 +674,7 @@ int mme_gtp_send_create_indirect_data_forwarding_tunnel_request(
         ogs_error("ogs_gtp_xact_local_create() failed");
         return OGS_ERROR;
     }
-    xact->local_teid = mme_ue->mme_s11_teid;
+    xact->local_teid = mme_ue->gn.mme_gn_teid;
 
     rv = ogs_gtp_xact_commit(xact);
     ogs_expect(rv == OGS_OK);
@@ -709,7 +713,7 @@ int mme_gtp_send_delete_indirect_data_forwarding_tunnel_request(
         return OGS_ERROR;
     }
     xact->delete_indirect_action = action;
-    xact->local_teid = mme_ue->mme_s11_teid;
+    xact->local_teid = mme_ue->gn.mme_gn_teid;
 
     rv = ogs_gtp_xact_commit(xact);
     ogs_expect(rv == OGS_OK);
@@ -750,7 +754,7 @@ int mme_gtp_send_bearer_resource_command(
         return OGS_ERROR;
     }
     xact->xid |= OGS_GTP_CMD_XACT_ID;
-    xact->local_teid = mme_ue->mme_s11_teid;
+    xact->local_teid = mme_ue->gn.mme_gn_teid;
 
     rv = ogs_gtp_xact_commit(xact);
     ogs_expect(rv == OGS_OK);
@@ -758,6 +762,106 @@ int mme_gtp_send_bearer_resource_command(
     return rv;
 }
 
+/*************************
+ * GTPv1C (Gn interface):
+ *************************/
+
+int mme_gtp1_send_sgsn_context_request(
+        mme_sgsn_t *sgsn, mme_ue_t *mme_ue)
+{
+    int rv;
+    ogs_gtp1_header_t h;
+    ogs_pkbuf_t *pkbuf = NULL;
+    ogs_gtp_xact_t *xact = NULL;
+
+    ogs_assert(sgsn);
+
+    memset(&h, 0, sizeof(ogs_gtp1_header_t));
+    h.type = OGS_GTP1_SGSN_CONTEXT_REQUEST_TYPE;
+    h.teid = 0;
+
+    pkbuf = mme_gn_build_sgsn_context_request(mme_ue);
+    if (!pkbuf) {
+        ogs_error("mme_gn_build_ran_information_relay() failed");
+        return OGS_ERROR;
+    }
+
+    xact = ogs_gtp1_xact_local_create(&sgsn->gnode, &h, pkbuf, NULL, NULL);
+    if (!xact) {
+        ogs_error("ogs_gtp1_xact_local_create() failed");
+        return OGS_ERROR;
+    }
+    /* TS 29.060 8.2: "The SGSN Context Request message, where the Tunnel
+     * Endpoint Identifier shall be set to all zeroes." */
+    xact->local_teid = 0;
+
+    rv = ogs_gtp_xact_commit(xact);
+    ogs_expect(rv == OGS_OK);
+
+    return rv;
+}
+
+int mme_gtp1_send_sgsn_context_response(
+        mme_ue_t *mme_ue, uint8_t cause, ogs_gtp_xact_t *xact)
+{
+    int rv;
+    ogs_gtp1_header_t h;
+    ogs_pkbuf_t *pkbuf = NULL;
+
+    memset(&h, 0, sizeof(ogs_gtp1_header_t));
+    h.type = OGS_GTP1_SGSN_CONTEXT_RESPONSE_TYPE;
+    h.teid = mme_ue ? mme_ue->gn.sgsn_gn_teid : 0;
+
+    pkbuf = mme_gn_build_sgsn_context_response(mme_ue, cause);
+    if (!pkbuf) {
+        ogs_error("mme_gn_build_sgsn_context_response() failed");
+        return OGS_ERROR;
+    }
+    xact->local_teid = mme_ue ? mme_ue->gn.mme_gn_teid : 0;
+
+    rv = ogs_gtp1_xact_update_tx(xact, &h, pkbuf);
+    if (rv != OGS_OK) {
+        ogs_error("ogs_gtp1_xact_update_tx() failed");
+        return OGS_ERROR;
+    }
+
+    rv = ogs_gtp_xact_commit(xact);
+    ogs_expect(rv == OGS_OK);
+
+    return rv;
+}
+
+int mme_gtp1_send_sgsn_context_ack(
+        mme_ue_t *mme_ue, uint8_t cause, ogs_gtp_xact_t *xact)
+{
+    int rv;
+    ogs_gtp1_header_t h;
+    ogs_pkbuf_t *pkbuf = NULL;
+
+    ogs_assert(mme_ue);
+
+    memset(&h, 0, sizeof(ogs_gtp1_header_t));
+    h.type = OGS_GTP1_SGSN_CONTEXT_ACKNOWLEDGE_TYPE;
+    h.teid = mme_ue->gn.sgsn_gn_teid;
+
+    pkbuf = mme_gn_build_sgsn_context_ack(mme_ue, cause);
+    if (!pkbuf) {
+        ogs_error("mme_gn_build_sgsn_context_response() failed");
+        return OGS_ERROR;
+    }
+    xact->local_teid = mme_ue->gn.mme_gn_teid;
+
+    rv = ogs_gtp1_xact_update_tx(xact, &h, pkbuf);
+    if (rv != OGS_OK) {
+        ogs_error("ogs_gtp1_xact_update_tx() failed");
+        return OGS_ERROR;
+    }
+
+    rv = ogs_gtp_xact_commit(xact);
+    ogs_expect(rv == OGS_OK);
+
+    return rv;
+}
 
 int mme_gtp1_send_ran_information_relay(
         mme_sgsn_t *sgsn, const uint8_t *buf, size_t len,

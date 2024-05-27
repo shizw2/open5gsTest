@@ -265,6 +265,9 @@ void mme_state_operational(ogs_fsm_t *s, mme_event_t *e)
                     ogs_pkbuf_free(pkbuf);
                     return;
                 }
+
+                MME_UE_CHECK(OGS_LOG_DEBUG, mme_ue);
+                ogs_assert(ECM_IDLE(mme_ue));
             } else {
                 /* Here, if the MME_UE Context is found,
                  * the integrity check is not performed
@@ -285,29 +288,31 @@ void mme_state_operational(ogs_fsm_t *s, mme_event_t *e)
                         return;
                     }
                 }
+
+                /* If NAS(mme_ue_t) has already been associated with
+                 * older S1(enb_ue_t) context */
+                if (ECM_CONNECTED(mme_ue)) {
+    /*
+     * Issue #2786
+     *
+     * In cases where the UE sends an Integrity Un-Protected Attach
+     * Request or Service Request, there is an issue of sending
+     * a UEContextReleaseCommand for the OLD ENB Context.
+     *
+     * For example, if the UE switchs off and power-on after
+     * the first connection, the EPC sends a UEContextReleaseCommand.
+     *
+     * However, since there is no ENB context for this on the eNB,
+     * the eNB does not send a UEContextReleaseComplete,
+     * so the deletion of the ENB Context does not function properly.
+     *
+     * To solve this problem, the EPC has been modified to implicitly
+     * delete the ENB Context instead of sending a UEContextReleaseCommand.
+     */
+                    HOLDING_S1_CONTEXT(mme_ue);
+                }
             }
 
-            /* If NAS(mme_ue_t) has already been associated with
-             * older S1(enb_ue_t) context */
-            if (ECM_CONNECTED(mme_ue)) {
-                /* Previous S1(enb_ue_t) context the holding timer(30secs)
-                 * is started.
-                 * Newly associated S1(enb_ue_t) context holding timer
-                 * is stopped. */
-                ogs_debug("Start S1 Holding Timer");
-                ogs_debug("    ENB_UE_S1AP_ID[%d] MME_UE_S1AP_ID[%d]",
-                        mme_ue->enb_ue->enb_ue_s1ap_id,
-                        mme_ue->enb_ue->mme_ue_s1ap_id);
-
-                /* De-associate S1 with NAS/EMM */
-                enb_ue_deassociate(mme_ue->enb_ue);
-
-                r = s1ap_send_ue_context_release_command(mme_ue->enb_ue,
-                        S1AP_Cause_PR_nas, S1AP_CauseNas_normal_release,
-                        S1AP_UE_CTX_REL_S1_CONTEXT_REMOVE, 0);
-                ogs_expect(r == OGS_OK);
-                ogs_assert(r != OGS_ERROR);
-            }
             enb_ue_associate_mme_ue(enb_ue, mme_ue);
             ogs_debug("Mobile Reachable timer stopped for IMSI[%s]",
                 mme_ue->imsi_bcd);
@@ -315,6 +320,17 @@ void mme_state_operational(ogs_fsm_t *s, mme_event_t *e)
         }
 
         ogs_assert(mme_ue);
+        if (!OGS_FSM_STATE(&mme_ue->sm)) {
+            ogs_fatal("MESSAGE[%d]", nas_message.emm.h.message_type);
+            ogs_fatal("ENB_UE_S1AP_ID[%d] MME_UE_S1AP_ID[%d]",
+                    enb_ue ? enb_ue->enb_ue_s1ap_id : 0,
+                    enb_ue ? enb_ue->mme_ue_s1ap_id : 0);
+            ogs_fatal("context [%p:%p]", enb_ue, mme_ue);
+            ogs_fatal("cycle [%p:%p]",
+                    enb_ue_cycle(enb_ue), mme_ue_cycle(mme_ue));
+            ogs_fatal("IMSI [%s]", mme_ue ? mme_ue->imsi_bcd : "No MME_UE");
+            ogs_assert_if_reached();
+        }
         ogs_assert(OGS_FSM_STATE(&mme_ue->sm));
 
         e->mme_ue = mme_ue;
@@ -343,6 +359,103 @@ void mme_state_operational(ogs_fsm_t *s, mme_event_t *e)
         ogs_assert(pkbuf);
         if (ogs_nas_esm_decode(&nas_message, pkbuf) != OGS_OK) {
             ogs_error("ogs_nas_esm_decode() failed");
+            ogs_pkbuf_free(pkbuf);
+            break;
+        }
+
+#define ESM_MESSAGE_CHECK \
+    do { \
+        ogs_error("emm_state_exception"); \
+        ogs_error("nas_type:%d, create_action:%d", \
+                e->nas_type, e->create_action); \
+        ogs_error("esm.message[EBI:%d,PTI:%d,TYPE:%d]", \
+                nas_message.esm.h.eps_bearer_identity, \
+                nas_message.esm.h.procedure_transaction_identity, \
+                nas_message.esm.h.message_type); \
+    } while(0)
+
+    /*
+     * Because a race condition can occur between S6A Diameter and S1AP message,
+     * the following error handling code has been added.
+     *
+     * 1. InitialUEMessage + Attach Request + PDN Connectivity request
+     * 2. Authentication-Information-Request/Authentication-Information-Answer
+     * 3. Authentication Request/Response
+     * 4. Security-mode command/complete
+     * 5. Update-Location-Request/Update-Location-Answer
+     * 6. Detach request/accept
+     *
+     * In the ULR/ULA process in step 6, the PDN Connectivity request is
+     * pushed to the queue as an ESM_MESSAGE because the NAS-Type is still
+     * an Attach Request.
+     *
+     * See the code below in 'mme-s6a-handler.c' for where the queue is pushed.
+     *
+     *   if (mme_ue->nas_eps.type == MME_EPS_TYPE_ATTACH_REQUEST) {
+     *       rv = nas_eps_send_emm_to_esm(mme_ue,
+     *               &mme_ue->pdn_connectivity_request);
+     *       if (rv != OGS_OK) {
+     *           ogs_error("nas_eps_send_emm_to_esm() failed");
+     *           return OGS_NAS_EMM_CAUSE_PROTOCOL_ERROR_UNSPECIFIED;
+     *       }
+     *   } else if (mme_ue->nas_eps.type == MME_EPS_TYPE_TAU_REQUEST) {
+     *       r = nas_eps_send_tau_accept(mme_ue,
+     *               S1AP_ProcedureCode_id_InitialContextSetup);
+     *       ogs_expect(r == OGS_OK);
+     *       ogs_assert(r != OGS_ERROR);
+     *   } else {
+     *       ogs_error("Invalid Type[%d]", mme_ue->nas_eps.type);
+     *       return OGS_NAS_EMM_CAUSE_PROTOCOL_ERROR_UNSPECIFIED;
+     *   }
+     *
+     * If you perform step 7 Detach request/accept here,
+     * the NAS-Type becomes Detach Request and the EMM state changes
+     * to emm_state_de_registered().
+     *
+     * Since the PDN, which is an ESM message that was previously queued,
+     * should not be processed in de_registered, the message is ignored
+     * through error handling below.
+     *
+     * Otherwise, MME will crash because there is no active bearer
+     * in the initial_context_setup_request build process.
+     *
+     * See the code below in 's1ap-build.c' for where the crash occurs.
+     *   ogs_list_for_each(&mme_ue->sess_list, sess) {
+     *       ogs_list_for_each(&sess->bearer_list, bearer) {
+     *           ...
+     *           if (mme_ue->nas_eps.type == MME_EPS_TYPE_ATTACH_REQUEST) {
+     *           } else if (OGS_FSM_CHECK(&bearer->sm, esm_state_inactive)) {
+     *               ogs_warn("No active EPS bearer [%d]", bearer->ebi);
+     *               ogs_warn("    IMSI[%s] NAS-EPS Type[%d] "
+     *                       "ENB_UE_S1AP_ID[%d] MME_UE_S1AP_ID[%d]",
+     *                       mme_ue->imsi_bcd, mme_ue->nas_eps.type,
+     *                       enb_ue->enb_ue_s1ap_id, enb_ue->mme_ue_s1ap_id);
+     *               continue;
+     *           }
+     *           ...
+     *       }
+     *   }
+     */
+        if (OGS_FSM_CHECK(&mme_ue->sm, emm_state_de_registered)) {
+            ESM_MESSAGE_CHECK;
+            MME_UE_CHECK(OGS_LOG_ERROR, mme_ue);
+            ogs_pkbuf_free(pkbuf);
+            break;
+        } else if (OGS_FSM_CHECK(&mme_ue->sm, emm_state_authentication)) {
+            ESM_MESSAGE_CHECK;
+            MME_UE_CHECK(OGS_LOG_ERROR, mme_ue);
+            ogs_pkbuf_free(pkbuf);
+            break;
+        } else if (OGS_FSM_CHECK(&mme_ue->sm, emm_state_security_mode)) {
+            ESM_MESSAGE_CHECK;
+            MME_UE_CHECK(OGS_LOG_ERROR, mme_ue);
+            ogs_pkbuf_free(pkbuf);
+            break;
+        } else if (OGS_FSM_CHECK(&mme_ue->sm, emm_state_initial_context_setup)) {
+        } else if (OGS_FSM_CHECK(&mme_ue->sm, emm_state_registered)) {
+        } else if (OGS_FSM_CHECK(&mme_ue->sm, emm_state_exception)) {
+            ESM_MESSAGE_CHECK;
+            MME_UE_CHECK(OGS_LOG_ERROR, mme_ue);
             ogs_pkbuf_free(pkbuf);
             break;
         }
@@ -403,23 +516,71 @@ void mme_state_operational(ogs_fsm_t *s, mme_event_t *e)
         break;
 
     case MME_EVENT_S6A_MESSAGE:
-        mme_ue = e->mme_ue;
-        ogs_assert(mme_ue);
         s6a_message = e->s6a_message;
         ogs_assert(s6a_message);
 
+        /*
+         * A race condition can occur in the following situations.
+         * In conclusion, we can use this situation to determine
+         * whether or not the UE Context has been removed and avoiding a crash.
+         *
+         * For example, suppose a UE Context is removed in the followings.
+         *
+         * 1. Attach Request
+         * 2. Authentication-Information-Request
+         * 3. Authentication-Information-Answer
+         * 4. Authentication Request
+         * 5. Authentication Response(MAC Failed)
+         * 6. Authentication Reject
+         * 7. UEContextReleaseCommand
+         * 8. UEContextReleaseComplete
+         *
+         * The MME then sends a Purge-UE-request to the HSS and deletes
+         * the UE context as soon as it receives a Purge-UE-Answer.
+         *
+         * Suppose an Attach Request is received from the same UE
+         * between Purge-UE-Request/Answer, then the MME and HSS start
+         * the Authentication-Information-Request/Answer process.
+         *
+         * This can lead to the following situations.
+         *
+         * 1. Purge-UE-Request
+         * 2. Attach Request
+         * 3. Authentication-Information-Request
+         * 4. Purge-UE-Answer
+         * 5. [UE Context Removed]
+         * 6. Authentication-Information-Answer
+         *
+         * Since the UE Context has already been deleted
+         * when the Authentication-Information-Answer is received,
+         * it cannot be processed properly.
+         *
+         * Therefore, mme_ue_cycle() is used to check
+         * whether the UE Context has been deleted and
+         * decide whether to process or
+         * ignore the Authentication-Information-Answer as shown below.
+         */
+        mme_ue = mme_ue_cycle(e->mme_ue);
+        if (!mme_ue) {
+            ogs_error("UE(mme-ue) context has already been removed");
+            goto cleanup;
+        }
+
+        enb_ue = enb_ue_cycle(e->enb_ue);
+        /*
+         * The 'enb_ue' context is not checked
+         * because the status is checked in the sending routine.
+         */
+
         switch (s6a_message->cmd_code) {
         case OGS_DIAM_S6A_CMD_CODE_AUTHENTICATION_INFORMATION:
+            ogs_debug("OGS_DIAM_S6A_CMD_CODE_AUTHENTICATION_INFORMATION");
             emm_cause = mme_s6a_handle_aia(mme_ue, s6a_message);
             if (emm_cause != OGS_NAS_EMM_CAUSE_REQUEST_ACCEPTED) {
                 ogs_info("[%s] Attach reject [OGS_NAS_EMM_CAUSE:%d]",
                         mme_ue->imsi_bcd, emm_cause);
-                enb_ue = enb_ue_cycle(mme_ue->enb_ue);
-                if (!enb_ue) {
-                    ogs_error("S1 context has already been removed");
-                    break;
-                }
-                r = nas_eps_send_attach_reject(mme_ue, emm_cause,
+                r = nas_eps_send_attach_reject(
+                        enb_ue, mme_ue, emm_cause,
                         OGS_NAS_ESM_CAUSE_PROTOCOL_ERROR_UNSPECIFIED);
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
@@ -432,43 +593,54 @@ void mme_state_operational(ogs_fsm_t *s, mme_event_t *e)
             }
             break;
         case OGS_DIAM_S6A_CMD_CODE_UPDATE_LOCATION:
+            ogs_debug("OGS_DIAM_S6A_CMD_CODE_UPDATE_LOCATION");
             emm_cause = mme_s6a_handle_ula(mme_ue, s6a_message);
             if (emm_cause != OGS_NAS_EMM_CAUSE_REQUEST_ACCEPTED) {
-                ogs_info("[%s] Attach reject [OGS_NAS_EMM_CAUSE:%d]",
-                        mme_ue->imsi_bcd, emm_cause);
-                enb_ue = enb_ue_cycle(mme_ue->enb_ue);
-                if (!enb_ue) {
-                    ogs_error("S1 context has already been removed");
-                    break;
-                }
-                r = nas_eps_send_attach_reject(mme_ue, emm_cause,
-                        OGS_NAS_ESM_CAUSE_PROTOCOL_ERROR_UNSPECIFIED);
-                ogs_expect(r == OGS_OK);
-                ogs_assert(r != OGS_ERROR);
+                if (mme_ue->nas_eps.type == MME_EPS_TYPE_ATTACH_REQUEST) {
+                    ogs_info("[%s] Attach reject [OGS_NAS_EMM_CAUSE:%d]",
+                            mme_ue->imsi_bcd, emm_cause);
+                    r = nas_eps_send_attach_reject(
+                            enb_ue, mme_ue, emm_cause,
+                            OGS_NAS_ESM_CAUSE_PROTOCOL_ERROR_UNSPECIFIED);
+                    ogs_expect(r == OGS_OK);
+                    ogs_assert(r != OGS_ERROR);
+                } else if (mme_ue->nas_eps.type == MME_EPS_TYPE_TAU_REQUEST) {
+                    ogs_info("[%s] TAU reject [OGS_NAS_EMM_CAUSE:%d]",
+                            mme_ue->imsi_bcd, emm_cause);
+                    r = nas_eps_send_tau_reject(
+                            enb_ue, mme_ue, emm_cause);
+                    ogs_expect(r == OGS_OK);
+                    ogs_assert(r != OGS_ERROR);
+                } else
+                    ogs_error("Invalid Type[%d]", mme_ue->nas_eps.type);
 
                 r = s1ap_send_ue_context_release_command(enb_ue,
                         S1AP_Cause_PR_nas, S1AP_CauseNas_normal_release,
-                        S1AP_UE_CTX_REL_UE_CONTEXT_REMOVE, 0);
+                        mme_ue_cycle(enb_ue->mme_ue) ?
+                            S1AP_UE_CTX_REL_UE_CONTEXT_REMOVE :
+                            S1AP_UE_CTX_REL_S1_CONTEXT_REMOVE, 0);
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
             }
-
-            mme_ue->location_updated_but_not_canceled_yet = true;
             break;
         case OGS_DIAM_S6A_CMD_CODE_PURGE_UE:
+            ogs_debug("OGS_DIAM_S6A_CMD_CODE_PURGE_UE");
             mme_s6a_handle_pua(mme_ue, s6a_message);
             break;
         case OGS_DIAM_S6A_CMD_CODE_CANCEL_LOCATION:
-            mme_ue->location_updated_but_not_canceled_yet = false;
+            ogs_debug("OGS_DIAM_S6A_CMD_CODE_CANCEL_LOCATION");
             mme_s6a_handle_clr(mme_ue, s6a_message);
             break;
         case OGS_DIAM_S6A_CMD_CODE_INSERT_SUBSCRIBER_DATA:
+            ogs_debug("OGS_DIAM_S6A_CMD_CODE_INSERT_SUBSCRIBER_DATA");
             mme_s6a_handle_idr(mme_ue, s6a_message);
             break;
         default:
             ogs_error("Invalid Type[%d]", s6a_message->cmd_code);
             break;
         }
+
+cleanup:
         ogs_subscription_data_free(&s6a_message->idr_message.subscription_data);
         ogs_subscription_data_free(&s6a_message->ula_message.subscription_data);
         ogs_free(s6a_message);
@@ -524,14 +696,14 @@ void mme_state_operational(ogs_fsm_t *s, mme_event_t *e)
          */
         if (gtp_message.h.teid_presence && gtp_message.h.teid != 0) {
             /* Cause is not "Context not found" */
-            mme_ue = mme_ue_find_by_teid(gtp_message.h.teid);
+            mme_ue = mme_ue_find_by_s11_local_teid(gtp_message.h.teid);
         } else if (xact->local_teid) { /* rx no TEID or TEID=0 */
             /* 3GPP TS 29.274 5.5.2: we receive TEID=0 under some
              * conditions, such as cause "Session context not found". In those
              * cases, we still want to identify the local session which
              * originated the message, so try harder by using the TEID we
              * locally stored in xact when sending the original request: */
-            mme_ue = mme_ue_find_by_teid(xact->local_teid);
+            mme_ue = mme_ue_find_by_s11_local_teid(xact->local_teid);
         }
 
         switch (gtp_message.h.type) {
@@ -651,12 +823,38 @@ void mme_state_operational(ogs_fsm_t *s, mme_event_t *e)
             break;
         }
 
+        if (gtp1_message.h.teid != 0) {
+            /* Cause is not "Context not found" */
+            mme_ue = mme_ue_find_by_gn_local_teid(gtp1_message.h.teid);
+        } else if (xact->local_teid) { /* rx no TEID or TEID=0 */
+            /* Try harder by using the TEID we locally stored in xact when
+             *sending the original request: */
+            mme_ue = mme_ue_find_by_gn_local_teid(xact->local_teid);
+        }
+
         switch (gtp1_message.h.type) {
         case OGS_GTP1_ECHO_REQUEST_TYPE:
             mme_gn_handle_echo_request(xact, &gtp1_message.echo_request);
             break;
         case OGS_GTP1_ECHO_RESPONSE_TYPE:
             mme_gn_handle_echo_response(xact, &gtp1_message.echo_response);
+            break;
+        case OGS_GTP1_SGSN_CONTEXT_REQUEST_TYPE:
+            mme_gn_handle_sgsn_context_request(xact, &gtp1_message.sgsn_context_request);
+            break;
+        case OGS_GTP1_SGSN_CONTEXT_RESPONSE_TYPE:
+            /* 3GPP TS 23.401 Figure D.3.6-1 step 5 */
+            rv = mme_gn_handle_sgsn_context_response(xact, mme_ue, &gtp1_message.sgsn_context_response);
+            if (rv == OGS_GTP1_CAUSE_ACCEPT) {
+                OGS_FSM_TRAN(&mme_ue->sm, &emm_state_initial_context_setup);
+            } else if (rv == OGS_GTP1_CAUSE_REQUEST_IMEI) {
+                OGS_FSM_TRAN(&mme_ue->sm, &emm_state_security_mode);
+            } else {
+                OGS_FSM_TRAN(&mme_ue->sm, &emm_state_exception);
+            }
+            break;
+        case OGS_GTP1_SGSN_CONTEXT_ACKNOWLEDGE_TYPE:
+            mme_gn_handle_sgsn_context_acknowledge(xact, mme_ue, &gtp1_message.sgsn_context_acknowledge);
             break;
         case OGS_GTP1_RAN_INFORMATION_RELAY_TYPE:
             mme_gn_handle_ran_information_relay(xact, &gtp1_message.ran_information_relay);
@@ -666,6 +864,37 @@ void mme_state_operational(ogs_fsm_t *s, mme_event_t *e)
             break;
         }
         ogs_pkbuf_free(pkbuf);
+        break;
+
+    case MME_EVENT_GN_TIMER:
+        mme_ue = e->mme_ue;
+        ogs_assert(mme_ue);
+        sgw_ue = mme_ue->sgw_ue;
+        ogs_assert(sgw_ue);
+
+        switch (e->timer_id) {
+        case MME_TIMER_GN_HOLDING:
+            /* 3GPP TS 23.401 Annex D.3.5 "Routing Area Update":
+            * Step 13. "When the timer started in step 2) (see mme_gn_handle_sgsn_context_request()) expires the old MME
+            * releases any RAN and Serving GW resources. If the PLMN has configured Secondary RAT usage data reporting,
+            * the MME first releases RAN resource before releasing Serving GW resources."
+            */
+            GTP_COUNTER_CLEAR(mme_ue,
+                    GTP_COUNTER_DELETE_SESSION_BY_PATH_SWITCH);
+            ogs_list_for_each(&mme_ue->sess_list, sess) {
+                GTP_COUNTER_INCREMENT(
+                    mme_ue, GTP_COUNTER_DELETE_SESSION_BY_PATH_SWITCH);
+                ogs_assert(OGS_OK ==
+                    mme_gtp_send_delete_session_request(
+                        sgw_ue, sess,
+                        OGS_GTP_DELETE_IN_PATH_SWITCH_REQUEST));
+            }
+            break;
+
+        default:
+            ogs_error("Unknown timer[%s:%d]",
+                    mme_timer_get_name(e->timer_id), e->timer_id);
+        }
         break;
 
     case MME_EVENT_SGSAP_LO_SCTP_COMM_UP:

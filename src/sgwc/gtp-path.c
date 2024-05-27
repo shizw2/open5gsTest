@@ -80,7 +80,6 @@ static void _gtpv2_c_recv_cb(short when, ogs_socket_t fd, void *data)
         ogs_assert(e);
         e->gnode = gnode;
     } else {
-        e = sgwc_event_new(SGWC_EVT_S11_MESSAGE);
         gnode = ogs_gtp_node_find_by_addr(&sgwc_self()->mme_s11_list, &from);
         if (!gnode) {
             gnode = ogs_gtp_node_add_by_addr(&sgwc_self()->mme_s11_list, &from);
@@ -92,6 +91,7 @@ static void _gtpv2_c_recv_cb(short when, ogs_socket_t fd, void *data)
             }
             gnode->sock = data;
         }
+        e = sgwc_event_new(SGWC_EVT_S11_MESSAGE);
         ogs_assert(e);
         e->gnode = gnode;
     }
@@ -129,6 +129,8 @@ int sgwc_gtp_open(void)
     }
 
     OGS_SETUP_GTPC_SERVER;
+    ogs_assert(ogs_gtp_self()->gtpc_sock || ogs_gtp_self()->gtpc_sock6);
+    ogs_assert(ogs_gtp_self()->gtpc_addr || ogs_gtp_self()->gtpc_addr6);
 
     return OGS_OK;
 }

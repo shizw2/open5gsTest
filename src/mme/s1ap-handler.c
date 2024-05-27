@@ -45,7 +45,7 @@ static bool maximum_number_of_enbs_is_reached(void)
         }
     }
 
-    return number_of_enbs_online >= ogs_app()->max.peer;
+    return number_of_enbs_online >= ogs_global_conf()->max.peer;
 }
 
 static bool enb_plmn_id_is_foreign(mme_enb_t *enb)
@@ -69,7 +69,7 @@ static bool served_tai_is_found(mme_enb_t *enb)
     for (i = 0; i < enb->num_of_supported_ta_list; i++) {
         served_tai_index = mme_find_served_tai(&enb->supported_ta_list[i]);
         if (served_tai_index >= 0 &&
-                served_tai_index < OGS_MAX_NUM_OF_SERVED_TAI) {
+                served_tai_index < OGS_MAX_NUM_OF_SUPPORTED_TA) {
             ogs_debug("    SERVED_TAI_INDEX[%d]", served_tai_index);
             return true;
         }
@@ -159,8 +159,10 @@ void s1ap_handle_s1_setup_request(mme_enb_t *enb, ogs_s1ap_message_t *message)
         ogs_debug("    PagingDRX[%ld]", *PagingDRX);
 
     /* Parse Supported TA */
-    enb->num_of_supported_ta_list = 0;
-    for (i = 0; i < SupportedTAs->list.count; i++) {
+    for (i = 0, enb->num_of_supported_ta_list = 0;
+            i < SupportedTAs->list.count &&
+            enb->num_of_supported_ta_list < OGS_MAX_NUM_OF_SUPPORTED_TA;
+            i++) {
         S1AP_SupportedTAs_Item_t *SupportedTAs_Item = NULL;
         S1AP_TAC_t *tAC = NULL;
 
@@ -175,6 +177,16 @@ void s1ap_handle_s1_setup_request(mme_enb_t *enb, ogs_s1ap_message_t *message)
             pLMNidentity = (S1AP_PLMNidentity_t *)
                 SupportedTAs_Item->broadcastPLMNs.list.array[j];
             ogs_assert(pLMNidentity);
+
+            if (enb->num_of_supported_ta_list >=
+                    OGS_ARRAY_SIZE(enb->supported_ta_list)) {
+                ogs_error("OVERFLOW ENB->num_of_supported_ta_list "
+                        "[%d:%d:%d]",
+                        enb->num_of_supported_ta_list,
+                        OGS_MAX_NUM_OF_SUPPORTED_TA,
+                        (int)OGS_ARRAY_SIZE(enb->supported_ta_list));
+                break;
+            }
 
             memcpy(&enb->supported_ta_list[enb->num_of_supported_ta_list].tac,
                     tAC->buf, sizeof(uint16_t));
@@ -246,6 +258,141 @@ void s1ap_handle_s1_setup_request(mme_enb_t *enb, ogs_s1ap_message_t *message)
     ogs_assert(r != OGS_ERROR);
 }
 
+void s1ap_handle_enb_configuration_update(
+        mme_enb_t *enb, ogs_s1ap_message_t *message)
+{
+    int i, j, r;
+
+    S1AP_InitiatingMessage_t *initiatingMessage = NULL;
+    S1AP_ENBConfigurationUpdate_t *ENBConfigurationUpdate = NULL;
+
+    S1AP_ENBConfigurationUpdateIEs_t *ie = NULL;
+    S1AP_SupportedTAs_t *SupportedTAs = NULL;
+    S1AP_PagingDRX_t *PagingDRX = NULL;
+
+    ogs_assert(enb);
+    ogs_assert(enb->sctp.sock);
+
+    ogs_assert(message);
+    initiatingMessage = message->choice.initiatingMessage;
+    ogs_assert(initiatingMessage);
+    ENBConfigurationUpdate =
+        &initiatingMessage->value.choice.ENBConfigurationUpdate;
+    ogs_assert(ENBConfigurationUpdate);
+
+    ogs_debug("ENBConfigurationUpdate");
+
+    for (i = 0; i < ENBConfigurationUpdate->protocolIEs.list.count; i++) {
+        ie = ENBConfigurationUpdate->protocolIEs.list.array[i];
+        switch (ie->id) {
+        case S1AP_ProtocolIE_ID_id_SupportedTAs:
+            SupportedTAs = &ie->value.choice.SupportedTAs;
+            break;
+        case S1AP_ProtocolIE_ID_id_DefaultPagingDRX:
+            PagingDRX = &ie->value.choice.PagingDRX;
+            break;
+        default:
+            break;
+        }
+    }
+
+    /* Parse Supported TA */
+    if (SupportedTAs) {
+        S1AP_Cause_PR group = S1AP_Cause_PR_NOTHING;
+        long cause = 0;
+
+        for (i = 0, enb->num_of_supported_ta_list = 0;
+                i < SupportedTAs->list.count &&
+                enb->num_of_supported_ta_list < OGS_MAX_NUM_OF_SUPPORTED_TA;
+                i++) {
+            S1AP_SupportedTAs_Item_t *SupportedTAs_Item = NULL;
+            S1AP_TAC_t *tAC = NULL;
+
+            SupportedTAs_Item =
+                (S1AP_SupportedTAs_Item_t *)SupportedTAs->list.array[i];
+            ogs_assert(SupportedTAs_Item);
+            tAC = &SupportedTAs_Item->tAC;
+            ogs_assert(tAC);
+
+            for (j = 0; j < SupportedTAs_Item->broadcastPLMNs.list.count; j++) {
+                S1AP_PLMNidentity_t *pLMNidentity = NULL;
+                pLMNidentity = (S1AP_PLMNidentity_t *)
+                    SupportedTAs_Item->broadcastPLMNs.list.array[j];
+                ogs_assert(pLMNidentity);
+
+                if (enb->num_of_supported_ta_list >=
+                        OGS_ARRAY_SIZE(enb->supported_ta_list)) {
+                    ogs_error("OVERFLOW ENB->num_of_supported_ta_list "
+                            "[%d:%d:%d]",
+                            enb->num_of_supported_ta_list,
+                            OGS_MAX_NUM_OF_SUPPORTED_TA,
+                            (int)OGS_ARRAY_SIZE(enb->supported_ta_list));
+                    break;
+                }
+
+                memcpy(&enb->supported_ta_list[
+                        enb->num_of_supported_ta_list].tac,
+                        tAC->buf, sizeof(uint16_t));
+                enb->supported_ta_list[enb->num_of_supported_ta_list].tac =
+                    be16toh(enb->supported_ta_list
+                            [enb->num_of_supported_ta_list].tac);
+                memcpy(&enb->supported_ta_list
+                            [enb->num_of_supported_ta_list].plmn_id,
+                        pLMNidentity->buf, sizeof(ogs_plmn_id_t));
+                ogs_debug("    PLMN_ID[MCC:%d MNC:%d] TAC[%d]",
+                    ogs_plmn_id_mcc(&enb->supported_ta_list
+                        [enb->num_of_supported_ta_list].plmn_id),
+                    ogs_plmn_id_mnc(&enb->supported_ta_list
+                        [enb->num_of_supported_ta_list].plmn_id),
+                    enb->supported_ta_list[enb->num_of_supported_ta_list].tac);
+                enb->num_of_supported_ta_list++;
+            }
+        }
+
+        /*
+         * TS36.413
+         * Section 8.7.3.4 Abnormal Conditions
+         *
+         * If the eNB initiates the procedure by sending a S1 SETUP REQUEST
+         * message including the PLMN Identity IEs and none of the PLMNs
+         * provided by the eNB is identified by the MME, then the MME shall
+         * reject the eNB S1 Setup Request procedure with the appropriate cause
+         * value, e.g., “Unknown PLMN”.
+         */
+        if (enb_plmn_id_is_foreign(enb)) {
+            ogs_warn("S1-Setup failure:");
+            ogs_warn("    Global-ENB-ID PLMN-ID is foreign");
+            group = S1AP_Cause_PR_misc;
+            cause = S1AP_CauseMisc_unknown_PLMN;
+
+            r = s1ap_send_enb_configuration_update_failure(enb, group, cause);
+            ogs_expect(r == OGS_OK);
+            ogs_assert(r != OGS_ERROR);
+            return;
+        }
+
+        if (!served_tai_is_found(enb)) {
+            ogs_warn("S1-Setup failure:");
+            ogs_warn("    Cannot find Served TAI. "
+                    "Check 'mme.tai' configuration");
+            group = S1AP_Cause_PR_misc;
+            cause = S1AP_CauseMisc_unknown_PLMN;
+
+            r = s1ap_send_enb_configuration_update_failure(enb, group, cause);
+            ogs_expect(r == OGS_OK);
+            ogs_assert(r != OGS_ERROR);
+            return;
+        }
+    }
+
+    if (PagingDRX)
+        ogs_debug("    PagingDRX[%ld]", *PagingDRX);
+
+    r = s1ap_send_enb_configuration_update_ack(enb);
+    ogs_expect(r == OGS_OK);
+    ogs_assert(r != OGS_ERROR);
+}
+
 void s1ap_handle_initial_ue_message(mme_enb_t *enb, ogs_s1ap_message_t *message)
 {
     int i, r;
@@ -277,7 +424,6 @@ void s1ap_handle_initial_ue_message(mme_enb_t *enb, ogs_s1ap_message_t *message)
     ogs_assert(InitialUEMessage);
 
     ogs_info("InitialUEMessage");
-    MME_UE_LIST_CHECK;
 
     for (i = 0; i < InitialUEMessage->protocolIEs.list.count; i++) {
         ie = InitialUEMessage->protocolIEs.list.array[i];
@@ -359,6 +505,7 @@ void s1ap_handle_initial_ue_message(mme_enb_t *enb, ogs_s1ap_message_t *message)
                 ogs_info("Unknown UE by S_TMSI[G:%d,C:%d,M_TMSI:0x%x]",
                         nas_guti.mme_gid, nas_guti.mme_code, nas_guti.m_tmsi);
             } else {
+                MME_UE_CHECK(OGS_LOG_DEBUG, mme_ue);
                 ogs_info("    S_TMSI[G:%d,C:%d,M_TMSI:0x%x] IMSI:[%s]",
                         mme_ue->current.guti.mme_gid,
                         mme_ue->current.guti.mme_code,
@@ -369,23 +516,24 @@ void s1ap_handle_initial_ue_message(mme_enb_t *enb, ogs_s1ap_message_t *message)
                 /* If NAS(mme_ue_t) has already been associated with
                  * older S1(enb_ue_t) context */
                 if (ECM_CONNECTED(mme_ue)) {
-                    /* Previous S1(enb_ue_t) context the holding timer(30secs)
-                     * is started.
-                     * Newly associated S1(enb_ue_t) context holding timer
-                     * is stopped. */
-                    ogs_debug("Start S1 Holding Timer");
-                    ogs_debug("    ENB_UE_S1AP_ID[%d] MME_UE_S1AP_ID[%d]",
-                            mme_ue->enb_ue->enb_ue_s1ap_id,
-                            mme_ue->enb_ue->mme_ue_s1ap_id);
-
-                    /* De-associate S1 with NAS/EMM */
-                    enb_ue_deassociate(mme_ue->enb_ue);
-
-                    r = s1ap_send_ue_context_release_command(mme_ue->enb_ue,
-                            S1AP_Cause_PR_nas, S1AP_CauseNas_normal_release,
-                            S1AP_UE_CTX_REL_S1_CONTEXT_REMOVE, 0);
-                    ogs_expect(r == OGS_OK);
-                    ogs_assert(r != OGS_ERROR);
+    /*
+     * Issue #2786
+     *
+     * In cases where the UE sends an Integrity Un-Protected Attach
+     * Request or Service Request, there is an issue of sending
+     * a UEContextReleaseCommand for the OLD ENB Context.
+     *
+     * For example, if the UE switchs off and power-on after
+     * the first connection, the EPC sends a UEContextReleaseCommand.
+     *
+     * However, since there is no ENB context for this on the eNB,
+     * the eNB does not send a UEContextReleaseComplete,
+     * so the deletion of the ENB Context does not function properly.
+     *
+     * To solve this problem, the EPC has been modified to implicitly
+     * delete the ENB Context instead of sending a UEContextReleaseCommand.
+     */
+                    HOLDING_S1_CONTEXT(mme_ue);
                 }
                 enb_ue_associate_mme_ue(enb_ue, mme_ue);
                 ogs_debug("Mobile Reachable timer stopped for IMSI[%s]",
@@ -396,13 +544,15 @@ void s1ap_handle_initial_ue_message(mme_enb_t *enb, ogs_s1ap_message_t *message)
     } else {
         ogs_error("Known UE ENB_UE_S1AP_ID[%d] [%p:%p]",
                 (int)*ENB_UE_S1AP_ID, enb_ue, enb_ue->mme_ue);
-        if (enb_ue->mme_ue)
+        if (enb_ue->mme_ue) {
+            MME_UE_CHECK(OGS_LOG_DEBUG, enb_ue->mme_ue);
             ogs_error("    S_TMSI[G:%d,C:%d,M_TMSI:0x%x] IMSI:[%s]",
                 enb_ue->mme_ue->current.guti.mme_gid,
                 enb_ue->mme_ue->current.guti.mme_code,
                 enb_ue->mme_ue->current.guti.m_tmsi,
                 MME_UE_HAVE_IMSI(enb_ue->mme_ue)
                 ? enb_ue->mme_ue->imsi_bcd : "Unknown");
+        }
     }
 
     if (!NAS_PDU) {
@@ -456,10 +606,8 @@ void s1ap_handle_initial_ue_message(mme_enb_t *enb, ogs_s1ap_message_t *message)
         enb_ue->enb_ue_s1ap_id, enb_ue->mme_ue_s1ap_id,
         enb_ue->saved.tai.tac, enb_ue->saved.e_cgi.cell_id);
 
-    r = s1ap_send_to_nas(enb_ue,
-            S1AP_ProcedureCode_id_initialUEMessage, NAS_PDU);
-    ogs_expect(r == OGS_OK);
-    ogs_assert(r != OGS_ERROR);
+    ogs_expect(OGS_OK == s1ap_send_to_nas(
+                enb_ue, S1AP_ProcedureCode_id_initialUEMessage, NAS_PDU));
 }
 
 void s1ap_handle_uplink_nas_transport(
@@ -484,6 +632,9 @@ void s1ap_handle_uplink_nas_transport(
 
     enb_ue_t *enb_ue = NULL;
 
+    ogs_eps_tai_t tai;
+    int served_tai_index = 0;
+
     ogs_assert(enb);
     ogs_assert(enb->sctp.sock);
 
@@ -494,7 +645,6 @@ void s1ap_handle_uplink_nas_transport(
     ogs_assert(UplinkNASTransport);
 
     ogs_debug("UplinkNASTransport");
-    MME_UE_LIST_CHECK;
 
     for (i = 0; i < UplinkNASTransport->protocolIEs.list.count; i++) {
         ie = UplinkNASTransport->protocolIEs.list.array[i];
@@ -591,6 +741,29 @@ void s1ap_handle_uplink_nas_transport(
         return;
     }
 
+    pLMNidentity = &TAI->pLMNidentity;
+    ogs_assert(pLMNidentity && pLMNidentity->size == sizeof(ogs_plmn_id_t));
+    tAC = &TAI->tAC;
+    ogs_assert(tAC && tAC->size == sizeof(uint16_t));
+
+    memcpy(&tai.plmn_id, pLMNidentity->buf, sizeof(tai.plmn_id));
+    memcpy(&tai.tac, tAC->buf, sizeof(tai.tac));
+    tai.tac = be16toh(tai.tac);
+
+    /* Check TAI */
+    served_tai_index = mme_find_served_tai(&tai);
+    if (served_tai_index < 0) {
+        ogs_error("Cannot find Served TAI[PLMN_ID:%06x,TAC:%d]",
+            ogs_plmn_id_hexdump(&tai.plmn_id), tai.tac);
+        r = s1ap_send_error_indication(enb, MME_UE_S1AP_ID, ENB_UE_S1AP_ID,
+                S1AP_Cause_PR_protocol,
+                S1AP_CauseProtocol_message_not_compatible_with_receiver_state);
+        ogs_expect(r == OGS_OK);
+        ogs_assert(r != OGS_ERROR);
+        return;
+    }
+    ogs_debug("    SERVED_TAI_INDEX[%d]", served_tai_index);
+
     pLMNidentity = &EUTRAN_CGI->pLMNidentity;
     ogs_assert(pLMNidentity && pLMNidentity->size == sizeof(ogs_plmn_id_t));
     cell_ID = &EUTRAN_CGI->cell_ID;
@@ -600,11 +773,6 @@ void s1ap_handle_uplink_nas_transport(
     memcpy(&enb_ue->saved.e_cgi.cell_id, cell_ID->buf,
             sizeof(enb_ue->saved.e_cgi.cell_id));
     enb_ue->saved.e_cgi.cell_id = (be32toh(enb_ue->saved.e_cgi.cell_id) >> 4);
-
-    pLMNidentity = &TAI->pLMNidentity;
-    ogs_assert(pLMNidentity && pLMNidentity->size == sizeof(ogs_plmn_id_t));
-    tAC = &TAI->tAC;
-    ogs_assert(tAC && tAC->size == sizeof(uint16_t));
 
     memcpy(&enb_ue->saved.tai.plmn_id, pLMNidentity->buf,
             sizeof(enb_ue->saved.tai.plmn_id));
@@ -619,6 +787,7 @@ void s1ap_handle_uplink_nas_transport(
     if (enb_ue->mme_ue) {
         mme_ue_t *mme_ue = enb_ue->mme_ue;
 
+        MME_UE_CHECK(OGS_LOG_DEBUG, enb_ue->mme_ue);
         memcpy(&mme_ue->tai, &enb_ue->saved.tai, sizeof(ogs_eps_tai_t));
         memcpy(&mme_ue->e_cgi, &enb_ue->saved.e_cgi, sizeof(ogs_e_cgi_t));
         mme_ue->ue_location_timestamp = ogs_time_now();
@@ -626,10 +795,8 @@ void s1ap_handle_uplink_nas_transport(
         ogs_error("No UE Context in UplinkNASTransport");
     }
 
-    r = s1ap_send_to_nas(enb_ue,
-            S1AP_ProcedureCode_id_uplinkNASTransport, NAS_PDU);
-    ogs_expect(r == OGS_OK);
-    ogs_assert(r != OGS_ERROR);
+    ogs_expect(OGS_OK == s1ap_send_to_nas(
+                enb_ue, S1AP_ProcedureCode_id_uplinkNASTransport, NAS_PDU));
 }
 
 void s1ap_handle_ue_capability_info_indication(
@@ -659,7 +826,6 @@ void s1ap_handle_ue_capability_info_indication(
     ogs_assert(UECapabilityInfoIndication);
 
     ogs_debug("UECapabilityInfoIndication");
-    MME_UE_LIST_CHECK;
 
     for (i = 0; i < UECapabilityInfoIndication->protocolIEs.list.count; i++) {
         ie = UECapabilityInfoIndication->protocolIEs.list.array[i];
@@ -725,6 +891,7 @@ void s1ap_handle_ue_capability_info_indication(
 
     if (enb_ue->mme_ue) {
         ogs_assert(UERadioCapability);
+        MME_UE_CHECK(OGS_LOG_DEBUG, enb_ue->mme_ue);
         OGS_ASN_STORE_DATA(&enb_ue->mme_ue->ueRadioCapability,
                 UERadioCapability);
     }
@@ -758,7 +925,6 @@ void s1ap_handle_initial_context_setup_response(
     ogs_assert(InitialContextSetupResponse);
 
     ogs_debug("InitialContextSetupResponse");
-    MME_UE_LIST_CHECK;
 
     for (i = 0; i < InitialContextSetupResponse->protocolIEs.list.count; i++) {
         ie = InitialContextSetupResponse->protocolIEs.list.array[i];
@@ -829,6 +995,7 @@ void s1ap_handle_initial_context_setup_response(
         return;
     }
 
+    MME_UE_CHECK(OGS_LOG_DEBUG, mme_ue);
     if (E_RABSetupListCtxtSURes) {
         int uli_presence = 0;
 
@@ -897,8 +1064,14 @@ void s1ap_handle_initial_context_setup_response(
                     ogs_debug("    ### ULI PRESENT ###");
                     uli_presence = 1;
                 }
-                ogs_list_add(&mme_ue->bearer_to_modify_list,
-                                &bearer->to_modify_node);
+                if (ogs_list_exists(
+                            &mme_ue->bearer_to_modify_list,
+                            &bearer->to_modify_node) == false)
+                    ogs_list_add(
+                            &mme_ue->bearer_to_modify_list,
+                            &bearer->to_modify_node);
+                else
+                    ogs_warn("Bearer [%d] Duplicated", (int)e_rab->e_RAB_ID);
             }
         }
 
@@ -1691,11 +1864,11 @@ void s1ap_handle_ue_context_release_action(enb_ue_t *enb_ue)
         return;
     }
 
-    mme_ue = enb_ue->mme_ue;
-
     ogs_info("UE Context Release [Action:%d]", enb_ue->ue_ctx_rel_action);
     ogs_info("    ENB_UE_S1AP_ID[%d] MME_UE_S1AP_ID[%d]",
             enb_ue->enb_ue_s1ap_id, enb_ue->mme_ue_s1ap_id);
+
+    mme_ue = mme_ue_cycle(enb_ue->mme_ue);
     if (mme_ue) {
         ogs_info("    IMSI[%s]", mme_ue->imsi_bcd);
 
@@ -1791,11 +1964,8 @@ void s1ap_handle_ue_context_release_action(enb_ue_t *enb_ue)
             return;
         }
 
-        if (mme_ue->location_updated_but_not_canceled_yet == true) {
-            mme_s6a_send_pur(mme_ue);
-        } else {
-            mme_ue_remove(mme_ue);
-        }
+        MME_UE_CHECK(OGS_LOG_DEBUG, mme_ue);
+        mme_ue_remove(mme_ue);
         break;
     case S1AP_UE_CTX_REL_S1_HANDOVER_COMPLETE:
         ogs_debug("    Action: S1 handover complete");
@@ -1910,7 +2080,6 @@ void s1ap_handle_e_rab_modification_indication(
     ogs_assert(E_RABModificationIndication);
 
     ogs_info("E_RABModificationIndication");
-    MME_UE_LIST_CHECK;
 
     for (i = 0; i < E_RABModificationIndication->protocolIEs.list.count; i++) {
         ie = E_RABModificationIndication->protocolIEs.list.array[i];
@@ -1990,6 +2159,7 @@ void s1ap_handle_e_rab_modification_indication(
         return;
     }
 
+    MME_UE_CHECK(OGS_LOG_DEBUG, mme_ue);
     ogs_list_init(&mme_ue->bearer_to_modify_list);
 
     for (i = 0; i < E_RABToBeModifiedListBearerModInd->list.count; i++) {
@@ -2046,7 +2216,13 @@ void s1ap_handle_e_rab_modification_indication(
             return;
         }
 
-        ogs_list_add(&mme_ue->bearer_to_modify_list, &bearer->to_modify_node);
+        if (ogs_list_exists(
+                    &mme_ue->bearer_to_modify_list,
+                    &bearer->to_modify_node) == false)
+            ogs_list_add(
+                    &mme_ue->bearer_to_modify_list, &bearer->to_modify_node);
+        else
+            ogs_warn("Bearer [%d] Duplicated", (int)e_rab->e_RAB_ID);
     }
 
     if (ogs_list_count(&mme_ue->bearer_to_modify_list)) {
@@ -2183,6 +2359,9 @@ void s1ap_handle_path_switch_request(
     mme_ue_t *mme_ue = NULL;
     ogs_pkbuf_t *s1apbuf = NULL;
 
+    ogs_eps_tai_t tai;
+    int served_tai_index = 0;
+
     sgw_relocation_e relocation;
 
     ogs_assert(enb);
@@ -2303,6 +2482,24 @@ void s1ap_handle_path_switch_request(
     ogs_assert(pLMNidentity && pLMNidentity->size == sizeof(ogs_plmn_id_t));
     tAC = &TAI->tAC;
     ogs_assert(tAC && tAC->size == sizeof(uint16_t));
+
+    memcpy(&tai.plmn_id, pLMNidentity->buf, sizeof(tai.plmn_id));
+    memcpy(&tai.tac, tAC->buf, sizeof(tai.tac));
+    tai.tac = be16toh(tai.tac);
+
+    /* Check TAI */
+    served_tai_index = mme_find_served_tai(&tai);
+    if (served_tai_index < 0) {
+        ogs_error("Cannot find Served TAI[PLMN_ID:%06x,TAC:%d]",
+            ogs_plmn_id_hexdump(&tai.plmn_id), tai.tac);
+        r = s1ap_send_error_indication(enb, MME_UE_S1AP_ID, ENB_UE_S1AP_ID,
+                S1AP_Cause_PR_protocol,
+                S1AP_CauseProtocol_message_not_compatible_with_receiver_state);
+        ogs_expect(r == OGS_OK);
+        ogs_assert(r != OGS_ERROR);
+        return;
+    }
+    ogs_debug("    SERVED_TAI_INDEX[%d]", served_tai_index);
 
     if (!E_RABToBeSwitchedDLList) {
         ogs_error("No E_RABToBeSwitchedDLList");
@@ -2453,8 +2650,13 @@ void s1ap_handle_path_switch_request(
             return;
         }
 
-        ogs_list_add(
-                &mme_ue->bearer_to_modify_list, &bearer->to_modify_node);
+        if (ogs_list_exists(
+                    &mme_ue->bearer_to_modify_list,
+                    &bearer->to_modify_node) == false)
+            ogs_list_add(
+                    &mme_ue->bearer_to_modify_list, &bearer->to_modify_node);
+        else
+            ogs_warn("Bearer [%d] Duplicated", (int)e_rab->e_RAB_ID);
     }
 
     relocation = sgw_ue_check_if_relocated(mme_ue);
@@ -3570,7 +3772,7 @@ void s1ap_handle_handover_notification(
             S1AP_Cause_PR_radioNetwork,
             S1AP_CauseRadioNetwork_successful_handover,
             S1AP_UE_CTX_REL_S1_HANDOVER_COMPLETE,
-            ogs_app()->time.handover.duration);
+            ogs_local_conf()->time.handover.duration);
     ogs_expect(r == OGS_OK);
     ogs_assert(r != OGS_ERROR);
 

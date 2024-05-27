@@ -219,7 +219,8 @@ ogs_pkbuf_t *mme_s11_build_create_session_request(
     if (sess->request_type.value == OGS_NAS_EPS_REQUEST_TYPE_HANDOVER)
         indication.handover_indication = 1;
 
-    if (create_action == OGS_GTP_CREATE_IN_PATH_SWITCH_REQUEST)
+    if (create_action == OGS_GTP_CREATE_IN_PATH_SWITCH_REQUEST ||
+        create_action == OGS_GTP_CREATE_IN_TRACKING_AREA_UPDATE)
         indication.operation_indication = 1;
 
     session->paa.session_type = req->pdn_type.u8;
@@ -288,6 +289,10 @@ ogs_pkbuf_t *mme_s11_build_create_session_request(
                 &enb_s1u_teid[i];
             req->bearer_contexts_to_be_created[i].s1_u_enodeb_f_teid.len =
                 enb_s1u_len[i];
+        }
+
+        if (create_action == OGS_GTP_CREATE_IN_PATH_SWITCH_REQUEST ||
+            create_action == OGS_GTP_CREATE_IN_TRACKING_AREA_UPDATE) {
 
             /* Data Plane(DL) : PGW-S5U */
             memset(&pgw_s5u_teid[i], 0, sizeof(ogs_gtp2_f_teid_t));
@@ -474,14 +479,19 @@ ogs_pkbuf_t *mme_s11_build_delete_session_request(
 
     mme_bearer_t *bearer = NULL;
     mme_ue_t *mme_ue = NULL;
+    sgw_ue_t *sgw_ue = NULL;
 
     ogs_assert(sess);
     mme_ue = sess->mme_ue;
     ogs_assert(mme_ue);
+    sgw_ue = mme_ue->sgw_ue;
+    ogs_assert(sgw_ue);
     bearer = mme_default_bearer_in_sess(sess);
     ogs_assert(bearer);
 
     ogs_debug("Delete Session Request");
+    ogs_debug("    MME_S11_TEID[%d] SGW_S11_TEID[%d]",
+            mme_ue->mme_s11_teid, sgw_ue->sgw_s11_teid);
 
     memset(&gtp_message, 0, sizeof(ogs_gtp2_message_t));
 

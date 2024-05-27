@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -20,6 +20,7 @@
 #include "hss-context.h"
 #include "hss-fd-path.h"
 #include "hss-sm.h"
+#include "metrics.h"
 
 
 static ogs_thread_t *thread;
@@ -31,7 +32,17 @@ int hss_initialize(void)
 {
     int rv;
 
+#define APP_NAME "hss"
+    rv = ogs_app_parse_local_conf(APP_NAME);
+    if (rv != OGS_OK) return rv;
+
+    hss_metrics_init();
+
     hss_context_init();
+    hss_event_init();
+
+    rv = ogs_metrics_context_parse_config(APP_NAME);
+    if (rv != OGS_OK) return rv;
 
     rv = hss_context_parse_config();
     if (rv != OGS_OK) return rv;
@@ -39,6 +50,8 @@ int hss_initialize(void)
     rv = ogs_log_config_domain(
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
+
+    ogs_metrics_context_open(ogs_metrics_self());
 
     rv = ogs_dbi_init(ogs_app()->db_uri);
     if (rv != OGS_OK) return rv;
@@ -60,11 +73,14 @@ void hss_terminate(void)
 
     hss_event_term();
     ogs_thread_destroy(thread);
+    ogs_metrics_context_close(ogs_metrics_self());
 
     hss_fd_final();
 
     ogs_dbi_final();
     hss_context_final();
+    hss_event_final();
+    hss_metrics_final();
 
     return;
 }
@@ -94,7 +110,7 @@ static void hss_main(void *data)
         ogs_timer_mgr_expire(ogs_app()->timer_mgr);
 
         for ( ;; ) {
-            ogs_event_t *e = NULL;
+            hss_event_t *e = NULL;
 
             rv = ogs_queue_trypop(ogs_app()->queue, (void**)&e);
             ogs_assert(rv != OGS_ERROR);
@@ -107,7 +123,7 @@ static void hss_main(void *data)
 
             ogs_assert(e);
             ogs_fsm_dispatch(&hss_sm, e);
-            ogs_event_free(e);
+            hss_event_free(e);
         }
     }
 done:
