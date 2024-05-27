@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -35,6 +35,10 @@ int amf_initialize(void)
 {
     int rv;
 
+#define APP_NAME "amf"
+    rv = ogs_app_parse_local_conf(APP_NAME);
+    if (rv != OGS_OK) return rv;
+
     amf_metrics_init();
 
     ogs_sbi_context_init(OpenAPI_nf_type_AMF);
@@ -43,10 +47,10 @@ int amf_initialize(void)
     rv = license_check_init();
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_sbi_context_parse_config("amf", "nrf", "scp");
+    rv = ogs_sbi_context_parse_config(APP_NAME, "nrf", "scp");
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_metrics_context_parse_config("amf");
+    rv = ogs_metrics_context_parse_config(APP_NAME);
     if (rv != OGS_OK) return rv;
 
     rv = amf_context_parse_config(false);
@@ -82,7 +86,7 @@ int amf_initialize(void)
 
     //set_telnet_cmd_callback(telnet_proc_cmd);
     setCommands();
-    cli_thread = ogs_thread_create(telnetMain, &ogs_global_conf()->cli_list);
+    cli_thread = ogs_thread_create(telnetMain, &ogs_app()->cli_list);
     if (!cli_thread) return OGS_ERROR;
     
     return OGS_OK;
@@ -95,7 +99,7 @@ void amf_sps_update_cli_port(void){
     char buf[OGS_ADDRSTRLEN];
     int port;
     
-    ogs_list_for_each(&ogs_global_conf()->cli_list, node) {
+    ogs_list_for_each(&ogs_app()->cli_list, node) {
         addr = node->addr;
         port = OGS_PORT(addr);
         addr->ogs_sin_port = htobe16(be16toh(addr->ogs_sin_port) + 1);
@@ -153,7 +157,7 @@ int amf_sps_initialize()
     
     setCommands();
     amf_sps_update_cli_port();
-    cli_thread = ogs_thread_create(telnetMain, &ogs_global_conf()->cli_list);
+    cli_thread = ogs_thread_create(telnetMain, &ogs_app()->cli_list);
     if (!cli_thread) return OGS_ERROR;
 
     initialized = 1;

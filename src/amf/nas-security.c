@@ -53,7 +53,7 @@ ogs_pkbuf_t *nas_5gs_security_encode(
         ciphered = 1;
         break;
     default:
-        ogs_error("Not implemented(securiry header type:0x%x)", 
+        ogs_error("Not implemented(security header type:0x%x)",
                 message->h.security_header_type);
         return NULL;
     }
@@ -115,7 +115,7 @@ ogs_pkbuf_t *nas_5gs_security_encode(
     return new;
 }
 
-int nas_5gs_security_decode(amf_ue_t *amf_ue, 
+int nas_5gs_security_decode(amf_ue_t *amf_ue,
     ogs_nas_security_header_type_t security_header_type, ogs_pkbuf_t *pkbuf)
 {
     ogs_assert(amf_ue);
@@ -137,7 +137,7 @@ int nas_5gs_security_decode(amf_ue_t *amf_ue,
     if (amf_ue->selected_int_algorithm == 0)
         security_header_type.integrity_protected = 0;
 
-    if (security_header_type.ciphered || 
+    if (security_header_type.ciphered ||
         security_header_type.integrity_protected) {
         ogs_nas_5gs_security_header_t *h = NULL;
 
@@ -178,6 +178,10 @@ int nas_5gs_security_decode(amf_ue_t *amf_ue,
 
         if (security_header_type.ciphered) {
             /* decrypt NAS message */
+            if (pkbuf->len == 0) {
+                ogs_error("Cannot decrypt Malformed NAS Message");
+                return OGS_ERROR;
+            }
             ogs_nas_encrypt(amf_ue->selected_enc_algorithm,
                 amf_ue->knas_enc, amf_ue->ul_count.i32,
                 amf_ue->nas.access_type,

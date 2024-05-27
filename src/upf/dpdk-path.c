@@ -626,6 +626,14 @@ ogs_pfcp_pdr_t *n3_pdr_find_by_local_sess(upf_sess_t *sess, ogs_gtp2_header_t *g
     uint8_t qfi = 0;
     int teid = be32toh(gtp_h->teid);
     /*TODO：临时做，确保这是第一个扩展头，否则会有问题*/
+    /*
+         * TS29.281
+         * 5.2.1 General format of the GTP-U Extension Header
+         * Figure 5.2.1-3: Definition of Extension Header Type
+         *
+         * Note 4 : For a GTP-PDU with several Extension Headers, the PDU
+         *          Session Container should be the first Extension Header
+    */
     if (LIKELY(gtp_h->flags & OGS_GTPU_FLAGS_E)) {
         ogs_gtp2_extension_header_t *ext_header =
             (ogs_gtp2_extension_header_t *)((char *)gtp_h + OGS_GTPV1U_HEADER_LEN);

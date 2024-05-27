@@ -294,6 +294,7 @@ int ngap_send_to_nas(ran_ue_t *ran_ue,
     default:
         ogs_error("Not implemented(security header type:0x%x)",
                 sh->security_header_type);
+        ran_ue_remove(ran_ue);
         return OGS_ERROR;
     }
 
@@ -301,12 +302,39 @@ int ngap_send_to_nas(ran_ue_t *ran_ue,
         if (nas_5gs_security_decode(ran_ue->amf_ue,
                 security_header_type, nasbuf) != OGS_OK) {
             ogs_error("nas_eps_security_decode failed()");
+            ran_ue_remove(ran_ue);
             return OGS_ERROR;
         }
     }
 
     h = (ogs_nas_5gmm_header_t *)nasbuf->data;
     ogs_assert(h);
+    if (procedureCode == NGAP_ProcedureCode_id_InitialUEMessage) {
+        if (h->extended_protocol_discriminator !=
+                OGS_NAS_EXTENDED_PROTOCOL_DISCRIMINATOR_5GMM) {
+
+            ogs_error("Invalid extended_protocol_discriminator [%d]",
+                    h->extended_protocol_discriminator);
+
+            ogs_pkbuf_free(nasbuf);
+            ran_ue_remove(ran_ue);
+
+            return OGS_ERROR;
+        }
+
+        if (h->message_type != OGS_NAS_5GS_REGISTRATION_REQUEST &&
+            h->message_type != OGS_NAS_5GS_SERVICE_REQUEST &&
+            h->message_type != OGS_NAS_5GS_DEREGISTRATION_REQUEST_FROM_UE) {
+
+            ogs_error("Invalid 5GMM message type [%d]", h->message_type);
+
+            ogs_pkbuf_free(nasbuf);
+            ran_ue_remove(ran_ue);
+
+            return OGS_ERROR;
+        }
+    }
+
     if (h->extended_protocol_discriminator ==
             OGS_NAS_EXTENDED_PROTOCOL_DISCRIMINATOR_5GMM) {
         e = amf_event_new(AMF_EVENT_5GMM_MESSAGE);
@@ -341,7 +369,9 @@ int ngap_send_to_nas(ran_ue_t *ran_ue,
     } else {
         ogs_error("Unknown NAS Protocol discriminator 0x%02x",
                   h->extended_protocol_discriminator);
+
         ogs_pkbuf_free(nasbuf);
+        ran_ue_remove(ran_ue);
         return OGS_ERROR;
     }
 }
@@ -416,6 +446,32 @@ int ngap_send_to_nas_sps(ran_ue_t *ran_ue,
 
     h = (ogs_nas_5gmm_header_t *)nasbuf->data;
     ogs_assert(h);
+    if (procedureCode == NGAP_ProcedureCode_id_InitialUEMessage) {
+        if (h->extended_protocol_discriminator !=
+                OGS_NAS_EXTENDED_PROTOCOL_DISCRIMINATOR_5GMM) {
+
+            ogs_error("Invalid extended_protocol_discriminator [%d]",
+                    h->extended_protocol_discriminator);
+
+            ogs_pkbuf_free(nasbuf);
+            ran_ue_remove(ran_ue);
+
+            return OGS_ERROR;
+        }
+
+        if (h->message_type != OGS_NAS_5GS_REGISTRATION_REQUEST &&
+            h->message_type != OGS_NAS_5GS_SERVICE_REQUEST &&
+            h->message_type != OGS_NAS_5GS_DEREGISTRATION_REQUEST_FROM_UE) {
+
+            ogs_error("Invalid 5GMM message type [%d]", h->message_type);
+
+            ogs_pkbuf_free(nasbuf);
+            ran_ue_remove(ran_ue);
+
+            return OGS_ERROR;
+        }
+    }
+
     if (h->extended_protocol_discriminator == OGS_NAS_EXTENDED_PROTOCOL_DISCRIMINATOR_5GMM){
         int rv;
         e = amf_event_new(AMF_EVENT_5GMM_MESSAGE);
@@ -446,6 +502,7 @@ int ngap_send_to_nas_sps(ran_ue_t *ran_ue,
     } else {
         ogs_error("Unknown NAS Protocol discriminator 0x%02x", h->extended_protocol_discriminator);
         ogs_pkbuf_free(nasbuf);
+        ran_ue_remove(ran_ue);
         return OGS_ERROR;
     }
 }
@@ -562,9 +619,10 @@ int ngap_send_ran_ue_context_release_command(
         return OGS_NOTFOUND;
     }
 
-    ogs_info("UEContextReleaseCommand,action=%d", action);
-    ogs_debug("    RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld]",
-            ran_ue->ran_ue_ngap_id, (long long)ran_ue->amf_ue_ngap_id);
+    ogs_debug("UEContextReleaseCommand");
+    ogs_debug("    RAN_UE_NGAP_ID[%lld] AMF_UE_NGAP_ID[%lld]",
+            (long long)ran_ue->ran_ue_ngap_id,
+            (long long)ran_ue->amf_ue_ngap_id);
 
     ogs_assert(action != NGAP_UE_CTX_REL_INVALID_ACTION);
     ran_ue->ue_ctx_rel_action = action;
@@ -759,18 +817,25 @@ int ngap_send_path_switch_ack(amf_sess_t *sess)
     int rv;
 
     amf_ue_t *amf_ue = NULL;
+    ran_ue_t *ran_ue = NULL;
     ogs_pkbuf_t *ngapbuf = NULL;
 
     ogs_assert(sess);
+    sess = amf_sess_cycle(sess);
+    if (!sess) {
+        ogs_error("Session has already been removed");
+        return OGS_NOTFOUND;
+    }
 
-    amf_ue = sess->amf_ue;
-    if (!amf_ue_cycle(amf_ue)) {
+    amf_ue = amf_ue_cycle(sess->amf_ue);
+    if (!amf_ue) {
         ogs_error("UE(amf-ue) context has already been removed");
         return OGS_NOTFOUND;
     }
 
-    if (!ran_ue_cycle(amf_ue->ran_ue)) {
-        ogs_error("NG context has already been removed");
+    ran_ue = ran_ue_cycle(amf_ue->ran_ue);
+    if (!ran_ue) {
+        ogs_error("[%s] NG context has already been removed", amf_ue->supi);
         return OGS_NOTFOUND;
     }
 
@@ -930,7 +995,7 @@ int ngap_send_downlink_ran_status_transfer(
 
 int ngap_send_error_indication(
         amf_gnb_t *gnb,
-        uint32_t *ran_ue_ngap_id,
+        uint64_t *ran_ue_ngap_id,
         uint64_t *amf_ue_ngap_id,
         NGAP_Cause_PR group, long cause)
 {
@@ -977,17 +1042,11 @@ int ngap_send_error_indication_sps(
 }
 
 int ngap_send_error_indication2(
-        amf_ue_t *amf_ue, NGAP_Cause_PR group, long cause)
+        ran_ue_t *ran_ue, NGAP_Cause_PR group, long cause)
 {
     int rv;
-    ran_ue_t *ran_ue;
 
-    if (!amf_ue_cycle(amf_ue)) {
-        ogs_error("UE(amf-ue) context has already been removed");
-        return OGS_NOTFOUND;
-    }
-
-    ran_ue = ran_ue_cycle(amf_ue->ran_ue);
+    ran_ue = ran_ue_cycle(ran_ue);
     if (!ran_ue) {
         ogs_error("NG context has already been removed");
         return OGS_NOTFOUND;

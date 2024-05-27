@@ -59,14 +59,14 @@ typedef struct amf_context_s {
         ogs_5gs_tai0_list_t list0;
         ogs_5gs_tai1_list_t list1;
         ogs_5gs_tai2_list_t list2;
-    } served_tai[OGS_MAX_NUM_OF_SERVED_TAI];
+    } served_tai[OGS_MAX_NUM_OF_SUPPORTED_TA];
 
     /* PLMN Support */
     int num_of_plmn_support;
     struct {
         ogs_plmn_id_t plmn_id;
         int num_of_s_nssai;
-        ogs_s_nssai_t s_nssai[OGS_MAX_NUM_OF_SLICE];
+        ogs_s_nssai_t s_nssai[OGS_MAX_NUM_OF_SLICE_SUPPORT];
     } plmn_support[OGS_MAX_NUM_OF_PLMN];
 
     /* Access Control */
@@ -75,7 +75,7 @@ typedef struct amf_context_s {
     struct {
         int reject_cause;
         ogs_plmn_id_t plmn_id;
-    } access_control[OGS_MAX_NUM_OF_ACCESS_CONTROL];
+    } access_control[OGS_MAX_NUM_OF_PLMN];
 
     /* defined in 'nas_ies.h'
      * #define NAS_SECURITY_ALGORITHMS_EIA0        0
@@ -111,7 +111,7 @@ typedef struct amf_context_s {
 
     ogs_hash_t      *gnb_addr_hash; /* hash table for GNB Address */
     ogs_hash_t      *gnb_id_hash;   /* hash table for GNB-ID */
-    ogs_hash_t      *guti_ue_hash;          /* hash table (GUTI : AMF_UE) */
+    ogs_hash_t      *guti_ue_hash;  /* hash table (GUTI : AMF_UE) */
     ogs_hash_t      *suci_hash;     /* hash table (SUCI) */
     ogs_hash_t      *supi_hash;     /* hash table (SUPI) */
     ogs_hash_t      *supi_ran_hash; /* hash table (SUPI:ran_ue) */
@@ -170,9 +170,9 @@ typedef struct amf_gnb_s {
         struct {
             ogs_plmn_id_t plmn_id;
             int num_of_s_nssai;
-            ogs_s_nssai_t s_nssai[OGS_MAX_NUM_OF_SLICE];
+            ogs_s_nssai_t s_nssai[OGS_MAX_NUM_OF_SLICE_SUPPORT];
         } bplmn_list[OGS_MAX_NUM_OF_BPLMN];
-    } supported_ta_list[OGS_MAX_NUM_OF_TAI];
+    } supported_ta_list[OGS_MAX_NUM_OF_SUPPORTED_TA];
 
     OpenAPI_rat_type_e rat_type;
 
@@ -187,8 +187,8 @@ struct ran_ue_s {
     uint32_t        index;
 
     /* UE identity */
-#define INVALID_UE_NGAP_ID      0xffffffff /* Initial value of ran_ue_ngap_id */
-    uint32_t        ran_ue_ngap_id; /* eNB-UE-NGAP-ID received from eNB */
+#define INVALID_UE_NGAP_ID 0xffffffffffffffffULL /* Initial value of ran_ue_ngap_id */
+    uint64_t        ran_ue_ngap_id; /* RAN-UE-NGAP-ID received from RAN */
     uint64_t        amf_ue_ngap_id; /* AMF-UE-NGAP-ID received from AMF */
     amf_m_tmsi_t    m_tmsi;// add 0206 O3 为了处理初始消息，查找amf_ue_ngap_id，查找sps_id
     uint8_t         sps_no;
@@ -197,6 +197,11 @@ struct ran_ue_s {
     /* UE context */
     bool            ue_context_requested;
     bool            initial_context_setup_request_sent;
+
+#define CONTEXT_SETUP_ESTABLISHED(__aMF) \
+    CM_CONNECTED(__aMF) && \
+    ((__aMF)->ran_ue->initial_context_setup_response_received == true)
+    bool            initial_context_setup_response_received;
     bool            ue_ambr_sent;
 
     /* Handover Info */
@@ -273,6 +278,9 @@ struct amf_ue_s {
     char            *supi; /* TS33.501 : SUPI */
     ogs_nas_5gs_mobile_identity_suci_t nas_mobile_identity_suci;
 
+    /* Home PLMN ID */
+    ogs_plmn_id_t   home_plmn_id;
+
     char            *pei;
     uint8_t         masked_imeisv[OGS_MAX_IMEISV_LEN];
     int             masked_imeisv_len;
@@ -310,13 +318,33 @@ struct amf_ue_s {
     /* PCF sends the RESPONSE
      * of [POST] /npcf-am-polocy-control/v1/policies */
 #define PCF_AM_POLICY_ASSOCIATED(__aMF) \
-    ((__aMF) && ((__aMF)->policy_association_id))
-
+    ((__aMF) && ((__aMF)->policy_association.id))
 #define PCF_AM_POLICY_CLEAR(__aMF) \
-    OGS_MEM_CLEAR((__aMF)->policy_association_id);
-#define PCF_AM_POLICY_STORE(__aMF, __iD) \
-    OGS_STRING_DUP((__aMF)->policy_association_id, __iD);
-    char *policy_association_id;
+    do { \
+        ogs_assert((__aMF)); \
+        if ((__aMF)->policy_association.resource_uri) \
+            ogs_free((__aMF)->policy_association.resource_uri); \
+        (__aMF)->policy_association.resource_uri = NULL; \
+        if ((__aMF)->policy_association.id) \
+            ogs_free((__aMF)->policy_association.id); \
+        (__aMF)->policy_association.id = NULL; \
+    } while(0)
+#define PCF_AM_POLICY_STORE(__aMF, __rESOURCE_URI, __iD) \
+    do { \
+        ogs_assert((__aMF)); \
+        ogs_assert((__rESOURCE_URI)); \
+        ogs_assert((__iD)); \
+        PCF_AM_POLICY_CLEAR(__aMF); \
+        (__aMF)->policy_association.resource_uri = ogs_strdup(__rESOURCE_URI); \
+        ogs_assert((__aMF)->policy_association.resource_uri); \
+        (__aMF)->policy_association.id = ogs_strdup(__iD); \
+        ogs_assert((__aMF)->policy_association.id); \
+    } while(0)
+    struct {
+        char *resource_uri;
+        char *id;
+        ogs_sbi_client_t *client;
+    } policy_association;
 
     /* 5GMM Capability */
     struct {
@@ -330,13 +358,39 @@ struct amf_ue_s {
     ((__aMF)->security_context_available == 1) && \
      ((__aMF)->mac_failed == 0) && \
      ((__aMF)->nas.ue.ksi != OGS_NAS_KSI_NO_KEY_IS_AVAILABLE))
+#define CLEAR_SECURITY_CONTEXT(__aMF) \
+    do { \
+        ogs_assert((__aMF)); \
+        (__aMF)->security_context_available = 0; \
+        (__aMF)->mac_failed = 0; \
+    } while(0)
     int             security_context_available;
     int             mac_failed;
 
     /* Security Context */
     ogs_nas_ue_security_capability_t ue_security_capability;
     ogs_nas_ue_network_capability_t ue_network_capability;
-    char            *confirmation_url_for_5g_aka;
+#define CHECK_5G_AKA_CONFIRMATION(__aMF) \
+    ((__aMF) && ((__aMF)->confirmation_for_5g_aka.resource_uri))
+#define STORE_5G_AKA_CONFIRMATION(__aMF, __rESOURCE_URI) \
+    do { \
+        ogs_assert((__aMF)); \
+        CLEAR_5G_AKA_CONFIRMATION(__aMF); \
+        (__aMF)->confirmation_for_5g_aka.resource_uri = \
+            ogs_strdup(__rESOURCE_URI); \
+        ogs_assert((__aMF)->confirmation_for_5g_aka.resource_uri); \
+    } while(0)
+#define CLEAR_5G_AKA_CONFIRMATION(__aMF) \
+    do { \
+        ogs_assert((__aMF)); \
+        if ((__aMF)->confirmation_for_5g_aka.resource_uri) \
+            ogs_free((__aMF)->confirmation_for_5g_aka.resource_uri); \
+        (__aMF)->confirmation_for_5g_aka.resource_uri = NULL; \
+    } while(0)
+    struct {
+        char *resource_uri;
+        ogs_sbi_client_t *client;
+    } confirmation_for_5g_aka;
     uint8_t         rand[OGS_RAND_LEN];
     uint8_t         autn[OGS_AUTN_LEN];
     uint8_t         xres_star[OGS_MAX_RES_LEN];
@@ -396,6 +450,47 @@ struct amf_ue_s {
     /* NG UE context */
     ran_ue_t        *ran_ue;
 
+#define HOLDING_NG_CONTEXT(__aMF) \
+    do { \
+        ran_ue_deassociate((__aMF)->ran_ue); \
+        \
+        (__aMF)->ran_ue_holding = ran_ue_cycle((__aMF)->ran_ue); \
+        if ((__aMF)->ran_ue_holding) { \
+            ogs_warn("[%s] Holding NG Context", (__aMF)->suci); \
+            ogs_warn("[%s]    RAN_UE_NGAP_ID[%lld] AMF_UE_NGAP_ID[%lld]", \
+                    (__aMF)->suci, \
+                    (long long)(__aMF)->ran_ue_holding->ran_ue_ngap_id, \
+                    (long long)(__aMF)->ran_ue_holding->amf_ue_ngap_id); \
+            \
+            (__aMF)->ran_ue_holding->ue_ctx_rel_action = \
+                NGAP_UE_CTX_REL_NG_CONTEXT_REMOVE; \
+            ogs_timer_start((__aMF)->ran_ue_holding->t_ng_holding, \
+                    amf_timer_cfg(AMF_TIMER_NG_HOLDING)->duration); \
+        } else \
+            ogs_error("[%s] NG Context has already been removed", \
+                    (__aMF)->suci); \
+    } while(0)
+#define CLEAR_NG_CONTEXT(__aMF) \
+    do { \
+        if (ran_ue_cycle((__aMF)->ran_ue_holding)) { \
+            int r; \
+            ogs_warn("[%s] Clear NG Context", (__aMF)->suci); \
+            ogs_warn("[%s]    RAN_UE_NGAP_ID[%lld] AMF_UE_NGAP_ID[%lld]", \
+                    (__aMF)->suci, \
+                    (long long)(__aMF)->ran_ue_holding->ran_ue_ngap_id, \
+                    (long long)(__aMF)->ran_ue_holding->amf_ue_ngap_id); \
+            \
+            r = ngap_send_ran_ue_context_release_command( \
+                    (__aMF)->ran_ue_holding, \
+                    NGAP_Cause_PR_nas, NGAP_CauseNas_normal_release, \
+                    NGAP_UE_CTX_REL_NG_CONTEXT_REMOVE, 0); \
+            ogs_expect(r == OGS_OK); \
+            ogs_assert(r != OGS_ERROR); \
+        } \
+        (__aMF)->ran_ue_holding = NULL; \
+    } while(0)
+    ran_ue_t        *ran_ue_holding;
+
 #define CLEAR_AMF_UE_ALL_TIMERS(__aMF) \
     do { \
         CLEAR_AMF_UE_TIMER((__aMF)->t3513); \
@@ -441,8 +536,34 @@ struct amf_ue_s {
 
     /* SubscriptionId of Subscription to Data Change Notification to UDM */
 #define UDM_SDM_SUBSCRIBED(__aMF) \
-    ((__aMF) && ((__aMF)->data_change_subscription_id))
-    char *data_change_subscription_id;
+    ((__aMF) && ((__aMF)->data_change_subscription.id))
+#define UDM_SDM_CLEAR(__aMF) \
+    do { \
+        ogs_assert((__aMF)); \
+        if ((__aMF)->data_change_subscription.resource_uri) \
+            ogs_free((__aMF)->data_change_subscription.resource_uri); \
+        (__aMF)->data_change_subscription.resource_uri = NULL; \
+        if ((__aMF)->data_change_subscription.id) \
+            ogs_free((__aMF)->data_change_subscription.id); \
+        (__aMF)->data_change_subscription.id = NULL; \
+    } while(0)
+#define UDM_SDM_STORE(__aMF, __rESOURCE_URI, __iD) \
+    do { \
+        ogs_assert((__aMF)); \
+        ogs_assert((__rESOURCE_URI)); \
+        ogs_assert((__iD)); \
+        UDM_SDM_CLEAR(__aMF); \
+        (__aMF)->data_change_subscription.resource_uri = \
+            ogs_strdup(__rESOURCE_URI); \
+        ogs_assert((__aMF)->data_change_subscription.resource_uri); \
+        (__aMF)->data_change_subscription.id = ogs_strdup(__iD); \
+        ogs_assert((__aMF)->data_change_subscription.id); \
+    } while(0)
+    struct {
+        char *resource_uri;
+        char *id;
+        ogs_sbi_client_t *client;
+    } data_change_subscription;
 
     struct {
         /*
@@ -472,18 +593,39 @@ typedef struct amf_sess_s {
     uint8_t pti;            /* Procedure Trasaction Identity */
 
 #define SESSION_CONTEXT_IN_SMF(__sESS)  \
-    ((__sESS) && (__sESS)->sm_context_ref)
-#define CLEAR_SM_CONTEXT_REF(__sESS) \
+    ((__sESS) && (__sESS)->sm_context.ref)
+#define STORE_SESSION_CONTEXT(__sESS, __rESOURCE_URI, __rEF) \
     do { \
         ogs_assert(__sESS); \
-        ogs_assert((__sESS)->sm_context_ref); \
-        ogs_free((__sESS)->sm_context_ref); \
-        (__sESS)->sm_context_ref = NULL; \
+        ogs_assert(__rESOURCE_URI); \
+        ogs_assert(__rEF); \
+        CLEAR_SESSION_CONTEXT(__sESS); \
+        (__sESS)->sm_context.resource_uri = ogs_strdup(__rESOURCE_URI); \
+        ogs_assert((__sESS)->sm_context.resource_uri); \
+        (__sESS)->sm_context.ref = ogs_strdup(__rEF); \
+        ogs_assert((__sESS)->sm_context.ref); \
+    } while(0);
+#define CLEAR_SESSION_CONTEXT(__sESS) \
+    do { \
+        ogs_assert(__sESS); \
+        if ((__sESS)->sm_context.ref) \
+            ogs_free((__sESS)->sm_context.ref); \
+        (__sESS)->sm_context.ref = NULL; \
+        if ((__sESS)->sm_context.resource_uri) \
+            ogs_free((__sESS)->sm_context.resource_uri); \
+        (__sESS)->sm_context.resource_uri = NULL; \
     } while(0);
 
     /* SMF sends the RESPONSE
      * of [POST] /nsmf-pdusession/v1/sm-contexts */
-    char *sm_context_ref;
+    struct {
+        char *resource_uri;
+        char *ref;
+        ogs_sbi_client_t *client;
+    } sm_context;
+
+    bool pdu_session_release_complete_received;
+    bool pdu_session_resource_release_response_received;
 
     /* SMF sends the REQUEST
      * of [POST] /namf-comm/v1/ue-contexts/{supi}/n1-n2-messages */
@@ -625,14 +767,16 @@ typedef struct amf_sess_s {
             ogs_pkbuf_free((__sESS)->gsm_message.n1buf); \
         } \
         (__sESS)->gsm_message.n1buf = __n1Buf; \
-        ogs_assert((__sESS)->gsm_message.n1buf); \
+        \
         if ((__sESS)->gsm_message.n2buf) { \
             ogs_warn("[%s:%d] N2 message duplicated. Overwritten", \
                     ((__sESS)->amf_ue)->supi, (__sESS)->psi); \
             ogs_pkbuf_free((__sESS)->gsm_message.n2buf); \
         } \
         (__sESS)->gsm_message.n2buf = __n2Buf; \
+        \
         ogs_assert((__sESS)->gsm_message.n2buf); \
+        \
         (__sESS)->gsm_message.type = __tYPE; \
     } while(0);
 
@@ -672,6 +816,7 @@ typedef struct amf_sess_s {
 
     /* Related Context */
     amf_ue_t        *amf_ue;
+    ran_ue_t        *ran_ue;
 
     ogs_s_nssai_t s_nssai;
     ogs_s_nssai_t mapped_hplmn;
@@ -748,13 +893,11 @@ int amf_gnb_set_gnb_id(amf_gnb_t *gnb, uint32_t gnb_id);
 int amf_gnb_sock_type(ogs_sock_t *sock);
 amf_gnb_t *amf_gnb_cycle(amf_gnb_t *gnb);
 
-ran_ue_t *ran_ue_add(amf_gnb_t *gnb, uint32_t ran_ue_ngap_id);
-ran_ue_t *ran_ue_add_sps( uint32_t ran_ue_ngap_id,uint64_t amf_ue_ngap_id);//o3 0213
-
+ran_ue_t *ran_ue_add(amf_gnb_t *gnb, uint64_t ran_ue_ngap_id);
 void ran_ue_remove(ran_ue_t *ran_ue);
 void ran_ue_switch_to_gnb(ran_ue_t *ran_ue, amf_gnb_t *new_gnb);
 ran_ue_t *ran_ue_find_by_ran_ue_ngap_id(
-        amf_gnb_t *gnb, uint32_t ran_ue_ngap_id);
+        amf_gnb_t *gnb, uint64_t ran_ue_ngap_id);
 ran_ue_t *ran_ue_find(uint32_t index);
 ran_ue_t *ran_ue_find_by_amf_ue_ngap_id(uint64_t amf_ue_ngap_id);
 ran_ue_t *ran_ue_cycle(ran_ue_t *ran_ue);
@@ -772,6 +915,7 @@ void amf_ue_fsm_fini(amf_ue_t *amf_ue);
 amf_ue_t *amf_ue_find_by_guti(ogs_nas_5gs_guti_t *nas_guti);
 amf_ue_t *amf_ue_find_by_suci(char *suci);
 amf_ue_t *amf_ue_find_by_supi(char *supi);
+amf_ue_t *amf_ue_find_by_ue_context_id(char *ue_context_id);
 
 amf_ue_t *amf_ue_find_by_message(ogs_nas_5gs_message_t *message);
 void amf_ue_set_suci(amf_ue_t *amf_ue,
@@ -848,7 +992,6 @@ amf_sess_t *amf_sess_add(amf_ue_t *amf_ue, uint8_t psi);
         sbi_object = &(__sESS)->sbi; \
         ogs_assert(sbi_object); \
         \
-        ogs_error("AMF_SESS_CLEAR"); \
         if (ogs_list_count(&sbi_object->xact_list)) { \
             ogs_error("SBI running [%d]", \
                     ogs_list_count(&sbi_object->xact_list)); \

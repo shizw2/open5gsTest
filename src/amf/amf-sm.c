@@ -117,7 +117,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    NULL, "cannot parse HTTP sbi_message", NULL));
+                    NULL, "cannot parse HTTP sbi_message", NULL, NULL));
             break;
         }
 
@@ -137,7 +137,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    &sbi_message, "Not supported version", NULL));
+                    &sbi_message, "Not supported version", NULL, NULL));
             ogs_sbi_message_free(&sbi_message);
             break;
         }
@@ -171,7 +171,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                     ogs_assert(true ==
                         ogs_sbi_server_send_error(stream,
                             OGS_SBI_HTTP_STATUS_FORBIDDEN, &sbi_message,
-                            "Invalid HTTP method", sbi_message.h.method));
+                            "Invalid HTTP method", sbi_message.h.method, NULL));
                 END
                 break;
 
@@ -182,7 +182,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
                         "Invalid resource name",
-                        sbi_message.h.resource.component[0]));
+                        sbi_message.h.resource.component[0], NULL));
             END
             break;
 
@@ -231,8 +231,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                                 ogs_sbi_server_send_error(stream,
                                     OGS_SBI_HTTP_STATUS_BAD_REQUEST,
                                     &sbi_message,
-                                    "No N1N2MessageTransferReqData", NULL));
-                            }
+                                    "No N1N2MessageTransferReqData", NULL, NULL));
                         }
                         break;
 
@@ -242,7 +241,25 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                         ogs_assert(true ==
                             ogs_sbi_server_send_error(stream,
                                 OGS_SBI_HTTP_STATUS_FORBIDDEN, &sbi_message,
-                                "Invalid HTTP method", sbi_message.h.method));
+                                "Invalid HTTP method", sbi_message.h.method,
+                                NULL));
+                    END
+                    break;
+
+                CASE(OGS_SBI_RESOURCE_NAME_TRANSFER)
+                    SWITCH(sbi_message.h.method)
+                    CASE(OGS_SBI_HTTP_METHOD_POST)
+                        amf_namf_comm_handle_ue_context_transfer_request(
+                                stream, &sbi_message);
+                        break;
+                    DEFAULT
+                        ogs_error("Invalid HTTP method [%s]",
+                                sbi_message.h.method);
+                        ogs_assert(true ==
+                            ogs_sbi_server_send_error(stream,
+                                OGS_SBI_HTTP_STATUS_FORBIDDEN, &sbi_message,
+                                "Invalid HTTP method", sbi_message.h.method,
+                                NULL));
                     END
                     break;
 
@@ -253,7 +270,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                         ogs_sbi_server_send_error(stream,
                             OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
                             "Invalid resource name",
-                            sbi_message.h.resource.component[2]));
+                            sbi_message.h.resource.component[2], NULL));
                 END
                 break;
 
@@ -264,7 +281,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
                         "Invalid resource name",
-                        sbi_message.h.resource.component[0]));
+                        sbi_message.h.resource.component[0], NULL));
             END
             break;
 
@@ -322,7 +339,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
                         "Invalid resource name",
-                        sbi_message.h.resource.component[1]));
+                        sbi_message.h.resource.component[1], NULL));
             END
             break;
 
@@ -331,7 +348,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream,
                     OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
-                    "Invalid API name", sbi_message.h.resource.component[0]));
+                    "Invalid API name", sbi_message.h.resource.component[0],
+                    NULL));
         END
 
         /* In lib/sbi/server.c, notify_completed() releases 'request' buffer. */
@@ -468,6 +486,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
         CASE(OGS_SBI_SERVICE_NAME_NUDM_UECM)
         CASE(OGS_SBI_SERVICE_NAME_NUDM_SDM)
         CASE(OGS_SBI_SERVICE_NAME_NPCF_AM_POLICY_CONTROL)
+        CASE(OGS_SBI_SERVICE_NAME_NAMF_COMM)
         CASE(OGS_SBI_SERVICE_NAME_N5G_EIR_EIC)
             if (is_amf_icps()){
                 ogs_info("test icps:sbi_message.h.service.name:%s.",sbi_message.h.service.name);
@@ -579,11 +598,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
             SWITCH(sbi_message.h.resource.component[2])
             CASE(OGS_SBI_RESOURCE_NAME_MODIFY)
-                rv = amf_nsmf_pdusession_handle_update_sm_context(
+                amf_nsmf_pdusession_handle_update_sm_context(
                         sess, state, &sbi_message);
-                if (rv != OGS_OK) {
-                    AMF_SESS_CLEAR(sess);
-                }
                 break;
 
             CASE(OGS_SBI_RESOURCE_NAME_RELEASE)
@@ -592,10 +608,9 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                     ogs_info("[%s:%d] Release SM context [%d]",
                             amf_ue->supi, sess->psi, sbi_message.res_status);
                 } else {
-                    ogs_error("[%s] HTTP response error [%d]",
-                            amf_ue->supi, sbi_message.res_status);
+                    ogs_error("[%s:%d] HTTP response error [%d]",
+                            amf_ue->supi, sess->psi, sbi_message.res_status);
                 }
-
                 amf_nsmf_pdusession_handle_release_sm_context(sess, state);
                 break;
 
@@ -622,6 +637,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                      * So, if CreateSMContext is failed,
                      * we'll clear SM_CONTEXT_REF.
                      */
+                    ogs_error("[%s:%d] create_sm_context failed() [%d]",
+                            amf_ue->supi, sess->psi, sbi_message.res_status);
                     AMF_SESS_CLEAR(sess);
                 }
             END
@@ -794,9 +811,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                     break;
                 }
 
-                amf_ue = sess->amf_ue;
-                ogs_assert(amf_ue);
-                amf_ue = amf_ue_cycle(amf_ue);
+                amf_ue = amf_ue_cycle(sess->amf_ue);
                 if (!amf_ue) {
                     ogs_error("UE(amf_ue) Context has already been removed");
                     break;
@@ -805,7 +820,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 ogs_error("[%d:%d] Cannot receive SBI message",
                         sess->psi, sess->pti);
                 if (sess->payload_container_type) {
-                    r = nas_5gs_send_back_gsm_message(sess,
+                    r = nas_5gs_send_back_gsm_message(sess->ran_ue, sess,
                             OGS_5GMM_CAUSE_PAYLOAD_WAS_NOT_FORWARDED,
                             AMF_NAS_BACKOFF_TIME);
                     ogs_expect(r == OGS_OK);
@@ -990,8 +1005,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             break;
         case AMF_TIMER_NG_HOLDING:
             ogs_warn("Implicit NG release");
-            ogs_warn("    RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld]",
-                  ran_ue->ran_ue_ngap_id,
+            ogs_warn("    RAN_UE_NGAP_ID[%lld] AMF_UE_NGAP_ID[%lld]",
+                  (long long)ran_ue->ran_ue_ngap_id,
                   (long long)ran_ue->amf_ue_ngap_id);
             ngap_handle_ue_context_release_action(ran_ue);
             break;
@@ -1030,19 +1045,19 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                     ogs_pkbuf_free(pkbuf);
                     break;
                 }
+
+                ogs_assert(CM_IDLE(amf_ue));
             } else {
                 /* Here, if the AMF_UE Context is found,
                  * the integrity check is not performed
-                 * For example, REGISTRATION_REQUEST,
-                 * TRACKING_AREA_UPDATE_REQUEST message
+                 * For example, REGISTRATION_REQUEST, SERVICE_REQUEST message
                  *
                  * Now, We will check the MAC in the NAS message*/
                 ogs_nas_security_header_type_t h;
                 h.type = e->nas.type;
                 if (h.integrity_protected) {
                     /* Decryption was performed in NGAP handler.
-                     * So, we disabled 'ciphered'
-                     * not to decrypt NAS message */
+                     * So, we disabled 'ciphered' not to decrypt NAS message */
                     h.ciphered = 0;
                     if (nas_5gs_security_decode(amf_ue, h, pkbuf) != OGS_OK) {
                         ogs_error("[%s] nas_security_decode() failed",
@@ -1051,45 +1066,59 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                         break;
                     }
                 }
-            }
 
-            /* 
-             * TS23.502
-             * 4.2.3.2 UE Triggered Service Request
-             *
-             * 4. [Conditional]
-             * AMF to SMF: Nsmf_PDUSession_UpdateSMContext Request
-             *
-             * The AMF may receive a Service Request to establish another
-             * NAS signalling connection via a NG-RAN while it has maintained
-             * an old NAS signalling connection for UE still via NG-RAN.
-             * In this case, AMF shall trigger the AN release procedure toward
-             * the old NG-RAN to release the old NAS signalling connection
-             * as defined in clause 4.2.6 with following logic: */
+                /*
+                 * TS23.502
+                 * 4.2.3.2 UE Triggered Service Request
+                 *
+                 * 4. [Conditional]
+                 * AMF to SMF: Nsmf_PDUSession_UpdateSMContext Request
+                 *
+                 * The AMF may receive a Service Request to establish another
+                 * NAS signalling connection via a NG-RAN while it has
+                 * maintained an old NAS signalling connection for UE still
+                 * via NG-RAN. In this case, AMF shall trigger the AN release
+                 * procedure toward the old NG-RAN to release the old NAS
+                 * signalling connection as defined in clause 4.2.6
+                 * with following logic:
+                 */
 
-            /* If NAS(amf_ue_t) has already been associated with
-             * older NG(ran_ue_t) context */
-            if (CM_CONNECTED(amf_ue)) {
-                /* Previous NG(ran_ue_t) context the holding timer(30secs)
-                 * is started.
-                 * Newly associated NG(ran_ue_t) context holding timer
-                 * is stopped. */
-                ogs_debug("[%s] Start NG Holding Timer", amf_ue->suci);
-                ogs_debug("[%s]    RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld]",
-                        amf_ue->suci, amf_ue->ran_ue->ran_ue_ngap_id,
-                        (long long)amf_ue->ran_ue->amf_ue_ngap_id);
-
-                /* De-associate NG with NAS/EMM */
-                ran_ue_deassociate(amf_ue->ran_ue);
-
-                r = ngap_send_ran_ue_context_release_command(amf_ue->ran_ue,
-                        NGAP_Cause_PR_nas, NGAP_CauseNas_normal_release,
-                        NGAP_UE_CTX_REL_NG_CONTEXT_REMOVE, 0);
-                ogs_expect(r == OGS_OK);
-                ogs_assert(r != OGS_ERROR);
+                /* If NAS(amf_ue_t) has already been associated with
+                 * older NG(ran_ue_t) context */
+                if (CM_CONNECTED(amf_ue)) {
+    /*
+     * Issue #2786
+     *
+     * In cases where the UE sends an Integrity Un-Protected Registration
+     * Request or Service Request, there is an issue of sending
+     * a UEContextReleaseCommand for the OLD RAN Context.
+     *
+     * For example, if the UE switchs off and power-on after
+     * the first connection, the 5G Core sends a UEContextReleaseCommand.
+     *
+     * However, since there is no RAN context for this on the gNB,
+     * the gNB does not send a UEContextReleaseComplete,
+     * so the deletion of the RAN Context does not function properly.
+     *
+     * To solve this problem, the 5G Core has been modified to implicitly
+     * delete the RAN Context instead of sending a UEContextReleaseCommand.
+     */
+                    HOLDING_NG_CONTEXT(amf_ue);
+                }
             }
             amf_ue_associate_ran_ue(amf_ue, ran_ue);
-            ogs_info("????????SPS AMF_EVENT_5GMM_MESSAGE amf_ue->ran_ue->amf_ue_ngap_id:%lu",amf_ue->ran_ue->amf_ue_ngap_id);
+
+            /*
+             * TS 24.501
+             * 5.3.7 Handling of the periodic registration update timer
+             *
+             * The mobile reachable timer shall be stopped
+             * when a NAS signalling connection is established for the UE.
+             * The implicit de-registration timer shall be stopped
+             * when a NAS signalling connection is established for the UE.
+             */
+            CLEAR_AMF_UE_TIMER(amf_ue->mobile_reachable);
+            CLEAR_AMF_UE_TIMER(amf_ue->implicit_deregistration);
         }
 
         ogs_assert(amf_ue);
@@ -1116,7 +1145,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
         break;
 
     case AMF_EVENT_INTERNEL_TIMER:
-		sock = e->internal_sock;
+	sock = e->internal_sock;
         ogs_assert(sock);
 
         switch (e->h.timer_id) {

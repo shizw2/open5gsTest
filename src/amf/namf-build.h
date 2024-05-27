@@ -17,40 +17,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "ogs-sctp.h"
-#include "ogs-app.h"
-extern int g_sps_id;
-int app_initialize(const char *const argv[])
-{
-    int rv;
+#ifndef AMF_NAMF_BUILD_H
+#define AMF_NAMF_BUILD_H
 
-    ogs_sctp_init(ogs_app()->usrsctp.udp_port);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-    char *FileDP = (char *)argv[0];
-    char *FileName = strrchr(FileDP, '/') +1 ;
-    printf("arg:%s.\r\n",FileName);    
-    if (g_sps_id == 0){
-        printf("amf init.\r\n");
-    rv = amf_initialize();
-    }else{
-        printf("amf sps init.\r\n");
-        rv = amf_sps_initialize();
-    }
-    fflush(stdout);
+#include "context.h"
 
-    
-    if (rv != OGS_OK) {
-        ogs_error("Failed to initialize AMF");
-        return rv;
-    }
-    ogs_info("AMF initialize...done");
+ogs_sbi_request_t *amf_namf_comm_build_ue_context_transfer(
+        amf_ue_t *amf_ue, void *data);
 
-    return OGS_OK;
+#ifdef __cplusplus
 }
+#endif
 
-void app_terminate(void)
-{
-    amf_terminate();
-    ogs_sctp_final();
-    ogs_info("AMF terminate...done");
-}
+#endif /* AMF_NAMF_BUILD_H */

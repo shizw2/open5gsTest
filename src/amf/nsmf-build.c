@@ -91,7 +91,45 @@ ogs_sbi_request_t *amf_nsmf_pdusession_build_create_sm_context(
         ogs_error("No pdu_session_id");
         goto end;
     }
-    SmContextCreateData.dnn = sess->dnn;
+
+    /*
+     * TS29.502
+     * 6.1 Nsmf_PDUSession Service API
+     * Table 6.1.6.2.2-1: Definition of type SmContextCreateData
+     *
+     * NAME: dnn
+     * Data type: Dnn
+     * P: C
+     * Cardinality: 0..1
+     *
+     * This IE shall be present, except during an EPS to 5GS Idle mode mobility
+     * or handover using the N26 interface.
+     *
+     * When present, it shall contain the requested DNN; the DNN shall
+     * be the full DNN (i.e. with both the Network Identifier and
+     * Operator Identifier) for a HR PDU session, and it should be
+     * the full DNN in LBO and non-roaming scenarios. If the Operator Identifier
+     * is absent, the serving core network operator shall be assumed.
+     */
+    if (ogs_sbi_plmn_id_in_vplmn(&amf_ue->home_plmn_id) == true) {
+        char *home_network_domain = NULL;
+
+        home_network_domain =
+            ogs_home_network_domain_from_plmn_id(&amf_ue->home_plmn_id);
+        ogs_assert(home_network_domain);
+
+        SmContextCreateData.dnn =
+            ogs_msprintf("%s.%s", sess->dnn, home_network_domain);
+        ogs_assert(SmContextCreateData.dnn);
+
+        ogs_free(home_network_domain);
+
+    } else {
+
+        SmContextCreateData.dnn = ogs_strdup(sess->dnn);
+        ogs_assert(SmContextCreateData.dnn);
+
+    }
 
     sNssai.sst = sess->s_nssai.sst;
     sNssai.sd = ogs_s_nssai_sd_to_string(sess->s_nssai.sd);
@@ -121,7 +159,7 @@ ogs_sbi_request_t *amf_nsmf_pdusession_build_create_sm_context(
         goto end;
     }
 
-    server = ogs_list_first(&ogs_sbi_self()->server_list);
+    server = ogs_sbi_server_first();
     if (!server) {
         ogs_error("No server");
         goto end;
@@ -189,9 +227,10 @@ ogs_sbi_request_t *amf_nsmf_pdusession_build_create_sm_context(
     ogs_expect(request);
 
 end:
-
     if (SmContextCreateData.serving_network)
         ogs_sbi_free_plmn_id_nid(SmContextCreateData.serving_network);
+    if (SmContextCreateData.dnn)
+        ogs_free(SmContextCreateData.dnn);
     if (SmContextCreateData.sm_context_status_uri)
         ogs_free(SmContextCreateData.sm_context_status_uri);
     if (header.resource.component[2])
@@ -235,17 +274,15 @@ ogs_sbi_request_t *amf_nsmf_pdusession_build_update_sm_context(
 
     ogs_assert(param);
     ogs_assert(sess);
-    ogs_assert(sess->sm_context_ref);
+    ogs_assert(sess->sm_context.resource_uri);
     amf_ue = sess->amf_ue;
     ogs_assert(amf_ue);
 
     memset(&message, 0, sizeof(message));
     message.h.method = (char *)OGS_SBI_HTTP_METHOD_POST;
-    message.h.service.name = (char *)OGS_SBI_SERVICE_NAME_NSMF_PDUSESSION;
-    message.h.api.version = (char *)OGS_SBI_API_V1;
-    message.h.resource.component[0] = (char *)OGS_SBI_RESOURCE_NAME_SM_CONTEXTS;
-    message.h.resource.component[1] = sess->sm_context_ref;
-    message.h.resource.component[2] = (char *)OGS_SBI_RESOURCE_NAME_MODIFY;
+    message.h.uri = ogs_msprintf("%s/%s",
+            sess->sm_context.resource_uri, OGS_SBI_RESOURCE_NAME_MODIFY);
+    ogs_assert(message.h.uri);
 
     memset(&ueLocation, 0, sizeof(ueLocation));
     memset(&SmContextUpdateData, 0, sizeof(SmContextUpdateData));
@@ -340,6 +377,8 @@ ogs_sbi_request_t *amf_nsmf_pdusession_build_update_sm_context(
     ogs_expect(request);
 
 end:
+    if (message.h.uri)
+        ogs_free(message.h.uri);
     if (ueLocation.nr_location) {
         if (ueLocation.nr_location->ue_location_timestamp)
             ogs_free(ueLocation.nr_location->ue_location_timestamp);
@@ -368,18 +407,15 @@ ogs_sbi_request_t *amf_nsmf_pdusession_build_release_sm_context(
     OpenAPI_user_location_t ueLocation;
 
     ogs_assert(sess);
-    ogs_assert(sess->sm_context_ref);
+    ogs_assert(sess->sm_context.resource_uri);
     amf_ue = sess->amf_ue;
     ogs_assert(amf_ue);
 
     memset(&message, 0, sizeof(message));
     message.h.method = (char *)OGS_SBI_HTTP_METHOD_POST;
-    message.h.service.name = (char *)OGS_SBI_SERVICE_NAME_NSMF_PDUSESSION;
-    message.h.api.version = (char *)OGS_SBI_API_V1;
-    message.h.resource.component[0] =
-        (char *)OGS_SBI_RESOURCE_NAME_SM_CONTEXTS;
-    message.h.resource.component[1] = sess->sm_context_ref;
-    message.h.resource.component[2] = (char *)OGS_SBI_RESOURCE_NAME_RELEASE;
+    message.h.uri = ogs_msprintf("%s/%s",
+            sess->sm_context.resource_uri, OGS_SBI_RESOURCE_NAME_RELEASE);
+    ogs_assert(message.h.uri);
 
     memset(&SmContextReleaseData, 0, sizeof(SmContextReleaseData));
 
@@ -423,6 +459,8 @@ ogs_sbi_request_t *amf_nsmf_pdusession_build_release_sm_context(
     ogs_expect(request);
 
 end:
+    if (message.h.uri)
+        ogs_free(message.h.uri);
     if (ueLocation.nr_location) {
         if (ueLocation.nr_location->ue_location_timestamp)
             ogs_free(ueLocation.nr_location->ue_location_timestamp);
