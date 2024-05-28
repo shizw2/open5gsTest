@@ -196,7 +196,7 @@ smf:
 #  sbi:
 #    server:
 #      - dev: eth0
-#        advertise: open5gs-smf.svc.local
+#        advertise: 5gc-smf.svc.local
 #
 #  sbi:
 #    server:
@@ -238,11 +238,11 @@ smf:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/smf.key
-#        cert: @sysconfdir@/open5gs/tls/smf.crt
+#        private_key: @sysconfdir@/5gc/tls/smf.key
+#        cert: @sysconfdir@/5gc/tls/smf.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
 #  sbi:
 #    server:
 #      - address: smf.localdomain
@@ -255,15 +255,15 @@ smf:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/smf.key
-#        cert: @sysconfdir@/open5gs/tls/smf.crt
+#        private_key: @sysconfdir@/5gc/tls/smf.key
+#        cert: @sysconfdir@/5gc/tls/smf.crt
 #        verify_client: true
-#        verify_client_cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        verify_client_cacert: @sysconfdir@/5gc/tls/ca.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
-#        client_private_key: @sysconfdir@/open5gs/tls/smf.key
-#        client_cert: @sysconfdir@/open5gs/tls/smf.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
+#        client_private_key: @sysconfdir@/5gc/tls/smf.key
+#        client_cert: @sysconfdir@/5gc/tls/smf.crt
 #  sbi:
 #    server:
 #      - address: smf.localdomain
@@ -278,7 +278,7 @@ smf:
 #  pfcp:
 #    server:
 #      - dev: eth0
-#        advertise: open5gs-smf.svc.local
+#        advertise: 5gc-smf.svc.local
 #
 ################################################################################
 # PFCP Client

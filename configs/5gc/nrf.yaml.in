@@ -34,7 +34,7 @@ nrf:
 #  sbi:
 #    server:
 #      - dev: eth0
-#        advertise: open5gs-nrf.svc.local
+#        advertise: 5gc-nrf.svc.local
 #
 #  sbi:
 #    server:
@@ -51,11 +51,11 @@ nrf:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/nrf.key
-#        cert: @sysconfdir@/open5gs/tls/nrf.crt
+#        private_key: @sysconfdir@/5gc/tls/nrf.key
+#        cert: @sysconfdir@/5gc/tls/nrf.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
 #  sbi:
 #    server:
 #      - address: nrf.localdomain
@@ -65,15 +65,15 @@ nrf:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/nrf.key
-#        cert: @sysconfdir@/open5gs/tls/nrf.crt
+#        private_key: @sysconfdir@/5gc/tls/nrf.key
+#        cert: @sysconfdir@/5gc/tls/nrf.crt
 #        verify_client: true
-#        verify_client_cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        verify_client_cacert: @sysconfdir@/5gc/tls/ca.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
-#        client_private_key: @sysconfdir@/open5gs/tls/nrf.key
-#        client_cert: @sysconfdir@/open5gs/tls/nrf.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
+#        client_private_key: @sysconfdir@/5gc/tls/nrf.key
+#        client_cert: @sysconfdir@/5gc/tls/nrf.crt
 #  sbi:
 #    server:
 #      - address: nrf.localdomain

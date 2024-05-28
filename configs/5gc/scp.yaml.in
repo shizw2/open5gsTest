@@ -1,6 +1,6 @@
 logger:
   file:
-    path: @localstatedir@/log/open5gs/scp.log
+    path: @localstatedir@/log/5gc/scp.log
 #  level: info   # fatal|error|warn|info(default)|debug|trace
 
 global:
@@ -67,7 +67,7 @@ scp:
 #  sbi:
 #    server:
 #      - dev: eth0
-#        advertise: open5gs-scp.svc.local
+#        advertise: 5gc-scp.svc.local
 #
 #  sbi:
 #    server:
@@ -93,11 +93,11 @@ scp:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/scp.key
-#        cert: @sysconfdir@/open5gs/tls/scp.crt
+#        private_key: @sysconfdir@/5gc/tls/scp.key
+#        cert: @sysconfdir@/5gc/tls/scp.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
 #  sbi:
 #    server:
 #      - address: scp.localdomain
@@ -110,15 +110,15 @@ scp:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/scp.key
-#        cert: @sysconfdir@/open5gs/tls/scp.crt
+#        private_key: @sysconfdir@/5gc/tls/scp.key
+#        cert: @sysconfdir@/5gc/tls/scp.crt
 #        verify_client: true
-#        verify_client_cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        verify_client_cacert: @sysconfdir@/5gc/tls/ca.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
-#        client_private_key: @sysconfdir@/open5gs/tls/scp.key
-#        client_cert: @sysconfdir@/open5gs/tls/scp.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
+#        client_private_key: @sysconfdir@/5gc/tls/scp.key
+#        client_cert: @sysconfdir@/5gc/tls/scp.crt
 #  sbi:
 #    server:
 #      - address: scp.localdomain

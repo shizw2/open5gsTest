@@ -35,7 +35,7 @@ bsf:
 #  sbi:
 #    server:
 #      - dev: eth0
-#        advertise: open5gs-bsf.svc.local
+#        advertise: 5gc-bsf.svc.local
 #
 #  sbi:
 #    server:
@@ -77,11 +77,11 @@ bsf:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/bsf.key
-#        cert: @sysconfdir@/open5gs/tls/bsf.crt
+#        private_key: @sysconfdir@/5gc/tls/bsf.key
+#        cert: @sysconfdir@/5gc/tls/bsf.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
 #  sbi:
 #    server:
 #      - address: bsf.localdomain
@@ -94,15 +94,15 @@ bsf:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/bsf.key
-#        cert: @sysconfdir@/open5gs/tls/bsf.crt
+#        private_key: @sysconfdir@/5gc/tls/bsf.key
+#        cert: @sysconfdir@/5gc/tls/bsf.crt
 #        verify_client: true
-#        verify_client_cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        verify_client_cacert: @sysconfdir@/5gc/tls/ca.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
-#        client_private_key: @sysconfdir@/open5gs/tls/bsf.key
-#        client_cert: @sysconfdir@/open5gs/tls/bsf.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
+#        client_private_key: @sysconfdir@/5gc/tls/bsf.key
+#        client_cert: @sysconfdir@/5gc/tls/bsf.crt
 #  sbi:
 #    server:
 #      - address: bsf.localdomain

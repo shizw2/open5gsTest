@@ -83,11 +83,11 @@ ausf:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/ausf.key
-#        cert: @sysconfdir@/open5gs/tls/ausf.crt
+#        private_key: @sysconfdir@/5gc/tls/ausf.key
+#        cert: @sysconfdir@/5gc/tls/ausf.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
 #  sbi:
 #    server:
 #      - address: ausf.localdomain
@@ -100,15 +100,15 @@ ausf:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/ausf.key
-#        cert: @sysconfdir@/open5gs/tls/ausf.crt
+#        private_key: @sysconfdir@/5gc/tls/ausf.key
+#        cert: @sysconfdir@/5gc/tls/ausf.crt
 #        verify_client: true
-#        verify_client_cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        verify_client_cacert: @sysconfdir@/5gc/tls/ca.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
-#        client_private_key: @sysconfdir@/open5gs/tls/ausf.key
-#        client_cert: @sysconfdir@/open5gs/tls/ausf.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
+#        client_private_key: @sysconfdir@/5gc/tls/ausf.key
+#        client_cert: @sysconfdir@/5gc/tls/ausf.crt
 #  sbi:
 #    server:
 #      - address: ausf.localdomain

@@ -1,6 +1,6 @@
 logger:
   file:
-    path: @localstatedir@/log/open5gs/sepp1.log
+    path: @localstatedir@/log/5gc/sepp1.log
 #  level: info   # fatal|error|warn|info(default)|debug|trace
 
 global:
@@ -12,10 +12,10 @@ sepp:
   default:
     tls:
       server:
-        private_key: @sysconfdir@/open5gs/tls/sepp1.key
-        cert: @sysconfdir@/open5gs/tls/sepp1.crt
+        private_key: @sysconfdir@/5gc/tls/sepp1.key
+        cert: @sysconfdir@/5gc/tls/sepp1.crt
       client:
-        cacert: @sysconfdir@/open5gs/tls/ca.crt
+        cacert: @sysconfdir@/5gc/tls/ca.crt
   sbi:
     server:
       - address: 127.0.1.250
@@ -126,10 +126,10 @@ sepp:
 #  default:
 #    tls:
 #      server:
-#        private_key: @sysconfdir@/open5gs/tls/sepp1.key
-#        cert: @sysconfdir@/open5gs/tls/sepp1.crt
+#        private_key: @sysconfdir@/5gc/tls/sepp1.key
+#        cert: @sysconfdir@/5gc/tls/sepp1.crt
 #      client:
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
 #  sbi:
 #    server:
 #      - address: 127.0.1.250
@@ -152,14 +152,14 @@ sepp:
 #  default:
 #    tls:
 #      server:
-#        private_key: @sysconfdir@/open5gs/tls/sepp1.key
-#        cert: @sysconfdir@/open5gs/tls/sepp1.crt
+#        private_key: @sysconfdir@/5gc/tls/sepp1.key
+#        cert: @sysconfdir@/5gc/tls/sepp1.crt
 #        verify_client: true
-#        verify_client_cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        verify_client_cacert: @sysconfdir@/5gc/tls/ca.crt
 #      client:
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
-#        client_private_key: @sysconfdir@/open5gs/tls/sepp1.key
-#        client_cert: @sysconfdir@/open5gs/tls/sepp1.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
+#        client_private_key: @sysconfdir@/5gc/tls/sepp1.key
+#        client_cert: @sysconfdir@/5gc/tls/sepp1.crt
 #  sbi:
 #    server:
 #      - address: 127.0.1.250
@@ -183,14 +183,14 @@ sepp:
 #  default:
 #    tls:
 #      server:
-#        private_key: @sysconfdir@/open5gs/tls/sepp1.key
-#        cert: @sysconfdir@/open5gs/tls/sepp1.crt
+#        private_key: @sysconfdir@/5gc/tls/sepp1.key
+#        cert: @sysconfdir@/5gc/tls/sepp1.crt
 #        verify_client: true
-#        verify_client_cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        verify_client_cacert: @sysconfdir@/5gc/tls/ca.crt
 #      client:
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
-#        client_private_key: @sysconfdir@/open5gs/tls/sepp1.key
-#        client_cert: @sysconfdir@/open5gs/tls/sepp1.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
+#        client_private_key: @sysconfdir@/5gc/tls/sepp1.key
+#        client_cert: @sysconfdir@/5gc/tls/sepp1.crt
 #  sbi:
 #    server:
 #      - address: 127.0.1.250
@@ -228,28 +228,28 @@ sepp:
 #      - sender: sepp1.localdomain
 #        scheme: https
 #        address: 127.0.1.251
-#        private_key: @sysconfdir@/open5gs/tls/sepp1.key
-#        cert: @sysconfdir@/open5gs/tls/sepp1.crt
+#        private_key: @sysconfdir@/5gc/tls/sepp1.key
+#        cert: @sysconfdir@/5gc/tls/sepp1.crt
 #        verify_client: true
-#        verify_client_cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        verify_client_cacert: @sysconfdir@/5gc/tls/ca.crt
 #        n32f:
 #          scheme: https
 #          address: 127.0.1.252
-#          private_key: @sysconfdir@/open5gs/tls/sepp1-n32f.key
-#          cert: @sysconfdir@/open5gs/tls/sepp1-n32f.crt
+#          private_key: @sysconfdir@/5gc/tls/sepp1-n32f.key
+#          cert: @sysconfdir@/5gc/tls/sepp1-n32f.crt
 #          verify_client: true
-#          verify_client_cacert: @sysconfdir@/open5gs/tls/ca.crt
+#          verify_client_cacert: @sysconfdir@/5gc/tls/ca.crt
 #    client:
 #      sepp:
 #        - receiver: sepp2.localdomain
 #          uri: https://sepp2.localdomain
 #          resolve: 127.0.2.251
-#          cacert: @sysconfdir@/open5gs/tls/ca.crt
-#          client_private_key: @sysconfdir@/open5gs/tls/sepp1.key
-#          client_cert: @sysconfdir@/open5gs/tls/sepp1.crt
+#          cacert: @sysconfdir@/5gc/tls/ca.crt
+#          client_private_key: @sysconfdir@/5gc/tls/sepp1.key
+#          client_cert: @sysconfdir@/5gc/tls/sepp1.crt
 #          n32f:
 #            uri: https://sepp2.localdomain
 #            resolve: 127.0.2.252
-#            cacert: @sysconfdir@/open5gs/tls/ca.crt
-#            client_private_key: @sysconfdir@/open5gs/tls/sepp1-n32f.key
-#            client_cert: @sysconfdir@/open5gs/tls/sepp1-n32f.crt
+#            cacert: @sysconfdir@/5gc/tls/ca.crt
+#            client_private_key: @sysconfdir@/5gc/tls/sepp1-n32f.key
+#            client_cert: @sysconfdir@/5gc/tls/sepp1-n32f.crt

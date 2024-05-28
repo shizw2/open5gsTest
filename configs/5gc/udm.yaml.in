@@ -57,41 +57,41 @@ udm:
 # Home Network Public Key
 ################################################################################
 #  o Generate the private key as below.
-#  $ openssl genpkey -algorithm X25519 -out /etc/open5gs/hnet/curve25519-1.key
-#  $ openssl ecparam -name prime256v1 -genkey -conv_form compressed -out /etc/open5gs/hnet/secp256r1-2.key
+#  $ openssl genpkey -algorithm X25519 -out /etc/5gc/hnet/curve25519-1.key
+#  $ openssl ecparam -name prime256v1 -genkey -conv_form compressed -out /etc/5gc/hnet/secp256r1-2.key
 #
 #  o The private and public keys can be viewed with the command.
 #    The public key is used when creating the SIM.
-#  $ openssl pkey -in /etc/open5gs/hnet/curve25519-1.key -text
-#  $ openssl ec -in /etc/open5gs/hnet/secp256r1-2.key -conv_form compressed -text
+#  $ openssl pkey -in /etc/5gc/hnet/curve25519-1.key -text
+#  $ openssl ec -in /etc/5gc/hnet/secp256r1-2.key -conv_form compressed -text
 #
 #  o Home network public key identifier(PKI) value : 1
 #    Protection scheme identifier : ECIES scheme profile A
 #  hnet:
 #    - id: 1
 #      scheme: 1
-#      key: /etc/open5gs/hnet/curve25519-1.key
+#      key: /etc/5gc/hnet/curve25519-1.key
 #
 #  o Home network public key identifier(PKI) value : 2
 #    Protection scheme identifier : ECIES scheme profile B
 #  hnet:
 #    - id: 2
 #      scheme: 2
-#      key: /etc/open5gs/hnet/secp256r1-2.key
+#      key: /etc/5gc/hnet/secp256r1-2.key
 #
 #  o Home network public key identifier(PKI) value : 3
 #    Protection scheme identifier : ECIES scheme profile A
 #  hnet:
 #    - id: 3
 #      scheme: 1
-#      key: /etc/open5gs/hnet/curve25519-1.key
+#      key: /etc/5gc/hnet/curve25519-1.key
 #
 #  o Home network public key identifier(PKI) value : 4
 #    Protection scheme identifier : ECIES scheme profile B
 #  hnet:
 #    - id: 4
 #      scheme: 2
-#      key: /etc/open5gs/hnet/secp256r1-2.key
+#      key: /etc/5gc/hnet/secp256r1-2.key
 #
 ################################################################################
 # SBI Server
@@ -100,7 +100,7 @@ udm:
 #  sbi:
 #    server:
 #      - dev: eth0
-#        advertise: open5gs-udm.svc.local
+#        advertise: 5gc-udm.svc.local
 #
 #  sbi:
 #    server:
@@ -142,11 +142,11 @@ udm:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/udm.key
-#        cert: @sysconfdir@/open5gs/tls/udm.crt
+#        private_key: @sysconfdir@/5gc/tls/udm.key
+#        cert: @sysconfdir@/5gc/tls/udm.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
 #  sbi:
 #    server:
 #      - address: udm.localdomain
@@ -159,15 +159,15 @@ udm:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/udm.key
-#        cert: @sysconfdir@/open5gs/tls/udm.crt
+#        private_key: @sysconfdir@/5gc/tls/udm.key
+#        cert: @sysconfdir@/5gc/tls/udm.crt
 #        verify_client: true
-#        verify_client_cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        verify_client_cacert: @sysconfdir@/5gc/tls/ca.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
-#        client_private_key: @sysconfdir@/open5gs/tls/udm.key
-#        client_cert: @sysconfdir@/open5gs/tls/udm.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
+#        client_private_key: @sysconfdir@/5gc/tls/udm.key
+#        client_cert: @sysconfdir@/5gc/tls/udm.crt
 #  sbi:
 #    server:
 #      - address: udm.localdomain

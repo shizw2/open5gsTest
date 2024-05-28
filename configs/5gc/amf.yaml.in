@@ -73,7 +73,7 @@ amf:
 #  sbi:
 #    server:
 #      - dev:eth0
-#        advertise: open5gs-amf.svc.local
+#        advertise: 5gc-amf.svc.local
 #
 #  sbi:
 #    server:
@@ -115,11 +115,11 @@ amf:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/amf.key
-#        cert: @sysconfdir@/open5gs/tls/amf.crt
+#        private_key: @sysconfdir@/5gc/tls/amf.key
+#        cert: @sysconfdir@/5gc/tls/amf.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
 #  sbi:
 #    server:
 #      - address: amf.localdomain
@@ -132,15 +132,15 @@ amf:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/amf.key
-#        cert: @sysconfdir@/open5gs/tls/amf.crt
+#        private_key: @sysconfdir@/5gc/tls/amf.key
+#        cert: @sysconfdir@/5gc/tls/amf.crt
 #        verify_client: true
-#        verify_client_cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        verify_client_cacert: @sysconfdir@/5gc/tls/ca.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
-#        client_private_key: @sysconfdir@/open5gs/tls/amf.key
-#        client_cert: @sysconfdir@/open5gs/tls/amf.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
+#        client_private_key: @sysconfdir@/5gc/tls/amf.key
+#        client_cert: @sysconfdir@/5gc/tls/amf.crt
 #  sbi:
 #    server:
 #      - address: amf.localdomain

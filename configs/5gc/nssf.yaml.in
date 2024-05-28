@@ -39,7 +39,7 @@ nssf:
 #  sbi:
 #    server:
 #      - dev: eth0
-#        advertise: open5gs-nssf.svc.local
+#        advertise: 5gc-nssf.svc.local
 #
 #  sbi:
 #    server:
@@ -104,11 +104,11 @@ nssf:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/nssf.key
-#        cert: @sysconfdir@/open5gs/tls/nssf.crt
+#        private_key: @sysconfdir@/5gc/tls/nssf.key
+#        cert: @sysconfdir@/5gc/tls/nssf.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
 #  sbi:
 #    server:
 #      - address: nssf.localdomain
@@ -125,15 +125,15 @@ nssf:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/nssf.key
-#        cert: @sysconfdir@/open5gs/tls/nssf.crt
+#        private_key: @sysconfdir@/5gc/tls/nssf.key
+#        cert: @sysconfdir@/5gc/tls/nssf.crt
 #        verify_client: true
-#        verify_client_cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        verify_client_cacert: @sysconfdir@/5gc/tls/ca.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
-#        client_private_key: @sysconfdir@/open5gs/tls/nssf.key
-#        client_cert: @sysconfdir@/open5gs/tls/nssf.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
+#        client_private_key: @sysconfdir@/5gc/tls/nssf.key
+#        client_cert: @sysconfdir@/5gc/tls/nssf.crt
 #  sbi:
 #    server:
 #      - address: nssf.localdomain

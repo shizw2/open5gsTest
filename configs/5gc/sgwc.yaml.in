@@ -35,7 +35,7 @@ sgwc:
 #  pfcp:
 #    server:
 #      - dev: eth0
-#        advertise: open5gs-sgwc.svc.local
+#        advertise: 5gc-sgwc.svc.local
 #
 ################################################################################
 # PFCP Client

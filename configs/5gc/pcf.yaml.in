@@ -178,7 +178,7 @@ pcf:
 #  sbi:
 #    server:
 #      - dev: eth0
-#        advertise: open5gs-pcf.svc.local
+#        advertise: 5gc-pcf.svc.local
 #
 #  sbi:
 #    server:
@@ -220,11 +220,11 @@ pcf:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/pcf.key
-#        cert: @sysconfdir@/open5gs/tls/pcf.crt
+#        private_key: @sysconfdir@/5gc/tls/pcf.key
+#        cert: @sysconfdir@/5gc/tls/pcf.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
 #  sbi:
 #    server:
 #      - address: pcf.localdomain
@@ -237,15 +237,15 @@ pcf:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/pcf.key
-#        cert: @sysconfdir@/open5gs/tls/pcf.crt
+#        private_key: @sysconfdir@/5gc/tls/pcf.key
+#        cert: @sysconfdir@/5gc/tls/pcf.crt
 #        verify_client: true
-#        verify_client_cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        verify_client_cacert: @sysconfdir@/5gc/tls/ca.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
-#        client_private_key: @sysconfdir@/open5gs/tls/pcf.key
-#        client_cert: @sysconfdir@/open5gs/tls/pcf.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
+#        client_private_key: @sysconfdir@/5gc/tls/pcf.key
+#        client_cert: @sysconfdir@/5gc/tls/pcf.crt
 #  sbi:
 #    server:
 #      - address: pcf.localdomain

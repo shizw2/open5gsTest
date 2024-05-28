@@ -279,10 +279,10 @@ udm:
   hnet:
     - id: 1
       scheme: 1
-      key: @build_configs_dir@/open5gs/hnet/curve25519-1.key
+      key: @build_configs_dir@/@project_name@/hnet/curve25519-1.key
     - id: 2
       scheme: 2
-      key: @build_configs_dir@/open5gs/hnet/secp256r1-2.key
+      key: @build_configs_dir@/@project_name@/hnet/secp256r1-2.key
   sbi:
     server:
       - address: 127.0.0.12

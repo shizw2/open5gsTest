@@ -52,7 +52,7 @@ upf:
 #  pfcp:
 #    server:
 #      - dev: eth0
-#        advertise: open5gs-upf.svc.local
+#        advertise: 5gc-upf.svc.local
 #
 ################################################################################
 # GTP-U Server

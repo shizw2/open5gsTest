@@ -42,7 +42,7 @@ mme:
   network_name:
     full: Open5GS
     short: Next
-  mme_name: open5gs-mme0
+  mme_name: 5gc-mme0
   time:
 #    t3402:
 #      value: 720   # 12 minutes * 60 = 720 seconds
@@ -156,7 +156,7 @@ mme:
 #                lac: 43690
 #              rac: 187
 #            ci: 1223
-#        - name: sgsn3.open5gs.org
+#        - name: sgsn3.5gc.org
 #          default_route: true
 #
 ################################################################################
@@ -188,7 +188,7 @@ mme:
 #              mcc: 002
 #              mnc: 02
 #            lac: 43692
-#      - address: msc.open5gs.org
+#      - address: msc.5gc.org
 #        map:
 #          tai:
 #            plmn_id:

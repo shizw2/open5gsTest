@@ -36,7 +36,7 @@ udr:
 #  sbi:
 #    server:
 #      - dev: eth0
-#        advertise: open5gs-udr.svc.local
+#        advertise: 5gc-udr.svc.local
 #
 #  sbi:
 #    server:
@@ -78,11 +78,11 @@ udr:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/udr.key
-#        cert: @sysconfdir@/open5gs/tls/udr.crt
+#        private_key: @sysconfdir@/5gc/tls/udr.key
+#        cert: @sysconfdir@/5gc/tls/udr.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
 #  sbi:
 #    server:
 #      - address: udr.localdomain
@@ -95,15 +95,15 @@ udr:
 #    tls:
 #      server:
 #        scheme: https
-#        private_key: @sysconfdir@/open5gs/tls/udr.key
-#        cert: @sysconfdir@/open5gs/tls/udr.crt
+#        private_key: @sysconfdir@/5gc/tls/udr.key
+#        cert: @sysconfdir@/5gc/tls/udr.crt
 #        verify_client: true
-#        verify_client_cacert: @sysconfdir@/open5gs/tls/ca.crt
+#        verify_client_cacert: @sysconfdir@/5gc/tls/ca.crt
 #      client:
 #        scheme: https
-#        cacert: @sysconfdir@/open5gs/tls/ca.crt
-#        client_private_key: @sysconfdir@/open5gs/tls/udr.key
-#        client_cert: @sysconfdir@/open5gs/tls/udr.crt
+#        cacert: @sysconfdir@/5gc/tls/ca.crt
+#        client_private_key: @sysconfdir@/5gc/tls/udr.key
+#        client_cert: @sysconfdir@/5gc/tls/udr.crt
 #  sbi:
 #    server:
 #      - address: udr.localdomain
