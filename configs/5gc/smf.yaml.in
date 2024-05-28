@@ -7,6 +7,12 @@ global:
   max:
     ue: 1024  # The number of UE can be increased depending on memory size.
 #    peer: 64
+  parameter:
+      capacity: 100
+  cli:
+    server:
+      - address: 127.0.0.4
+        port: 2300
 
 smf:
   sbi:

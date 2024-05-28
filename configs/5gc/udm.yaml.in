@@ -7,6 +7,12 @@ global:
   max:
     ue: 1024  # The number of UE can be increased depending on memory size.
 #    peer: 64
+  parameter:
+      capacity: 100
+  cli:
+    server:
+      - address: 127.0.0.12
+        port: 2300
 
 udm:
   hnet:
@@ -37,7 +43,15 @@ udm:
         - uri: http://127.0.0.10:7777
 #     scp:
 #        - uri: http://127.0.0.200:7777
-
+  metrics:
+    server:
+      - address: 127.0.0.12
+        port: 9090
+#    info:
+#	   routing_indicator: 
+#	     - 1
+#      supi:
+#        - range: 46001-46002
 #
 ################################################################################
 # Home Network Public Key

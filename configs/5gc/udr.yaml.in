@@ -8,6 +8,12 @@ global:
   max:
     ue: 1024  # The number of UE can be increased depending on memory size.
 #    peer: 64
+  parameter:
+      capacity: 100
+  cli:
+    server:
+      - address: 127.0.0.20
+        port: 2300
 
 udr:
   sbi:
@@ -19,7 +25,10 @@ udr:
         - uri: http://127.0.0.10:7777
 #      scp:
 #       - uri: http://127.0.0.200:7777
-
+  metrics:
+    server:
+      - address: 127.0.0.20
+        port: 9098
 ################################################################################
 # SBI Server
 ################################################################################

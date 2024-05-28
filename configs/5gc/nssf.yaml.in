@@ -7,6 +7,12 @@ global:
   max:
     ue: 1024  # The number of UE can be increased depending on memory size.
 #    peer: 64
+  parameter:
+      capacity: 100
+  cli:
+    server:
+      - address: 127.0.0.14
+        port: 2300
 
 nssf:
   sbi:
@@ -22,6 +28,10 @@ nssf:
         - uri: http://127.0.0.10:7777
           s_nssai:
             sst: 1
+  metrics:
+    server:
+      - address: 127.0.0.14
+        port: 9084
 ################################################################################
 # SBI Server
 ################################################################################

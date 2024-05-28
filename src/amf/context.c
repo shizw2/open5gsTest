@@ -500,13 +500,6 @@ int amf_context_parse_config(bool reloading)
                                     port = atoi(v);
                                     self.icps_port = port;
                                 }
-                            } else if (!strcmp(icps_key, "dev")) {
-                                dev = ogs_yaml_iter_value(&icps_iter);
-                            } else if (!strcmp(icps_key, "option")) {
-                                rv = ogs_app_config_parse_sockopt(
-                                        &icps_iter, &option);
-                                if (rv != OGS_OK) return rv;
-                                is_option = true;
                             } else if (!strcmp(icps_key, "spsnum")) {
                                 const char *v = ogs_yaml_iter_value(&icps_iter);
                                 if (v)  self.spsnum = atoi(v);
@@ -522,11 +515,11 @@ int amf_context_parse_config(bool reloading)
                         }
 
                         if (addr) {
-                            if (ogs_app()->parameter.no_ipv4 == 0)
+                            if (ogs_global_conf()->parameter.no_ipv4 == 0)
                                 ogs_socknode_add(
                                     &self.icps_list, AF_INET, addr,
                                     is_option ? &option : NULL);
-                            if (ogs_app()->parameter.no_ipv6 == 0)
+                            if (ogs_global_conf()->parameter.no_ipv6 == 0)
                                 ogs_socknode_add(
                                     &self.icps_list6, AF_INET6, addr,
                                     is_option ? &option : NULL);
@@ -535,9 +528,9 @@ int amf_context_parse_config(bool reloading)
 
                         if (dev) {
                             rv = ogs_socknode_probe(
-                                    ogs_app()->parameter.no_ipv4 ?
+                                    ogs_global_conf()->parameter.no_ipv4 ?
                                         NULL : &self.icps_list,
-                                    ogs_app()->parameter.no_ipv6 ?
+                                    ogs_global_conf()->parameter.no_ipv6 ?
                                         NULL : &self.icps_list6,
                                     dev, port,
                                     is_option ? &option : NULL);
@@ -550,9 +543,9 @@ int amf_context_parse_config(bool reloading)
                     if (ogs_list_first(&self.icps_list) == NULL &&
                         ogs_list_first(&self.icps_list6) == NULL) {
                         rv = ogs_socknode_probe(
-                                ogs_app()->parameter.no_ipv4 ?
+                                ogs_global_conf()->parameter.no_ipv4 ?
                                     NULL : &self.icps_list,
-                                ogs_app()->parameter.no_ipv6 ?
+                                ogs_global_conf()->parameter.no_ipv6 ?
                                     NULL : &self.icps_list6,
                                 NULL, self.icps_port, NULL);
                         ogs_assert(rv == OGS_OK);
@@ -1204,7 +1197,64 @@ int amf_context_parse_config(bool reloading)
                 } else if (!strcmp(amf_key, "imeicheck")) {
                     self.imeicheckflag = ogs_yaml_iter_bool(&amf_iter);
                     ogs_info("imeicheck `%d`",self.imeicheckflag);
-                }else if (!strcmp(amf_key, "sbi")) {
+                }else if (!strcmp(amf_key, "time")) {
+                    ogs_yaml_iter_t time_iter;
+                    ogs_yaml_iter_recurse(&amf_iter, &time_iter);
+                    while (ogs_yaml_iter_next(&time_iter)) {
+                        const char *time_key = ogs_yaml_iter_key(&time_iter);
+                        ogs_assert(time_key);
+                        if (!strcmp(time_key, "t3502")) {
+                            ogs_yaml_iter_t t3502_iter;
+                            ogs_yaml_iter_recurse(&time_iter, &t3502_iter);
+
+                            while (ogs_yaml_iter_next(&t3502_iter)) {
+                                const char *t3502_key =
+                                    ogs_yaml_iter_key(&t3502_iter);
+                                ogs_assert(t3502_key);
+
+                                if (!strcmp(t3502_key, "value")) {
+                                    const char *v = ogs_yaml_iter_value(&t3502_iter);
+                                    if (v)
+                                        self.time.t3502.value = atoll(v);
+                                } else
+                                    ogs_warn("unknown key `%s`", t3502_key);
+                            }
+                        } else if (!strcmp(time_key, "t3512")) {
+                            ogs_yaml_iter_t t3512_iter;
+                            ogs_yaml_iter_recurse(&time_iter, &t3512_iter);
+
+                            while (ogs_yaml_iter_next(&t3512_iter)) {
+                                const char *t3512_key =
+                                    ogs_yaml_iter_key(&t3512_iter);
+                                ogs_assert(t3512_key);
+
+                                if (!strcmp(t3512_key, "value")) {
+                                    const char *v = ogs_yaml_iter_value(&t3512_iter);
+                                    if (v)
+                                        self.time.t3512.value = atoll(v);
+                                } else
+                                    ogs_warn("unknown key `%s`", t3512_key);
+                            }
+                        } else if (!strcmp(time_key, "t3412")) {
+                            /* handle config in mme */
+                        } else if (!strcmp(time_key, "nf_instance")) {
+                            /* handle config in app library */
+                        } else if (!strcmp(time_key, "subscription")) {
+                            /* handle config in app library */
+                        } else if (!strcmp(time_key, "message")) {
+                            /* handle config in app library */
+                        } else if (!strcmp(time_key, "handover")) {
+                            /* handle config in app library */
+                        } else
+                            ogs_warn("unknown key `%s`", time_key);
+                    }
+                } else if (!strcmp(amf_key, "default")) {
+                    /* handle config in sbi library */
+                } else if (!strcmp(amf_key, "sbi")) {
+                    /* handle config in sbi library */
+                } else if (!strcmp(amf_key, "nrf")) {
+                    /* handle config in sbi library */
+                } else if (!strcmp(amf_key, "scp")) {
                     /* handle config in sbi library */
                 } else if (!strcmp(amf_key, "service_name")) {
                     /* handle config in sbi library */
@@ -3531,7 +3581,7 @@ void ran_ue_remove_sps(ran_ue_t *ran_ue)
 	tmsg.len=0;	
 	len=sizeof(tmsg);
 	memcpy(buff,&tmsg,sizeof(tmsg));	
-	ogs_debug("ran_ue_remove_sps,ran_ue->ran_ue_ngap_id=%d,ran_ue->amf_ue_ngap_id:%lu",ran_ue->ran_ue_ngap_id,ran_ue->amf_ue_ngap_id);
+	ogs_debug("ran_ue_remove_sps,ran_ue->ran_ue_ngap_id=%lld,ran_ue->amf_ue_ngap_id:%lu",(long long)ran_ue->ran_ue_ngap_id,ran_ue->amf_ue_ngap_id);
 	if(is_amf_sps())
 		{
 	       ogs_sendto(amf_self()->udp_node->sock->fd,buff,len,0, amf_self()->icps_node->addr);  

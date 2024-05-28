@@ -7,6 +7,12 @@ global:
   max:
     ue: 1024  # The number of UE can be increased depending on memory size.
 #    peer: 64
+  parameter:
+      capacity: 100
+  cli:
+    server:
+      - address: 127.0.0.5
+        port: 2300
 
 amf:
   sbi:
@@ -53,7 +59,7 @@ amf:
     full: Open5GS
     short: Next
   amf_name: 5gc-amf0
-  imeicheck：false
+  imeicheck: false
   time:
 #    t3502:
 #      value: 720   # 12 minutes * 60 = 720 seconds

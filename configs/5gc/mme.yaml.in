@@ -1,6 +1,6 @@
 logger:
   file:
-    path: @localstatedir@/log/open5gs/mme.log
+    path: @localstatedir@/log/@project_name@/mme.log
 #  level: info   # fatal|error|warn|info(default)|debug|trace
 
 global:

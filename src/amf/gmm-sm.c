@@ -567,7 +567,7 @@ void gmm_state_de_registered(ogs_fsm_t *s, amf_event_t *e)
 
                         if (!AMF_UE_HAVE_SUCI(amf_ue)) {
                             CLEAR_AMF_UE_TIMER(amf_ue->t3570);
-                            r = nas_5gs_send_identity_request(amf_ue);
+                            r = nas_5gs_send_identity_request(amf_ue,OGS_NAS_5GS_MOBILE_IDENTITY_SUCI);
                             ogs_expect(r == OGS_OK);
                             ogs_assert(r != OGS_ERROR);
                             break;
@@ -2187,7 +2187,7 @@ void gmm_state_imei_check(ogs_fsm_t *s, amf_event_t *e)
                 ogs_error("[%s] HTTP response error [%d]",
                         amf_ue->supi, sbi_message->res_status);
                 r = nas_5gs_send_gmm_reject(
-                        amf_ue, OGS_5GMM_CAUSE_ILLEGAL_ME);
+                        amf_ue->ran_ue,amf_ue, OGS_5GMM_CAUSE_ILLEGAL_ME);
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
                 OGS_FSM_TRAN(&amf_ue->sm, &gmm_state_exception);
@@ -2199,7 +2199,7 @@ void gmm_state_imei_check(ogs_fsm_t *s, amf_event_t *e)
                     ogs_error("[%s] amf_neir_imeicheck_handle(%s) failed or BLACKLISTED",
                             amf_ue->supi, amf_ue->imei_bcd);
                     r = nas_5gs_send_gmm_reject(
-                            amf_ue, OGS_5GMM_CAUSE_ILLEGAL_ME);
+                            amf_ue->ran_ue,amf_ue, OGS_5GMM_CAUSE_ILLEGAL_ME);
                     ogs_expect(r == OGS_OK);
                     ogs_assert(r != OGS_ERROR);
                     OGS_FSM_TRAN(&amf_ue->sm, &gmm_state_exception);

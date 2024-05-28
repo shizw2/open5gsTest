@@ -7,6 +7,12 @@ global:
   max:
     ue: 1024  # The number of UE can be increased depending on memory size.
 #    peer: 64
+  parameter:
+      capacity: 100
+  cli:
+    server:
+      - address: 127.0.0.11
+        port: 2300
 
 ausf:
   sbi:
@@ -18,6 +24,15 @@ ausf:
         - uri: http://127.0.0.10:7777
 #      scp:
 #        - uri: http://127.0.0.200:7777
+  metrics:
+    server:
+      - address: 127.0.0.11
+        port: 9099
+#    info:
+#	   routing_indicator: 
+#	     - 1
+#      supi:
+#        - range: 46001-46002
 
 ################################################################################
 # SBI Server
@@ -26,7 +41,7 @@ ausf:
 #  sbi:
 #    server:
 #      - dev: eth0
-#        advertise: open5gs-ausf.svc.local
+#        advertise: 5gc-ausf.svc.local
 #
 #  sbi:
 #    server:

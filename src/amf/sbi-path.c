@@ -700,7 +700,7 @@ void amf_sbi_send_deactivate_all_ue_in_gnb_sps(uint8_t *buf,size_t len, int stat
             old_xact_count = amf_sess_xact_count(amf_ue);
 
             amf_sbi_send_deactivate_all_sessions(
-                amf_ue, state, NGAP_Cause_PR_radioNetwork,
+                ran_ue,amf_ue, state, NGAP_Cause_PR_radioNetwork,
                 NGAP_CauseRadioNetwork_failure_in_radio_interface_procedure);
 
             new_xact_count = amf_sess_xact_count(amf_ue);
@@ -712,8 +712,8 @@ void amf_sbi_send_deactivate_all_ue_in_gnb_sps(uint8_t *buf,size_t len, int stat
             }
         } else {
             ogs_info("amf_sbi_send_deactivate_all_ue_in_gnb()");
-            ogs_info("    RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld] State[%d]",
-                ran_ue->ran_ue_ngap_id, (long long)ran_ue->amf_ue_ngap_id,
+            ogs_info("    RAN_UE_NGAP_ID[%lld] AMF_UE_NGAP_ID[%lld] State[%d]",
+                (long long)ran_ue->ran_ue_ngap_id, (long long)ran_ue->amf_ue_ngap_id,
                 state);
 
             if (state == AMF_REMOVE_S1_CONTEXT_BY_LO_CONNREFUSED ||

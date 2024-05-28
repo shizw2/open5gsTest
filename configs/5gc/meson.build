@@ -1,6 +1,6 @@
 # Copyright (C) 2019 by Sukchan Lee <acetcom@gmail.com>
 
-# This file is part of Open5GS.
+# This file is part of 5G Core Network.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-open5gs_sysconfdir = join_paths(sysconfdir, 'open5gs')
+open5gs_sysconfdir = join_paths(sysconfdir, project_name)
 meson.add_install_script(python3_exe, '-c',
         mkdir_p.format(open5gs_sysconfdir))
 
@@ -38,6 +38,7 @@ open5gs_conf = '''
     pcf.yaml
     nssf.yaml
     bsf.yaml
+    eir.yaml
 '''.split()
 
 foreach file : open5gs_conf

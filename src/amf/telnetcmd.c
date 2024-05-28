@@ -97,7 +97,7 @@ void showranue( void )
     
     ogs_list_for_each(&amf_self()->gnb_list, gnb) {
         ogs_list_for_each(&gnb->ran_ue_list, ran_ue) {
-            printf("| %-7u | %-14d | %-14lu | %-6d | %-15s | %-10u |\r\n",
+            printf("| %-7u | %-14lu | %-14lu | %-6d | %-15s | %-10u |\r\n",
                gnb->gnb_id, 
                ran_ue->ran_ue_ngap_id,
                ran_ue->amf_ue_ngap_id,

@@ -8,6 +8,12 @@ global:
   max:
     ue: 1024  # The number of UE can be increased depending on memory size.
 #    peer: 64
+  parameter:
+      capacity: 100
+  cli:
+    server:
+      - address: 127.0.0.13
+        port: 2300
 
 pcf:
   sbi:
@@ -23,6 +29,26 @@ pcf:
     server:
       - address: 127.0.0.13
         port: 9090
+#    info:
+#      supi:
+#        - range: 46001-46002
+  freeDiameter:
+    identity: pcf.localdomain
+    realm: localdomain
+    listen_on: 127.0.0.9
+    no_fwd: true
+    load_extension:
+      - module: @libdir@/freeDiameter/dbg_msg_dumps.fdx
+        conf: 0x8888
+      - module: @libdir@/freeDiameter/dict_rfc5777.fdx
+      - module: @libdir@/freeDiameter/dict_mip6i.fdx
+      - module: @libdir@/freeDiameter/dict_nasreq.fdx
+      - module: @libdir@/freeDiameter/dict_nas_mipv6.fdx
+      - module: @libdir@/freeDiameter/dict_dcca.fdx
+      - module: @libdir@/freeDiameter/dict_dcca_3gpp.fdx
+    connect:
+      - identity: ims.localdomain
+        addr: 127.0.0.1
 
 ################################################################################
 # Locally configured policy

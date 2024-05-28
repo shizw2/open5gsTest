@@ -7,6 +7,12 @@ global:
   max:
     ue: 1024  # The number of UE can be increased depending on memory size.
 #    peer: 64
+  parameter:
+      capacity: 100
+  cli:
+    server:
+      - address: 127.0.0.7
+        port: 2300
 
 upf:
   pfcp:
@@ -27,7 +33,18 @@ upf:
     server:
       - address: 127.0.0.7
         port: 9090
-
+  dpdk:
+    pfcp_lcore: 0
+    dpt_lcore: 1
+    fwd_lcore: 2
+    n3_mask_bits: 24
+    n3_default_gw: 192.168.6.1        
+    n3_mask6_bits: 64
+    n3_default_gw6: 2000::1
+    n6_addr: 192.168.6.10/24
+    n6_default_gw: 192.168.6.1
+    n6_addr6: 2001::10/48       
+    n6_default_gw6: 2001::1
 ################################################################################
 # PFCP Server
 ################################################################################

@@ -101,7 +101,7 @@ int ngap_send_error_indication_sps(
 				ran_ue_t *ran_ue,
 				NGAP_Cause_PR group, long cause);
 int ngap_send_error_indication2_sps(
-						amf_ue_t *amf_ue, NGAP_Cause_PR group, long cause);
+						ran_ue_t *ran_ue, NGAP_Cause_PR group, long cause);
 
 
 #ifdef __cplusplus

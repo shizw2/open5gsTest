@@ -1,6 +1,6 @@
 logger:
   file:
-    path: @localstatedir@/log/open5gs/sgwc.log
+    path: @localstatedir@/log/@project_name@/sgwc.log
 #  level: info   # fatal|error|warn|info(default)|debug|trace
 
 global:

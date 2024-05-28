@@ -1060,14 +1060,11 @@ int ngap_send_error_indication2(
     return rv;
 }
 
-int ngap_send_error_indication2_sps(amf_ue_t *amf_ue, NGAP_Cause_PR group, long cause)
+int ngap_send_error_indication2_sps(ran_ue_t *ran_ue, NGAP_Cause_PR group, long cause)
 {
-    int rv;
+    int rv;    
     
-    ran_ue_t *ran_ue;
-
-    ogs_assert(amf_ue);
-    ran_ue = ran_ue_cycle(amf_ue->ran_ue);
+    ran_ue = ran_ue_cycle(ran_ue);
     if (!ran_ue) {
         ogs_error("NG context has already been removed");
         return OGS_NOTFOUND;

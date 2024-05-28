@@ -7,6 +7,12 @@ global:
   max:
     ue: 1024  # The number of UE can be increased depending on memory size.
 #    peer: 64
+  parameter:
+      capacity: 100
+  cli:
+    server:
+      - address: 127.0.0.10
+        port: 2300
 
 nrf:
   serving:  # 5G roaming requires PLMN in NRF
@@ -17,7 +23,10 @@ nrf:
     server:
       - address: 127.0.0.10
         port: 7777
-
+  metrics:
+    server:
+      - address: 127.0.0.10
+        port: 9083
 ################################################################################
 # SBI Server
 ################################################################################

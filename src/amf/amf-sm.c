@@ -232,6 +232,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                                     OGS_SBI_HTTP_STATUS_BAD_REQUEST,
                                     &sbi_message,
                                     "No N1N2MessageTransferReqData", NULL, NULL));
+                           }
                         }
                         break;
 
@@ -826,7 +827,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                     ogs_expect(r == OGS_OK);
                     ogs_assert(r != OGS_ERROR);
                 } else {
-                    r = ngap_send_error_indication2_sps(amf_ue,
+                    r = ngap_send_error_indication2_sps(sess->ran_ue,
                             NGAP_Cause_PR_transport,
                             NGAP_CauseTransport_transport_resource_unavailable);
                     ogs_expect(r == OGS_OK);

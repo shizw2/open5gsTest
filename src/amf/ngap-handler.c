@@ -488,7 +488,7 @@ void ngap_handle_initial_ue_message(amf_gnb_t *gnb, ogs_ngap_message_t *message,
             ogs_assert(r != OGS_ERROR);
             return;
         }
-     ogs_info("ngap_handle_initial_ue_message AMF UE  NGAP ID :%lu , ran_ue->ran_ue_ngap_id:%d\n",ran_ue->amf_ue_ngap_id,ran_ue->ran_ue_ngap_id);
+     ogs_info("ngap_handle_initial_ue_message AMF UE  NGAP ID :%lu , ran_ue->ran_ue_ngap_id:%lld\n",ran_ue->amf_ue_ngap_id,(long long)ran_ue->ran_ue_ngap_id);
 
         /* Find AMF_UE if 5G-S_TMSI included */
 	 //modify 20230202 by O3
@@ -2274,10 +2274,12 @@ void ngap_handle_pdu_session_resource_modify_response(
         case NGAP_ProtocolIE_ID_id_AMF_UE_NGAP_ID:
             AMF_UE_NGAP_ID = &ie->value.choice.AMF_UE_NGAP_ID;
             break;
+ #if 0
         case NGAP_ProtocolIE_ID_id_PDUSessionResourceModifyListModRes:
             PDUSessionList =
                 &ie->value.choice.PDUSessionResourceModifyListModRes;
             break;
+ #endif
         default:
             break;
         }
@@ -2463,10 +2465,12 @@ void ngap_handle_pdu_session_resource_release_response(
         case NGAP_ProtocolIE_ID_id_AMF_UE_NGAP_ID:
             AMF_UE_NGAP_ID = &ie->value.choice.AMF_UE_NGAP_ID;
             break;
+#if 0
         case NGAP_ProtocolIE_ID_id_PDUSessionResourceReleasedListRelRes:
             PDUSessionList =
                 &ie->value.choice.PDUSessionResourceReleasedListRelRes;
             break;
+ #endif
         default:
             break;
         }
@@ -3531,13 +3535,16 @@ void ngap_handle_handover_request_ack(
         case NGAP_ProtocolIE_ID_id_AMF_UE_NGAP_ID:
             AMF_UE_NGAP_ID = &ie->value.choice.AMF_UE_NGAP_ID;
             break;
+#if 0
         case NGAP_ProtocolIE_ID_id_PDUSessionResourceAdmittedList:
             PDUSessionList = &ie->value.choice.PDUSessionResourceAdmittedList;
             break;
+ 
         case NGAP_ProtocolIE_ID_id_TargetToSource_TransparentContainer:
             TargetToSource_TransparentContainer =
                 &ie->value.choice.TargetToSource_TransparentContainer;
             break;
+#endif
         default:
             break;
         }
@@ -5133,7 +5140,7 @@ int icps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
             rvtmp=ngap_send_to_gnb(ran_ue_icps->gnb, pkbuf, ran_ue_icps->gnb_ostream_id);                
             break;
         case INTERNEL_DOWN_NGAP_TO_REMOVE_UE:
-            ogs_info("REMOVE_UE ran_ue_icps->ran_ue_ngap_id=%d,ran_ue_icps->amf_ue_ngap_id:%lu",ran_ue_icps->ran_ue_ngap_id,ran_ue_icps->amf_ue_ngap_id);                
+            ogs_info("REMOVE_UE ran_ue_icps->ran_ue_ngap_id=%lld,ran_ue_icps->amf_ue_ngap_id:%lu",(long long)ran_ue_icps->ran_ue_ngap_id,ran_ue_icps->amf_ue_ngap_id);                
             ran_ue_remove(ran_ue_icps);
             ogs_pkbuf_free(pkbuf);
             break;
@@ -5142,7 +5149,7 @@ int icps_handle_rev_ini_ngap(amf_internel_msg_header_t *pmsg,ogs_pkbuf_t *pkbuf)
             if(ran_ue_icps){
                         ogs_info("pmsg->pre_amf_ue_ngap_id=:%lu,ran_ue_icps->amf_ue_ngap_id::%lu",pmsg->pre_amf_ue_ngap_id,ran_ue_icps->amf_ue_ngap_id);
                         //ran_ue_icps->amf_ue_ngap_id=pmsg->pre_amf_ue_ngap_id;
-                    ogs_info("sync amf_ue_ngap_id %lu ran_ue_icps->ran_ue_ngap_id:%d OK",ran_ue_icps->amf_ue_ngap_id,ran_ue_icps->ran_ue_ngap_id);
+                    ogs_info("sync amf_ue_ngap_id %lu ran_ue_icps->ran_ue_ngap_id:%lld OK",ran_ue_icps->amf_ue_ngap_id,(long long)ran_ue_icps->ran_ue_ngap_id);
                         ran_ue_t * ran_ue=ran_ue_find_by_amf_ue_ngap_id(pmsg->amf_ue_ngap_id);
                         if(ran_ue){                            
                             if (ran_ue->supi) {

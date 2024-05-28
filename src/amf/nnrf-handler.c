@@ -88,7 +88,7 @@ void amf_nnrf_handle_nf_discover(
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
             } else {
-                r = ngap_send_error_indication2_sps(amf_ue,
+                r = ngap_send_error_indication2_sps(sess->ran_ue,
                         NGAP_Cause_PR_transport,
                         NGAP_CauseTransport_transport_resource_unavailable);
                 ogs_expect(r == OGS_OK);

@@ -464,7 +464,7 @@ int amf_nsmf_pdusession_handle_update_sm_context(
                 if (!n2smbuf) {
                     ogs_error("[%s:%d] No N2 SM Content",
                             amf_ue->supi, sess->psi);
-                    r = ngap_send_error_indication2_sps(amf_ue,
+                    r = ngap_send_error_indication2_sps(ran_ue,
                             NGAP_Cause_PR_protocol,
                             NGAP_CauseProtocol_semantic_error);
                     ogs_expect(r == OGS_OK);
@@ -490,7 +490,7 @@ int amf_nsmf_pdusession_handle_update_sm_context(
                 if (!n2smbuf) {
                     ogs_error("[%s:%d] No N2 SM Content",
                             amf_ue->supi, sess->psi);
-                    r = ngap_send_error_indication2_sps(amf_ue,
+                    r = ngap_send_error_indication2_sps(ran_ue,
                             NGAP_Cause_PR_protocol,
                             NGAP_CauseProtocol_semantic_error);
                     ogs_expect(r == OGS_OK);
@@ -514,7 +514,7 @@ int amf_nsmf_pdusession_handle_update_sm_context(
             default:
                 ogs_error("Not implemented [%d]",
                         SmContextUpdatedData->n2_sm_info_type);
-                r = ngap_send_error_indication2_sps(amf_ue,
+                r = ngap_send_error_indication2_sps(ran_ue,
                         NGAP_Cause_PR_protocol,
                         NGAP_CauseProtocol_semantic_error);
                 ogs_expect(r == OGS_OK);
@@ -945,7 +945,7 @@ int amf_nsmf_pdusession_handle_update_sm_context(
         if (!SmContextUpdateError) {
             ogs_error("[%d:%d] No SmContextUpdateError [%d]",
                     sess->psi, sess->pti, recvmsg->res_status);
-            r = ngap_send_error_indication2_sps(amf_ue,
+            r = ngap_send_error_indication2_sps(ran_ue,
                     NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
             ogs_expect(r == OGS_OK);
             ogs_assert(r != OGS_ERROR);
@@ -957,7 +957,7 @@ int amf_nsmf_pdusession_handle_update_sm_context(
         if (!ProblemDetails) {
             ogs_error("[%d:%d] No ProblemDetails [%d]",
                     sess->psi, sess->pti, recvmsg->res_status);
-            r = ngap_send_error_indication2_sps(amf_ue,
+            r = ngap_send_error_indication2_sps(ran_ue,
                     NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
             ogs_expect(r == OGS_OK);
             ogs_assert(r != OGS_ERROR);
@@ -1057,7 +1057,7 @@ int amf_nsmf_pdusession_handle_update_sm_context(
         ogs_error("[%d:%d] Error Indication [state:%d]",
                 sess->psi, sess->pti, state);
 
-        r = ngap_send_error_indication2_sps(amf_ue,
+        r = ngap_send_error_indication2_sps(ran_ue,
                 NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
         ogs_expect(r == OGS_OK);
         ogs_assert(r != OGS_ERROR);
@@ -1072,10 +1072,22 @@ int amf_nsmf_pdusession_handle_release_sm_context(amf_sess_t *sess, int state)
 {
     int r;
     amf_ue_t *amf_ue = NULL;
+    ran_ue_t *ran_ue = NULL;
 
     ogs_assert(sess);
-    amf_ue = sess->amf_ue;
-    ogs_assert(amf_ue);
+    sess = amf_sess_cycle(sess);
+    if (!sess) {
+        ogs_error("Session has already been removed");
+        return OGS_ERROR;
+    }
+
+    amf_ue = amf_ue_cycle(sess->amf_ue);
+    if (!amf_ue) {
+        ogs_error("UE(amf_ue) Context has already been removed");
+        return OGS_ERROR;
+    }
+
+    ran_ue = ran_ue_cycle(sess->ran_ue);
 
     /*
      * To check if Reactivation Request has been used.
