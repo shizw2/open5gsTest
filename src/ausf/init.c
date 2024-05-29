@@ -39,9 +39,6 @@ int ausf_initialize(void)
 
     ogs_sbi_context_init(OpenAPI_nf_type_AUSF);
     ausf_context_init();
-    
-    rv = ogs_sbi_context_parse_config("ausf", "nrf", "scp");
-    if (rv != OGS_OK) return rv;
 
     rv = ogs_sbi_context_parse_config(APP_NAME, "nrf", "scp");
     if (rv != OGS_OK) return rv;

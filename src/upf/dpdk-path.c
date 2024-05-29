@@ -621,27 +621,149 @@ int fwd_handle_gtp_session_report(struct rte_ring *r, ogs_pfcp_pdr_t *pdr, uint3
     return 0;
 }
 
-ogs_pfcp_pdr_t *n3_pdr_find_by_local_sess(upf_sess_t *sess, ogs_gtp2_header_t *gtp_h, char *ip_h)
+ogs_pfcp_pdr_t *n3_pdr_find_by_local_sess(upf_sess_t *sess, ogs_gtp2_header_t *gtp_h, char *ip_h, uint8_t tunnel_len)
 {
     uint8_t qfi = 0;
     int teid = be32toh(gtp_h->teid);
-    /*TODO：临时做，确保这是第一个扩展头，否则会有问题*/
-    /*
-         * TS29.281
-         * 5.2.1 General format of the GTP-U Extension Header
-         * Figure 5.2.1-3: Definition of Extension Header Type
-         *
-         * Note 4 : For a GTP-PDU with several Extension Headers, the PDU
-         *          Session Container should be the first Extension Header
-    */
+    ogs_gtp2_extension_header_t ext_hdesc;
+    ogs_gtp2_header_desc_t header_desc_s;
+    ogs_gtp2_header_desc_t *header_desc = &header_desc_s;
+    uint8_t *ext_h = NULL;
+    int i;
+    uint16_t len = 0;
+
     if (LIKELY(gtp_h->flags & OGS_GTPU_FLAGS_E)) {
+        /*临时做，确保这是第一个扩展头，否则会有问题*/
+        /*
+             * TS29.281
+             * 5.2.1 General format of the GTP-U Extension Header
+             * Figure 5.2.1-3: Definition of Extension Header Type
+             *
+             * Note 4 : For a GTP-PDU with several Extension Headers, the PDU
+             *          Session Container should be the first Extension Header
+        */
+        
+        /*
         ogs_gtp2_extension_header_t *ext_header =
             (ogs_gtp2_extension_header_t *)((char *)gtp_h + OGS_GTPV1U_HEADER_LEN);
         if (ext_header->array[0].type == OGS_GTP2_EXTENSION_HEADER_TYPE_PDU_SESSION_CONTAINER &&
                 ext_header->array[0].pdu_type == OGS_GTP2_EXTENSION_HEADER_PDU_TYPE_UL_PDU_SESSION_INFORMATION) {
             ogs_debug("   QFI [0x%x]", ext_header->array[0].qos_flow_identifier);
             qfi = ext_header->array[0].qos_flow_identifier;
+        }*/       
+
+        if (header_desc) {
+            memset(header_desc, 0, sizeof(*header_desc));
+
+            header_desc->flags = gtp_h->flags;
+            header_desc->type = gtp_h->type;
+            header_desc->teid = be32toh(gtp_h->teid);
         }
+
+        len = OGS_GTPV1U_HEADER_LEN;
+        if (tunnel_len < len) {
+            ogs_error("the length of the packet is insufficient[%d:%d]",
+                    tunnel_len, len);
+            return NULL;
+        }
+
+        if (gtp_h->flags & OGS_GTPU_FLAGS_E) {
+
+            len += OGS_GTPV1U_EXTENSION_HEADER_LEN;
+            if (tunnel_len < len) {
+                ogs_error("the length of the packet is insufficient[%d:%d]",
+                        tunnel_len, len);
+                return NULL;
+            }
+
+            /*
+             * TS29.281
+             * 5.2.1 General format of the GTP-U Extension Header
+             *
+             * If no such Header follows,
+             * then the value of the Next Extension Header Type shall be 0. */
+
+            i = 0;
+            while (*(ext_h = (((uint8_t *)gtp_h) + len - 1)) &&
+                    i < OGS_GTP2_NUM_OF_EXTENSION_HEADER) {
+            /*
+             * The length of the Extension header shall be defined
+             * in a variable length of 4 octets, i.e. m+1 = n*4 octets,
+             * where n is a positive integer.
+             */
+                len += (*(++ext_h)) * 4;
+                if (*ext_h == 0) {
+                    ogs_error("No length in the Extension header");
+                    return NULL;
+                }
+
+                if (((*ext_h) * 4) > OGS_GTP2_MAX_EXTENSION_HEADER_LEN) {
+                    ogs_error("Overflow length : %d", (*ext_h));
+                    return NULL;
+                }
+
+                if (tunnel_len < len) {
+                    ogs_error("the length of the packet is insufficient[%d:%d]",
+                            tunnel_len, len);
+                    return -1;
+                }
+
+                if (!header_desc) /* Skip to extract header content */
+                    continue;
+
+                /* Copy Header Content */
+                memcpy(&ext_hdesc.array[i], ext_h-1, (*ext_h) * 4);
+
+                switch (ext_hdesc.array[i].type) {
+                case OGS_GTP2_EXTENSION_HEADER_TYPE_PDU_SESSION_CONTAINER:
+                    header_desc->pdu_type = ext_hdesc.array[i].pdu_type;
+                    if (ext_hdesc.array[i].pdu_type ==
+                        OGS_GTP2_EXTENSION_HEADER_PDU_TYPE_UL_PDU_SESSION_INFORMATION) {
+                            header_desc->qos_flow_identifier =
+                                ext_hdesc.array[i].qos_flow_identifier;
+                            ogs_trace("   QFI [0x%x]",
+                                    header_desc->qos_flow_identifier);
+                    }
+                    break;
+                case OGS_GTP2_EXTENSION_HEADER_TYPE_UDP_PORT:
+                    header_desc->udp.presence = true;
+                    header_desc->udp.port = be16toh(ext_hdesc.array[i].udp_port);
+
+                    ogs_trace("   UDP Port [%d]", header_desc->udp.port);
+                    break;
+                case OGS_GTP2_EXTENSION_HEADER_TYPE_PDCP_NUMBER:
+                    header_desc->pdcp_number_presence = true;
+                    header_desc->pdcp_number =
+                        be16toh(ext_hdesc.array[i].pdcp_number);
+
+                    ogs_trace("   PDCP Number [%d]", header_desc->pdcp_number);
+                    break;
+                default:
+                    break;
+                }
+
+                i++;
+            }
+
+            if (i >= OGS_GTP2_NUM_OF_EXTENSION_HEADER) {
+                ogs_error("The number of extension headers is limited to [%d]", i);
+                return -1;
+            }
+
+        } else if (gtp_h->flags & (OGS_GTPU_FLAGS_S|OGS_GTPU_FLAGS_PN)) {
+            /*
+             * If and only if one or more of these three flags are set,
+             * the fields Sequence Number, N-PDU and Extension Header
+             * shall be present. The sender shall set all the bits of
+             * the unused fields to zero. The receiver shall not evaluate
+             * the unused fields.
+             * For example, if only the E flag is set to 1, then
+             * the N-PDU Number and Sequence Number fields shall also be present,
+             * but will not have meaningful values and shall not be evaluated.
+             */
+            len += 4;
+        }
+
     }
 
     ogs_pfcp_pdr_t *pdr = NULL;
@@ -654,7 +776,7 @@ ogs_pfcp_pdr_t *n3_pdr_find_by_local_sess(upf_sess_t *sess, ogs_gtp2_header_t *g
         if (teid != pdr->f_teid.teid) {
             continue;
         }
-        if (qfi && pdr->qfi != qfi) {
+        if (header_desc->qos_flow_identifier && pdr->qfi != header_desc->qos_flow_identifier) {
             continue;
         }
         if (ogs_list_first(&pdr->rule_list) &&
