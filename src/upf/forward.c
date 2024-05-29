@@ -222,9 +222,12 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
     struct packet *pkt = (struct packet *)(m->buf_addr);
     struct rte_ether_hdr *eth_h = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
     ogs_gtp2_header_t *gtp_h = (ogs_gtp2_header_t *)((char *)eth_h + pkt->l2_len + pkt->l3_len + pkt->l4_len);
-
+    ogs_gtp2_header_desc_t header_desc;
+    
     ogs_debug("[RECV] GPU-U Type [%d] from [%s] : TEID[0x%x]",
             gtp_h->type, ip_printf((char *)eth_h + pkt->l2_len, 0), be32toh(gtp_h->teid));
+            
+            
 
     if (LIKELY(gtp_h->type == OGS_GTPU_MSGTYPE_GPDU)) {
         char *in_l3_head = (char *)gtp_h + pkt->tunnel_len;
@@ -238,7 +241,7 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
         ogs_pfcp_pdr_t *pdr = NULL;
         ogs_pfcp_far_t *far = NULL;
 
-        pdr = n3_pdr_find_by_local_sess(sess, gtp_h, in_l3_head);
+        pdr = n3_pdr_find_by_local_sess(sess, gtp_h, in_l3_head, pkt->tunnel_len);
         if (!pdr || !pdr->sess) {
             ogs_error("%s, unfound pdr by local session, ip %s\n",
                     __func__, ip_printf(in_l3_head, 0));

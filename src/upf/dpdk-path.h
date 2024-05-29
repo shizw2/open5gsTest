@@ -33,7 +33,7 @@ ogs_pfcp_rule_t *pfcp_pdr_rule_find_by_packet(ogs_pfcp_pdr_t *pdr, char *l3_head
 
 int fwd_handle_gtp_session_report(struct rte_ring *r, ogs_pfcp_pdr_t *pdr, uint32_t sess_index);
 
-ogs_pfcp_pdr_t *n3_pdr_find_by_local_sess(upf_sess_t *sess, ogs_gtp2_header_t *gtp_h, char *ip_h);
+ogs_pfcp_pdr_t *n3_pdr_find_by_local_sess(upf_sess_t *sess, ogs_gtp2_header_t *gtp_h, char *ip_h, uint8_t tunnel_len);
 int process_dst_if_interface_core(struct lcore_conf *lconf, struct rte_mbuf *m, char *in_l3_head);
 int process_dst_if_interface_access(struct lcore_conf *lconf, struct rte_mbuf *m, ogs_pfcp_pdr_t *pdr);
 int process_dst_if_interface_cp_func(struct lcore_conf *lconf, struct rte_mbuf *m, ogs_pfcp_pdr_t *pdr);
