@@ -10,6 +10,175 @@ head_inline: "<style> .blue { color: blue; } </style>"
   }
 </style>
 
+#### How to run wireshark from within Docker?
+
+In the following, I will explain how to run wireshark on Ubuntu 32bit.
+
+First, make the following modifications to get wireshark working.
+
+```diff
+$ diff --git a/docker/docker-compose.yml b/docker/docker-compose.yml
+index 01925303b..8d5e23a4f 100644
+--- a/docker/docker-compose.yml
++++ b/docker/docker-compose.yml
+@@ -105,7 +105,7 @@ services:
+     volumes:
+       - home:/home/${USER}
+       - ${HOME}:/mnt
+-    # - /tmp/.X11-unix:/tmp/.X11-unix
++      - /tmp/.X11-unix:/tmp/.X11-unix
+     # - /etc/localtime:/etc/localtime:ro
+     # - /usr/share/zoneinfo/Europe/Helsinki:/etc/localtime:ro
+     hostname: open5gs-dev
+
+$ diff --git a/docker/ubuntu/latest/dev/Dockerfile b/docker/ubuntu/latest/dev/Dockerfile
+index 970dddb72..6902fc59c 100644
+--- a/docker/ubuntu/latest/dev/Dockerfile
++++ b/docker/ubuntu/latest/dev/Dockerfile
+@@ -23,12 +23,12 @@ RUN apt-get update && \
+         net-tools && \
+     apt-get clean
+
+-#RUN apt-get update && \
+-#    apt-get install -y software-properties-common && \
+-#    sudo add-apt-repository ppa:wireshark-dev/stable -y && \
+-#    apt-get update && \
+-#    DEBIAN_FRONTEND=noninteractive \
+-#    apt-get install -y wireshark
++RUN apt-get update && \
++    apt-get install -y software-properties-common && \
++    sudo add-apt-repository ppa:wireshark-dev/stable -y && \
++    apt-get update && \
++    DEBIAN_FRONTEND=noninteractive \
++    apt-get install -y wireshark
+
+ COPY setup.sh /root
+```
+
+It allows any program run by the docker user to communicate with X windows.
+```
+$ xhost +local:docker
+```
+
+And run 32bit ubuntu like below.
+```
+$ cd docker
+$ DIST=i386/ubuntu docker compose run dev
+```
+
+#### What to do if a FATAL occurs?
+
+You may occasionally encounter a FATAL like the one below.
+
+```
+FATAL: s1ap_build_initial_context_setup_request: Assertion `E_RABToBeSetupListCtxtSUReq->list.count' failed. (../src/mme/s1ap-build.c:577)
+01/19 22:01:49.169: [core] FATAL: backtrace() returned 10 addresses (../lib/core/ogs-abort.c:37)
+./src/mme/open5gs-mmed(+0x8ef5e) [0x55f6f8a78f5e]
+./src/mme/open5gs-mmed(+0x5910b) [0x55f6f8a4310b]
+./src/mme/open5gs-mmed(+0xa4ea5) [0x55f6f8a8eea5]
+./src/mme/open5gs-mmed(+0x88b65) [0x55f6f8a72b65]
+/home/acetcom/Documents/git/open5gs/build/src/mme/../../lib/core/libogscore.so.2(ogs_fsm_dispatch+0x119) [0x7fc2362f4c2f]
+./src/mme/open5gs-mmed(+0x9e99) [0x55f6f89f3e99]
+/home/acetcom/Documents/git/open5gs/build/src/mme/../../lib/core/libogscore.so.2(+0x1199d) [0x7fc2362e599d]
+/lib/x86_64-linux-gnu/libc.so.6(+0x94ac3) [0x7fc235a94ac3]
+/lib/x86_64-linux-gnu/libc.so.6(+0x126850) [0x7fc235b26850]
+[1]    41823 IOT instruction (core dumped)  ./src/mme/open5gs-mmed
+```
+
+When a FATAL occurs, Open5GS automatically calls backtrace(), and from the address information it outputs, we can see in which source code this happened. Note the addresses 0x8ef5e, 0x5910b, 0xa4ea5, 0x88b65 in the output below. You can find those addresses in the following places.
+
+```
+./src/mme/open5gs-mmed(+0x8ef5e)
+./src/mme/open5gs-mmed(+0x5910b)
+./src/mme/open5gs-mmed(+0xa4ea5)
+./src/mme/open5gs-mmed(+0x88b65)
+```
+
+And you can use the GDB tool to provide additional information. If you are in a Ubuntu environment, you can install GDB as shown below.
+```
+$ sudo apt install gdb
+```
+
+Then run gdb like below.
+
+```
+$ gdb ./src/mme/open5gs-mmed
+GNU gdb (Ubuntu 12.1-0ubuntu1~22.04) 12.1
+Copyright (C) 2022 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "x86_64-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<https://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from ./src/mme/open5gs-mmed...
+(gdb)
+```
+
+With the address 0x8ef5e, 0x5910b, 0xa4ea5, 0x88b65 that you remembered from above and the `list` command within the GDB prompt, you can find out in which source code the problem is occurring.
+
+```
+(gdb) list *0x8ef5e
+0x8ef5e is in s1ap_build_initial_context_setup_request (../src/mme/s1ap-build.c:579).
+574	        emmbuf = NULL;
+575	    }
+576
+577	    ogs_assert(E_RABToBeSetupListCtxtSUReq->list.count);
+578
+579	    ie = CALLOC(1, sizeof(S1AP_InitialContextSetupRequestIEs_t));
+580	    ASN_SEQUENCE_ADD(&InitialContextSetupRequest->protocolIEs, ie);
+581
+582	    ie->id = S1AP_ProtocolIE_ID_id_UESecurityCapabilities;
+583	    ie->criticality = S1AP_Criticality_reject;
+(gdb) list *0x5910b
+0x5910b is in nas_eps_send_attach_accept (../src/mme/nas-path.c:171).
+166	     * the MME shall delete the stored UE radio capability information
+167	     * or the UE radio capability ID, if any.
+168	     */
+169	    OGS_ASN_CLEAR_DATA(&mme_ue->ueRadioCapability);
+170
+171	    s1apbuf = s1ap_build_initial_context_setup_request(mme_ue, emmbuf);
+172	    if (!s1apbuf) {
+173	        ogs_error("s1ap_build_initial_context_setup_request() failed");
+174	        return OGS_ERROR;
+175	    }
+(gdb) list *0xa4ea5
+0xa4ea5 is in mme_s11_handle_create_session_response (../src/mme/mme-s11-handler.c:436).
+431	            ogs_assert(OGS_OK ==
+432	                sgsap_send_location_update_request(mme_ue));
+433	        } else {
+434	            ogs_assert(OGS_PDU_SESSION_TYPE_IS_VALID(
+435	                        session->paa.session_type));
+436	            r = nas_eps_send_attach_accept(mme_ue);
+437	            ogs_expect(r == OGS_OK);
+438	            ogs_assert(r != OGS_ERROR);
+439	        }
+440
+(gdb) list *0x88b65
+0x88b65 is in mme_state_operational (../src/mme/mme-sm.c:552).
+547	            break;
+548	        case OGS_GTP2_CREATE_SESSION_RESPONSE_TYPE:
+549	            if (!gtp_message.h.teid_presence) ogs_error("No TEID");
+550	            mme_s11_handle_create_session_response(
+551	                xact, mme_ue, &gtp_message.create_session_response);
+552	            break;
+553	        case OGS_GTP2_MODIFY_BEARER_RESPONSE_TYPE:
+554	            if (!gtp_message.h.teid_presence) ogs_error("No TEID");
+555	            mme_s11_handle_modify_bearer_response(
+556	                xact, mme_ue, &gtp_message.modify_bearer_response);
+(gdb)
+```
+
+Reporting this information to a github issue or discussion will help others troubleshoot the issue.
+
+
 #### MME sends Attach reject(EMM-Cause:15) with Diameter error(Result-Code:3002)
 
 If you see the Attach reject(EMM-Cause:15] with Diameter error(Result-Code:3002), it means that HSS is not running.
@@ -277,6 +446,7 @@ $ sudo pkill -9 open5gs-hssd
 $ sudo pkill -9 open5gs-pcrfd
 $ sudo pkill -9 open5gs-nrfd
 $ sudo pkill -9 open5gs-scpd
+$ sudo pkill -9 open5gs-seppd
 $ sudo pkill -9 open5gs-ausfd
 $ sudo pkill -9 open5gs-udmd
 $ sudo pkill -9 open5gs-pcfd
@@ -310,32 +480,29 @@ To add a slice with SST of 1 and SD of 000080, you need to update the configurat
 ### amf.yaml
 
 $ diff --git a/configs/open5gs/amf.yaml.in b/configs/open5gs/amf.yaml.in
-index 7e939e81..dfe4456d 100644
+index a70143f08..e0dba560c 100644
 --- a/configs/open5gs/amf.yaml.in
 +++ b/configs/open5gs/amf.yaml.in
-@@ -315,6 +315,12 @@ amf:
-           mnc: 70
-         s_nssai:
-           - sst: 1
-+      - plmn_id:
-+          mcc: 999
-+          mnc: 70
-+        s_nssai:
-+          - sst: 1
-+            sd: 000080
-     security:
-         integrity_order : [ NIA2, NIA1, NIA0 ]
-         ciphering_order : [ NEA0, NEA1, NEA2 ]
+@@ -1,6 +1,6 @@
+ logger:
+     file:
+       path: @localstatedir@/log/open5gs/amf.log
+-#    level: info   # fatal|error|warn|info(default)|debug|trace
++    level: debug
+
+ max:
+     ue: 1024  # The number of UE can be increased depending on memory size.
+
 
 ### FIRST smf.yaml
 
 $ diff --git a/configs/open5gs/smf.yaml.in b/configs/open5gs/smf.yaml.in
-index d45aa60f..701ee533 100644
+index 758ca9cb9..6800eeeec 100644
 --- a/configs/open5gs/smf.yaml.in
 +++ b/configs/open5gs/smf.yaml.in
-@@ -442,6 +442,11 @@ logger:
- #
-
+@@ -7,6 +7,11 @@ max:
+ #    peer: 64
+ 
  smf:
 +    info:
 +      - s_nssai:
@@ -343,18 +510,19 @@ index d45aa60f..701ee533 100644
 +            dnn:
 +              - internet
      sbi:
-       - addr: 127.0.0.4
-         port: 7777
+       server:
+         - address: 127.0.0.4
+
 
 ### SECOND smf.yaml
 
 $ diff --git a/configs/open5gs/smf.yaml.in b/configs/open5gs/smf.yaml.in
-index d45aa60f..949da220 100644
+index 758ca9cb9..c3879fc70 100644
 --- a/configs/open5gs/smf.yaml.in
 +++ b/configs/open5gs/smf.yaml.in
-@@ -442,6 +442,12 @@ logger:
- #
-
+@@ -7,6 +7,12 @@ max:
+ #    peer: 64
+ 
  smf:
 +    info:
 +      - s_nssai:
@@ -363,27 +531,33 @@ index d45aa60f..949da220 100644
 +            dnn:
 +              - internet
      sbi:
-       - addr: 127.0.0.4
-         port: 7777
+       server:
+         - address: 127.0.0.4
+
 
 ### nssf.yaml
+
 $ diff --git a/configs/open5gs/nssf.yaml.in b/configs/open5gs/nssf.yaml.in
-index ecd4f7e2..04d9c4ba 100644
+index d01645b2c..48ed3f8ee 100644
 --- a/configs/open5gs/nssf.yaml.in
 +++ b/configs/open5gs/nssf.yaml.in
-@@ -201,6 +201,12 @@ nssf:
-         port: 7777
-         s_nssai:
-           sst: 1
-+      - addr: 127.0.0.10
-+        port: 7777
-+        s_nssai:
-+          sst: 1
-+          sd: 000080
+@@ -20,6 +20,11 @@ nssf:
+           - uri: http://127.0.0.10:7777
+             s_nssai:
+               sst: 1
++          - uri: http://127.0.0.10:7777
++            s_nssai:
++              sst: 1
++              sd: 000080
 +
 
- #
- # scp:
+ ################################################################################
+ # SBI Server
+ ################################################################################
+
+ ################################################################################
+ # Network Slice Instance(NSI)
+ ################################################################################
 ```
 
 Then add a slice to MongoDB's subscriber info.
@@ -412,6 +586,7 @@ And the process below is only used in 5G, so there is no need to run it.
 ```bash
 $ open5gs-nrfd
 $ open5gs-scpd
+$ open5gs-seppd
 $ open5gs-amfd
 $ open5gs-ausfd
 $ open5gs-udmd
@@ -434,41 +609,33 @@ However, among these, SMF and UPF are used by both 4G EPC and 5G Core. And SMF h
 To prevent SMF from attempting to access the 5G NRF, you need to modify the SMF configuration file as below.
 
 ```diff
-$ diff -u ./install/etc/open5gs/smf.yaml.old ./install/etc/open5gs/smf.yaml
---- ./install/etc/open5gs/smf.yaml.old 2020-10-08 14:43:20.599734045 -0400
-+++ ./install/etc/open5gs/smf.yaml 2020-10-08 14:44:21.864952687 -0400
-@@ -168,9 +168,9 @@
- #      - ::1
- #
+$ diff --git a/configs/open5gs/smf.yaml.in b/configs/open5gs/smf.yaml.in
+index 758ca9cb9..a9004ba9a 100644
+--- a/configs/open5gs/smf.yaml.in
++++ b/configs/open5gs/smf.yaml.in
+@@ -7,15 +7,15 @@ max:
+ #    peer: 64
+ 
  smf:
 -    sbi:
--      - addr: 127.0.0.4
--        port: 7777
+-      server:
+-        - address: 127.0.0.4
+-          port: 7777
+-      client:
 +#    sbi:
-+#      - addr: 127.0.0.4
-+#        port: 7777
-     gtpc:
-       - addr: 127.0.0.4
-       - addr: ::1
-@@ -214,12 +214,12 @@
- #        - 127.0.0.10
- #        - fe80::1%lo
- #
--nrf:
--    sbi:
--      - addr:
--          - 127.0.0.10
--          - ::1
--        port: 7777
-+#nrf:
-+#    sbi:
-+#      - addr:
-+#          - 127.0.0.10
-+#          - ::1
-+#        port: 7777
-
- #
- # upf:
++#      server:
++#        - address: 127.0.0.4
++#          port: 7777
++#      client:
+ #        nrf:
+ #          - uri: http://127.0.0.10:7777
+-        scp:
+-          - uri: http://127.0.0.200:7777
++#        scp:
++#          - uri: http://127.0.0.200:7777
+     pfcp:
+       server:
+         - address: 127.0.0.4
 ```
 
 If you set as above and run SMF, you do not need to run NRF. Seven daemons operate in 4G only state.
@@ -503,33 +670,32 @@ $ sudo iptables -t nat -A POSTROUTING -s 10.46.0.0/16 ! -o ogstun -j MASQUERADE
 Now, you need to modify the configuration file of Open5GS to adjust the UE IP Pool. UE IP Pool can be allocated by SMF or UPF, but in this tutorial, we will modify both configuration files.
 
 ```diff
-$ diff -u smf.yaml smf.yaml.new
---- smf.yaml    2020-09-17 09:31:16.547882093 -0400
-+++ smf.yaml.new    2020-09-17 09:32:18.267726844 -0400
-@@ -458,7 +458,7 @@ smf:
-         addr: 127.0.0.4
-         port: 9090
-     subnet:
--      - addr: 10.45.0.1/16
-+      - addr: 10.46.0.1/16
-       - addr: 2001:db8:cafe::1/48
+$ diff --git a/configs/open5gs/smf.yaml.in b/configs/open5gs/smf.yaml.in
+index 758ca9cb9..5c9b97cd0 100644
+--- a/configs/open5gs/smf.yaml.in
++++ b/configs/open5gs/smf.yaml.in
+@@ -33,7 +33,7 @@ smf:
+         - address: 127.0.0.4
+           port: 9090
+     session:
+-      - subnet: 10.45.0.1/16
++      - subnet: 10.46.0.1/16
+       - subnet: 2001:db8:cafe::1/48
      dns:
        - 8.8.8.8
-```
-
-```diff
-$ diff -u upf.yaml upf.yaml.new
---- upf.yaml    2020-09-17 09:31:16.547882093 -0400
-+++ upf.yaml.new    2020-09-17 09:32:25.199619989 -0400
-@@ -170,7 +170,7 @@ upf:
-     gtpu:
-       - addr: 127.0.0.7
-     subnet:
--      - addr: 10.45.0.1/16
-+      - addr: 10.46.0.1/16
-       - addr: 2001:db8:cafe::1/48
-
- #
+$ diff --git a/configs/open5gs/upf.yaml.in b/configs/open5gs/upf.yaml.in
+index e78b018f1..23cb273f8 100644
+--- a/configs/open5gs/upf.yaml.in
++++ b/configs/open5gs/upf.yaml.in
+@@ -17,7 +17,7 @@ upf:
+       server:
+         - address: 127.0.0.7
+     session:
+-      - subnet: 10.45.0.1/16
++      - subnet: 10.46.0.1/16
+       - subnet: 2001:db8:cafe::1/48
+     metrics:
+       server:
 ```
 
 Restart SMF/UPF
@@ -620,6 +786,7 @@ $ sudo pkill -9 open5gs-hssd
 $ sudo pkill -9 open5gs-pcrfd
 $ sudo pkill -9 open5gs-nrfd
 $ sudo pkill -9 open5gs-scpd
+$ sudo pkill -9 open5gs-seppd
 $ sudo pkill -9 open5gs-ausfd
 $ sudo pkill -9 open5gs-udmd
 $ sudo pkill -9 open5gs-pcfd
@@ -846,45 +1013,59 @@ By default, MME selects the SMF as the first SMF node. To use a different DNN/AP
 See the following example.
 
 ```
-### For reference, see `smf.yaml`
+### For reference, see `mme.yaml`
 #
-# smf:
-#
-#  <GTP-C Client>
-#
-#  o By default, the SMF uses the first SMF node.
-#    - To use a different DNN/APN for each SMF, specify gtpc.dnn
-#      as the DNN/APN name.
-#    - If the HSS uses WebUI to set the SMF IP for each UE,
-#      you can use a specific SMF node for each UE.
-#
-#  o Two SMF are defined. 127.0.0.4:2123 is used.
-#    [fe80::3%lo]:2123 is ignored.
+################################################################################
+# GTP-C Client
+################################################################################
+#  o SGW selection by eNodeB TAC
+#   (either single TAC or multiple TACs, DECIMAL representation)
 #    gtpc:
-#      - addr: 127.0.0.4
-#      - addr: fe80::3%lo
+#      client:
+#        sgwc:
+#          - address: 127.0.0.3
+#            tac: 26000
+#          - address: 127.0.2.2
+#            tac: [25000, 27000, 28000]
 #
-#  o One SMF is defined. if prefer_ipv4 is not true,
-#    [fe80::3%lo] is selected.
+#  o SGW selection by e_cell_id(28bit)
+#   (either single or multiple e_cell_id, HEX representation)
 #    gtpc:
-#      - addr:
-#        - 127.0.0.4
-#        - fe80::3%lo
+#      client:
+#        sgwc:
+#          - address: 127.0.0.3
+#            e_cell_id: abcde01
+#          - address: 127.0.2.2
+#            e_cell_id: [12345, a9413, 98765]
 #
-#  o Two SMF are defined with a different DNN/APN.
-#    - Note that if SMF IP for UE is configured in HSS,
-#      the following configurion for this UE is ignored.
+#  o SMF selection by APN
 #    gtpc:
-#      - addr: 127.0.0.4
-#        dnn: internet
-#      - addr: 127.0.0.5
-#        dnn: volte
+#      client:
+#        smf:
+#          - address: 127.0.0.4
+#            apn: internet
+#          - address: 127.0.0.5
+#            apn: volte
 #
-#  o If DNN/APN is omitted, the default DNN/APN uses the first SMF node.
+#  o SMF selection by eNodeB TAC
+#   (either single TAC or multiple TACs, DECIMAL representation)
 #    gtpc:
-#      - addr: 127.0.0.4
-#      - addr: 127.0.0.5
-#        dnn: volte
+#      client:
+#        smf:
+#          - address: 127.0.0.4
+#            tac: 26000
+#          - address: 127.0.2.4
+#            tac: [25000, 27000, 28000]
+#
+#  o SMF selection by e_cell_id(28bit)
+#   (either single or multiple e_cell_id, HEX representation)
+#    gtpc:
+#      client:
+#        smf:
+#          - address: 127.0.0.4
+#            e_cell_id: abcde01
+#          - address: 127.0.2.4
+#            e_cell_id: [12345, a9413, 98765]
 ```
 
 The IP address of the UE can also use a different UE pool depending on the DNN/APN.
@@ -896,16 +1077,16 @@ The IP address of the UE can also use a different UE pool depending on the DNN/A
 #  o IPv4 Pool
 #    $ sudo ip addr add 10.45.0.1/16 dev ogstun
 #
-#    subnet:
-#      addr: 10.45.0.1/16
+#    session:
+#      subnet: 10.45.0.1/16
 #
 #  o IPv4/IPv6 Pool
 #    $ sudo ip addr add 10.45.0.1/16 dev ogstun
 #    $ sudo ip addr add 2001:db8:cafe::1/48 dev ogstun
 #
-#    subnet:
-#      - addr: 10.45.0.1/16
-#      - addr: 2001:db8:cafe::1/48
+#    session:
+#      - subnet: 10.45.0.1/16
+#      - subnet: 2001:db8:cafe::1/48
 #
 #
 #  o Specific DNN/APN(e.g 'volte') uses 10.46.0.1/16, 2001:db8:babe::1/48
@@ -915,37 +1096,37 @@ The IP address of the UE can also use a different UE pool depending on the DNN/A
 #    $ sudo ip addr add 2001:db8:cafe::1/48 dev ogstun
 #    $ sudo ip addr add 2001:db8:babe::1/48 dev ogstun
 #
-#    subnet:
-#      - addr: 10.45.0.1/16
-#      - addr: 2001:db8:cafe::1/48
-#      - addr: 10.46.0.1/16
+#    session:
+#      - subnet: 10.45.0.1/16
+#      - subnet: 2001:db8:cafe::1/48
+#      - subnet: 10.46.0.1/16
 #        dnn: volte
-#      - addr: 2001:db8:babe::1/48
+#      - subnet: 2001:db8:babe::1/48
 #        dnn: volte
 #
 #  o Pool Range Sample
-#    subnet:
-#      - addr: 10.45.0.1/24
+#    session:
+#      - subnet: 10.45.0.1/24
 #        range: 10.45.0.100-10.45.0.200
 #
-#    subnet:
-#      - addr: 10.45.0.1/24
+#    session:
+#      - subnet: 10.45.0.1/24
 #        range:
 #          - 10.45.0.5-10.45.0.50
 #          - 10.45.0.100-
 #
-#    subnet:
-#      - addr: 10.45.0.1/24
+#    session:
+#      - subnet: 10.45.0.1/24
 #        range:
 #          - -10.45.0.200
 #          - 10.45.0.210-10.45.0.220
 #
-#    subnet:
-#      - addr: 10.45.0.1/16
+#    session:
+#      - subnet: 10.45.0.1/16
 #        range:
 #          - 10.45.0.100-10.45.0.200
 #          - 10.45.1.100-10.45.1.200
-#      - addr: 2001:db8:cafe::1/48
+#      - subnet: 2001:db8:cafe::1/48
 #        range:
 #          - 2001:db8:cafe:a0::0-2001:db8:cafe:b0::0
 #          - 2001:db8:cafe:c0::0-2001:db8:cafe:d0::0
@@ -1081,7 +1262,10 @@ Currently, the number of UE is limited to `128*128`.
 * HSS : 127.0.0.8
 * PCRF : 127.0.0.9
 * NRF : 127.0.0.10
-* SCP : 127.0.1.10
+* SCP : 127.0.0.200
+* SEPP : 127.0.0.250
+* SEPP-n32 : 127.0.0.251
+* SEPP-n32f : 127.0.0.252
 * AUSF : 127.0.0.11
 * UDM : 127.0.0.12
 * PCF : 127.0.0.13

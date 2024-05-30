@@ -27,15 +27,19 @@ static int initialized = 0;
 int eir_initialize(void)
 {
     int rv;
+    
+#define APP_NAME "eir"
+    rv = ogs_app_parse_local_conf(APP_NAME);
+    if (rv != OGS_OK) return rv;
     eir_metrics_init();
 
     ogs_sbi_context_init(OpenAPI_nf_type_5G_EIR);
     eir_context_init();
     
-    rv = ogs_sbi_context_parse_config("eir", "nrf", "scp");
+    rv = ogs_sbi_context_parse_config(APP_NAME, "nrf", "scp");
     if (rv != OGS_OK) return rv;
     
-    rv = ogs_metrics_context_parse_config("eir");
+    rv = ogs_metrics_context_parse_config(APP_NAME);
     if (rv != OGS_OK) return rv;
 
     rv = eir_context_parse_config();

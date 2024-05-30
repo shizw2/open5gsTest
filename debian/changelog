@@ -1,3 +1,93 @@
+open5gs (2.7.1) unstable; urgency=medium
+
+  * Bug Fixed
+
+ -- Sukchan Lee <acetcom@gmail.com>  Fri, 19 Apr 2024 21:21:46 +0900
+
+open5gs (2.7.1~mantic) mantic; urgency=medium
+
+  * Bug Fixed
+
+ -- Sukchan Lee <acetcom@gmail.com>  Fri, 19 Apr 2024 21:18:53 +0900
+
+open5gs (2.7.1~bionic) bionic; urgency=medium
+
+  * Bug Fixed
+
+ -- Sukchan Lee <acetcom@gmail.com>  Fri, 19 Apr 2024 21:16:21 +0900
+
+open5gs (2.7.1~jammy) jammy; urgency=medium
+
+  * Bug Fixed
+
+ -- Sukchan Lee <acetcom@gmail.com>  Fri, 19 Apr 2024 21:11:30 +0900
+
+open5gs (2.7.1~focal) focal; urgency=medium
+
+  * Bug Fixed
+
+ -- Sukchan Lee <acetcom@gmail.com>  Fri, 19 Apr 2024 21:08:46 +0900
+
+open5gs (2.7.0) unstable; urgency=medium
+
+  * 5G Roaming with SEPP
+
+ -- Sukchan Lee <acetcom@gmail.com>  Mon, 04 Dec 2023 21:10:30 +0900
+
+open5gs (2.7.0~lunar) lunar; urgency=medium
+
+  * 5G Roaming with SEPP
+
+ -- Sukchan Lee <acetcom@gmail.com>  Mon, 04 Dec 2023 21:08:42 +0900
+
+open5gs (2.7.0~jammy) jammy; urgency=medium
+
+  * 5G Roaming with SEPP
+
+ -- Sukchan Lee <acetcom@gmail.com>  Mon, 04 Dec 2023 21:06:57 +0900
+
+open5gs (2.7.0~focal) focal; urgency=medium
+
+  * 5G Roaming with SEPP
+
+ -- Sukchan Lee <acetcom@gmail.com>  Mon, 04 Dec 2023 21:05:10 +0900
+
+open5gs (2.7.0~bionic) bionic; urgency=medium
+
+  * 5G Roaming with SEPP
+
+ -- Sukchan Lee <acetcom@gmail.com>  Mon, 04 Dec 2023 21:02:40 +0900
+
+open5gs (2.6.6) unstable; urgency=medium
+
+  * Ubuntu 23.04(lunar) Release
+
+ -- Sukchan Lee <acetcom@gmail.com>  Wed, 04 Oct 2023 21:02:46 +0900
+
+open5gs (2.6.6~lunar) lunar; urgency=medium
+
+  * Ubuntu 23.04(lunar) Release
+
+ -- Sukchan Lee <acetcom@gmail.com>  Wed, 04 Oct 2023 21:00:28 +0900
+
+open5gs (2.6.6~jammy) jammy; urgency=medium
+
+  * Ubuntu 23.04(lunar) Release
+
+ -- Sukchan Lee <acetcom@gmail.com>  Wed, 04 Oct 2023 20:47:26 +0900
+
+open5gs (2.6.6~focal) focal; urgency=medium
+
+  * Ubuntu 23.04(lunar) Release
+
+ -- Sukchan Lee <acetcom@gmail.com>  Wed, 04 Oct 2023 20:45:45 +0900
+
+open5gs (2.6.6~bionic) bionic; urgency=medium
+
+  * Ubuntu 23.04(lunar) Release
+
+ -- Sukchan Lee <acetcom@gmail.com>  Wed, 04 Oct 2023 20:43:30 +0900
+
 open5gs (2.6.4) unstable; urgency=medium
 
   * Bug Fixed

@@ -238,11 +238,16 @@ to support IPv6.  This is done by setting the `diable_ipv6` option for
 `ogstun` to 0 (false):
 
 ```bash
+$ sysctl -n net.ipv6.conf.lo.disable_ipv6
+1
 $ sysctl -n net.ipv6.conf.ogstun.disable_ipv6
 1
 
+$ sudo sysctl -w net.ipv6.conf.lo.disable_ipv6=0
 $ sudo sysctl -w net.ipv6.conf.ogstun.disable_ipv6=0
 
+$ sysctl -n net.ipv6.conf.lo.disable_ipv6
+0
 $ sysctl -n net.ipv6.conf.ogstun.disable_ipv6
 0
 ```
@@ -328,10 +333,10 @@ $ cd build
 $ ninja install
 $ cd ../
 $ ls install/bin
-open5gs-amfd   open5gs-mmed   open5gs-pcrfd  open5gs-smfd
-open5gs-ausfd  open5gs-nrfd   open5gs-scpd   open5gs-udmd
-open5gs-bsfd   open5gs-nssfd  open5gs-sgwcd  open5gs-udrd
-open5gs-hssd   open5gs-pcfd   open5gs-sgwud  open5gs-upfd
+open5gs-amfd   open5gs-mmed   open5gs-pcrfd  open5gs-sgwud  open5gs-upfd
+open5gs-ausfd  open5gs-nrfd   open5gs-scpd   open5gs-smfd
+open5gs-bsfd   open5gs-nssfd  open5gs-seppd  open5gs-udmd
+open5gs-hssd   open5gs-pcfd   open5gs-sgwcd  open5gs-udrd
 ```
 
 ## Building WebUI of Open5GS

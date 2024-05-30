@@ -71,7 +71,7 @@ int nas_5gs_send_to_downlink_nas_transport(
         return OGS_ERROR;
     }
 
-    rv = ngap_send_to_ran_ue(ran_ue, ngapbuf);
+    rv = ngap_send_to_ran_ue_sps(ran_ue, ngapbuf);
     ogs_expect(rv == OGS_OK);
 
     return rv;

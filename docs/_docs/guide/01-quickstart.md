@@ -46,6 +46,7 @@ All of these Open5GS components have config files. Each config file contains the
 The Open5GS 5G SA Core contains the following functions:
 * NRF - NF Repository Function
 * SCP - Service Communication Proxy
+* SEPP - Security Edge Protection Proxy
 * AMF - Access and Mobility Management Function
 * SMF - Session Management Function
 * UPF - User Plane Function
@@ -56,7 +57,7 @@ The Open5GS 5G SA Core contains the following functions:
 * NSSF - Network Slice Selection Function
 * BSF - Binding Support Function
 
-The 5G SA core works in a different way to the 4G core - it uses a **Service Based Architecture** (SBA). **Control plane** functions are configured to register with the NRF, and the NRF then helps them discover the other core functions. Running through the other functions: The AMF handles connection and mobility management; a subset of what the 4G MME is tasked with. gNBs (5G basestations) connect to the AMF. The UDM, AUSF and UDR carry out similar operations as the 4G HSS, generating SIM authentication vectors and holding the subscriber profile. Session management is all handled by the SMF (previously the responsibility of the 4G MME/ SGWC/ PGWC). The NSSF provides a way to select the network slice, and PCF is used for charging and enforcing subscriber policies. Finally there is the SCP that enable indirect communication.
+The 5G SA core works in a different way to the 4G core - it uses a **Service Based Architecture** (SBA). **Control plane** functions are configured to register with the NRF, and the NRF then helps them discover the other core functions. Running through the other functions: The AMF handles connection and mobility management; a subset of what the 4G MME is tasked with. gNBs (5G basestations) connect to the AMF. The UDM, AUSF and UDR carry out similar operations as the 4G HSS, generating SIM authentication vectors and holding the subscriber profile. Session management is all handled by the SMF (previously the responsibility of the 4G MME/ SGWC/ PGWC). The NSSF provides a way to select the network slice, and PCF is used for charging and enforcing subscriber policies, and SEPP is part of the roaming security architecture. Finally there is the SCP that enable indirect communication.
 
 The 5G SA core **user plane** is much simpler, as it only contains a single function. The UPF carries user data packets between the gNB and the external WAN. It connects back to the SMF too. 
 
@@ -188,10 +189,19 @@ The WebUI allows you to interactively edit subscriber data. While it is not esse
 1. *Debian and Ubuntu* based Linux distributions can install [Node.js](https://nodejs.org/) as follows:
 
     ```bash
+    # Download and import the Nodesource GPG key
     $ sudo apt update
-    $ sudo apt install curl
-    $ curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-    $ sudo apt install nodejs
+    $ sudo apt install -y ca-certificates curl gnupg
+    $ sudo mkdir -p /etc/apt/keyrings
+    $ curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+
+    # Create deb repository
+    $ NODE_MAJOR=20
+    $ echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+
+    # Run Update and Install
+    $ sudo apt update
+    $ sudo apt install nodejs -y
     ```
 
 2. To install [Node.js](https://nodejs.org/) on *openSUSE*, run the following:
@@ -214,7 +224,7 @@ Okay - you have installed the software, now what to do with it? Well, there are 
 Out of the box, the default configurations see all of the Open5GS components fully configured for use on a single computer. They are set to communicate with each other using the local loopback address space (`127.0.0.X`). The default addresses for each of the bind interfaces for these components and functions are as follows:
 
 ```
-MongoDB   = 127.0.0.1 (subscriber data) - http://localhost:3000
+MongoDB   = 127.0.0.1 (subscriber data) - http://localhost:9999
 
 MME-s1ap  = 127.0.0.2 :36412 for S1-MME
 MME-gtpc  = 127.0.0.2 :2123 for S11
@@ -223,7 +233,7 @@ MME-frDi  = 127.0.0.2 :3868 for S6a
 SGWC-gtpc = 127.0.0.3 :2123 for S11
 SGWC-pfcp = 127.0.0.3 :8805 for Sxa
 
-SMF-gtpc  = 127.0.0.4 :2123 for S5c, N11
+SMF-gtpc  = 127.0.0.4 :2123 for S5c
 SMF-gtpu  = 127.0.0.4 :2152 for N4u (Sxu)
 SMF-pfcp  = 127.0.0.4 :8805 for N4 (Sxb)
 SMF-frDi  = 127.0.0.4 :3868 for Gx auth
@@ -243,7 +253,10 @@ HSS-frDi  = 127.0.0.8 :3868 for S6a, Cx
 PCRF-frDi = 127.0.0.9 :3868 for Gx
 
 NRF-sbi   = 127.0.0.10:7777 for 5G SBI
-SCP-sbi   = 127.0.1.10:7777 for 5G SBI
+SCP-sbi   = 127.0.0.200:7777 for 5G SBI
+SEPP-sbi  = 127.0.0.250:7777 for 5G SBI
+SEPP-n32  = 127.0.0.251:7777 for 5G N32
+SEPP-n32f = 127.0.0.252:7777 for 5G N32-f
 AUSF-sbi  = 127.0.0.11:7777 for 5G SBI
 UDM-sbi   = 127.0.0.12:7777 for 5G SBI
 PCF-sbi   = 127.0.0.13:7777 for 5G SBI
@@ -262,18 +275,21 @@ If you are aiming to connect an external eNB to your core, you will also need to
 Modify [/etc/open5gs/mme.yaml](https://github.com/{{ site.github_username }}/open5gs/blob/main/configs/open5gs/mme.yaml.in) to set the S1AP IP address, PLMN ID, and TAC.
 
 ```diff
-$ diff -u /etc/open5gs/mme.yaml.old /etc/open5gs/mme.yaml
---- mme.yaml    2020-09-05 20:52:28.648235143 -0400
-+++ mme.yaml.new    2020-09-05 20:56:05.434484208 -0400
-@@ -253,20 +253,20 @@ mme:
+$ diff --git a/configs/open5gs/mme.yaml.in b/configs/open5gs/mme.yaml.in
+index db2cdaef1..2010f6691 100644
+--- a/configs/open5gs/mme.yaml.in
++++ b/configs/open5gs/mme.yaml.in
+@@ -10,7 +10,7 @@ mme:
+     freeDiameter: @sysconfdir@/freeDiameter/mme.conf
      s1ap:
--      - addr: 127.0.0.2
-+      - addr: 10.10.0.2
+       server:
+-        - address: 127.0.0.2
++        - address: 10.10.0.2
      gtpc:
-       - addr: 127.0.0.2
-     metrics:
-       addr: 127.0.0.2
-       port: 9090
+       server:
+         - address: 127.0.0.2
+@@ -25,14 +25,14 @@ mme:
+           port: 9090
      gummei:
        plmn_id:
 -        mcc: 999
@@ -296,18 +312,18 @@ $ diff -u /etc/open5gs/mme.yaml.old /etc/open5gs/mme.yaml
 Modify [/etc/open5gs/sgwu.yaml](https://github.com/{{ site.github_username }}/open5gs/blob/main/configs/open5gs/sgwu.yaml.in) to set the GTP-U IP address.
 ```diff
 $ diff --git a/configs/open5gs/sgwu.yaml.in b/configs/open5gs/sgwu.yaml.in
-index 8ccf94378..25b6884a3 100644
+index 7266e47fb..d640f0357 100644
 --- a/configs/open5gs/sgwu.yaml.in
 +++ b/configs/open5gs/sgwu.yaml.in
-@@ -100,7 +100,7 @@ sgwu:
-     pfcp:
-       - addr: 127.0.0.6
+@@ -15,7 +15,7 @@ sgwu:
+ #          - address: 127.0.0.3
      gtpu:
--      - addr: 127.0.0.6
-+      - addr: 10.11.0.6
+       server:
+-        - address: 127.0.0.6
++        - address: 10.11.0.6
 
- #
- # sgwc:
+ ################################################################################
+ # PFCP Server
 ```
 
 After changing config files, please restart Open5GS daemons.
@@ -319,26 +335,47 @@ $ sudo systemctl restart open5gs-sgwud
 
 #### Setup a 5G Core
 
-You will need to modify your 5G AMF config to support your PLMN and TAC. The international test PLMN is 001/01, and the international private network PLMN is 999/99. You should stick to using either of these PLMNs unless you have been issued a PLMN by your national regulator. (This PLMN will need to be configured in your gNB).
+You will need to modify the PLMN in your NRF and AMF config, and in case of AMF, further modify the TAC information. The international test PLMN is 001/01, and the international private network PLMN is 999/99. You should stick to using either of these PLMNs unless you have been issued a PLMN by your national regulator. (This PLMN will need to be configured in your gNB).
 
 If you are aiming to connect an external gNB to your core, you will also need to change the NGAP bind address of the AMF **and** the GTPU bind address of the UPF. If you are running an gNB stack locally, you will not need to make these changes.
 
+Modify [/etc/open5gs/nrf.yaml](https://github.com/{{ site.github_username }}/open5gs/blob/main/configs/open5gs/nrf.yaml.in) to set the Serving PLMN ID.
+
+```diff
+$ diff --git a/configs/open5gs/nrf.yaml.in b/configs/open5gs/nrf.yaml.in
+index cd9e45feb..58e8cbbce 100644
+--- a/configs/open5gs/nrf.yaml.in
++++ b/configs/open5gs/nrf.yaml.in
+@@ -10,8 +10,8 @@ global:
+ nrf:
+   serving:  # 5G roaming requires PLMN in NRF
+     - plmn_id:
+-        mcc: 999
+-        mnc: 70
++        mcc: 001
++        mnc: 01
+   sbi:
+     server:
+       - address: 127.0.0.10
+```
 
 Modify [/etc/open5gs/amf.yaml](https://github.com/{{ site.github_username }}/open5gs/blob/main/configs/open5gs/amf.yaml.in) to set the NGAP IP address, PLMN ID, TAC and NSSAI.
 
 ```diff
-$ diff -u /etc/open5gs/amf.yaml.old /etc/open5gs/amf.yaml
---- amf.yaml    2020-09-05 20:52:28.652234967 -0400
-+++ amf.yaml.new    2020-09-05 20:55:07.453114885 -0400
-@@ -293,26 +293,26 @@ amf:
-       - addr: 127.0.0.5
-         port: 7777
+$ diff --git a/configs/open5gs/amf.yaml.in b/configs/open5gs/amf.yaml.in
+index 938917e32..35d0ab5aa 100644
+--- a/configs/open5gs/amf.yaml.in
++++ b/configs/open5gs/amf.yaml.in
+@@ -18,27 +18,27 @@ amf:
+           - uri: http://127.0.0.200:7777
      ngap:
--      - addr: 127.0.0.5
-+      - addr: 10.10.0.5
+       server:
+-        - address: 127.0.0.5
++        - address: 10.10.0.5
      metrics:
-         addr: 127.0.0.5
-         port: 9090
+       server:
+         - address: 127.0.0.5
+           port: 9090
      guami:
        - plmn_id:
 -          mcc: 999
@@ -368,32 +405,62 @@ $ diff -u /etc/open5gs/amf.yaml.old /etc/open5gs/amf.yaml
 
 Modify [/etc/open5gs/upf.yaml](https://github.com/{{ site.github_username }}/open5gs/blob/main/configs/open5gs/upf.yaml.in) to set the GTP-U address.
 ```diff
-$ diff -u /etc/open5gs/upf.yaml.old /etc/open5gs/upf.yaml
---- upf.yaml    2020-09-05 20:52:28.652234967 -0400
-+++ upf.yaml.new    2020-09-05 20:52:55.279052142 -0400
-@@ -168,7 +168,7 @@ upf:
-     pfcp:
-       - addr: 127.0.0.7
+$ diff --git a/configs/open5gs/upf.yaml.in b/configs/open5gs/upf.yaml.in
+index e78b018f1..35a54419e 100644
+--- a/configs/open5gs/upf.yaml.in
++++ b/configs/open5gs/upf.yaml.in
+@@ -15,7 +15,7 @@ upf:
+ #          - address: 127.0.0.4
      gtpu:
--      - addr: 127.0.0.7
-+      - addr: 10.11.0.7
-     subnet:
-       - addr: 10.45.0.1/16
-       - addr: 2001:db8:cafe::1/48
+       server:
+-        - address: 127.0.0.7
++        - address: 10.11.0.7
+     session:
+       - subnet: 10.45.0.1/16
+       - subnet: 2001:db8:cafe::1/48
 ```
 
 After changing config files, please restart Open5GS daemons.
 
 ```bash
+$ sudo systemctl restart open5gs-nrfd
 $ sudo systemctl restart open5gs-amfd
 $ sudo systemctl restart open5gs-upfd
 ```
 
+#### Configure logging
+
+The Open5GS components log to `/var/log/open5gs/*.log` and to `stderr` by
+default.
+
+##### Avoid duplicate timestamps in journalctl
+
+Open5GS adds timestamps to each log line in the log file, and on `stderr`. If
+you run Open5GS with systemd and prefer looking at the logs with `journalctl`,
+then each line will have two timestamps. To fix this, disable the timestamp for
+`stderr` with the following configuration change:
+
+```diff
+diff --git a/configs/open5gs/mme.yaml.in b/configs/open5gs/mme.yaml.in
+index 87c251b9d..599032b8a 100644
+--- a/configs/open5gs/mme.yaml.in
++++ b/configs/open5gs/mme.yaml.in
+@@ -1,6 +1,9 @@
+ logger:
++  default:
++    timestamp: false
+   file:
+     path: /var/log/open5gs/mme.log
++    timestamp: true
+ #  level: info   # fatal|error|warn|info(default)|debug|trace
+
+ global:
+```
 
 #### Register Subscriber Information
 ---
 
-Connect to `http://localhost:3000` and login with **admin** account.
+Connect to `http://localhost:9999` and login with **admin** account.
 
 > Username : admin  
 > Password : 1423
@@ -493,6 +560,7 @@ $ sudo systemctl stop open5gs-hssd
 $ sudo systemctl stop open5gs-pcrfd
 $ sudo systemctl stop open5gs-nrfd
 $ sudo systemctl stop open5gs-scpd
+$ sudo systemctl stop open5gs-seppd
 $ sudo systemctl stop open5gs-ausfd
 $ sudo systemctl stop open5gs-udmd
 $ sudo systemctl stop open5gs-pcfd
@@ -513,6 +581,7 @@ $ sudo systemctl restart open5gs-hssd
 $ sudo systemctl restart open5gs-pcrfd
 $ sudo systemctl restart open5gs-nrfd
 $ sudo systemctl restart open5gs-scpd
+$ sudo systemctl restart open5gs-seppd
 $ sudo systemctl restart open5gs-ausfd
 $ sudo systemctl restart open5gs-udmd
 $ sudo systemctl restart open5gs-pcfd

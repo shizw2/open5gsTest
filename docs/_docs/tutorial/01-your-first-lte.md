@@ -179,8 +179,21 @@ $ sudo apt install open5gs
 The following shows how to install the Web UI of Open5GS.
 
 ```bash
-$ curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-$ sudo apt install nodejs
+# Download and import the Nodesource GPG key
+$ sudo apt update
+$ sudo apt install -y ca-certificates curl gnupg
+$ sudo mkdir -p /etc/apt/keyrings
+$ curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+
+# Create deb repository
+$ NODE_MAJOR=20
+$ echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+
+# Run Update and Install
+$ sudo apt update
+$ sudo apt install nodejs -y
+
+# Install the WebUI of Open5GS
 $ curl -fsSL https://open5gs.org/open5gs/assets/webui/install | sudo -E bash -
 ```
 
@@ -216,7 +229,7 @@ K : 82E9053A1882085FF2C020359938DAE9
 OPc : BFD5771AAF4F6728E9BC6EF2C2533BDB  
 ```
 
-Connect to `http://localhost:3000` and login with **admin** account.
+Connect to `http://localhost:9999` and login with **admin** account.
 
 > Username : admin  
 > Password : 1423
@@ -235,20 +248,20 @@ Modify [install/etc/open5gs/mme.yaml](https://github.com/{{ site.github_username
 
 ```diff
 $ diff --git a/configs/open5gs/mme.yaml.in b/configs/open5gs/mme.yaml.in
-index 722648dd6..c998a1e47 100644
+index db2cdaef1..49bbeef76 100644
 --- a/configs/open5gs/mme.yaml.in
 +++ b/configs/open5gs/mme.yaml.in
-@@ -251,7 +251,7 @@ logger:
- mme:
+@@ -10,7 +10,7 @@ mme:
      freeDiameter: @sysconfdir@/freeDiameter/mme.conf
      s1ap:
--      - addr: 127.0.0.2
-+      - addr: 127.0.1.2
+       server:
+-        - address: 127.0.0.2
++        - address: 127.0.1.2
      gtpc:
-       - addr: 127.0.0.2
-     metrics:
-@@ -259,15 +259,15 @@ mme:
-         port: 9090
+       server:
+         - address: 127.0.0.2
+@@ -25,15 +25,15 @@ mme:
+           port: 9090
      gummei:
        plmn_id:
 -        mcc: 999
@@ -321,7 +334,7 @@ Change back to the srsRAN source directory and copy the main config example as w
 ```bash
 $ cp srsenb/enb.conf.example srsenb/enb.conf
 $ cp srsenb/rr.conf.example srsenb/rr.conf
-$ cp srsenb/drb.conf.example srsenb/drb.conf
+$ cp srsenb/rb.conf.example srsenb/rb.conf
 $ cp srsenb/sib.conf.example srsenb/sib.conf
 ```
 

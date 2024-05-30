@@ -18,9 +18,9 @@ head_inline: "<style> ul { padding-bottom: 1em; } </style>"
   - [Dockerized VoLTE Setup](tutorial/03-VoLTE-dockerized)
   - [Roaming](tutorial/05-roaming)
 
-- Inside Source Code
-  - [UPF Code Explanation](https://medium.com/@aditya.koranga/open5gs-upf-code-explanation-with-flow-c-79c50f253dd1)
-  - [SMF Code Explanation](https://medium.com/@aditya.koranga/open5gs-smf-code-explanation-with-flow-charts-a3b3cd38c991)
+- In the lab
+  - [A Demonstration of 30 Gbps Load Testing for Accelerated UPF with Open5gs](https://nextepc.com/technology)
+  - [Measurement of UPF Performance](https://github.com/s5uishida/simple_measurement_of_upf_performance)
 
 - Troubleshooting
   - [Simple Issues](troubleshoot/01-simple-issues)
@@ -38,12 +38,17 @@ head_inline: "<style> ul { padding-bottom: 1em; } </style>"
 - Hardware Specific Notes
   - [eNodeBs/gNodeBs tested on Open5GS](hardware/01-genodebs)
 
+- Inside Source Code
+  - [UPF Code Explanation](https://medium.com/@aditya.koranga/open5gs-upf-code-explanation-with-flow-c-79c50f253dd1)
+  - [SMF Code Explanation](https://medium.com/@aditya.koranga/open5gs-smf-code-explanation-with-flow-charts-a3b3cd38c991)
+
 - @infinitydon
   - [Open5GS on Amazon Elastic Kubernetes Service](https://aws.amazon.com/blogs/opensource/open-source-mobile-core-network-implementation-on-amazon-elastic-kubernetes-service/)
   - [Kubernetes Open5GS Deployment](https://dev.to/infinitydon/virtual-4g-simulation-using-kubernetes-and-gns3-3b7k?fbclid=IwAR1p99h13a-mCfejanbBQe0H0-jp5grXkn5mWf1WrTHf47UtegB2-UHGGZQ)
   - [5G Core SBI mTLS Using External Certificate PKI](https://futuredon.medium.com/5g-core-sbi-mtls-using-external-certificate-pki-4ffc02ac7728)
   - [5G Frame Routing](https://futuredon.medium.com/5g-frame-routing-6e34d8587123)
   - [5G SCTP LoadBalancer Using LoxiLB](https://futuredon.medium.com/5g-sctp-loadbalancer-using-loxilb-b525198a9103)([Video Link](https://youtu.be/k3ICc7MXcC8))
+  - [5G Roaming With Mutual TLS](https://futuredon.medium.com/5g-roaming-with-mutual-tls-1468d109129c)
 
 - @nickvsnetworking
   - [My first 5G Core : Open5GS and UERANSIM](http://nickvsnetworking.com/my-first-5g-core-open5gs-and-ueransim/)
@@ -66,3 +71,14 @@ head_inline: "<style> ul { padding-bottom: 1em; } </style>"
   - [Monitoring Metrics with Prometheus](https://github.com/s5uishida/open5gs_5gc_ueransim_metrics_sample_config)
   - [Frame Routing](https://github.com/s5uishida/open5gs_5gc_ueransim_framed_routing_sample_config)
   - [VPP-UPF with DPDK](https://github.com/s5uishida/open5gs_5gc_ueransim_vpp_upf_dpdk_sample_config)
+  - [UERANSIM with eUPF(eBPF/XDP UPF)](https://github.com/s5uishida/open5gs_5gc_ueransim_eupf_sample_config)
+  - [srsRAN with eUPF(eBPF/XDP UPF)](https://github.com/s5uishida/open5gs_epc_srsran_eupf_sample_config)
+ 
+- @gradiant helm charts
+  - [Open5GS and srsRAN-5G in kubernetes](https://gradiant.github.io/5g-charts/open5gs-srsran-5g-zmq.html)
+  - [Open5GS and srsLTE in kubernetes](https://gradiant.github.io/5g-charts/open5gs-srslte.html)
+  - [Open5GS and UERANSIM](https://gradiant.github.io/5g-charts/open5gs-ueransim-gnb.html)
+  - [Open5GS and PacketRusher](https://gradiant.github.io/5g-charts/open5gs-packetrusher.html)
+  - [Open5GS and OAI-GNB](https://gradiant.github.io/5g-charts/open5gs-oaignb.html)
+  - [Open5GS and srsenb](https://gradiant.github.io/5g-charts/open5gs-srsenb.html)
+  - [Open5GS with SCP(Service Communication Proxy](https://gradiant.github.io/5g-charts/open5gs-scp.html)
