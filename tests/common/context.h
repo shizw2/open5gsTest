@@ -68,30 +68,30 @@ typedef struct test_context_s {
     ogs_list_t      gtpc_list;      /* SMF GTPC Client List */
 
     /* 5G PLMN Support */
-    uint8_t num_of_plmn_support;
+    int num_of_plmn_support;
     struct {
         ogs_plmn_id_t plmn_id;
         int num_of_s_nssai;
-        ogs_s_nssai_t s_nssai[OGS_MAX_NUM_OF_SLICE];
+        ogs_s_nssai_t s_nssai[OGS_MAX_NUM_OF_SLICE_SUPPORT];
     } plmn_support[OGS_MAX_NUM_OF_PLMN];
 
     /* Served EPC TAI */
-    uint8_t num_of_e_served_tai;
+    int num_of_e_served_tai;
     struct {
         ogs_eps_tai0_list_t list0;
         ogs_eps_tai1_list_t list1;
         ogs_eps_tai2_list_t list2;
-    } e_served_tai[OGS_MAX_NUM_OF_SERVED_TAI];
+    } e_served_tai[OGS_MAX_NUM_OF_SUPPORTED_TA];
 
     ogs_eps_tai_t e_tai;
 
     /* Served 5GC TAI */
-    uint8_t num_of_nr_served_tai;
+    int num_of_nr_served_tai;
     struct {
         ogs_5gs_tai0_list_t list0;
         ogs_5gs_tai1_list_t list1;
         ogs_5gs_tai2_list_t list2;
-    } nr_served_tai[OGS_MAX_NUM_OF_SERVED_TAI];
+    } nr_served_tai[OGS_MAX_NUM_OF_SUPPORTED_TA];
 
     ogs_5gs_tai_t nr_tai;
     ogs_nr_cgi_t nr_cgi;
@@ -291,7 +291,7 @@ typedef struct test_esm_information_param_s {
 typedef struct test_ue_s {
     ogs_lnode_t     lnode;          /**< A node of list_t */
 
-    uint32_t ran_ue_ngap_id; /* gNB-UE-NGAP-ID received from gNB */
+    uint64_t ran_ue_ngap_id; /* gNB-UE-NGAP-ID received from gNB */
     uint64_t amf_ue_ngap_id; /* AMF-UE-NGAP-ID received from AMF */
     uint32_t enb_ue_s1ap_id; /* eNB-UE-S1AP-ID received from eNB */
     uint32_t mme_ue_s1ap_id; /* MME-UE-S1AP-ID received from MME */
@@ -481,6 +481,13 @@ typedef struct test_bearer_s {
 
     uint32_t        sgw_s1u_teid;   /* SGW-S1U TEID */
     ogs_ip_t        sgw_s1u_ip;     /* SGW-S1U IPv4/IPv6 */
+    struct {
+        /* Indirect Forwarding */
+        uint32_t dl_teid;
+        ogs_ip_t dl_ip;
+        uint32_t ul_teid;
+        ogs_ip_t ul_ip;
+    } handover;
 
     uint32_t        enb_s1u_teid;   /* eNB-S1U TEID */
     ogs_sockaddr_t  *enb_s1u_addr;  /* eNB-S1U IPv4 */
@@ -518,6 +525,7 @@ void test_sess_remove_all(test_ue_t *test_ue);
 
 test_sess_t *test_sess_find_by_apn(
         test_ue_t *test_ue, char *apn, uint8_t rat_type);
+test_sess_t *test_sess_find_by_pti(test_ue_t *test_ue, uint8_t pti);
 test_sess_t *test_sess_find_by_psi(test_ue_t *test_ue, uint8_t psi);
 
 test_bearer_t *test_bearer_add(test_sess_t *sess, uint8_t ebi);
@@ -535,6 +543,7 @@ int test_db_remove_ue(test_ue_t *test_ue);
 
 bson_t *test_db_new_simple(test_ue_t *test_ue);
 bson_t *test_db_new_qos_flow(test_ue_t *test_ue);
+bson_t *test_db_new_qos_flow_bi_directional(test_ue_t *test_ue);
 bson_t *test_db_new_session(test_ue_t *test_ue);
 bson_t *test_db_new_ims(test_ue_t *test_ue);
 bson_t *test_db_new_slice_with_same_dnn(test_ue_t *test_ue);

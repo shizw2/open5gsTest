@@ -111,11 +111,11 @@ static void test1_func(abts_case *tc, void *data)
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Receive Identity request */
-    ogs_info("Receive Identity reques.");
-    recvbuf = testgnb_ngap_read(ngap);
+    ogs_info("Receive Identity request.");
+    recvbuf = testgnb_ngap_read(ngap);   
     ABTS_PTR_NOTNULL(tc, recvbuf);
     testngap_recv(test_ue, recvbuf);
-
+    
     /* Send Identity response */
     ogs_info("Send Identity response.");
     gmmbuf = testgmm_build_identity_response(test_ue);

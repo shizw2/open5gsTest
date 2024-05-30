@@ -38,7 +38,7 @@ int af_sbi_open(void)
 
     /* Setup Subscription-Data */
     ogs_sbi_subscription_spec_add(
-            OpenAPI_nf_type_BSF, OGS_SBI_SERVICE_NAME_NBSF_MANAGEMENT);
+            OpenAPI_nf_type_NULL, OGS_SBI_SERVICE_NAME_NBSF_MANAGEMENT);
 
     if (ogs_sbi_server_start_all(ogs_sbi_server_handler) != OGS_OK)
         return OGS_ERROR;
@@ -92,6 +92,7 @@ void af_sbi_send_to_pcf(
         af_sess_t *sess, void *data,
         ogs_sbi_request_t *(*build)(af_sess_t *sess, void *data))
 {
+    bool rc;
     ogs_sbi_request_t *request = NULL;
     ogs_sbi_client_t *client = NULL;
 
@@ -102,8 +103,9 @@ void af_sbi_send_to_pcf(
 
     request = (*build)(sess, data);
     ogs_assert(request);
-    ogs_sbi_send_request_to_client(
+    rc = ogs_sbi_send_request_to_client(
             client, ogs_sbi_client_handler, request, sess);
+    ogs_expect(rc == true);
 
     ogs_sbi_request_free(request);
 }

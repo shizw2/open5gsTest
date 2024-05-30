@@ -109,7 +109,13 @@ int af_context_parse_config(void)
             while (ogs_yaml_iter_next(&af_iter)) {
                 const char *af_key = ogs_yaml_iter_key(&af_iter);
                 ogs_assert(af_key);
-                if (!strcmp(af_key, "sbi")) {
+                if (!strcmp(af_key, "default")) {
+                    /* handle config in sbi library */
+                } else if (!strcmp(af_key, "sbi")) {
+                    /* handle config in sbi library */
+                } else if (!strcmp(af_key, "nrf")) {
+                    /* handle config in sbi library */
+                } else if (!strcmp(af_key, "scp")) {
                     /* handle config in sbi library */
                 } else if (!strcmp(af_key, "service_name")) {
                     /* handle config in sbi library */
@@ -138,9 +144,9 @@ af_sess_t *af_sess_add_by_ue_address(ogs_ip_t *ue_address)
     ogs_assert(sess);
     memset(sess, 0, sizeof *sess);
 
-    sess->af_app_session_id = ogs_msprintf("%d",
+    sess->app_session.af.id = ogs_msprintf("%d",
             (int)ogs_pool_index(&af_sess_pool, sess));
-    ogs_assert(sess->af_app_session_id);
+    ogs_assert(sess->app_session.af.id);
 
     if (ue_address->ipv4) {
         sess->ipv4addr = ogs_ipv4_to_string(ue_address->addr);
@@ -176,10 +182,12 @@ void af_sess_remove(af_sess_t *sess)
     /* Free SBI object memory */
     ogs_sbi_object_free(&sess->sbi);
 
-    if (sess->af_app_session_id)
-        ogs_free(sess->af_app_session_id);
+    if (sess->app_session.af.id)
+        ogs_free(sess->app_session.af.id);
 
-    clear_pcf_app_session_id(sess);
+    PCF_APP_SESSION_CLEAR(sess);
+    if (sess->app_session.pcf.client)
+        ogs_sbi_client_remove(sess->app_session.pcf.client);
 
     if (sess->ipv4addr)
         ogs_free(sess->ipv4addr);
@@ -225,10 +233,10 @@ static void clear_pcf_app_session_id(af_sess_t *sess)
 {
     ogs_assert(sess);
 
-    if (sess->pcf_app_session_id) {
+    if (sess->app_session.af.id) {
         ogs_hash_set(self.pcf_app_session_id_hash,
-            &sess->pcf_app_session_id, sizeof(sess->pcf_app_session_id), NULL);
-        ogs_free(sess->pcf_app_session_id);
+            &sess->app_session.af.id, sizeof(sess->app_session.af.id), NULL);
+        ogs_free(sess->app_session.af.id);
     }
 }
 
@@ -239,11 +247,11 @@ bool af_sess_set_pcf_app_session_id(af_sess_t *sess, char *pcf_app_session_id)
 
     clear_pcf_app_session_id(sess);
 
-    sess->pcf_app_session_id = ogs_strdup(pcf_app_session_id);
-    ogs_assert(sess->pcf_app_session_id);
+    sess->app_session.pcf.id = ogs_strdup(pcf_app_session_id);
+    ogs_assert(sess->app_session.pcf.id);
 
     ogs_hash_set(self.pcf_app_session_id_hash,
-            &sess->pcf_app_session_id, strlen(sess->pcf_app_session_id), sess);
+            &sess->app_session.pcf.id, strlen(sess->app_session.pcf.id), sess);
 
     return true;
 }
@@ -270,7 +278,7 @@ static ogs_sbi_client_t *find_client_by_fqdn(
         OpenAPI_uri_scheme_e scheme, char *fqdn)
 {
     int rv;
-    ogs_sockaddr_t *addr = NULL;
+    ogs_sockaddr_t *addr = NULL,*addr6 = NULL;
     ogs_sbi_client_t *client = NULL;
 
     ogs_assert(scheme == OpenAPI_uri_scheme_https ||
@@ -287,9 +295,12 @@ static ogs_sbi_client_t *find_client_by_fqdn(
         return NULL;
     }
 
-    client = ogs_sbi_client_find(scheme, addr);
+    //client = ogs_sbi_client_find(scheme, addr);
+    client = ogs_sbi_client_find(
+                    scheme, fqdn, 0, addr, addr6);
     if (!client) {
-        client = ogs_sbi_client_add(scheme, addr);
+        client = ogs_sbi_client_add(
+                        scheme, fqdn, 0, addr, addr6);
         ogs_assert(client);
     }
 
@@ -301,30 +312,32 @@ static ogs_sbi_client_t *find_client_by_fqdn(
 void af_sess_associate_pcf_client(af_sess_t *sess)
 {
     ogs_sbi_client_t *client = NULL;
-    ogs_sockaddr_t *addr = NULL;
+    ogs_sockaddr_t *addr = NULL, *addr6 = NULL;
     OpenAPI_uri_scheme_e scheme = OpenAPI_uri_scheme_NULL;
 
     ogs_assert(sess);
 
-    scheme = ogs_app()->sbi.client.no_tls == false ?
-                OpenAPI_uri_scheme_https : OpenAPI_uri_scheme_http;
-
-    if (sess->pcf.fqdn && strlen(sess->pcf.fqdn))
-        client = find_client_by_fqdn(scheme, sess->pcf.fqdn);
+    scheme = ogs_sbi_self()->tls.client.scheme;
+    ogs_assert(scheme);
 
     if (!client) {
         /* At this point, CLIENT selection method is very simple. */
         if (sess->pcf.num_of_ip) {
-            addr = sess->pcf.ip[0].addr6;
-            if (!addr)
-                addr = sess->pcf.ip[0].addr;
+            addr = sess->pcf.ip[0].addr;
+            addr6 = sess->pcf.ip[0].addr6;
         }
 
-        if (addr) {
-            client = ogs_sbi_client_find(scheme, addr);
+        if (sess->pcf.fqdn || addr || addr6) {
+            client = ogs_sbi_client_find(
+                    scheme, sess->pcf.fqdn, 0, addr, addr6);
             if (!client) {
-                client = ogs_sbi_client_add(scheme, addr);
-                ogs_assert(client);
+                ogs_debug("%s: ogs_sbi_client_add()", OGS_FUNC);
+                client = ogs_sbi_client_add(
+                        scheme, sess->pcf.fqdn, 0, addr, addr6);
+                if (!client) {
+                    ogs_error("%s: ogs_sbi_client_add() failed", OGS_FUNC);
+                    return;
+                }
             }
         }
     }
