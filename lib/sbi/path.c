@@ -280,7 +280,7 @@ int ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
         ogs_assert(scp_client);
     }
 
-    ogs_info("test:ogs_sbi_discover_and_send sbi_object->type:%d,service_type:%s,supi_id:%s, routingIndicator:%s.",sbi_object->type,ogs_sbi_service_type_to_name(service_type), xact->supi_id, xact->routingIndicator); 
+    ogs_debug("test:ogs_sbi_discover_and_send sbi_object->type:%d,service_type:%s,supi_id:%s, routingIndicator:%s.",sbi_object->type,ogs_sbi_service_type_to_name(service_type), xact->supi_id, xact->routingIndicator); 
 
     /* Target NF-Instance */
     nf_instance = sbi_object->service_type_array[service_type].nf_instance;
@@ -294,9 +294,6 @@ int ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
                     sbi_object->service_type_array[service_type], nf_instance);
     }
 
-    if (nf_instance){
-        ogs_info("test:ogs_sbi_discover_and_send,request->h.uri:%s, nf_instance id:%s,service_type:%s,target_nf_type:%s.",request->h.uri,nf_instance->id,ogs_sbi_service_type_to_name(service_type),OpenAPI_nf_type_ToString(target_nf_type));
-    }
     /* Target Client */
     if (request->h.uri == NULL) {
         if (nf_instance) {
