@@ -988,6 +988,7 @@ void ngap_handle_initial_context_setup_response(
             (long long)ran_ue->amf_ue_ngap_id);
 
     ran_ue->initial_context_setup_response_received = true;
+    ogs_info("ngap_handle_initial_context_setup_response,initial_context_setup_response_received:%d.",ran_ue->initial_context_setup_response_received);
 #if 0
     amf_ue = ran_ue->amf_ue;
     if (!amf_ue) {

@@ -1239,7 +1239,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             }			
 		}
 
-        if (is_amf_icps()&& pmsg->msg_type == INTERNEL_MSG_NGAP){
+        if (is_amf_icps()&& (pmsg->msg_type == INTERNEL_MSG_NGAP||pmsg->msg_type == 0)){
             //NGAP的在sctp发送后自行释放,这里不需要再次释放
         }else{
             ogs_pkbuf_free(pkbuf);

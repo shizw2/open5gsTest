@@ -1287,7 +1287,7 @@ static void cm_connected_error_indication_func(abts_case *tc, void *data)
     ogs_pkbuf_t *sendbuf;
     ogs_pkbuf_t *recvbuf;
     ogs_ngap_message_t message;
-    int i;
+    int i;   
 
     ogs_nas_5gs_mobile_identity_suci_t mobile_identity_suci;
     test_ue_t *test_ue = NULL;

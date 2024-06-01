@@ -452,6 +452,7 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
             }
 
         } else if (CM_CONNECTED(amf_ue)) {
+            ogs_info("n1n2 initial_context_setup_response_received:%d.",amf_ue->ran_ue->initial_context_setup_response_received);
             if (CONTEXT_SETUP_ESTABLISHED(amf_ue)) {
                 r = nas_send_pdu_session_release_command(sess, n1buf, n2buf);
                 ogs_expect(r == OGS_OK);
