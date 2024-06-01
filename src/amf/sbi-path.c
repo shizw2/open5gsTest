@@ -70,32 +70,11 @@ int amf_sbi_open(void)
     ogs_sbi_subscription_spec_add(
             OpenAPI_nf_type_NULL, OGS_SBI_SERVICE_NAME_NNSSF_NSSELECTION);
 
-    /* Initialize SELF NF instance */
-    nf_instance = ogs_sbi_self()->nf_instance;
-    ogs_assert(nf_instance);
-    ogs_sbi_nf_fsm_init(nf_instance);
-
-    /* Build NF instance information. It will be transmitted to NRF. */
-    ogs_sbi_nf_instance_build_default(nf_instance);
-    ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_SMF);
-    ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_SCP);
-
-    /* Build NF service information. It will be transmitted to NRF. */
-    if (ogs_sbi_nf_service_is_available(OGS_SBI_SERVICE_NAME_NAMF_COMM)) {
-        service = ogs_sbi_nf_service_build_default(
-                    nf_instance, OGS_SBI_SERVICE_NAME_NAMF_COMM);
-        ogs_assert(service);
-        ogs_sbi_nf_service_add_version(
-                    service, OGS_SBI_API_V1, OGS_SBI_API_V1_0_0, NULL);
-        ogs_sbi_nf_service_add_allowed_nf_type(service, OpenAPI_nf_type_SMF);
+    if (is_amf_icps()){
+        if (ogs_sbi_server_start_all(ogs_sbi_server_handler) != OGS_OK)
+            return OGS_ERROR;
     }
-
-    /* Initialize NRF NF Instance */
-    nf_instance = ogs_sbi_self()->nrf_instance;
-    if (nf_instance)
-        ogs_sbi_nf_fsm_init(nf_instance);
-
-     return OGS_OK;
+    return OGS_OK;
 }
 
 void amf_sbi_close(void)
