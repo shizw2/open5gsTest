@@ -708,7 +708,7 @@ int nas_send_pdu_session_setup_request(amf_sess_t *sess,
             return OGS_ERROR;
         }
 
-        rv = ngap_send_to_ran_ue(ran_ue, ngapbuf);
+        rv = ngap_send_to_ran_ue_sps(ran_ue, ngapbuf);
         ogs_expect(rv == OGS_OK);
     }
 
