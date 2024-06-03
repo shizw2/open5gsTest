@@ -122,11 +122,8 @@ af_sess_t *af_sess_add_by_ue_address(ogs_ip_t *ue_address);
 void af_sess_remove(af_sess_t *sess);
 void af_sess_remove_all(void);
 
-bool af_sess_set_pcf_app_session_id(af_sess_t *sess, char *pcf_app_session_id);
-
 af_sess_t *af_sess_find(uint32_t index);
 af_sess_t *af_sess_find_by_af_app_session_id(char *af_app_session_id);
-af_sess_t *af_sess_find_by_pcf_app_session_id(char *pcf_app_session_id);
 
 void af_sess_associate_pcf_client(af_sess_t *sess);
 

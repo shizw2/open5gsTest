@@ -119,8 +119,6 @@ void af_npcf_policyauthorization_handle_create(
     supported_features = ogs_uint64_from_string(AscReqData->supp_feat);
     sess->policyauthorization_features &= supported_features;
 
-    af_sess_set_pcf_app_session_id(sess, message.h.resource.component[1]);
-
 cleanup:
     ogs_sbi_header_free(&header);
 }

@@ -27,8 +27,6 @@ static OGS_POOL(af_sess_pool, af_sess_t);
 
 static int context_initialized = 0;
 
-static void clear_pcf_app_session_id(af_sess_t *sess);
-
 void af_context_init(void)
 {
     ogs_assert(context_initialized == 0);
@@ -229,33 +227,6 @@ void af_sess_remove_all(void)
         af_sess_remove(sess);
 }
 
-static void clear_pcf_app_session_id(af_sess_t *sess)
-{
-    ogs_assert(sess);
-
-    if (sess->app_session.af.id) {
-        ogs_hash_set(self.pcf_app_session_id_hash,
-            &sess->app_session.af.id, sizeof(sess->app_session.af.id), NULL);
-        ogs_free(sess->app_session.af.id);
-    }
-}
-
-bool af_sess_set_pcf_app_session_id(af_sess_t *sess, char *pcf_app_session_id)
-{
-    ogs_assert(sess);
-    ogs_assert(pcf_app_session_id);
-
-    clear_pcf_app_session_id(sess);
-
-    sess->app_session.pcf.id = ogs_strdup(pcf_app_session_id);
-    ogs_assert(sess->app_session.pcf.id);
-
-    ogs_hash_set(self.pcf_app_session_id_hash,
-            &sess->app_session.pcf.id, strlen(sess->app_session.pcf.id), sess);
-
-    return true;
-}
-
 af_sess_t *af_sess_find(uint32_t index)
 {
     return ogs_pool_find(&af_sess_pool, index);
@@ -265,48 +236,6 @@ af_sess_t *af_sess_find_by_af_app_session_id(char *af_app_session_id)
 {
     ogs_assert(af_app_session_id);
     return af_sess_find(atoll(af_app_session_id));
-}
-
-af_sess_t *af_sess_find_by_pcf_app_session_id(char *pcf_app_session_id)
-{
-    ogs_assert(pcf_app_session_id);
-    return (af_sess_t *)ogs_hash_get(self.pcf_app_session_id_hash,
-                        pcf_app_session_id, strlen(pcf_app_session_id));
-}
-
-static ogs_sbi_client_t *find_client_by_fqdn(
-        OpenAPI_uri_scheme_e scheme, char *fqdn)
-{
-    int rv;
-    ogs_sockaddr_t *addr = NULL,*addr6 = NULL;
-    ogs_sbi_client_t *client = NULL;
-
-    ogs_assert(scheme == OpenAPI_uri_scheme_https ||
-                scheme == OpenAPI_uri_scheme_http);
-    ogs_assert(fqdn);
-
-    rv = ogs_getaddrinfo(
-            &addr, AF_UNSPEC, fqdn,
-            scheme == OpenAPI_uri_scheme_https ?
-                OGS_SBI_HTTPS_PORT : OGS_SBI_HTTP_PORT,
-            0);
-    if (rv != OGS_OK) {
-        ogs_error("Invalid NFProfile.fqdn");
-        return NULL;
-    }
-
-    //client = ogs_sbi_client_find(scheme, addr);
-    client = ogs_sbi_client_find(
-                    scheme, fqdn, 0, addr, addr6);
-    if (!client) {
-        client = ogs_sbi_client_add(
-                        scheme, fqdn, 0, addr, addr6);
-        ogs_assert(client);
-    }
-
-    ogs_freeaddrinfo(addr);
-
-    return client;
 }
 
 void af_sess_associate_pcf_client(af_sess_t *sess)
