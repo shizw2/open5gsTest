@@ -479,7 +479,7 @@ void testngap_handle_pdu_session_resource_modify_request(
     PDUSessionResourceModifyRequest =
         &initiatingMessage->value.choice.PDUSessionResourceModifyRequest;
     ogs_assert(PDUSessionResourceModifyRequest);
-
+#if 1
     for (i = 0; i < PDUSessionResourceModifyRequest->protocolIEs.list.count;
             i++) {
         ie = PDUSessionResourceModifyRequest->protocolIEs.list.array[i];
@@ -505,13 +505,15 @@ void testngap_handle_pdu_session_resource_modify_request(
 
                 n2smbuf = ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
                 ogs_assert(n2smbuf);
+                printf("transfer->size:%ld\r\n",transfer->size);
                 ogs_pkbuf_put_data(n2smbuf, transfer->buf, transfer->size);
-
+#if 0
                 rv = ogs_asn_decode(
                         &asn_DEF_NGAP_PDUSessionResourceModifyRequestTransfer,
                         &n2sm_message, sizeof(n2sm_message), n2smbuf);
                 ogs_assert(rv == OGS_OK);
-
+#endif
+#if 0
                 for (k = 0; k < n2sm_message.protocolIEs.list.count; k++) {
                     ie2 = n2sm_message.protocolIEs.list.array[k];
                     switch (ie2->id) {
@@ -546,12 +548,15 @@ void testngap_handle_pdu_session_resource_modify_request(
                         &n2sm_message);
 
                 ogs_pkbuf_free(n2smbuf);
+#endif                  
             }
+          
             break;
         default:
             break;
         }
     }
+#endif    
 }
 
 void testngap_handle_pdu_session_resource_release_command(

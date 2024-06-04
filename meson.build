@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 project('5gc', 'c', 'cpp',
-    version : '2.6.4',
+    version : '2.7.1',
     license : 'AGPL-3.0-or-later',
     meson_version : '>= 0.43.0',
     default_options : [
@@ -30,7 +30,7 @@ project_name = '5gc'
 #5g_user也可以是5gc或root，如果是5gc,需要在系统创建5gc用户和组
 #meson中变量不能以数字开头
 fiveG_user = 'root' 
-libogslib_version = '2.6.4'
+libogslib_version = '2.7.1'
 
 prefix = get_option('prefix')
 bindir = join_paths(prefix, get_option('bindir'))
