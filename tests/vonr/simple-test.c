@@ -762,13 +762,14 @@ static void test4_func(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
-
+       
 
     /* Send AA-Request */
     uint8_t *rx_sid = NULL;
     test_rx_send_aar_audio(&rx_sid, sess,
             OGS_DIAM_RX_SUBSCRIPTION_ID_TYPE_END_USER_IMSI, 1, 1);
     ogs_msleep(100);
+
 
     //printf("str0\r\n");
     //test_rx_send_str(rx_sid);
@@ -781,29 +782,25 @@ static void test4_func(abts_case *tc, void *data)
      * PDU session modification command */
     recvbuf = testgnb_ngap_read(ngap);
     ABTS_PTR_NOTNULL(tc, recvbuf);
-    //printf("str1111\r\n");  
+    printf("str1111 rx_sid:%p\r\n",rx_sid);  
     //test_rx_send_str(rx_sid);
     //printf("str1111 ok\r\n"); 
     testngap_recv(test_ue, recvbuf);
     ABTS_INT_EQUAL(tc,
             NGAP_ProcedureCode_id_PDUSessionResourceModify,
             test_ue->ngap_procedure_code);
-    printf("str111\r\n");  
-    test_rx_send_str(rx_sid);
+    printf("str111 rx_sid:%p\r\n",rx_sid);  
+    //test_rx_send_str(rx_sid);
     printf("str111 ok\r\n");  
     /* Send PDU session resource modify response */
     qos_flow = test_qos_flow_find_by_qfi(sess, 2);
     ogs_assert(qos_flow);
-    printf("str11\r\n");  
-    test_rx_send_str(rx_sid);
-    printf("str11 ok\r\n");  
+
     sendbuf = testngap_build_qos_flow_resource_modify_response(qos_flow);
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
-    printf("str12\r\n");  
-    test_rx_send_str(rx_sid);
-    printf("str12 ok\r\n");  
+
     /* Send PDU session resource modify complete */
     sess->ul_nas_transport_param.request_type =
         OGS_NAS_5GS_REQUEST_TYPE_MODIFICATION_REQUEST;
@@ -812,9 +809,7 @@ static void test4_func(abts_case *tc, void *data)
 
     sess->pdu_session_establishment_param.ssc_mode = 0;
     sess->pdu_session_establishment_param.epco = 0;
-    printf("str13\r\n");  
-    test_rx_send_str(rx_sid);
-    printf("str13 ok\r\n");  
+ 
     gsmbuf = testgsm_build_pdu_session_modification_complete(sess);
     ABTS_PTR_NOTNULL(tc, gsmbuf);
     gmmbuf = testgmm_build_ul_nas_transport(sess,
@@ -828,8 +823,6 @@ static void test4_func(abts_case *tc, void *data)
     /* Wait for PDU session resource modify complete */
     ogs_msleep(100);
 
-    printf("str1\r\n");  //有问题
-    test_rx_send_str(rx_sid);
 
     //test_rx_send_aar_audio(&rx_sid, sess,
     //        OGS_DIAM_RX_SUBSCRIPTION_ID_TYPE_END_USER_IMSI, 1, 1);

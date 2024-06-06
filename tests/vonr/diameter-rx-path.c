@@ -41,9 +41,13 @@ static __inline__ struct sess_state *new_state(os0_t sid)
 {
     struct sess_state *new = NULL;
 
+    char *test1 = ogs_calloc(1,2000);
     new = ogs_calloc(1, sizeof(*new));
     ogs_assert(new);
+    
+    char *test2 = ogs_calloc(1,2000);
     new->sid = (os0_t)ogs_strdup((char *)sid);
+    char *test3 = ogs_calloc(1,2000);
     ogs_assert(new->sid);
     printf("newstate:sid:%p, %s, sess_data:%p\r\n",new->sid, (char*)sid,new);
     return new;
@@ -51,6 +55,7 @@ static __inline__ struct sess_state *new_state(os0_t sid)
 
 static void state_cleanup(struct sess_state *sess_data, os0_t sid, void *opaque)
 {
+    printf("state_cleanup:sid:%p, %s, sess_data:%p\r\n",sess_data->sid, (char*)sess_data->sid,sess_data);
     if (sess_data->sid)
         ogs_free(sess_data->sid);
 
@@ -147,7 +152,7 @@ void test_rx_send_aar_audio(uint8_t **rx_sid,
         /* Allocate new session state memory */
         sess_data = new_state(sid);
         ogs_assert(sess_data);
-        printf("test_rx_send_aar_audio new fd sess sid:%p, %s,sidlen:%ld,sess_data:%p\r\n",sid,(char*)sid, sidlen,sess_data);
+        printf("test_rx_send_aar_audio new fd sess sid:%p, %s,sidlen:%ld,sess_data:%p\r\n",sess_data->sid,(char*)sess_data->sid, sidlen,sess_data);
                 /* Save Session-Id to PGW Session Context */
         *rx_sid = sess_data->sid;
     }
@@ -563,7 +568,7 @@ void test_rx_send_aar_audio(uint8_t **rx_sid,
 
     /* Free string memory */
     ogs_free(sip_uri);
-    ogs_free(svg);
+    //ogs_free(svg);
 }
 
 void test_rx_send_aar_video(uint8_t **rx_sid, test_sess_t *sess, int id_type)
@@ -1241,7 +1246,7 @@ void test_rx_send_aar_video(uint8_t **rx_sid, test_sess_t *sess, int id_type)
     ogs_assert(pthread_mutex_unlock(&ogs_diam_logger_self()->stats_lock) == 0);
 
     /* Free string memory */
-    ogs_free(svg);
+    //ogs_free(svg);
     ogs_free(sip_uri);  
 }
 
@@ -1649,7 +1654,7 @@ void test_rx_send_aar_ctrl(uint8_t **rx_sid, test_sess_t *sess, int id_type)
     ogs_assert(pthread_mutex_unlock(&ogs_diam_logger_self()->stats_lock) == 0);
 
     /* Free string memory */
-    ogs_free(svg);
+    //ogs_free(svg);
     ogs_free(sip_uri);   
 }
 
@@ -1911,9 +1916,9 @@ void test_rx_send_str(uint8_t *rx_sid)
     ret = fd_sess_state_retrieve(pcscf_rx_reg, session, &sess_data);
     ogs_assert(ret == 0);
     ogs_assert(sess_data);
-    printf("test_rx_send_str sess_data:%p,rx_sid:%s\r\n",sess_data,(char*)rx_sid);
+    printf("test_rx_send_str sess_data:%p,rx_sid:%s, rx_sid:%p\r\n",sess_data,(char*)rx_sid,rx_sid);
     printf("test_rx_send_str fd sess sid:%p, sess_data:%p\r\n",sess_data->sid,sess_data);
-    printf("test_rx_send_str fd sess sid:%p, %d,sess_data:%p\r\n",sess_data->sid,*sess_data->sid,sess_data);
+    printf("test_rx_send_str fd sess sid:%p, %s,sess_data:%p\r\n",sess_data->sid,(char*)sess_data->sid,sess_data);
     /* Set Origin-Host & Origin-Realm */
     ret = fd_msg_add_origin(req, 0);
     ogs_assert(ret == 0);

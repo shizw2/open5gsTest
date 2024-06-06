@@ -116,7 +116,7 @@ static int global_conf_prepare(void)
 
     global_conf.max.ue = MAX_NUM_OF_UE;
     global_conf.max.peer = MAX_NUM_OF_PEER;
-
+    global_conf.parameter.capacity = 100; //如果未配置,默认100
     ogs_pkbuf_default_init(&global_conf.pkbuf_config);
 
     recalculate_pool_size();

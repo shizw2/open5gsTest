@@ -1714,6 +1714,10 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_capacity(ogs_sbi_nf_instance_
     for (i = 0; i < matched_nf_count; i++) {
         total_capacity += matched_nf_instances[i]->capacity;
     }
+    
+    if (total_capacity == 0){
+        return NULL;
+    }
 
     // 根据容量权重选择目标NF
     int random_value = rand() % total_capacity;
