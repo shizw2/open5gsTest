@@ -78,8 +78,7 @@ export const SBISection = ({ nfconfig }) => (
   </div>
 );
 
-
-export const LOGSection = ({ nfconfig }) => (
+export const OldLOGSection = ({ nfconfig }) => (
   <div>
     {nfconfig && nfconfig.logger && (
       <div className="logger-section">
@@ -97,7 +96,26 @@ export const LOGSection = ({ nfconfig }) => (
   </div>
 );
 
-export const MetricsSection = ({ metrics }) => (
+export const LOGSection = ({ nfconfig }) => (
+  <div>
+    {nfconfig && nfconfig.logger && (
+      <div className="logger-section">
+        <div className="logger-header">logger:</div>
+        <div className="logger-body">
+          <div className="twenty-spaces">file:</div>
+          <div className="forty-spaces">
+            path: {nfconfig.logger.file.path}
+          </div>
+          <div className="twenty-spaces">
+            level: {nfconfig.logger.level}
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+);
+
+export const OldMetricsSection = ({ metrics }) => (
   <div>
     {metrics && (
       <div className="metrics-section">
@@ -115,8 +133,26 @@ export const MetricsSection = ({ metrics }) => (
   </div>
 );
 
-//NF下的sbi，如AMF，SMF内部的SBI配置
-export const NF_SBI_Section = ({ sbi }) => (
+export const MetricsSection = ({ metrics }) => (
+  <div>
+    {metrics && metrics.server && (
+      <div className="metrics-section">
+        <div className="twenty-spaces">metrics:</div>
+        <div className="forty-spaces">server:</div>
+        <div className="sixty-spaces">
+          {metrics.server.map((item, index) => (
+            <div key={index}>
+              <div>- address: {item.address}</div>
+              <div>&nbsp;&nbsp;port: {item.port}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+);
+
+export const OldNF_SBI_Section = ({ sbi }) => (
   <div>
     {sbi && (
       <div className="sbi-section">
@@ -129,6 +165,51 @@ export const NF_SBI_Section = ({ sbi }) => (
             </div>
           ))}
         </div>
+      </div>
+    )}
+  </div>
+);
+
+//NF下的sbi，如AMF，SMF内部的SBI配置
+export const NF_SBI_Section = ({ sbi }) => (
+  <div>
+    {sbi && (
+      <div className="sbi-section">
+        <div className="twenty-spaces">sbi:</div>
+        <div className="forty-spaces">server:</div>
+        <div className="sixty-spaces">
+          {sbi.server.map((item, index) => (
+            <div key={index}>
+              <div>- address: {item.address}</div>
+              <div>&nbsp;&nbsp;port: {item.port}</div>
+            </div>
+          ))}
+        </div>
+        <div className="forty-spaces">client:</div>
+        {sbi.client && sbi.client.nrf && (
+          <div className="nrf-section">
+            <div className="sixty-spaces">nrf:</div>
+            <div className="eighty-spaces">
+              {sbi.client.nrf.map((item, index) => (
+                <div key={index}>
+                  <div>- uri: {item.uri}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {sbi.client && sbi.client.scp && (
+          <div className="scp-section">
+            <div className="sixty-spaces">scp:</div>
+            <div className="eighty-spaces">
+              {sbi.client.scp.map((item, index) => (
+                <div key={index}>
+                  <div>- uri: {item.uri}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     )}
   </div>

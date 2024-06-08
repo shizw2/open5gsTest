@@ -5,7 +5,7 @@ const HiddenField = () => {
   return null;
 };
 
-export const loggerSchema = {
+export const loggerOldSchema = {
   type: "object",
   title: "Logger",
   properties: {
@@ -23,13 +23,54 @@ export const loggerSchema = {
   },
 };
 
-export const loggerUiSchema = {
+export const loggerOldUiSchema = {
   classNames: "col-xs-12",
   file: {
     classNames: "col-xs-8",
   },
   level: {
     classNames: "col-xs-4",
+  },
+};
+
+export const loggerSchema = {
+  type: "object",
+  title: "Logger",
+  properties: {
+    level: {
+      type: "string",
+      title: "Log Level",
+      enum: ["fatal", "error", "warn", "info", "debug", "trace"],
+      default: "info",
+    },
+    file: {
+      type: "object",
+      title: "Log File",
+      properties: {
+        path:{
+          type: "string",
+          title: "path",
+          default: "",
+        }
+      }
+    },
+  },
+};
+
+export const loggerUiSchema = {
+  classNames: "col-xs-6",
+  file: {
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle14 title="Log File" />,
+    path: {
+      classNames: "col-xs-12",
+      "ui:options": {
+        "label": false
+      }
+    }
+  },
+  level: {
+    classNames: "col-xs-12",
   },
 };
 
@@ -71,7 +112,7 @@ export const cliSchema = {
 }
 
 export const cliUiSchema = {
-  classNames: "col-xs-12",
+  classNames: "col-xs-6",
   //"ui:title": <CustomTitle18 title="CLI Configuration" />,
   //"ui:description": <Customhelp14 title={promptRestart} />,
   items: {
@@ -546,8 +587,8 @@ export const relative_capSchema = {
 }
 
 export const relative_capUiSchema = {
-  classNames: "col-xs-6",
-  "ui:title": <CustomTitle18Border39 title="Relative Capacity" />,
+  classNames: "col-xs-12",
+  "ui:title": <CustomTitle18 title="Relative Capacity" />,
 }
 
 export const paraSchema = {
@@ -572,7 +613,7 @@ export const paraUiSchema = {
   }
 }
 
-export const nf_sbi_Schema = {
+export const nf_sbi_OldSchema = {
   type: "array",
   title: "SBI Interface",
   "minItems": 1,
@@ -611,7 +652,7 @@ export const nf_sbi_Schema = {
   }
 };
 
-export const nf_sbi_UiSchema = {
+export const nf_sbi_OldUiSchema = {
   classNames: "col-xs-12",
   "ui:title": <CustomTitle18 title="SBI Interface" />,
   "ui:description": <Customhelp14 title={promptRestart} />,
@@ -628,57 +669,131 @@ export const nf_sbi_UiSchema = {
   }
 };
 
-export const nf_sbi_shortSchema = {
-  type: "array",
-  title:"SBI Interface",
-  "minItems": 1,
-  "maxItems": 4,
-  "messages": {
-    "minItems": "At least 1 Interface is required",
-    "maxItems": "4 Interfaces are supported"
-  },
-  items: {
-    type: "object",
-    properties: {
-      addr: {
-        type: "string",
-        title: "IP Address",
-        anyOf: [
-          { format: "ipv4" },
-          { format: "ipv6" },
-        ],
-        messages: {
-          "anyOf": "IPv4 or IPv6 allowed"
-        },
-        //format:"ipv4",
-        //description: "Please enter a valid IPv4/IPv6 Address",
-        required: true,
-        //default: "127.0.0.5"
+export const nf_sbi_Schema = {
+  type: "object",
+  title:"SBI",
+  properties: {
+    server:{
+      type: "array",
+      title:"Server",
+      "minItems": 1,
+      "maxItems": 4,
+      "messages": {
+        "minItems": "At least 1 Interface is required",
+        "maxItems": "4 Interfaces are supported"
       },
-      port: {
-        type: "number",
-        title: "Port",
-        minimum: 1,
-        maximum: 65535,
-        required: true,
-        //default: 7777
+      items: {
+        type: "object",
+        properties: {
+          address: {
+            type: "string",
+            title: "IP Address",
+            anyOf: [
+              { format: "ipv4" },
+              { format: "ipv6" },
+            ],
+            messages: {
+              "anyOf": "IPv4 or IPv6 allowed"
+            },
+            //format:"ipv4",
+            //description: "Please enter a valid IPv4/IPv6 Address",
+            required: true,
+            //default: "127.0.0.5"
+          },
+          port: {
+            type: "number",
+            title: "Port",
+            minimum: 1,
+            maximum: 65535,
+            required: true,
+            //default: 7777
+          }
+        }
+      }
+    },
+    client: {
+      type: "object",
+      title: "Client",
+      properties: {
+        nrf: {
+          type: "array",
+          title:"NRF",
+          "maxItems": 4,
+          items: {
+            type: "object",
+            properties: {
+              uri: {
+                type: "string",
+                title: "URI",
+                required: true,
+              }
+            }
+          }
+        },
+        scp: {
+          type: "array",
+          title:"SCP",
+          "maxItems": 4,
+          items: {
+            type: "object",
+            properties: {
+              uri: {
+                type: "string",
+                title: "URI",
+                required: true,
+              }
+            }
+          }
+        }
       }
     }
   }
 };
 
-export const nf_sbi_shortUiSchema = {
-  classNames: "col-xs-7",
+export const nf_sbi_UiSchema = {
+  classNames: "col-xs-12",
   "ui:title": <CustomTitle18 title="SBI Interface" />,
   "ui:description": <Customhelp14 title={promptRestart} />,
-  items: {
-    addr: {
-      classNames: "col-xs-7",
-      //"ui:help": "Enter a valid IPv4/IPv6 Address",
-      //"ui:placeholder": "Enter a valid IPv4/IPv6 Address",
+  server: {
+    classNames: "col-xs-6",
+    "ui:title": <CustomTitle18 title="Server" />,
+    items: {
+      address: {
+        classNames: "col-xs-8",
+        //"ui:help": "Enter a valid IPv4/IPv6 Address",
+        //"ui:placeholder": "Enter a valid IPv4/IPv6 Address",
+      },
+      port: {
+        classNames: "col-xs-4"
+      }
+    }
+  },
+  client: {
+    classNames: "col-xs-6",
+    "ui:title": <CustomTitle18 title="Client" />,
+    nrf: {
+      classNames: "col-xs-12",
+      "ui:title": <CustomTitle14 title="NRF URI" />,
+      items: {
+        uri: {
+          classNames: "col-xs-12",
+          "ui:options": {
+            "label": false
+          }
+        }
+      }
     },
-    port: {
-      classNames: "col-xs-5"
+    scp: {
+      classNames: "col-xs-12",
+      "ui:title": <CustomTitle14 title="SCP URI" />,
+      items: {
+        uri: {
+          classNames: "col-xs-12",
+          "ui:options": {
+            "label": false
+          }
+        }
+      }
     }
   }
 };
@@ -788,47 +903,60 @@ export const icpsUiSchema = {
 };
 
 export const ngapSchema = {
-  type: "array",
-  title: "NGAP",
-  "minItems": 1,
-  "maxItems": 4,
-  "messages": {
-    "minItems": "At least 1 IP is required",
-    "maxItems": "4 IPs are supported"
-  },
-  items: {
-    type: "object",
-    properties: {
-      addr: {
-        type: "string",
-        title: "IP Address",
-        anyOf: [
-          { format: "ipv4" },
-          { format: "ipv6" }
-        ],
-        messages: {
-          "anyOf": "IPv4 or IPv6 allowed"
-        },
-        default: "127.0.0.5",
-        required: true,
+  type: "object",
+  title:"NGAP",
+  properties: {
+    server:{
+      type: "array",
+      title: "Server",
+      "minItems": 1,
+      "maxItems": 4,
+      "messages": {
+        "minItems": "At least 1 IP is required",
+        "maxItems": "4 IPs are supported"
       },
+      items: {
+        type: "object",
+        properties: {
+          address: {
+            type: "string",
+            title: "IP Address",
+            anyOf: [
+              { format: "ipv4" },
+              { format: "ipv6" }
+            ],
+            messages: {
+              "anyOf": "IPv4 or IPv6 allowed"
+            },
+            //default: "127.0.0.5",
+            required: true,
+          },
+        }
+      }
     }
   }
 };
 
 export const ngapUiSchema = {
-  classNames: "col-xs-5",
+  classNames: "col-xs-12",
   "ui:title": <CustomTitle18 title="NGAP" />,
   "ui:description": <Customhelp14 title={promptRestart} />,
-  items: {
-    //classNames: "col-xs-12",
-    addr: {
-      classNames: "col-xs-12",
-    },
+  server: {
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="Server" />,
+    items: {
+      //classNames: "col-xs-12",
+      address: {
+        classNames: "col-xs-12",
+        "ui:options": {
+          "label": false
+        }
+      },
+    }
   },
 };
 
-export const metricsSchema = {
+export const metricsOldSchema = {
   type: "array",
   title: "Metrics",
   "minItems": 1,
@@ -863,7 +991,7 @@ export const metricsSchema = {
   }
 };
 
-export const metricsUiSchema = {
+export const metricsOldUiSchema = {
   classNames: "col-xs-12",
   "ui:title": <CustomTitle18 title="Metrics" />,
   "ui:description": <Customhelp14 title={promptRestart} />,
@@ -884,32 +1012,69 @@ export const metricsUiSchema = {
   },
 };
 
-export const metricsShortSchema = {
-  type: "array",
-  //title: "Metrics",
-  items: {
-    type: "object",
-    properties: {
-      addr: {
-        type: "string",
-        title: "IP Address",
-        anyOf: [
-          { format: "ipv4" },
-          { format: "ipv6" }
-        ],
-        messages: {
-          "anyOf": "IPv4 or IPv6 allowed"
-        },
-        default: "127.0.0.5"
+export const metricsSchema = {
+  type: "object",
+  title:"Metrics",
+  properties: {
+    server:{
+      type: "array",
+      title: "Server",
+      "minItems": 1,
+      "maxItems": 4,
+      "messages": {
+        "minItems": "At least 1 Interface is required",
+        "maxItems": "4 Interfaces are supported"
       },
-      port: {
-        type: "number",
-        title: "Port",
-        minimum: 1,
-        maximum: 65535,
-        default: 9090
+      items: {
+        type: "object",
+        properties: {
+          address: {
+            type: "string",
+            title: "IP Address",
+            anyOf: [
+              { format: "ipv4" },
+              { format: "ipv6" }
+            ],
+            messages: {
+              "anyOf": "IPv4 or IPv6 allowed"
+            },
+            default: "127.0.0.5"
+          },
+          port: {
+            type: "number",
+            title: "Port",
+            minimum: 1,
+            maximum: 65535,
+            default: 9090
+          }
+        }
       }
     }
+  }
+};
+
+export const metricsUiSchema = {
+  classNames: "col-xs-12",
+  "ui:title": <CustomTitle18 title="Metrics" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
+  //items: {
+    //classNames: "col-xs-12",//层次感  
+    //metrics: {
+      //classNames: "col-xs-12",
+  server:{
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="Server" />,
+      items: {
+        //classNames: "col-xs-12",
+        address: {
+          classNames: "col-xs-8",
+        },
+        port: {
+          classNames: "col-xs-4",
+        },
+      //},
+    //},
+    },
   }
 };
 
@@ -921,9 +1086,12 @@ export const metricsShortUiSchema = {
     //classNames: "col-xs-12",//层次感  
     //metrics: {
       //classNames: "col-xs-12",
+  server:{
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="Server" />,
       items: {
         //classNames: "col-xs-12",
-        addr: {
+        address: {
           classNames: "col-xs-8",
         },
         port: {
@@ -931,7 +1099,8 @@ export const metricsShortUiSchema = {
         },
       //},
     //},
-  },
+    },
+  }
 };
 
 export const guamiSchema = {
@@ -1129,6 +1298,62 @@ export const taiUiSchema = {
         "ui:placeholder": "Format like 1 or 3-5",
       }
     }
+  }
+};
+
+export const access_controlSchema = {
+  type: "array",
+  title: "Access Control",
+  minItems: 1,
+  maxItems: 8,
+  items: {
+    type: "object",
+    properties: {
+      plmn_id: {
+        type: "object",
+        title: "PLMN_ID",
+        properties: {
+          mcc: {
+            type: "string",
+            title: "MCC",
+            maxLength: 3,
+            //required: true,
+            pattern: "^\\d+$",
+            messages: {
+              pattern: "Only digits are allowed"
+            }
+          },
+          mnc: {
+            type: "string",
+            title: "MNC",
+            maxLength: 3,
+            //required: true,
+            pattern: "^\\d+$",
+            messages: {
+              pattern: "Only digits are allowed"
+            }
+          }
+        },
+        required: ["mcc", "mnc"]
+      },
+    },
+  },
+};
+
+export const access_controlUiSchema = {
+  classNames: "col-xs-6",
+  "ui:title": <CustomTitle18 title="Access Control" />,
+  items: {
+    plmn_id: {
+      classNames: "col-xs-12",
+      "ui:title": <CustomTitle18 title="PLMN_ID" />,
+      mcc: {
+        classNames: "col-xs-6"
+      },
+      mnc: {
+        classNames: "col-xs-6"
+      }
+    },
   }
 };
 

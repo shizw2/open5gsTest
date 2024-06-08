@@ -17,12 +17,12 @@ export const ViewAMF = ({ nfconfig }) => {
   console.log("nfconfig:", nfconfig); // 在这里添加打印语句
   return (
     <div>
-      {/* // 使用 LOGSection 组件 */}                  
+      {/* // 使用 LOGSection 组件 */}
       <LOGSection nfconfig={nfconfig} />
-      {/* // 使用 NRFSection 组件 */}                  
-      <NRFSection nfconfig={nfconfig} />
-      {/* // 使用 SBISection 组件 */}   
-      <SBISection nfconfig={nfconfig} />
+      {/* // 使用 NRFSection 组件 */}
+      {/*<NRFSection nfconfig={nfconfig} />*/}
+      {/* // 使用 SBISection 组件 */}
+      {/*<SBISection nfconfig={nfconfig} />*/}
 
       <div>
       {nfconfig && nfconfig.amf && (
@@ -32,11 +32,12 @@ export const ViewAMF = ({ nfconfig }) => {
 
             {nfconfig.amf.ngap && (
             <div>
-              <div className="twenty-spaces">ngap:</div> 
-              <div className="forty-spaces">
-              {nfconfig.amf.ngap.map((item, index) => (
+              <div className="twenty-spaces">ngap:</div>
+              <div className="forty-spaces">server:</div>
+              <div className="sixty-spaces">
+              {nfconfig.amf.ngap.server.map((item, index) => (
                 <div key={index}>
-                  <div>- addr: {item.addr}</div>
+                  <div>- address: {item.address}</div>
                 </div>
               ))}
               </div>
@@ -71,15 +72,15 @@ export const ViewAMF = ({ nfconfig }) => {
             </div>
             )}
 
-            {nfconfig.amf.relative_capacity && (
-            <div>
-              <div className="twenty-spaces">relative_capacity: {nfconfig.amf.relative_capacity}</div>
+            <div className="twenty-spaces">relative_capacity: {nfconfig.amf.relative_capacity && (nfconfig.amf.relative_capacity)}</div>
+            
+            <div className="twenty-spaces">
+              {nfconfig.amf.time && <TimeSection time={nfconfig.amf.time} />}
             </div>
-            )}
-        </div>
-      )}
+          </div>
+        )}
       </div>
-      {nfconfig && nfconfig.time && <TimeSection time={nfconfig.time} />}
+
       {nfconfig && nfconfig.cli && <CLISection cli={nfconfig.cli} />}
     </div>
   );
