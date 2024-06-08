@@ -162,7 +162,7 @@ int amf_nsmf_pdusession_handle_create_sm_context(
              * there is no sm-context-ref. The PDU session establishment accept
              * stored in [1-SERVER] is now trasnmitted to gNB.
              */
-            r = ngap_send_to_ran_ue(ran_ue,
+            r = ngap_send_to_ran_ue_sps(ran_ue,
                     sess->pdu_session_establishment_accept);
             ogs_expect(r == OGS_OK);
             ogs_assert(r != OGS_ERROR);

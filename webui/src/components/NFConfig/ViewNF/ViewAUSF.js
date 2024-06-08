@@ -18,9 +18,9 @@ export const ViewAUSF = ({ nfconfig }) => {
       {/* // 使用 LOGSection 组件 */}
       <LOGSection nfconfig={nfconfig} />
       {/* // 使用 NRFSection 组件 */}
-      <NRFSection nfconfig={nfconfig} />
+      {/*<NRFSection nfconfig={nfconfig} />*/}
       {/* // 使用 SBISection 组件 */}
-      <SBISection nfconfig={nfconfig} />
+      {/*<SBISection nfconfig={nfconfig} />*/}
 
       <div>
       {nfconfig && nfconfig.ausf && (
@@ -29,14 +29,16 @@ export const ViewAUSF = ({ nfconfig }) => {
             <NF_SBI_Section  sbi={nfconfig.ausf.sbi} />
             <RTSUPIInfoSection info={nfconfig.ausf.info} />
             <MetricsSection metrics={nfconfig.ausf.metrics} />
+            <div className="twenty-spaces">relative_capacity: {nfconfig.ausf.relative_capacity && (nfconfig.ausf.relative_capacity)}</div>
         </div>
       )}
       </div>
-      {parameter && <ParameterSection parameter={nfconfig.parameter} />}
+      
       {nfconfig && nfconfig.cli && <CLISection cli={nfconfig.cli} />}
       {/*
       <MaxSection max={max} />
       <TimeSection time={time} />
+      {parameter && <ParameterSection parameter={nfconfig.parameter} />}
       */}
     </div>
   );

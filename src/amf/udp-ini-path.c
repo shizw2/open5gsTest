@@ -232,7 +232,7 @@ void icps_client_recv_cb(short when, ogs_socket_t fd, void *data)
 //icps给sps发送消息时调用
 int udp_ini_sendto(const void *buf, size_t len, int sps_id)
 {
-	if (sps_id > MAX_SPS_NUM)
+	if (sps_id > MAX_SPS_NUM||sps_id >amf_self()->spsnum)
 	{
 		return 0;
 	}
@@ -245,7 +245,7 @@ int udp_ini_msg_sendto(int msg_type, ogs_sbi_udp_header_t *header,const void *bu
     amf_internel_msg_header_t internel_msg;
     ssize_t sent;
 
-    if (sps_id > MAX_SPS_NUM)
+    if (sps_id > MAX_SPS_NUM||sps_id >amf_self()->spsnum)
     {
         ogs_error("sps id %d is out of range.",sps_id);
         return OGS_ERROR;

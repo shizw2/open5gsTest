@@ -371,6 +371,22 @@ static void muti_ue_threads(abts_case *tc, void *data)
         ABTS_PTR_NOTNULL(tc, sendbuf);
         rv = testgnb_ngap_send(ngap, sendbuf);
         ABTS_INT_EQUAL(tc, OGS_OK, rv);
+ #if 0  
+                /* Receive Identity request */
+                ogs_info("Receive Identity request.");
+                recvbuf = testgnb_ngap_read(ngap);   
+                ABTS_PTR_NOTNULL(tc, recvbuf);
+                testngap_recv(test_ue[i], recvbuf);
+                
+                /* Send Identity response */
+                ogs_info("Send Identity response.");
+                gmmbuf = testgmm_build_identity_imei_response(test_ue[i]);
+                ABTS_PTR_NOTNULL(tc, gmmbuf);
+                sendbuf = testngap_build_uplink_nas_transport(test_ue[i], gmmbuf);
+                ABTS_PTR_NOTNULL(tc, sendbuf);
+                rv = testgnb_ngap_send(ngap, sendbuf);
+                ABTS_INT_EQUAL(tc, OGS_OK, rv);
+#endif
 
 
         /* Receive InitialContextSetupRequest +
@@ -1186,6 +1202,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
 
           
           /* Send Registration request */
+          test_ue[i]->registration_request_param.guti = 1;
           gmmbuf = testgmm_build_registration_request(test_ue[i], NULL, false, false);
           ABTS_PTR_NOTNULL(tc, gmmbuf);
           
@@ -1202,7 +1219,20 @@ static void muti_ue_threads(abts_case *tc, void *data)
           ABTS_PTR_NOTNULL(tc, sendbuf);
           rv = testgnb_ngap_send(ngap, sendbuf);
           ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
           
+          /* Receive Identity request */
+          recvbuf = testgnb_ngap_read(ngap);
+          ABTS_PTR_NOTNULL(tc, recvbuf);
+          testngap_recv(test_ue[i], recvbuf);
+          
+          /* Send Identity response */
+          gmmbuf = testgmm_build_identity_response(test_ue[i]);
+          ABTS_PTR_NOTNULL(tc, gmmbuf);
+          sendbuf = testngap_build_uplink_nas_transport(test_ue[i], gmmbuf);
+          ABTS_PTR_NOTNULL(tc, sendbuf);
+          rv = testgnb_ngap_send(ngap, sendbuf);
+          ABTS_INT_EQUAL(tc, OGS_OK, rv);
           /* Receive Authentication request */
           recvbuf = testgnb_ngap_read(ngap);
           ABTS_PTR_NOTNULL(tc, recvbuf);
@@ -1228,7 +1258,31 @@ static void muti_ue_threads(abts_case *tc, void *data)
           ABTS_PTR_NOTNULL(tc, sendbuf);
           rv = testgnb_ngap_send(ngap, sendbuf);
           ABTS_INT_EQUAL(tc, OGS_OK, rv);
-          
+ #if 0   
+        /* Receive Identity request */
+        ogs_info("Receive Identity request.");
+        recvbuf = testgnb_ngap_read(ngap);   
+        ABTS_PTR_NOTNULL(tc, recvbuf);
+        testngap_recv(test_ue[i], recvbuf);
+        
+        /* Send Identity response */
+        ogs_info("Send Identity response.");
+        gmmbuf = testgmm_build_identity_imei_response(test_ue[i]);
+        ABTS_PTR_NOTNULL(tc, gmmbuf);
+        sendbuf = testngap_build_uplink_nas_transport(test_ue[i], gmmbuf);
+        ABTS_PTR_NOTNULL(tc, sendbuf);
+        rv = testgnb_ngap_send(ngap, sendbuf);
+        ABTS_INT_EQUAL(tc, OGS_OK, rv);
+#endif
+          /* Send GMM Status */
+          gmmbuf = testgmm_build_gmm_status(test_ue[i],
+                  OGS_5GMM_CAUSE_MESSAGE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE);
+          ABTS_PTR_NOTNULL(tc, gmmbuf);
+          sendbuf = testngap_build_uplink_nas_transport(test_ue[i], gmmbuf);
+          ABTS_PTR_NOTNULL(tc, sendbuf);
+          rv = testgnb_ngap_send(ngap, sendbuf);
+          ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
           /* Receive InitialContextSetupRequest +
            * Registration accept */
           recvbuf = testgnb_ngap_read(ngap);
@@ -1237,6 +1291,12 @@ static void muti_ue_threads(abts_case *tc, void *data)
           ABTS_INT_EQUAL(tc,
                   NGAP_ProcedureCode_id_InitialContextSetup,
                   test_ue[i]->ngap_procedure_code);
+          
+          /* Send UERadioCapabilityInfoIndication */
+          sendbuf = testngap_build_ue_radio_capability_info_indication(test_ue[i]);
+          ABTS_PTR_NOTNULL(tc, sendbuf);
+          rv = testgnb_ngap_send(ngap, sendbuf);
+          ABTS_INT_EQUAL(tc, OGS_OK, rv);
           
           /* Send InitialContextSetupResponse */
           sendbuf = testngap_build_initial_context_setup_response(test_ue[i], false);
@@ -1265,7 +1325,7 @@ static void muti_ue_threads(abts_case *tc, void *data)
           sess->ul_nas_transport_param.request_type =
               OGS_NAS_5GS_REQUEST_TYPE_INITIAL;
           sess->ul_nas_transport_param.dnn = 1;
-          sess->ul_nas_transport_param.s_nssai = 1;
+          sess->ul_nas_transport_param.s_nssai = 0;
           
           sess->pdu_session_establishment_param.ssc_mode = 1;
           sess->pdu_session_establishment_param.epco = 1;
@@ -1290,24 +1350,17 @@ static void muti_ue_threads(abts_case *tc, void *data)
                   NGAP_ProcedureCode_id_PDUSessionResourceSetup,
                   test_ue[i]->ngap_procedure_code);
           
-          /*
-           * Related to issue #536. When running with VirtualBox 1 Core,
-           * AMF sends namf-callback response very late. In SMF,
-           * the Session context has already been removed, so an assertion occurs.
-           *
-           * It seems to be related to the response part of MHD. We will check
-           * if the same situation occurs after upgrading to nghttp2.
-           *
-           * If this issue still occurs on nghttp2,
-           * I will remove the assertion from SMF.
-           */
-          ogs_msleep(100);
+          /* Send PDUSessionResourceSetupResponse */
+          sendbuf = testngap_sess_build_pdu_session_resource_setup_response(sess);
+          ABTS_PTR_NOTNULL(tc, sendbuf);
+          rv = testgnb_ngap_send(ngap, sendbuf);
+          ABTS_INT_EQUAL(tc, OGS_OK, rv);
           
-          /* Send GMM Status */
-          gmmbuf = testgmm_build_gmm_status(test_ue,
-                  OGS_5GMM_CAUSE_MESSAGE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE);
-          ABTS_PTR_NOTNULL(tc, gmmbuf);
-          sendbuf = testngap_build_uplink_nas_transport(test_ue[i], gmmbuf);
+          /* Send UEContextReleaseRequest */
+          sendbuf = testngap_build_ue_context_release_request(test_ue[i],
+                  NGAP_Cause_PR_radioNetwork, NGAP_CauseRadioNetwork_user_inactivity,
+                  true);
+
           ABTS_PTR_NOTNULL(tc, sendbuf);
           rv = testgnb_ngap_send(ngap, sendbuf);
           ABTS_INT_EQUAL(tc, OGS_OK, rv);

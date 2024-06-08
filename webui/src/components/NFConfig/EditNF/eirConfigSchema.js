@@ -8,28 +8,28 @@ export const eirschema = {
       type: "object",
       title: "EIR",
       properties: {
-        sbi: schemas.nf_sbi_Schema, 
-        metrics: schemas.metricsSchema,
+        sbi: schemas.nf_sbi_OldSchema, 
+        metrics: schemas.metricsOldSchema,
       },
     },
     nrf: schemas.nrfSchema,
     sbi: schemas.sbiSchema,
     db_uri: schemas.db_uriSchema,
-    logger: schemas.loggerSchema,
-    cli: schemas.cliSchema,
+    logger: schemas.loggerOldSchema,
+    //cli: schemas.cliSchema,
   },
 };
 
 export const eiruiSchema = {
-  logger: schemas.loggerUiSchema,
+  logger: schemas.loggerOldUiSchema,
   db_uri: schemas.db_uriUiSchema,
   sbi: schemas.sbiUiSchema,
   nrf: schemas.nrfUiSchema,
   parameter: schemas.paraUiSchema,
   eir: {
     classNames: "col-xs-12",
-    sbi: schemas.nf_sbi_UiSchema,
-    metrics: schemas.metricsUiSchema,
+    sbi: schemas.nf_sbi_OldUiSchema,
+    metrics: schemas.metricsOldUiSchema,
   },
-  cli: schemas.cliUiSchema,
+  //cli: schemas.cliUiSchema,
 };

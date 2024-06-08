@@ -294,7 +294,7 @@ int ngap_send_to_nas(ran_ue_t *ran_ue,
     default:
         ogs_error("Not implemented(security header type:0x%x)",
                 sh->security_header_type);
-        ran_ue_remove(ran_ue);
+        ran_ue_remove_sps(ran_ue);
         return OGS_ERROR;
     }
 
@@ -302,7 +302,7 @@ int ngap_send_to_nas(ran_ue_t *ran_ue,
         if (nas_5gs_security_decode(ran_ue->amf_ue,
                 security_header_type, nasbuf) != OGS_OK) {
             ogs_error("nas_eps_security_decode failed()");
-            ran_ue_remove(ran_ue);
+            ran_ue_remove_sps(ran_ue);
             return OGS_ERROR;
         }
     }
@@ -317,7 +317,7 @@ int ngap_send_to_nas(ran_ue_t *ran_ue,
                     h->extended_protocol_discriminator);
 
             ogs_pkbuf_free(nasbuf);
-            ran_ue_remove(ran_ue);
+            ran_ue_remove_sps(ran_ue);
 
             return OGS_ERROR;
         }
@@ -329,7 +329,7 @@ int ngap_send_to_nas(ran_ue_t *ran_ue,
             ogs_error("Invalid 5GMM message type [%d]", h->message_type);
 
             ogs_pkbuf_free(nasbuf);
-            ran_ue_remove(ran_ue);
+            ran_ue_remove_sps(ran_ue);
 
             return OGS_ERROR;
         }
@@ -371,11 +371,11 @@ int ngap_send_to_nas(ran_ue_t *ran_ue,
                   h->extended_protocol_discriminator);
 
         ogs_pkbuf_free(nasbuf);
-        ran_ue_remove(ran_ue);
+        ran_ue_remove_sps(ran_ue);
         return OGS_ERROR;
     }
 }
-
+#if 0
 int ngap_send_to_nas_sps(ran_ue_t *ran_ue,
 				NGAP_ProcedureCode_t procedureCode, size_t nas_len,uint8_t *nasPdu)
 {
@@ -506,7 +506,7 @@ int ngap_send_to_nas_sps(ran_ue_t *ran_ue,
         return OGS_ERROR;
     }
 }
-
+#endif
 int ngap_send_ng_setup_response(amf_gnb_t *gnb)
 {
     int rv;

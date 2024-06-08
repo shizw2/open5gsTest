@@ -61,17 +61,23 @@ class Edit extends Component {
     let selectedSchema;
     let selectedUiSchema;
 
-    if (formData.parameter && formData.parameter.capacity)
-      formData.parameter.capacity = parseInt(formData.parameter.capacity);
-
     if (formData._id === 'nrf' || formData._nf === 'nrf') {
+      if (formData.nrf && formData.nrf.relative_capacity)
+        formData.nrf.relative_capacity = parseInt(formData.nrf.relative_capacity);
+
       selectedSchema = nrfschema;
       selectedUiSchema = nrfuiSchema;
     } else if (formData._id === 'bsf' || formData._nf === 'bsf') {
+      if (formData.bsf && formData.bsf.relative_capacity)
+        formData.bsf.relative_capacity = parseInt(formData.bsf.relative_capacity);
+
       selectedSchema = bsfschema;
       selectedUiSchema = bsfuiSchema;
     }else if (formData._id === 'ausf'  || formData._nf === 'ausf') {
-      selectedSchema = ausfschema;
+      if (formData.ausf && formData.ausf.relative_capacity)
+        formData.ausf.relative_capacity = parseInt(formData.ausf.relative_capacity);
+
+        selectedSchema = ausfschema;
       selectedUiSchema = ausfuiSchema;
     }else if (formData._id === 'amf' || formData._nf === 'amf') {        
       //初始配置文件会按数字读取mcc,mnc,将读取到的mcc,mnc的类型改为string
@@ -151,9 +157,15 @@ class Edit extends Component {
         })
       };
 
+      if (formData.smf && formData.smf.relative_capacity)
+        formData.smf.relative_capacity = parseInt(formData.smf.relative_capacity);
+
       selectedSchema = smfschema;
       selectedUiSchema = smfuiSchema;
     }else if (formData._id === 'nssf' || formData._nf === 'nssf') {
+      if (formData.nssf && formData.nssf.relative_capacity)
+        formData.nssf.relative_capacity = parseInt(formData.nssf.relative_capacity);
+
       selectedSchema = nssfschema;
       selectedUiSchema = nssfuiSchema;
     }else if (formData._id === 'pcf' || formData._nf === 'pcf') {   
@@ -165,9 +177,16 @@ class Edit extends Component {
           }          
         });
       }
+
+      if (formData.pcf && formData.pcf.relative_capacity)
+        formData.pcf.relative_capacity = parseInt(formData.pcf.relative_capacity);
+
       selectedSchema = pcfschema;
       selectedUiSchema = pcfuiSchema;
     }else if (formData._id === 'udm' || formData._nf === 'udm') {
+      if (formData.udm && formData.udm.relative_capacity)
+        formData.udm.relative_capacity = parseInt(formData.udm.relative_capacity);
+
       selectedSchema = udmschema;
       selectedUiSchema = udmuiSchema;
     }else if (formData._id === 'upf' || formData._nf === 'upf') {
@@ -179,13 +198,22 @@ class Edit extends Component {
       
       if (formData.upf && formData.upf.dpdk && formData.upf.dpdk.fwd_lcore)
         formData.upf.dpdk.fwd_lcore = parseInt(formData.upf.dpdk.fwd_lcore);
-      
+
+      if (formData.upf && formData.upf.relative_capacity)
+        formData.upf.relative_capacity = parseInt(formData.upf.relative_capacity);
+
       selectedSchema = upfschema;
       selectedUiSchema = upfuiSchema;
     }else if (formData._id === 'udr' || formData._nf === 'udr') {
+      if (formData.udr && formData.udr.relative_capacity)
+        formData.udr.relative_capacity = parseInt(formData.udr.relative_capacity);
+      
       selectedSchema = udrschema;
       selectedUiSchema = udruiSchema;
     }else if (formData._id === 'eir' || formData._nf === 'eir') {
+      if (formData.eir && formData.eir.relative_capacity)
+        formData.eir.relative_capacity = parseInt(formData.eir.relative_capacity);
+
       selectedSchema = eirschema;
       selectedUiSchema = eiruiSchema;
     }else {

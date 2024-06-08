@@ -16,8 +16,10 @@ export const ViewBSF= ({ nfconfig }) => {
   return (
     <div>        
       <LOGSection nfconfig={nfconfig} />
+      {/*
       <NRFSection nfconfig={nfconfig} />
       <SBISection nfconfig={nfconfig} />
+      */}
 
       <div>
         {bsf && (
@@ -25,12 +27,14 @@ export const ViewBSF= ({ nfconfig }) => {
             <div className="nf-header">bsf:</div>
             <NF_SBI_Section sbi={bsf.sbi} />
             <MetricsSection metrics={bsf.metrics} />
+            <div className="twenty-spaces">relative_capacity: {nfconfig.bsf.relative_capacity && (nfconfig.bsf.relative_capacity)}</div>
           </div>
         )}
       </div>
-      {parameter && <ParameterSection parameter={nfconfig.parameter} />}
+
       {nfconfig && nfconfig.cli && <CLISection cli={nfconfig.cli} />}
       {/*
+      {parameter && <ParameterSection parameter={nfconfig.parameter} />}
       <MaxSection max={max} />
       <TimeSection time={time} />
       */}

@@ -362,6 +362,7 @@ static void test2_func(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
+    if(!ismutisps){
 
 #if SEND_UE_CONTEXT_RELEASE_COMMAND_IN_INTEGRITY_PROTECTED
     /* OLD Receive UEContextReleaseCommand */
@@ -378,6 +379,7 @@ static void test2_func(abts_case *tc, void *data)
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 #endif
+    }
 
     /* Receive InitialContextSetupRequest +
      * Registration accept */

@@ -2,9 +2,9 @@ import {
   DbUriSection,
   NRFSection,
   SBISection,
-  LOGSection,
-  NF_SBI_Section,
-  MetricsSection,
+  OldLOGSection,
+  OldNF_SBI_Section,
+  OldMetricsSection,
   MaxSection,
   ParameterSection,
   TimeSection,
@@ -17,7 +17,7 @@ export const ViewEIR= ({ nfconfig }) => {
   return (
     <div>
       <DbUriSection db_uri={nfconfig.db_uri} />
-      <LOGSection nfconfig={nfconfig} />
+      <OldLOGSection nfconfig={nfconfig} />
       <NRFSection nfconfig={nfconfig} />
       <SBISection nfconfig={nfconfig} />
 
@@ -25,8 +25,8 @@ export const ViewEIR= ({ nfconfig }) => {
         {eir && (
           <div className="nf-section">
             <div className="nf-header">eir:</div>
-            <NF_SBI_Section sbi={eir.sbi} />
-            <MetricsSection metrics={eir.metrics} />
+            <OldNF_SBI_Section sbi={eir.sbi} />
+            <OldMetricsSection metrics={eir.metrics} />
           </div>
         )}
       </div>

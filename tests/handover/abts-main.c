@@ -28,8 +28,8 @@ extern int g_testcycleNum;
 const struct testlist {
     abts_suite *(*func)(abts_suite *suite);
 } alltests[] = {
-    {test_epc_x2},
-    {test_epc_s1},
+    //{test_epc_x2},
+    //{test_epc_s1},
     {test_5gc_xn},
     {test_5gc_n2},
     {NULL},

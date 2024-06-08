@@ -24,7 +24,7 @@
 #include "license.h"
 #include "ogs-app-timer.h"
 #include "telnet.h"
-
+extern int g_sps_id;
 static ogs_thread_t *thread;
 static ogs_thread_t *cli_thread;
 static void amf_main(void *data);
@@ -131,7 +131,10 @@ int amf_sps_initialize()
 
     rv = amf_context_parse_config(false);
     if (rv != OGS_OK) return rv;
-
+    if(g_sps_id>amf_self()->spsnum){
+        ogs_error("g_sps_id大于配置的spsnum");
+        return OGS_ERROR;
+    }
     rv = amf_context_nf_info(false);
     if (rv != OGS_OK) return rv;
 
