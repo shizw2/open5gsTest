@@ -42,7 +42,7 @@ const struct testlist {
 } alltests[] = {
     {test_simple},
     {test_paging},
-#if 0   
+#if 1   
     {test_guti},
     {test_auth},
     {test_ecc},
