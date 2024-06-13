@@ -259,6 +259,8 @@ void ogs_sbi_request_free(ogs_sbi_request_t *request)
 {
     ogs_assert(request);
 
+    ogs_info("*test ogs_sbi_request_free:%p, headers cnt:%d,params cnt:%d,request:%s method:%s",request,ogs_hash_count(request->http.headers),ogs_hash_count(request->http.params),request->http.content,request->h.method);
+
     if (request->h.uri)
         ogs_free(request->h.uri);
 

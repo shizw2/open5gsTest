@@ -38,7 +38,7 @@ int ogs_sbi_server_handler(ogs_sbi_request_t *request, void *data)
     e = ogs_event_new(OGS_EVENT_SBI_SERVER);
     ogs_assert(e);
 
-    ogs_info("*test:headers cnt:%d,params cnt:%d,request:%s method:%s",ogs_hash_count(request->http.headers),ogs_hash_count(request->http.params),request->http.content,request->h.method);
+    ogs_info("*test:%p headers cnt:%d,params cnt:%d,request:%s method:%s",request,ogs_hash_count(request->http.headers),ogs_hash_count(request->http.params),request->http.content,request->h.method);
 
     e->sbi.request = request;
     e->sbi.data = data;
