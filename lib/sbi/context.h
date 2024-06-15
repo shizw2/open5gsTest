@@ -343,29 +343,38 @@ typedef struct supi_range_s {
     int num_of_supi_range;
    
     struct {
-        const char *start;
-        const char *end;
+        char *start;
+        char *end;
     } supi_ranges[OGS_MAX_NUM_OF_SUPI];
 } ogs_supi_range_t;
 
+#define OGS_MAX_NUM_OF_ROUTING_INDICATOR              16
+typedef struct routing_indicator_s {   
+    int num_of_routing_indicator;
+    char *routing_indicators[OGS_MAX_NUM_OF_ROUTING_INDICATOR];
+} ogs_routing_indicator_t;
+
 typedef struct ogs_sbi_udm_info_s {
     ogs_supi_range_t supiRanges;
+    ogs_routing_indicator_t routingIndicators;
 } ogs_sbi_udm_info_t;
 
 typedef struct ogs_sbi_udr_info_s {
     ogs_supi_range_t supiRanges;
 } ogs_sbi_udr_info_t;
 
+typedef struct ogs_sbi_eir_info_s {
+    ogs_supi_range_t supiRanges;
+} ogs_sbi_eir_info_t;
+
 typedef struct ogs_sbi_pcf_info_s {
     ogs_supi_range_t supiRanges;
 } ogs_sbi_pcf_info_t;
 
-#define OGS_MAX_NUM_OF_ROUTING_INDICATOR    16
+
 typedef struct ogs_sbi_ausf_info_s {
     ogs_supi_range_t supiRanges;
-    
-    int num_of_routing_indicator;
-    char *routing_indicators[OGS_MAX_NUM_OF_ROUTING_INDICATOR];
+    ogs_routing_indicator_t routingIndicators;
 } ogs_sbi_ausf_info_t;
 
 typedef struct ogs_sbi_nf_info_s {
@@ -380,8 +389,8 @@ typedef struct ogs_sbi_nf_info_s {
         ogs_sbi_udr_info_t udr;
         ogs_sbi_pcf_info_t pcf;
         ogs_sbi_ausf_info_t ausf;
+        ogs_sbi_eir_info_t eir;
     };
-    char *routing_indicator;//TODO
 } ogs_sbi_nf_info_t;
 
 void ogs_sbi_context_init(OpenAPI_nf_type_e nf_type);
@@ -391,6 +400,7 @@ int ogs_sbi_context_parse_config(
         const char *local, const char *nrf, const char *scp);
 int ogs_sbi_context_parse_hnet_config(ogs_yaml_iter_t *root_iter);
 int ogs_sbi_context_parse_supi_ranges(ogs_yaml_iter_t *root_iter, ogs_supi_range_t *supiRanges);
+int ogs_sbi_context_parse_routing_indicator(ogs_yaml_iter_t *root_iter, ogs_routing_indicator_t *routingIndicators);
 bool ogs_sbi_nf_service_is_available(const char *name);
 
 ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_add(void);
@@ -470,6 +480,10 @@ OpenAPI_uri_scheme_e ogs_sbi_server_default_scheme(void);
 OpenAPI_uri_scheme_e ogs_sbi_client_default_scheme(void);
 int ogs_sbi_server_default_port(void);
 int ogs_sbi_client_default_port(void);
+
+void shownf(char *id);
+void shownfBriefAll(void);
+void showgnfDetail(char *id);
 
 #define OGS_SBI_SETUP_NF_INSTANCE(__cTX, __nFInstance) \
     do { \

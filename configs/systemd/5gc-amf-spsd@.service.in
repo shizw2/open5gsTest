@@ -6,7 +6,7 @@ After=network-online.target
 Type=simple
 
 User=@5g_user@
-Group=@5g_usere@
+Group=@5g_user@
 
 Restart=always
 ExecStart=@bindir@/@project_name@-amf-spsd -i %i -c @sysconfdir@/@project_name@/amf.yaml -l @localstatedir@/log/@project_name@/amf_sps%i.log 

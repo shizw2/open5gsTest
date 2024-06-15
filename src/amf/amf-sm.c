@@ -30,7 +30,8 @@
 #include "ngap-handler-sps.h"
 #include "ogs-app-timer.h"
 #include "license.h"
-
+#include <unistd.h>
+#include <signal.h>
 extern int g_sps_id;
 extern pkt_fwd_tbl_t *g_pt_pkt_fwd_tbl;
 extern int send_heart_cnt;
@@ -298,8 +299,12 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
             CASE(OGS_SBI_RESOURCE_NAME_SDMSUBSCRIPTION_NOTIFY)
                 if (is_amf_icps()){
-                    ogs_error("todo:OGS_SBI_RESOURCE_NAME_SDMSUBSCRIPTION_NOTIFY");
-                    udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,1);
+                    sps_id=spsid_find_by_supi(sbi_message.h.resource.component[0]);
+                    if (sps_id == 0 || sps_id > MAX_SPS_NUM){
+                        ogs_error("sps id %d is invalid.",sps_id);                                
+                        break;
+                    }   
+                    udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_request->http.content,sbi_request->http.content_length,sps_id);
                 }else{
                     amf_namf_callback_handle_sdm_data_change_notify(
                         stream, &sbi_message);
@@ -462,7 +467,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
         CASE(OGS_SBI_SERVICE_NAME_NAUSF_AUTH)
         CASE(OGS_SBI_SERVICE_NAME_NUDM_UECM)
         CASE(OGS_SBI_SERVICE_NAME_NUDM_SDM)
-        CASE(OGS_SBI_SERVICE_NAME_NPCF_AM_POLICY_CONTROL)            
+        CASE(OGS_SBI_SERVICE_NAME_NPCF_AM_POLICY_CONTROL)
+        CASE(OGS_SBI_SERVICE_NAME_N5G_EIR_EIC)
             if (is_amf_icps()){
                 ogs_info("test icps:sbi_message.h.service.name:%s.",sbi_message.h.service.name);
                 udp_ini_msg_sendto(INTERNEL_MSG_SBI, &sbi_message.udp_h, sbi_response->http.content,sbi_response->http.content_length,1);
@@ -843,7 +849,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                 ogs_warn("license soon to expire.");
             }else if (license_state == LICENSE_STATE_EXPIRED){
                 ogs_fatal("license expired.");
-                exit(0);
+                //exit(0);
+                kill(getpid(), SIGTERM);//exit导致线程无法正常退出,进而导致进程退出时coredump
             }
 
             license_check_restart();

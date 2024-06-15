@@ -161,44 +161,7 @@ int ausf_context_parse_config(void)
                             if (!strcmp(info_key, "supi")) {
                                 is_nfinfo_changed = ogs_sbi_context_parse_supi_ranges(&info_iter, &ausf_info->supiRanges); 
                             } else if (!strcmp(info_key, "routing_indicator")) {
-                                ogs_yaml_iter_t routing_indicator_iter;
-                                int num_of_routing_indicator = 0;
-                                ogs_yaml_iter_recurse(&info_iter,
-                                        &routing_indicator_iter);
-                                ogs_assert(ogs_yaml_iter_type(
-                                            &routing_indicator_iter) !=
-                                    YAML_MAPPING_NODE);
-
-                                do {
-                                    const char *v = NULL;
-
-                                    if (ogs_yaml_iter_type(&routing_indicator_iter) ==
-                                            YAML_SEQUENCE_NODE) {
-                                        if (!ogs_yaml_iter_next(
-                                                    &routing_indicator_iter))
-                                            break;
-                                    }
-
-                                    v = ogs_yaml_iter_value(&routing_indicator_iter);
-                                    if (v && strlen(v) > 0) {
-                                        ogs_info("new routing_indicator %s ",v);
-                                        ogs_assert(num_of_routing_indicator < OGS_MAX_NUM_OF_ROUTING_INDICATOR);
-                                        if (ausf_info->routing_indicators[num_of_routing_indicator] != NULL){
-                                            if ( strcmp(ausf_info->routing_indicators[num_of_routing_indicator],v) != 0){
-                                                ogs_info("routing_indicator changed from %s to %s.",ausf_info->routing_indicators[num_of_routing_indicator],v);
-                                                is_nfinfo_changed = true;
-                                            }
-                                            ogs_info("routing_indicator %s already exit.",ausf_info->routing_indicators[num_of_routing_indicator]);
-                                            ogs_free(ausf_info->routing_indicators[num_of_routing_indicator]);//先释放老的
-                                        }
-                                        ausf_info->routing_indicators[num_of_routing_indicator] = ogs_strdup(v);
-                                        num_of_routing_indicator++;                                        
-                                    }
-                                } while (
-                                    ogs_yaml_iter_type(&routing_indicator_iter) ==
-                                        YAML_SEQUENCE_NODE);
-                                        
-                                ausf_info->num_of_routing_indicator = num_of_routing_indicator;
+                                is_nfinfo_changed = ogs_sbi_context_parse_routing_indicator(&info_iter, &ausf_info->routingIndicators); 
                             } else
                                 ogs_warn("unknown key `%s`", info_key);
                         }

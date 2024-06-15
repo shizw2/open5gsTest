@@ -8,7 +8,8 @@ import {
   MetricsSection,
   MaxSection,
   ParameterSection,
-  TimeSection
+  TimeSection,
+  CLISection
 } from './ViewCfgSection';
 
 export const ViewUDM = ({ nfconfig }) => {
@@ -36,8 +37,8 @@ export const ViewUDM = ({ nfconfig }) => {
           </div>
         )}
       </div>
-      <ParameterSection parameter={nfconfig.parameter} />
-
+      {parameter && <ParameterSection parameter={nfconfig.parameter} />}
+      {nfconfig && nfconfig.cli && <CLISection cli={nfconfig.cli} />}
       {/*
       <MaxSection max={max} />
       <TimeSection time={time} />

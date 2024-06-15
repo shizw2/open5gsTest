@@ -5,12 +5,14 @@ import { connect } from 'react-redux';
 import NProgress from 'nprogress';
 
 import { Alarm } from 'components';
-
+import properties from '../../../properties' // 导入配置文件
 
 const os = require('os');
 const ip = os.hostname();
 //const ip = window.location.hostname
 let vistport = 3002
+if(properties.grafanaport)vistport=properties.grafanaport
+/*
 const url = new URL(`/port.json`, `http://${ip}:3000`);
 fetch(url)
   .then(response => response.json())
@@ -20,6 +22,7 @@ fetch(url)
   .catch(error => {
     console.error('Error fetching port.json:', error);
   });
+*/
 class Document extends Component {
   constructor(props) {
     super(props)

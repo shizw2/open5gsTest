@@ -1,6 +1,6 @@
 # Copyright (C) 2022 by Sukchan Lee <acetcom@gmail.com>
 
-# This file is part of 5G Core Network.
+# This file is part of Open5GS.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -47,10 +47,12 @@ tls_security = '''
     smf.crt
     udm.crt
     udr.crt
-    testserver.key
-    testserver.crt
-    testclient.key
-    testclient.crt
+    sepp1.key
+    sepp1.crt
+    sepp2.key
+    sepp2.crt
+    sepp3.key
+    sepp3.crt
 '''.split()
 
 foreach file : tls_security

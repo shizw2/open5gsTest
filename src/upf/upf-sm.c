@@ -24,6 +24,8 @@
 #include "gtp-path.h"
 #include "ogs-app-timer.h"
 #include "license.h"
+#include <unistd.h>
+#include <signal.h>
 
 void upf_state_initial(ogs_fsm_t *s, upf_event_t *e)
 {
@@ -123,7 +125,8 @@ void upf_state_operational(ogs_fsm_t *s, upf_event_t *e)
                 ogs_warn("license soon to expire.");
             }else if (license_state == LICENSE_STATE_EXPIRED){
                 ogs_fatal("license expired.");
-                exit(0);
+                //exit(0);
+                kill(getpid(), SIGTERM);//exit导致线程无法正常退出,进而导致进程退出时coredump
             }
 
             license_check_restart();

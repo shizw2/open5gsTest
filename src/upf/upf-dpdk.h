@@ -245,7 +245,7 @@ nd_node_t *nd_find(struct lcore_conf *lconf, void *ip, uint16_t port);
 
 bool is_all_veth_up(void);
 void check_link_status(void);
-
+void generateMask6(uint16_t mask6_bits, uint64_t* mask6);
 static inline void
 dump_data(char *buf, int len)
 {

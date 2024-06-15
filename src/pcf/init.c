@@ -20,10 +20,13 @@
 #include "sbi-path.h"
 #include "pcf-fd-path.h"
 #include "ogs-app-timer.h"
+#include "telnet.h"
 
 static ogs_thread_t *thread;
+static ogs_thread_t *cli_thread;
 static void pcf_main(void *data);
 static int initialized = 0;
+void setCommands(void);
 
 int pcf_initialize(void)
 {
@@ -66,6 +69,9 @@ int pcf_initialize(void)
     thread = ogs_thread_create(pcf_main, NULL);
     if (!thread) return OGS_ERROR;
 
+    setCommands();
+    cli_thread = ogs_thread_create(telnetMain, &ogs_app()->cli_list);
+    
     initialized = 1;
 
     return OGS_OK;
@@ -100,6 +106,7 @@ void pcf_terminate(void)
     event_termination();
     ogs_thread_destroy(thread);
     ogs_timer_delete(t_termination_holding);
+    ogs_free(cli_thread);
 
     pcf_sbi_close();
 

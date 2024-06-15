@@ -18,6 +18,7 @@ import {
   CtfSection,
   FreeDiameterFileSection,
   SMFInfoSection,
+  CLISection
 } from './ViewCfgSection';
 
 
@@ -49,12 +50,14 @@ export const ViewSMF = ({ nfconfig }) => {
         )}
       </div>
 
-      <div className="upf-section">
+      {upf && ( 
+        <div className="upf-section">
           <div className="upf-header">upf:</div>
-          <PfcpSection pfcp={upf.pfcp} /> 
-      </div>
-      <ParameterSection parameter={nfconfig.parameter} />
-
+            {upf.pfcp && <PfcpSection pfcp={upf.pfcp} />}
+        </div>
+      )}
+      {parameter && <ParameterSection parameter={nfconfig.parameter} />}
+      {nfconfig && nfconfig.cli && <CLISection cli={nfconfig.cli} />}
       {/*
       <MaxSection max={max} />
       <TimeSection time={time} />

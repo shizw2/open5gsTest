@@ -7,7 +7,7 @@
     create 640 @project_name@ @project_name@
 
     postrotate
-        for i in nrfd scpd pcrfd hssd ausfd udmd udrd upfd sgwcd sgwud smfd mmed amfd; do
+        for i in nrfd scpd seppd pcrfd hssd ausfd udmd udrd upfd sgwcd sgwud smfd mmed amfd eird; do
             systemctl reload @project_name@-$i
         done
     endscript

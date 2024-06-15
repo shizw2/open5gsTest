@@ -7,7 +7,8 @@ import {
   MaxSection,
   ParameterSection,
   TimeSection,
-  NSIComponent
+  NSIComponent,
+  CLISection
 } from './ViewCfgSection';
 
 export const ViewNSSF= ({ nfconfig }) => {
@@ -29,8 +30,8 @@ export const ViewNSSF= ({ nfconfig }) => {
           </div>
         )}
       </div>
-      <ParameterSection parameter={nfconfig.parameter} />
-
+      {parameter && <ParameterSection parameter={nfconfig.parameter} />}
+      {nfconfig && nfconfig.cli && <CLISection cli={nfconfig.cli} />}
       {/*
       <MaxSection max={max} />
       <TimeSection time={time} />

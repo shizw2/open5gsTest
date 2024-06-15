@@ -144,6 +144,7 @@ typedef struct amf_context_s {
     ogs_hash_t      *supi_sps_hash;           /* hash table for supi to sps */
     ogs_hash_t      *amf_ue_ngap_id_hash;     /*通过ICPS的amf_ue_ngap_id寻找SPS RAN_UE*/
     ogs_hash_t      *icps_ue_spsno_hash;
+    bool            imeicheckflag;
 } amf_context_t;
 
 typedef struct amf_gnb_s {
@@ -276,6 +277,7 @@ struct amf_ue_s {
     uint8_t         masked_imeisv[OGS_MAX_IMEISV_LEN];
     int             masked_imeisv_len;
     char            imeisv_bcd[OGS_MAX_IMEISV_BCD_LEN+1];
+    char            imei_bcd[OGS_MAX_IMEISV_BCD_LEN];
     ogs_nas_mobile_identity_imeisv_t nas_mobile_identity_imeisv;
 
     int             num_of_msisdn;
@@ -925,6 +927,7 @@ icps_ue_spsno_t* icps_ue_add(char *supi);
 icps_ue_spsno_t* icps_ue_find_by_supi(char *supi);
 icps_ue_spsno_t *icps_ue_cycle(icps_ue_spsno_t *icps_ue);
 void icps_ue_remove_all(void);
+bool amf_is_imeicheck(void);
 
 #ifdef __cplusplus
 }

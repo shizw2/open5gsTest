@@ -85,11 +85,27 @@ const NFConfig = {
 
             // 提取纯文件名作为 _id（不包括目录和扩展名）
             const fileId = path.parse(fileName).name;
+            let nfInsId;
+            let nfName;
+            let nfType;
+            if (isNaN(fileId[fileId.length - 1])) //文件名结尾不是数字
+            {
+              nfName = fileId + '1';
+              nfType = fileId;
+            }
+            else
+            {
+              nfInsId = parseInt(fileId[fileId.length - 1])+1;
+              nfName = fileId.slice(0, -1) + nfInsId.toString();
+              nfType = fileId.slice(0, -1);
+            }
 
             // 添加 schema_version 和 _id 字段到 configData，避免死循环
             const jsonData = {
               schema_version: '1.0',
               _id: fileId, // 使用文件名作为 _id
+              _name: nfName, // 配置显示第几个NF
+              _nf: nfType, // NF的类型
               ...configData,
             };
 

@@ -42,7 +42,7 @@ class Document extends Component {
     formData
   }
  /* 
-  componentWillMount() {
+ componentWillMount() {
     const { account, dispatch } = this.props
 
     if (account.needsFetch) {

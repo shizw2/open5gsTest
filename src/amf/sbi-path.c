@@ -66,6 +66,8 @@ int amf_sbi_open(void)
             OpenAPI_nf_type_SMF, OGS_SBI_SERVICE_NAME_NSMF_PDUSESSION);
     ogs_sbi_subscription_spec_add(
             OpenAPI_nf_type_NSSF, OGS_SBI_SERVICE_NAME_NNSSF_NSSELECTION);
+    ogs_sbi_subscription_spec_add(
+            OpenAPI_nf_type_5G_EIR, OGS_SBI_SERVICE_NAME_N5G_EIR_EIC);
 
     if (is_amf_icps()){
         if (ogs_sbi_server_start_all(ogs_sbi_server_handler) != OGS_OK)

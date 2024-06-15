@@ -27,6 +27,7 @@
 #if HAVE_STDARG_H
 #include <stdarg.h>
 #endif
+#include <regex.h>
 
 #include "ogs-core.h"
 
@@ -376,6 +377,30 @@ int ogs_log_config_domain(const char *domain, const char *level)
 
     return OGS_OK;
 }
+void replacePattern(char* target, const char* pattern, const char* replacement) {
+    regex_t regex;
+    int reti;
+    regmatch_t pmatch[1];
+
+    // 编译正则表达式
+    reti = regcomp(&regex, pattern, REG_EXTENDED | REG_ICASE);
+    if (reti) {        
+        return;
+    }
+
+    while ((reti = regexec(&regex, target, 1, pmatch, 0)) == 0) {
+        // 获取匹配项的起始位置和长度
+        int start = pmatch[0].rm_so;
+        int len = pmatch[0].rm_eo - pmatch[0].rm_so;
+
+        // 替换匹配项
+        memmove(target + start + strlen(replacement), target + start + len, strlen(target + start + len) + 1);
+        memcpy(target + start, replacement, strlen(replacement));
+    }
+
+    // 释放正则表达式资源
+    regfree(&regex);
+}
 
 void ogs_log_vprintf(ogs_log_level_e level, int id,
     ogs_err_t err, const char *file, int line, const char *func,
@@ -426,6 +451,9 @@ void ogs_log_vprintf(ogs_log_level_e level, int id,
             if (log->print.linefeed) 
                 p = log_linefeed(p, last);
         }
+        
+        replacePattern(logstr, "(OGS_|ogs_)", "5GC_");
+        replacePattern(logstr, "(ogs-)", "5GC-");
 
         log->writer(log, level, logstr);
         

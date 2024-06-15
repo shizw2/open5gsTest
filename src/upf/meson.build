@@ -68,6 +68,7 @@ libupf_sources = files('''
     pfcp-path.c
     n4-build.c
     n4-handler.c
+    telnetcmd.c
 '''.split())
 
 libtins_dep = dependency('libtins',
@@ -86,10 +87,6 @@ libarp_nd_dep = declare_dependency(
     dependencies : libtins_dep)
 
 #libnuma_dep = dependency('numa')
-#libnuma_dep = dependency('numa', required: true, path : '/usr/lib/x86_64-linux-gnu')
-#libnuma_dep = static_library('numa', '/usr/lib/x86_64-linux-gnu/libnuma.a')
-#libnuma_dep = shared_library('numa', '/usr/lib/x86_64-linux-gnu/libnuma.so')
-
 libdl_dep = meson.get_compiler('c').find_library('dl', dirs : ['/usr/lib64'])
 
 cmd = run_command('sh', '-c', 'echo $RTE_SDK')
@@ -107,6 +104,7 @@ libupf = static_library('upf',
         libtun_dep,
         liblicense_dep,
         libarp_nd_dep,
+        libtelnet_dep,
     ],
     install : false)
 
@@ -118,6 +116,7 @@ libupf_dep = declare_dependency(
         libtun_dep,
         liblicense_dep,
         libarp_nd_dep,
+        libtelnet_dep,
     ])
 
 upf_sources = files('''
@@ -167,6 +166,7 @@ libupf_dpdk = static_library('upf-dpdk',
         libtun_dep,
         libarp_nd_dep,
         libmetrics_dep,
+        libtelnet_dep,
     ],
     install : false)
 
@@ -183,6 +183,7 @@ libupf_dpdk_dep = declare_dependency(
         #libnuma_dep,
         libdl_dep,
         libmetrics_dep,
+        libtelnet_dep,
     ])
 
 executable('5gc-upf-dpdkd',

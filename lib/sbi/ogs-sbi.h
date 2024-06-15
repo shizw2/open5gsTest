@@ -81,6 +81,8 @@
 #include "model/modification_notification.h"
 #include "model/patch_item.h"
 #include "model/ue_authentication_ctx.h"
+#include "model/eir_response_data.h"
+
 
 #include "custom/links.h"
 

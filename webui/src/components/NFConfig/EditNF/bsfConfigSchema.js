@@ -16,6 +16,7 @@ export const bsfschema = {
     parameter: schemas.paraSchema,
     sbi: schemas.sbiSchema,
     logger: schemas.loggerSchema,
+    cli: schemas.cliSchema,
   },
 };
 
@@ -29,4 +30,5 @@ export const bsfuiSchema = {
     sbi: schemas.nf_sbi_UiSchema,
     metrics: schemas.metricsUiSchema,
   },
+  cli: schemas.cliUiSchema,
 };

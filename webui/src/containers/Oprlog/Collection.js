@@ -337,7 +337,10 @@ class Collection extends Component {
     this.setState(prevState => ({
       ...prevState,   
       data: prevState.originalData.filter(item => {      
-         return (item.opuser[0].includes(opu)&&item.optfm[0].includes(opfm)&&new Date(item.opttime[0])>=dateRangeStart&&item.optype[0].includes(opty));       
+         return (item.opuser[0].includes(opu)&&
+         item.optfm[0].includes(opfm)&&
+         new Date(item.opttime[0])>=dateRangeStart&&
+         item.optype[0].includes(opty));       
      })          
     }));
   }
@@ -473,16 +476,16 @@ class Collection extends Component {
     } = oprlogs
 
     const styles = {
-  underline: {
-    width: '100%',
-    height: '2px',    
-    backgroundColor: '#5C7CFA',
-  },
+      underline: {
+        width: '100%',
+        height: '2px',    
+        backgroundColor: '#5C7CFA',
+      },
       body: {
         backgroundColor: '#5C7CFA',
       },
-  topm: {
-    margin: '0px 30px 20px 10px',
+      topm: {
+        margin: '0px 30px 20px 10px',
       },
       select:{ 
         border: 'none', 
@@ -506,11 +509,11 @@ class Collection extends Component {
         fontSize: '1rem',
         color: '#5C7CFA',
         cursor: 'pointer'
-  }
-}
-return (  
-  <div>                   
-    <Tabalehead>
+      }
+    }
+  return (  
+    <div>                   
+     <Tabalehead>
           <div className="optorder">序号</div>
           <div className="opttime"onClick={this.handleTimeClick}>
           操作时间
@@ -556,7 +559,8 @@ return (
               <option value="修改">修改</option>
               <option value="删除">删除</option>
               <option value="登入">登入</option>
-              <option value="登出">登出</option>              
+              <option value="登出">登出</option>
+              <option value="警示">警示</option>               
             </select>
           ):(            
             <span style={styles.selectval}>{this.state.searchOprtype}</span>
@@ -575,6 +579,7 @@ return (
               <option value="用户管理">用户管理</option>
               <option value="签约模板">签约模板</option>
               <option value="账号管理">账号管理</option>
+              <option value="黑白名单">黑白名单</option>
             </select>
           ):(
             <span style={styles.selectval}>{this.state.fmSelectedOption}</span>
@@ -595,22 +600,22 @@ return (
             </Tooltip>          
           </div>               
     </Tabalehead>                       
-  <Layout.Content style={styles.topm}>              
-    <Oprlog.List         
-      oprlogs={data}          
-            onView={viewHandler.show}            
-    />
-    <Oprlog.View
-      visible={this.state.view.visible}
-      oprlog={data.filter(oprlog => 
-      oprlog._id === this.state.view._id)[0]}
-      disableOnClickOutside={this.state.view.disableOnClickOutside}
-      onHide={viewHandler.hide}/>
-    <Document 
-      { ...document }
-      onHide={documentHandler.hide} />
-    <Dimmed visible={document.dimmed} />           
-  </Layout.Content>
+    <Layout.Content style={styles.topm}>              
+      <Oprlog.List         
+        oprlogs={data}          
+              onView={viewHandler.show}            
+      />
+      <Oprlog.View
+        visible={this.state.view.visible}
+        oprlog={data.filter(oprlog => 
+        oprlog._id === this.state.view._id)[0]}
+        disableOnClickOutside={this.state.view.disableOnClickOutside}
+        onHide={viewHandler.hide}/>
+      <Document 
+        { ...document }
+        onHide={documentHandler.hide} />
+      <Dimmed visible={document.dimmed} />           
+    </Layout.Content>
   </div>
 )
 }

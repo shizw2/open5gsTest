@@ -31,20 +31,23 @@ libudm_sources = files('''
     udm-sm.c
 
     init.c
+    telnetcmd.c
 '''.split())
 
 libudm = static_library('udm',
     sources : libudm_sources,
     dependencies : [libsbi_dep,
                     liblicense_dep,
-                    libmetrics_dep],
+                    libmetrics_dep,
+                    libtelnet_dep],
     install : false)
 
 libudm_dep = declare_dependency(
     link_with : libudm,
     dependencies : [libsbi_dep,
                     liblicense_dep,
-                    libmetrics_dep])
+                    libmetrics_dep,
+                    libtelnet_dep])
 
 udm_sources = files('''
     app.c

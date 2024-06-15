@@ -44,6 +44,8 @@ void gmm_state_initial_context_setup(ogs_fsm_t *s, amf_event_t *e);
 void gmm_state_registered(ogs_fsm_t *s, amf_event_t *e);
 void gmm_state_ue_context_will_remove(ogs_fsm_t *s, amf_event_t *e);
 void gmm_state_exception(ogs_fsm_t *s, amf_event_t *e);
+void gmm_state_imei_check(ogs_fsm_t *s, amf_event_t *e);
+
 
 bool is_amf_icps(void);
 bool is_amf_sps(void);

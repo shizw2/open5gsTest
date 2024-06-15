@@ -199,6 +199,8 @@ typedef struct ogs_app_context_s {
         } server, client;
     } sbi;
 
+    uint32_t        cli_port;      /* cli local port */
+    ogs_list_t      cli_list;      /* cli Server List */
 } ogs_app_context_t;
 
 int ogs_app_context_init(void);

@@ -215,8 +215,8 @@ upf:
         n3_default_gw6: 2000::1
         n6_addr: 192.168.6.10/24
         n6_default_gw: 192.168.6.1
-        n6_addr6: 2000::1/24       
-        n6_default_gw6: 2000::1
+        n6_addr6: 2001::10/48       
+        n6_default_gw6: 2001::1
 
 #
 #  <PFCP Client>>
@@ -267,3 +267,8 @@ max:
 #    message:
 #        duration: 3000
 time:
+
+# Configuration for CLI
+cli:
+  - addr: 127.0.0.7
+    port: 2300

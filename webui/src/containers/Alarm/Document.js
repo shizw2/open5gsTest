@@ -4,18 +4,20 @@ import { connect } from 'react-redux';
 import NProgress from 'nprogress';
 
 import { Alarm } from 'components';
-
+import properties from '../../../properties' // 导入配置文件
 const os = require('os')
 const ip = os.hostname()
 let vistport = 3002
-let html2=""
-let html1=""
-const url = new URL(`/port.json`, `http://${ip}:3000`);
+if(properties.grafanaport)vistport=properties.grafanaport
+console.log("properties.grafanaport",properties.grafanaport)
+let html2=`http://${ip}:${vistport}/d-solo/eea-9_sik/prometheus-alerts?orgId=1&refresh=5s&panelId=442&theme=light&kiosk`
+let html1=`http://${ip}:${vistport}/d-solo/QIA3UR57z/mynode?orgId=1&refresh=1m&theme=light&panelId=2&kiosk`  
+/*const url = new URL(`/port.json`, `http://${ip}:3000`);
 fetch(url)
   .then(response => response.json())
   .then(configData => {
     // 在这里使用获取到的配置端口数据
-    vistport=configData.grafanaport    
+    vistport=configData.grafanaport 
     console.log("vistport",vistport)   
     html2=`http://${ip}:${vistport}/d-solo/eea-9_sik/prometheus-alerts?orgId=1&refresh=5s&panelId=442&theme=light&kiosk`
     html1=`http://${ip}:${vistport}/d-solo/QIA3UR57z/mynode?orgId=1&refresh=1m&theme=light&panelId=2&kiosk`  
@@ -23,6 +25,7 @@ fetch(url)
   .catch(error => {
     console.error('Error fetching port.json:', error);
   });
+*/
 class Document extends Component {
   constructor(props) {
     super(props)

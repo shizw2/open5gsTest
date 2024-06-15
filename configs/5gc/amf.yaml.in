@@ -506,6 +506,7 @@ amf:
         full: 5G Core Network
         short: 5GC
     amf_name: 5gc-amf0
+    imeicheck：false
 
 #
 #  <SBI Client>>
@@ -716,3 +717,8 @@ usrsctp:
 time:
   t3512:
     value: 540     # 9 mintues * 60 = 540 seconds
+
+# Configuration for CLI
+cli:
+  - addr: 127.0.0.5
+    port: 2300

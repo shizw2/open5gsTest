@@ -31,6 +31,7 @@ libausf_sources = files('''
     ausf-sm.c
 
     init.c
+    telnetcmd.c
 '''.split())
 
 libausf = static_library('ausf',
@@ -38,7 +39,8 @@ libausf = static_library('ausf',
     dependencies : [libcrypt_dep,
                     libmetrics_dep,
                     liblicense_dep,
-                    libsbi_dep],
+                    libsbi_dep,
+                    libtelnet_dep],
     install : false)
 
 libausf_dep = declare_dependency(
@@ -46,7 +48,8 @@ libausf_dep = declare_dependency(
     dependencies : [libcrypt_dep,
         	        libmetrics_dep,
                     liblicense_dep,
-                    libsbi_dep])
+                    libsbi_dep,
+                    libtelnet_dep])
 
 ausf_sources = files('''
     app.c

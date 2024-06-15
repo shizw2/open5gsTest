@@ -7,7 +7,7 @@ Wants=systemd-networkd.service
 Type=simple
 
 User=@5g_user@
-Group=@5g_usere@
+Group=@5g_user@
 
 Restart=always
 ExecStart=@bindir@/@project_name@-upfd -c @sysconfdir@/@project_name@/upf.yaml

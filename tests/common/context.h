@@ -305,6 +305,7 @@ typedef struct test_ue_s {
 
     ogs_nas_5gs_mobile_identity_t mobile_identity;
     ogs_nas_mobile_identity_imeisv_t mobile_identity_imeisv;
+    ogs_nas_mobile_identity_imei_t mobile_identity_imei;
     bool mobile_identity_imeisv_presence;
     uint16_t mobile_identity_suci_length;
     ogs_nas_5gs_guti_t nas_5gs_guti;

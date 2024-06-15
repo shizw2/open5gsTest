@@ -258,10 +258,11 @@ ausf:
     metrics:
       - addr: 127.0.0.11
         port: 9099
-    info:
-        routing_indicator:
-        supi:
-           - range:
+#    info:
+#	   routing_indicator: 
+#	     - 1
+#      supi:
+#        - range: 46001-46002
 #
 #  <SBI Client>>
 #
@@ -446,3 +447,8 @@ max:
 #    message:
 #        duration: 3000
 time:
+
+# Configuration for CLI
+cli:
+  - addr: 127.0.0.11
+    port: 2300

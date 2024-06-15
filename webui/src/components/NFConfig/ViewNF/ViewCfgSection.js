@@ -167,7 +167,9 @@ export const TaiSection = ({ tais }) => (
               <div>- plmn_id:</div>
               <div className="twenty-spaces">mcc: {item.plmn_id.mcc.toString()}</div>
               <div className="twenty-spaces">mnc: {item.plmn_id.mnc.toString()}</div>
+              {item.tac && (
               <div>&nbsp;&nbsp;tac: [{item.tac.join(', ')}]</div>
+              )}
             </div>
           ))}
         </div>
@@ -212,8 +214,12 @@ export const SecuritySection = ({ security }) => (
       <div className="security-section">
         <div className="twenty-spaces">security:</div>
         <div className="forty-spaces">
+          {security.integrity_order && (
           <div>integrity_order : [{security.integrity_order.join(', ')}]</div>
+          )}
+          {security.ciphering_order && (
           <div>ciphering_order : [{security.ciphering_order.join(', ')}]</div>
+          )}
         </div>
       </div>
     )}
@@ -246,6 +252,24 @@ export const TimeSection = ({ time }) => (
             </div>
         )}
       </div>
+  </div>
+);
+
+export const CLISection = ({ cli }) => (
+  <div>
+    {cli && (
+      <div className="cli-section">
+        <div>cli:</div>
+        <div className="twenty-spaces">
+          {cli.map((item, index) => (
+            <div key={index}>
+              <div>- addr: {item.addr}</div>
+              <div>&nbsp;&nbsp;port: {item.port}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
   </div>
 );
 
@@ -477,6 +501,51 @@ export const SubnetSection = ({ subnet }) => {
   );
 };
 
+export const DPDKSection = ({ dpdk }) => (
+  <div>
+    {dpdk && (
+      <div className="dpdk-section">
+        <div className="twenty-spaces">dpdk:</div>
+        <div className="dpdk-body">
+          <div className="forty-spaces">
+            pfcp_lcore: {dpdk.pfcp_lcore}
+          </div>
+          <div className="forty-spaces">
+            dpt_lcore: {dpdk.dpt_lcore}
+          </div>
+          <div className="forty-spaces">
+            fwd_lcore: {dpdk.fwd_lcore}
+          </div>
+          <div className="forty-spaces">
+            n3_default_gw: {dpdk.n3_default_gw}
+          </div>
+          <div className="forty-spaces">
+            n3_mask_bits: {dpdk.n3_mask_bits}
+          </div>
+          <div className="forty-spaces">
+            n3_default_gw6: {dpdk.n3_default_gw6}
+          </div>
+          <div className="forty-spaces">
+            n3_mask6_bits: {dpdk.n3_mask6_bits}
+          </div>
+          <div className="forty-spaces">
+            n6_addr: {dpdk.n6_addr}
+          </div>
+          <div className="forty-spaces">
+            n6_default_gw: {dpdk.n6_default_gw}
+          </div>
+          <div className="forty-spaces">
+            n6_addr6: {dpdk.n6_addr6}
+          </div>
+          <div className="forty-spaces">
+            n6_default_gw6: {dpdk.n6_default_gw6}
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+);
+
 export const DnsSection = ({ dns }) => {
   return (
     <div>
@@ -587,7 +656,9 @@ export const SMFInfoSection = ({ info }) => {
                         <div className="twenty-spaces">mcc: {tai_item.plmn_id.mcc}</div>
                         <div className="twenty-spaces">mnc: {tai_item.plmn_id.mnc}</div>
                       </div>
+                      {tai_item.tac && (
                       <div className="twenty-spaces">&nbsp;&nbsp;tac: [{tai_item.tac.join(', ')}]</div>
+                      )}
                     </div>
                   ))}
                 </div>

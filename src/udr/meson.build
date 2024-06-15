@@ -26,22 +26,25 @@ libudr_sources = files('''
     udr-sm.c
 
     init.c
+    telnetcmd.c
 '''.split())
 
 libudr = static_library('udr',
     sources : libudr_sources,
     dependencies : [libdbi_dep,
     		    libmetrics_dep,
-		    liblicense_dep,
-                    libsbi_dep],
+    		    liblicense_dep,
+    		    libsbi_dep,
+    		    libtelnet_dep],
     install : false)
 
 libudr_dep = declare_dependency(
     link_with : libudr,
     dependencies : [libdbi_dep,
         	    libmetrics_dep,
-                liblicense_dep,
-                    libsbi_dep])
+                    liblicense_dep,
+                    libsbi_dep,
+                    libtelnet_dep])
 
 udr_sources = files('''
     app.c

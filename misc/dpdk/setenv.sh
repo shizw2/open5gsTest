@@ -1,4 +1,20 @@
 cd /home/5gc/misc/dpdk
+
+# 定义函数来加载指定目录下的igb_uio.ko模块  
+load_module() {
+    local version=$(uname -r | sed 's/-generic//')
+    local module="kernel/igb_uio_$version.ko"
+
+    echo "Loading igb_uio.ko from $module"
+    insmod "$module"
+    if [ $? -eq 0 ]; then
+        echo "igb_uio.ko loaded successfully."
+    else
+        echo "Failed to load igb_uio.ko from $dir."
+        # exit 1
+    fi
+} 
+
 if [ "$1" == "1" ]; then
   # 获取当前的 DPDK 驱动程序信息
   driver_info=$(./dpdk-devbind.py -s)
@@ -29,8 +45,7 @@ else
   # 加载 uio 和 igb 内核模块
   modprobe uio
   modprobe igb
-  insmod igb_uio.ko
-
+  load_module
   # 使用 dpdk-devbind.py 将网络设备绑定到 igb_uio
   ./dpdk-devbind.py --bind=igb_uio ens192
   ./dpdk-devbind.py --bind=igb_uio ens224

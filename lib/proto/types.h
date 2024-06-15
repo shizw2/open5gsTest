@@ -58,6 +58,7 @@ extern "C" {
 #define OGS_CHRGCHARS_LEN               2
 
 #define OGS_MSIN_LEN                    5
+#define OGS_MAX_IMEI_LEN                15
 
 #define OGS_BCD_TO_BUFFER_LEN(x)        (((x)+1)/2)
 #define OGS_MAX_IMSI_BCD_LEN            15

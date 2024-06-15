@@ -23,12 +23,14 @@
 #include "metrics.h"
 #include "license.h"
 #include "ogs-app-timer.h"
+#include "telnet.h"
 
 static ogs_thread_t *thread;
+static ogs_thread_t *cli_thread;
 static void amf_main(void *data);
 static void amf_sps_main(void *data);
 static int initialized = 0;
-
+void setCommands(void);
 int amf_initialize(void)
 {
     int rv;
@@ -78,7 +80,27 @@ int amf_initialize(void)
 
     initialized = 1;
 
+    //set_telnet_cmd_callback(telnet_proc_cmd);
+    setCommands();
+    cli_thread = ogs_thread_create(telnetMain, &ogs_app()->cli_list);
+    if (!cli_thread) return OGS_ERROR;
+    
     return OGS_OK;
+}
+
+void amf_sps_update_cli_port(void);
+void amf_sps_update_cli_port(void){
+    ogs_socknode_t *node = NULL;
+    ogs_sockaddr_t *addr = NULL;    
+    char buf[OGS_ADDRSTRLEN];
+    int port;
+    
+    ogs_list_for_each(&ogs_app()->cli_list, node) {
+        addr = node->addr;
+        port = OGS_PORT(addr);
+        addr->ogs_sin_port = htobe16(be16toh(addr->ogs_sin_port) + 1);
+        ogs_info("cli port change from %u to %u.\r\n", port,OGS_PORT(addr));
+    }    
 }
 
 int amf_sps_initialize()
@@ -122,8 +144,17 @@ int amf_sps_initialize()
     rv = udp_ini_open();
     if (rv != OGS_OK) return rv;
 
+    /*启动yaml配置检测定时器*/
+    if (rv != OGS_OK) return rv;
+    rv = ogs_yaml_check_init();
+
     thread = ogs_thread_create(amf_sps_main, NULL);
     if (!thread) return OGS_ERROR;
+    
+    setCommands();
+    amf_sps_update_cli_port();
+    cli_thread = ogs_thread_create(telnetMain, &ogs_app()->cli_list);
+    if (!cli_thread) return OGS_ERROR;
 
     initialized = 1;
 
@@ -156,7 +187,8 @@ void amf_terminate(void)
     if (!initialized) return;
 
     /* Daemon terminating */
-    event_termination();
+    event_termination();    
+    ogs_free(cli_thread);
     ogs_thread_destroy(thread);
     ogs_timer_delete(t_termination_holding);
 

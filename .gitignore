@@ -11,3 +11,4 @@ version/
 install*/
 omm/
 webui/.next
+*.si4project

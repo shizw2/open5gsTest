@@ -177,8 +177,8 @@ const schema = {
                     "index": {
                       "type": "number",
                       "title": "5QI/QCI*",
-                      "enum": [ 1, 2, 3, 4, 65, 66, 67, 75, 71, 72, 73, 74, 76, 5, 6, 7, 8, 9, 69, 70, 79, 80, 82, 83, 84, 85, 86 ],
-                      "default": 5,
+                      "enum": [ 5, 6, 7, 8, 9, 69, 70, 79, 80 ], //PDU Session default flow is non-GBR
+                      "default": 9,
                     },
                     "arp" : {
                       "type": "object",
@@ -715,8 +715,8 @@ class Edit extends Component {
   }
   */
   componentDidUpdate(prevProps) {
-    if (prevProps.oprlogs !== this.props.oprlogs) {
-      this.checkFirstPage(this.props.oprlogs);
+    if (prevProps.profiles !== this.props.profiles) {
+      this.checkFirstPage(this.props.profiles);
     }
   }
   getStateFromProps(props) {

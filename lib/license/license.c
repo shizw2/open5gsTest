@@ -13,6 +13,8 @@ static license_info_t g_license_info;
 static runtime_info_t g_runtime_info;
 
 int getProgramDirectory(char* programPath, size_t bufferSize);
+int getProgramName(char* programName);
+char g_program_name[20];
 
 #define PATH_MAX 100
 
@@ -47,11 +49,19 @@ char* convertSecondsToString(time_t timestamp) {
     return buffer[index]; 
 }
 
+char FILE_PATH_1[100];
+char FILE_PATH_2[100];
+char FILE_PATH_3[100];
+
 // 从三个文件中读取时间，并且最后选择最大的那个时间(防止被篡改)
-static void loadRunningTimeFromFile(void) {
-    char FILE_PATH_1[100] = "/var/run/running_time.dat";
-    char FILE_PATH_2[100] = "/var/log/5gc_time.dat";
-    char FILE_PATH_3[100] = "/var/lib/run_seconds.dat";
+static void loadRunningTimeFromFile(void) {  
+    if (strlen(g_program_name) == 0){  
+        getProgramName(g_program_name);
+       
+        snprintf(FILE_PATH_1, sizeof(FILE_PATH_1), "/var/run/running_time_%s.data", g_program_name);
+        snprintf(FILE_PATH_2, sizeof(FILE_PATH_2), "/var/log/5gc_time_%s.data", g_program_name);
+        snprintf(FILE_PATH_3, sizeof(FILE_PATH_3), "/var/lib/run_seconds_%s.data", g_program_name);
+    }
 
     runtime_info_t temp_runtime_info;
     time_t maxRunningTime = 0;
@@ -96,7 +106,7 @@ static void saveRunningTimeToFile(const char* filePath) {
         printf("无法打开文件进行写入。\n");
         exit(1);
     }
-     
+
     enc_runtime_info.licenseCreateTime = encrypt_long(g_runtime_info.licenseCreateTime);
     enc_runtime_info.totalRunningTime  = encrypt_long(g_runtime_info.totalRunningTime);
     fwrite(&enc_runtime_info, sizeof(runtime_info_t), 1, file);
@@ -105,9 +115,12 @@ static void saveRunningTimeToFile(const char* filePath) {
 
 
 static void saveRunningTimeToFiles(void){
-    char FILE_PATH_1[100] = "/var/run/running_time.dat";
-    char FILE_PATH_2[100] = "/var/log/5gc_time.dat";
-    char FILE_PATH_3[100] = "/var/lib/run_seconds.dat";
+    if (strlen(g_program_name) == 0){
+        getProgramName(g_program_name);
+        snprintf(FILE_PATH_1, sizeof(FILE_PATH_1), "/var/run/running_time_%s.data", g_program_name);
+        snprintf(FILE_PATH_2, sizeof(FILE_PATH_2), "/var/log/5gc_time_%s.data", g_program_name);
+        snprintf(FILE_PATH_3, sizeof(FILE_PATH_3), "/var/lib/run_seconds_%s.data", g_program_name);
+    }
     saveRunningTimeToFile(FILE_PATH_1);
     saveRunningTimeToFile(FILE_PATH_2);
     saveRunningTimeToFile(FILE_PATH_3);
@@ -166,6 +179,26 @@ int getProgramDirectory(char* programPath, size_t bufferSize) {
     }
 
     strncpy(programPath, path, bufferSize);
+
+    return 0;
+}
+
+int getProgramName(char* programName) {
+    // 获取当前程序的文件路径
+    char path[100];
+    if (readlink("/proc/self/exe", path, sizeof(path)) == -1) {
+        perror("readlink");
+        exit(EXIT_FAILURE);
+    }
+    
+    // 从文件路径中提取程序名称
+    char* name = strrchr(path, '/');
+    if (name != NULL) {
+        name++; // 移动到下一个字符，跳过斜杠
+    } else {
+        name = path; // 如果没有斜杠，则使用整个路径作为程序名称
+    }
+    strcpy(programName, name);
 
     return 0;
 }
@@ -235,7 +268,7 @@ int checkLicenseAfterRuntime(long runTime, int remainingDays)
     long currentTimestamp = (long)currentTime; // 转换为整数时间戳
     int remainingSeconds = remainingDays * 24 * 60 * 60; // 将剩余天数转换为剩余秒数
  
-    if ((g_license_info.licenseExpireTime >= currentTimestamp ) && g_license_info.licenseDuration >= g_runtime_info.totalRunningTime ) {
+    if ((g_license_info.licenseExpireTime > currentTimestamp ) && g_license_info.licenseDuration > g_runtime_info.totalRunningTime ) {
         if ((g_license_info.licenseExpireTime - currentTimestamp < remainingSeconds) ||
             (g_license_info.licenseDuration - g_runtime_info.totalRunningTime < remainingSeconds)) {
             saveRunningTimeToFiles();

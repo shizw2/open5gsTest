@@ -346,6 +346,33 @@ class Document extends Component {
         duplicates[key].forEach(index => 
           errors.slice[i].session[index].name.addError(`'${key}' is duplicated`));
       }
+
+      //如果是QCI FLow为non-GBR则GBR属性不可配置
+      if(formData.slice[i].session)
+      {
+        for(let j = 0; j < formData.slice[i].session.length; j++)
+        {
+          if (formData.slice[i].session[j].pcc_rule)
+          {
+            for(let k = 0; k < formData.slice[i].session[j].pcc_rule.length; k++)
+            {
+              let index = formData.slice[i].session[j].pcc_rule[k].qos.index;
+              const nonGBRQCIs = [5, 6, 7, 8, 9, 69, 70, 79, 80];
+              if( nonGBRQCIs.includes(index) )
+              {
+                if (formData.slice[i].session[j].pcc_rule[k].qos.gbr.downlink.value)
+                {
+                  errors.slice[i].session[j].pcc_rule[k].qos.gbr.downlink.value.addError(`non-GBR QCI`);
+                }
+                if (formData.slice[i].session[j].pcc_rule[k].qos.gbr.uplink.value)
+                {
+                  errors.slice[i].session[j].pcc_rule[k].qos.gbr.uplink.value.addError(`non-GBR QCI`);
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
     if (!formData.slice.some(slice => slice.default_indicator == true)) {

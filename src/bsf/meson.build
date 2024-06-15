@@ -27,6 +27,7 @@ libbsf_sources = files('''
     bsf-sm.c
 
     init.c
+    telnetcmd.c
 '''.split())
 
 libbsf = static_library('bsf',
@@ -34,7 +35,8 @@ libbsf = static_library('bsf',
     dependencies : [libcrypt_dep,
                     libmetrics_dep,
                     liblicense_dep,
-                    libsbi_dep],
+                    libsbi_dep,
+                    libtelnet_dep],
     install : false)
 
 libbsf_dep = declare_dependency(
@@ -42,7 +44,8 @@ libbsf_dep = declare_dependency(
     dependencies : [libcrypt_dep,
                     libmetrics_dep,
                     liblicense_dep,
-                    libsbi_dep])
+                    libsbi_dep,
+                    libtelnet_dep])
 
 bsf_sources = files('''
     app.c

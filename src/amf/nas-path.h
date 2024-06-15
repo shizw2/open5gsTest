@@ -46,7 +46,7 @@ int nas_5gs_send_de_registration_request(
         OpenAPI_deregistration_reason_e dereg_reason,
         ogs_nas_5gmm_cause_t gmm_cause);
 
-int nas_5gs_send_identity_request(amf_ue_t *amf_ue);
+int nas_5gs_send_identity_request(amf_ue_t *amf_ue,uint8_t id_type);
 
 int nas_5gs_send_authentication_request(amf_ue_t *amf_ue);
 int nas_5gs_send_authentication_reject(amf_ue_t *amf_ue);

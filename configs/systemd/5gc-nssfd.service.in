@@ -6,7 +6,7 @@ After=network-online.target
 Type=simple
 
 User=@5g_user@
-Group=@5g_usere@
+Group=@5g_user@
 
 Restart=always
 ExecStart=@bindir@/@project_name@-nssfd -c @sysconfdir@/@project_name@/nssf.yaml

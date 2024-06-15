@@ -284,10 +284,9 @@ pcf:
     metrics:
       - addr: 127.0.0.13
         port: 9090
-
-    info:
-        supi:
-           - range:
+#    info:
+#      supi:
+#        - range: 46001-46002
 #
 # scp:
 #
@@ -446,3 +445,8 @@ max:
 #    message:
 #        duration: 3000
 time:
+
+# Configuration for CLI
+cli:
+  - addr: 127.0.0.13
+    port: 2300

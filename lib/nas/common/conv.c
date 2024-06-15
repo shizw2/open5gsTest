@@ -53,6 +53,31 @@ void ogs_nas_imeisv_to_bcd(
 
     bcd[bcd_len] = 0;
 }
+void ogs_nas_imei_to_bcd(
+    ogs_nas_mobile_identity_5gs_imei_t *imei, uint8_t imei_len, char *bcd)
+{
+    int bcd_len;
+
+    bcd[0] = '0' + imei->digit1;
+    bcd[1] = '0' + imei->digit2;
+    bcd[2] = '0' + imei->digit3;
+    bcd[3] = '0' + imei->digit4;
+    bcd[4] = '0' + imei->digit5;
+    bcd[5] = '0' + imei->digit6;
+    bcd[6] = '0' + imei->digit7;
+    bcd[7] = '0' + imei->digit8;
+    bcd[8] = '0' + imei->digit9;
+    bcd[9] = '0' + imei->digit10;
+    bcd[10] = '0' + imei->digit11;
+    bcd[11] = '0' + imei->digit12;
+    bcd[12] = '0' + imei->digit13;
+    bcd[13] = '0' + imei->digit14;
+    bcd[14] = '0' + imei->digit15;
+
+    bcd_len = imei_len * 2 - 1;
+
+    bcd[bcd_len] = 0;
+}
 
 void *ogs_nas_imeisv_bcd_to_buffer(const char *in, uint8_t *out, int *out_len)
 {

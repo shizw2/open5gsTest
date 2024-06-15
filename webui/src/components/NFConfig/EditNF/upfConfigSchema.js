@@ -12,12 +12,14 @@ export const upfschema = {
         gtpu:schemas.gtpuSchema,
         emptyLine1:schemas.emptyLineSchema,
         subnet:schemas.subnetSchema,
+        dpdk: schemas.dpdkSchema,
         metrics: schemas.metricsSchema,
       },
     },
     //smf: schemas.smfSchema,
     parameter: schemas.paraSchema,
     logger: schemas.loggerSchema,
+    cli: schemas.cliSchema,
   },
 };
 
@@ -29,8 +31,10 @@ export const upfuiSchema = {
     pfcp:schemas.pfcpUiSchema,
     gtpu:schemas.gtpuUiSchema,
     emptyLine1:schemas.emptyLineUiSchema,
+    dpdk: schemas.dpdkUiSchema,
     metrics: schemas.metricsUiSchema,
     subnet:schemas.subnetUiSchema,
   },
+  cli: schemas.cliUiSchema,
   //smf: schemas.smfUiSchema,
 };

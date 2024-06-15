@@ -882,3 +882,8 @@ max:
 #    handover:
 #        duration: 500
 time:
+
+# Configuration for CLI
+cli:
+  - addr: 127.0.0.4
+    port: 2300

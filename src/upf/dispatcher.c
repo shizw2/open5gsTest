@@ -295,10 +295,10 @@ dpt_decode_icmp(struct rte_mbuf *m, struct packet *pkt,
         struct mbuf_table *free, struct rte_ipv4_hdr *ipv4_h)
 {
     struct rte_icmp_hdr *icmp_h = (struct rte_icmp_hdr *)((char *)ipv4_h + pkt->l3_len);
-    ogs_info("dpt_decode_icmp, ipv4_h->dst_addr %s, m->port :%d, icmp_type:%d.",ip2str(ipv4_h->dst_addr), m->port,icmp_h->icmp_type);
+    ogs_debug("dpt_decode_icmp, ipv4_h->dst_addr %s, m->port :%d, icmp_type:%d.",ip2str(ipv4_h->dst_addr), m->port,icmp_h->icmp_type);
     // TODO: Test for N6 ping UE, will be removed when NAT implemented.
     if (m->port && match_self_addr(ipv4_h->dst_addr, m->port) != OGS_OK) {
-        ogs_info("dpt_decode_icmp, is is an N6 pkt,ipv4_h->dst_addr %s",ip2str(ipv4_h->dst_addr));
+        ogs_debug("dpt_decode_icmp, is is an N6 pkt,ipv4_h->dst_addr %s",ip2str(ipv4_h->dst_addr));
         pkt->pkt_type = PKT_TYPE_IP_N6;
         return ntohl(ipv4_h->dst_addr) % dkuf.fwd_num;
     }
@@ -315,7 +315,7 @@ dpt_decode_icmp(struct rte_mbuf *m, struct packet *pkt,
         return -1;
     }
 
-    ogs_info("dpt_decode_icmp, receive icmp request,ipv4_h->src_addr %s,ipv4_h->dst_addr %s",ip2str(ipv4_h->src_addr),ip2str(ipv4_h->dst_addr));
+    ogs_debug("dpt_decode_icmp, receive icmp request,ipv4_h->src_addr %s,ipv4_h->dst_addr %s",ip2str(ipv4_h->src_addr),ip2str(ipv4_h->dst_addr));
     pkt->pkt_type = PKT_TYPE_PING;
     return ntohl(ipv4_h->src_addr) % dkuf.fwd_num;
 }

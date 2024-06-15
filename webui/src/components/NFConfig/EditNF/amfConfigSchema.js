@@ -33,6 +33,7 @@ export const amfschema = {
     },
     sbi: schemas.sbiSchema,
     logger: schemas.loggerSchema,
+    cli: schemas.cliSchema,
   },
 };
 
@@ -60,4 +61,5 @@ export const amfuiSchema = {
     t3512: schemas.time_t3512UiSchema,
     t3502: schemas.time_t3502UiSchema,
   },
+  cli: schemas.cliUiSchema,
 };

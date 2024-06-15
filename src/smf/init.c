@@ -24,9 +24,13 @@
 #include "sbi-path.h"
 #include "metrics.h"
 #include "ogs-app-timer.h"
+#include "telnet.h"
 
+void setCommands(void);
+static ogs_thread_t *cli_thread;
 static ogs_thread_t *thread;
 static void smf_main(void *data);
+
 
 static int initialized = 0;
 
@@ -90,7 +94,11 @@ int smf_initialize(void)
     
     thread = ogs_thread_create(smf_main, NULL);
     if (!thread) return OGS_ERROR;
-
+    
+    setCommands();
+    cli_thread = ogs_thread_create(telnetMain, &ogs_app()->cli_list);
+    if (!cli_thread) return OGS_ERROR;
+    
     initialized = 1;
 
     return OGS_OK;
@@ -125,7 +133,8 @@ void smf_terminate(void)
     event_termination();
     ogs_thread_destroy(thread);
     ogs_timer_delete(t_termination_holding);
-
+    ogs_free(cli_thread);
+    
     smf_gtp_close();
     smf_pfcp_close();
     smf_sbi_close();

@@ -43,6 +43,7 @@ libpcf_sources = files('''
     pcf-fd-path.c
 	
     init.c
+    telnetcmd.c
 '''.split())
 
 libpcf = static_library('pcf',
@@ -52,7 +53,8 @@ libpcf = static_library('pcf',
                     libsbi_dep,
                     libdiameter_rx_dep,
                     liblicense_dep,
-                    libdiameter_gx_dep],
+                    libdiameter_gx_dep,
+                    libtelnet_dep],
     install : false)
 
 libpcf_dep = declare_dependency(
@@ -62,7 +64,8 @@ libpcf_dep = declare_dependency(
                     libsbi_dep,
                     libdiameter_rx_dep,
                     liblicense_dep,
-                    libdiameter_gx_dep])
+                    libdiameter_gx_dep,
+                    libtelnet_dep])
 
 pcf_sources = files('''
     app.c

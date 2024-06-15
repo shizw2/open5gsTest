@@ -10,6 +10,7 @@ import {
   MetricsSection,
   SUPIRangeSection,
   DbUriSection,
+  CLISection
 } from './ViewCfgSection';
 
 export const ViewPCF= ({ nfconfig }) => {
@@ -33,8 +34,8 @@ export const ViewPCF= ({ nfconfig }) => {
           </div>
         )}
       </div>
-      <ParameterSection parameter={nfconfig.parameter} />
-
+      {parameter && <ParameterSection parameter={nfconfig.parameter} />}
+      {nfconfig && nfconfig.cli && <CLISection cli={nfconfig.cli} />}
       {/*
       <MaxSection max={max} />
       <TimeSection time={time} />

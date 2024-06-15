@@ -44,4 +44,10 @@ restify.serve(router, Ommlog, {
   version: ''
 });
 
+const Imeicheck = require('../models/imeicheck');
+restify.serve(router, Imeicheck, {
+  prefix: '',
+  version: '',
+  idProperty: 'imei'
+});
 module.exports = router;

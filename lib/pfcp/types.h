@@ -98,6 +98,8 @@ typedef uint32_t ogs_pfcp_precedence_t;
 #define OGS_PFCP_INTERFACE_LI_FUNCTION                      4
 #define OGS_PFCP_INTERFACE_UNKNOWN                          0xff
 typedef uint8_t  ogs_pfcp_interface_t;
+const char *ogs_pfcp_interface_get_name(ogs_pfcp_interface_t interface);
+
 
 /* 8.2.25 UP Function Features */
 

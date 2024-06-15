@@ -207,11 +207,62 @@ componentDidUpdate(prevProps) {
     NProgress.done(true);
 
     // const message = action === 'create' ? "New nfconfig created" : `${status.id} nfconfig updated`;
-    const message = action === 'create' ? "New nfconfig created" : `This nfconfig updated`;
+    //const message = action === 'create' ? "New nfconfig created" : `This nfconfig updated`;
 
+    let message;
+    let title = (
+      <h style={{ fontSize: "18", textAlign: 'center' }}>
+        配置变更
+      </h>
+    );
+
+    if (status.id ==='upf')
+    {      
+      //message = action === 'create' ? "New nfconfig created" : `This nfconfig updated`;
+      message = (
+        <p style={{ fontSize: "16", color: 'blue', textAlign: 'left' }}>
+          修改SBI、IPPool、PFCP、GTP、NRF、DPDK、Metrics配置，需重启5GC
+        </p>
+      );
+    }
+    else if (status.id ==='smf')
+    {      
+      //message = action === 'create' ? "New nfconfig created" : `This nfconfig updated`;
+      message = (
+        <p style={{ fontSize: "16", color: 'blue', textAlign: 'left' }}>
+          修改SBI、IPPool、PFCP、GTP、NRF、Metrics、Diameter配置，需重启5GC
+        </p>
+      );
+    }
+    else if (status.id ==='pcf')
+    {
+      message = (
+        <p style={{ fontSize: "16", color: 'blue', textAlign: 'left' }}>
+          修改SBI、NRF、Metrics、Diameter配置，需重启5GC
+        </p>
+      );
+    }
+    else if (status.id ==='amf')
+    {
+      message = (
+        <p style={{ fontSize: "16", color: 'blue', textAlign: 'left' }}>
+          修改SBI、NGAP、NRF、Metrics配置，需重启5GC
+        </p>
+      );
+    }
+    else
+    {
+      message = (
+        <p style={{ fontSize: "16", color: 'blue', textAlign: 'left' }}>
+          修改SBI、NRF、Metrics配置，需重启5GC
+        </p>
+      );
+    }
+    
     dispatch(Notification.success({
-      title: 'NFConfig',
-      message
+      title,
+      message,
+      autoDismiss: 5,
     }));
 
     dispatch(clearActionStatus(MODEL, action));
@@ -315,7 +366,7 @@ componentDidUpdate(prevProps) {
         }
 
         // 检查当前子网是否与其他子网有重叠
-        for (let j = 0; j < ippools.length; j++) {
+        for (let j = i+1; j < ippools.length; j++) {
           if (i === j) continue; // 跳过自身
 
           const otherIPPool = ippools[j];
@@ -369,6 +420,65 @@ componentDidUpdate(prevProps) {
         }
       }
     }
+    
+    if ( (formData.upf && formData.upf.pfcp && formData.upf.gtpu)
+         || (formData.smf && formData.smf.pfcp && formData.smf.gtpu && formData.smf['p-cscf']) )
+    {
+      let confNf;
+      let confUnits;
+
+      if (formData.upf && formData.upf.pfcp && formData.upf.gtpu)
+      {
+        confNf = 'upf';
+        confUnits =[
+          'pfcp',
+          'gtpu'
+        ];
+      }
+      else if (formData.smf && formData.smf.pfcp && formData.smf['gtpu'])
+      {
+        confNf = 'smf';
+        confUnits =[
+          'pfcp',
+          'gtpu',
+        ];
+      }
+
+      for (let k=0; k<confUnits.length; k++)
+      {
+
+        let confUnit = confUnits[k];
+
+        let addrs = formData[confNf][confUnit].map(item => {
+          return item.addr;
+        });
+
+        let duplicates = {};
+
+        for (let i = 0; i < addrs.length; i++) {
+          const addr1 = addrs[i];
+
+          for (let j = i+1; j < addrs.length; j++) {
+            const addr2 = addrs[j];
+            
+            if (addr1 === addr2)
+            {
+              // 存在重叠，记录重叠的 addr 值和索引
+              if (!duplicates[addr1]) {
+                duplicates[addr1] = [i];
+              }
+              duplicates[addr1].push(j);
+            }
+          }
+        }
+
+        for (let key in duplicates) {
+          duplicates[key].forEach(index => 
+            errors[confNf][confUnit][index].addr.addError(`${key} is duplicated`));
+        }
+      }
+    }
+
 
 /*
     if (formData.msisdn) {

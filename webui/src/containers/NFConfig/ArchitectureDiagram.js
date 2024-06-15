@@ -1,5 +1,5 @@
 import React from 'react';
-const selectedNFArray = ['nssf', 'udm', 'nrf', 'pcf', 'bsf', 'udr', 'ausf', 'amf', 'smf', 'upf'];
+const selectedNFArray = ['nssf', 'udm', 'nrf', 'pcf', 'bsf', 'udr', 'ausf', 'amf', 'smf', 'eir', 'upf'];
 class ArchitectureDiagram extends React.Component {
   constructor(props) {
     super(props);
@@ -54,7 +54,7 @@ class ArchitectureDiagram extends React.Component {
   render() {
     const { selectedNF, rectCoordinates } = this.state;
     // 网元数量
-    const numElements = 10;
+    const numElements = 11;
     
     const scale = 0.84;
     const w = 125 * scale;
@@ -74,7 +74,7 @@ class ArchitectureDiagram extends React.Component {
           {/* NF网元1 */}
           {Array.from({ length: numElements }, (_, index) => {
             let x, y;
-            if (index === 9) {
+            if (index === 10) {
               x = 770 * scale; // 特殊情况下的x坐标
               y = 560 * scale; // 特殊情况下的y坐标
             } else {
