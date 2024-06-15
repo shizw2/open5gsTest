@@ -347,7 +347,8 @@ int gtp_send_user_plane(
 
     struct lcore_conf *lconf = &dkuf.lconf[rte_lcore_id()];
     if (LIKELY(is_ipv4)) {
-        arp_node_t *arp = arp_find(lconf, ipv4_h->dst_addr, 0);
+        //arp_node_t *arp = arp_find(lconf, ipv4_h->dst_addr, 0);
+        arp_node_t *arp;
 
         //如果目的IP跟N3在同一网段,则直接查询目的IP的MAC,否则查询GW的MAC
         ogs_info("dstaddr:%s, n6addr:%s, gw:%s,mask:%d", ip2str(ipv4_h->dst_addr),ip2str(dkuf.n3_addr.ipv4),ip2str(dkuf.n6_addr.gw),dkuf.n6_addr.mask);

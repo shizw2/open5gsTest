@@ -28,10 +28,12 @@ int ogs_gtp2_send_user_plane(
     int rv;
 
     ogs_gtp2_fill_header(gtp_hdesc, ext_hdesc, pkbuf);
-
+#if 0
     ogs_trace("SEND GTP-U[%d] to Peer[%s] : TEID[0x%x]",
             gtp_hdesc->type, OGS_ADDR(&gnode->addr, buf), gtp_hdesc->teid);
-
+#endif
+    ogs_gtp_msendto(gnode, pkbuf);
+#if 0    
     rv = ogs_gtp_sendto(gnode, pkbuf);
     if (rv != OGS_OK) {
         if (ogs_socket_errno != OGS_EAGAIN) {
@@ -41,7 +43,7 @@ int ogs_gtp2_send_user_plane(
     }
 
     ogs_pkbuf_free(pkbuf);
-
+#endif
     return rv;
 }
 

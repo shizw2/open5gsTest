@@ -110,7 +110,8 @@ static void _gtpv1_tun_recv_common_cb(
     ogs_pfcp_far_t *far = NULL;
     ogs_pfcp_user_plane_report_t report;
     int i;
-
+    bool free_recvbuf = true;
+    
     recvbuf = ogs_tun_read(fd, packet_pool);
     if (!recvbuf) {
         ogs_warn("ogs_tun_read() failed");
@@ -215,7 +216,7 @@ static void _gtpv1_tun_recv_common_cb(
 
     ogs_assert(true == ogs_pfcp_up_handle_pdr(
                 pdr, OGS_GTPU_MSGTYPE_GPDU, recvbuf, &report));
-
+    free_recvbuf = false;
     /*
      * Issue #2210, Discussion #2208, #2209
      *
@@ -225,7 +226,7 @@ static void _gtpv1_tun_recv_common_cb(
      */
 
 //暂时放开测试性能展示
-    upf_metrics_inst_global_inc(UPF_METR_GLOB_CTR_GTP_OUTDATAPKTN3UPF);
+    //upf_metrics_inst_global_inc(UPF_METR_GLOB_CTR_GTP_OUTDATAPKTN3UPF);
 #if 0
 
     upf_metrics_inst_by_qfi_add(pdr->qer->qfi,
@@ -244,9 +245,10 @@ static void _gtpv1_tun_recv_common_cb(
         ogs_assert(OGS_OK ==
             upf_pfcp_send_session_report_request(sess, &report));
     }
-
+    
 cleanup:
-    ogs_pkbuf_free(recvbuf);
+    if (free_recvbuf)
+        ogs_pkbuf_free(recvbuf);
 }
 
 static void _gtpv1_tun_recv_cb(short when, ogs_socket_t fd, void *data)
@@ -422,7 +424,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
          */
 
 //暂时放开测试性能展示
-        upf_metrics_inst_global_inc(UPF_METR_GLOB_CTR_GTP_INDATAPKTN3UPF);
+        //upf_metrics_inst_global_inc(UPF_METR_GLOB_CTR_GTP_INDATAPKTN3UPF);
 
 #if 0
 

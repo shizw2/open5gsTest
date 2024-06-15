@@ -234,13 +234,15 @@ bool ogs_pfcp_up_handle_pdr(
     ogs_assert(far);
 
     memset(report, 0, sizeof(*report));
-
+    
+    sendbuf = recvbuf;
+#if 0
     sendbuf = ogs_pkbuf_copy(recvbuf);
     if (!sendbuf) {
         ogs_error("ogs_pkbuf_copy() failed");
         return false;
     }
-
+#endif
     buffering = false;
 
     if (!far->gnode) {
