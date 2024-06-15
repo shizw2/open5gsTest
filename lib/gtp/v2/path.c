@@ -32,9 +32,9 @@ int ogs_gtp2_send_user_plane(
     ogs_trace("SEND GTP-U[%d] to Peer[%s] : TEID[0x%x]",
             gtp_hdesc->type, OGS_ADDR(&gnode->addr, buf), gtp_hdesc->teid);
 #endif
-    ogs_gtp_msendto(gnode, pkbuf);
-#if 0    
-    rv = ogs_gtp_sendto(gnode, pkbuf);
+//    ogs_gtp_msendto(gnode, pkbuf);
+#if 1    
+    rv = ogs_gtp_send(gnode, pkbuf);
     if (rv != OGS_OK) {
         if (ogs_socket_errno != OGS_EAGAIN) {
             ogs_error("SEND GTP-U[%d] to Peer[%s] : TEID[0x%x]",
