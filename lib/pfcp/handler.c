@@ -217,9 +217,12 @@ bool ogs_pfcp_up_handle_association_setup_response(
     return true;
 }
 
+/*copy_recvbuf为false时, 少一次拷贝,recvbuf在本函数释放,外部不需要再释放
+  copy_recvbuf为true时,同之前处理一样
+  目前组播转发时为true,上下行转发时改为false*/
 bool ogs_pfcp_up_handle_pdr(
         ogs_pfcp_pdr_t *pdr, uint8_t type, ogs_pkbuf_t *recvbuf,
-        ogs_pfcp_user_plane_report_t *report)
+        ogs_pfcp_user_plane_report_t *report, bool copy_recvbuf)
 {
     ogs_pfcp_far_t *far = NULL;
     ogs_pkbuf_t *sendbuf = NULL;
@@ -235,14 +238,16 @@ bool ogs_pfcp_up_handle_pdr(
 
     memset(report, 0, sizeof(*report));
     
-    sendbuf = recvbuf;
-#if 0
-    sendbuf = ogs_pkbuf_copy(recvbuf);
-    if (!sendbuf) {
-        ogs_error("ogs_pkbuf_copy() failed");
-        return false;
+    if (copy_recvbuf){
+        sendbuf = ogs_pkbuf_copy(recvbuf);
+        if (!sendbuf) {
+            ogs_error("ogs_pkbuf_copy() failed");
+            return false;
+        }
+    }else{
+        sendbuf = recvbuf;
     }
-#endif
+
     buffering = false;
 
     if (!far->gnode) {
