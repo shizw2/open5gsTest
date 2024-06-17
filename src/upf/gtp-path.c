@@ -245,7 +245,7 @@ static void _gtpv1_tun_recv_common_cb(
         ogs_assert(OGS_OK ==
             upf_pfcp_send_session_report_request(sess, &report));
     }
-    
+
 cleanup:
     if (free_recvbuf)
         ogs_pkbuf_free(recvbuf);
