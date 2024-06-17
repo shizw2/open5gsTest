@@ -1313,7 +1313,8 @@ int gmm_handle_ul_nas_transport(ran_ue_t *ran_ue, amf_ue_t *amf_ue,
 
             if (!selected_slice || !sess->dnn) {
                 ogs_warn("[%s] DNN Not Supported OR "
-                            "Not Subscribed in the Slice,sess->dnn:%s", amf_ue->supi,sess->dnn);
+                            "Not Subscribed in the Slice", amf_ue->supi);
+                amf_sess_remove(sess);//释放应该更合理
                 r = nas_5gs_send_gmm_status(amf_ue,
                         OGS_5GMM_CAUSE_DNN_NOT_SUPPORTED_OR_NOT_SUBSCRIBED_IN_THE_SLICE);
                 ogs_expect(r == OGS_OK);

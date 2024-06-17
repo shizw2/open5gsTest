@@ -69,6 +69,8 @@ int amf_sbi_open(void)
             OpenAPI_nf_type_NULL, OGS_SBI_SERVICE_NAME_NSMF_PDUSESSION);
     ogs_sbi_subscription_spec_add(
             OpenAPI_nf_type_NULL, OGS_SBI_SERVICE_NAME_NNSSF_NSSELECTION);
+    ogs_sbi_subscription_spec_add(
+            OpenAPI_nf_type_NULL, OGS_SBI_SERVICE_NAME_N5G_EIR_EIC);
 
     if (is_amf_icps()){
         if (ogs_sbi_server_start_all(ogs_sbi_server_handler) != OGS_OK)
@@ -478,7 +480,7 @@ void amf_sbi_send_deactivate_all_ue_in_gnb(amf_gnb_t *gnb, int state)
         k=num[sps_id];
         ue[sps_id][k]=ran_ue->amf_ue_ngap_id;
         num[sps_id]=num[sps_id]+1;
-        ran_ue_remove(ran_ue);
+        ran_ue_remove(ran_ue);//虽然在SPS处理但是是NG链路原因引起，先在ICPS删除了ran_ue，所以用ran_ue_remove
         if(num[sps_id]>=MAX_UE_NUM_SINGLE_NG){
             amf_ue_ran_ue_icpstosps_sync(sps_id,num[sps_id],ue[sps_id],state);
             num[sps_id]=0;
@@ -686,7 +688,7 @@ void amf_sbi_send_deactivate_all_ue_in_gnb_sps(uint8_t *buf,size_t len, int stat
             ogs_info("old_xact_count=[%d],new_xact_count=[%d]",old_xact_count,new_xact_count);
 
             if (old_xact_count == new_xact_count) {
-                ran_ue_remove(ran_ue);
+                ran_ue_remove(ran_ue);//虽然在SPS处理但是是NG链路原因引起，先在ICPS删除了ran_ue，所以用ran_ue_remove
                 amf_ue_deassociate(amf_ue);
             }
         } else {
@@ -697,7 +699,7 @@ void amf_sbi_send_deactivate_all_ue_in_gnb_sps(uint8_t *buf,size_t len, int stat
 
             if (state == AMF_REMOVE_S1_CONTEXT_BY_LO_CONNREFUSED ||
                 state == AMF_REMOVE_S1_CONTEXT_BY_RESET_ALL) {
-                ran_ue_remove(ran_ue);
+                ran_ue_remove(ran_ue);//虽然在SPS处理但是是NG链路原因引起，先在ICPS删除了ran_ue，所以用ran_ue_remove
             } else {
                 /* At this point, it does not support other action */
                 ogs_fatal("Invalid state [%d]", state);

@@ -261,7 +261,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
         ogs_assert(pdr);
         ogs_assert(true == ogs_pfcp_up_handle_pdr(
-                    pdr, header_desc.type, &header_desc, pkbuf, &report));
+                    pdr, header_desc.type, &header_desc, pkbuf, &report, true));
 
         if (report.type.downlink_data_report) {
             ogs_assert(pdr->sess);

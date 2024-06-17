@@ -110,7 +110,8 @@ static void _gtpv1_tun_recv_common_cb(
     ogs_pfcp_far_t *far = NULL;
     ogs_pfcp_user_plane_report_t report;
     int i;
-
+    bool free_recvbuf = true;
+    
     recvbuf = ogs_tun_read(fd, packet_pool);
     if (!recvbuf) {
         ogs_warn("ogs_tun_read() failed");
@@ -214,8 +215,8 @@ static void _gtpv1_tun_recv_common_cb(
         upf_sess_urr_acc_add(sess, pdr->urr[i], recvbuf->len, false);
 
     ogs_assert(true == ogs_pfcp_up_handle_pdr(
-                pdr, OGS_GTPU_MSGTYPE_GPDU, NULL, recvbuf, &report));
-
+                pdr, OGS_GTPU_MSGTYPE_GPDU, NULL, recvbuf, &report, false));
+    free_recvbuf = false;
     /*
      * Issue #2210, Discussion #2208, #2209
      *
@@ -225,7 +226,7 @@ static void _gtpv1_tun_recv_common_cb(
      */
 
 //暂时放开测试性能展示
-    upf_metrics_inst_global_inc(UPF_METR_GLOB_CTR_GTP_OUTDATAPKTN3UPF);
+    //upf_metrics_inst_global_inc(UPF_METR_GLOB_CTR_GTP_OUTDATAPKTN3UPF);
 #if 0
 
     upf_metrics_inst_by_qfi_add(pdr->qer->qfi,
@@ -246,7 +247,8 @@ static void _gtpv1_tun_recv_common_cb(
     }
 
 cleanup:
-    ogs_pkbuf_free(recvbuf);
+    if (free_recvbuf)
+        ogs_pkbuf_free(recvbuf);
 }
 
 static void _gtpv1_tun_recv_cb(short when, ogs_socket_t fd, void *data)
@@ -275,6 +277,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
     ogs_gtp2_header_t *gtp_h = NULL;
     ogs_gtp2_header_desc_t header_desc;
     ogs_pfcp_user_plane_report_t report;
+    bool free_recvbuf = true;
 
     ogs_assert(fd != INVALID_SOCKET);
     sock = data;
@@ -395,7 +398,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
          */
 
 //暂时放开测试性能展示
-        upf_metrics_inst_global_inc(UPF_METR_GLOB_CTR_GTP_INDATAPKTN3UPF);
+        //upf_metrics_inst_global_inc(UPF_METR_GLOB_CTR_GTP_INDATAPKTN3UPF);
 
 #if 0
 
@@ -663,7 +666,8 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
         } else if (far->dst_if == OGS_PFCP_INTERFACE_ACCESS) {
             ogs_assert(true == ogs_pfcp_up_handle_pdr(
-                        pdr, header_desc.type, &header_desc, pkbuf, &report));
+                        pdr, header_desc.type, &header_desc, pkbuf, &report, false));
+            free_recvbuf = false;
 
             if (report.type.downlink_data_report) {
                 ogs_error("Indirect Data Fowarding Buffered");
@@ -690,7 +694,8 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             }
 
             ogs_assert(true == ogs_pfcp_up_handle_pdr(
-                        pdr, header_desc.type, &header_desc, pkbuf, &report));
+                        pdr, header_desc.type, &header_desc, pkbuf, &report, false));
+            free_recvbuf = false;
 
             ogs_assert(report.type.downlink_data_report == 0);
 
@@ -889,7 +894,7 @@ static void upf_gtp_handle_multicast(ogs_pkbuf_t *recvbuf)
                             ogs_assert(true ==
                                 ogs_pfcp_up_handle_pdr(
                                     pdr, OGS_GTPU_MSGTYPE_GPDU,
-                                    NULL, recvbuf, &report));
+                                    NULL, recvbuf, &report, true));
                             break;
                         }
                     }

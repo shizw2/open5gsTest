@@ -1671,6 +1671,7 @@ static void gmm_status_test1_func(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
+    ogs_msleep(300);
 
     /********** Remove Subscriber in Database */
     ABTS_INT_EQUAL(tc, OGS_OK, test_db_remove_ue(test_ue));
@@ -3100,6 +3101,7 @@ static void identity_test1_func(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
+    ogs_msleep(300);
 
     /********** Remove Subscriber in Database */
     ABTS_INT_EQUAL(tc, OGS_OK, test_db_remove_ue(test_ue));
@@ -8257,6 +8259,7 @@ static void ue_context_test1_func(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
+    ogs_msleep(300);
 
     /********** Remove Subscriber in Database */
     ABTS_INT_EQUAL(tc, OGS_OK, test_db_remove_ue(test_ue));
@@ -8566,6 +8569,7 @@ static void ue_context_test2_func(abts_case *tc, void *data)
         ABTS_PTR_NOTNULL(tc, sendbuf);
         rv = testgnb_ngap_send(ngap, sendbuf);
         ABTS_INT_EQUAL(tc, OGS_OK, rv);
+        ogs_msleep(300);
 
 
     /********** Remove Subscriber in Database */

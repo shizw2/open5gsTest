@@ -1168,6 +1168,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
     case AMF_EVENT_INTERNEL_MESSAGE:
 		pkbuf = e->pkbuf;
 		amf_internel_msg_header_t *pmsg = (amf_internel_msg_header_t *)pkbuf->data;
+        bool ngapmsgflag=0;
 		if (is_amf_icps())
 		{
             switch (pmsg->msg_type)
@@ -1195,6 +1196,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 				    rv=icps_handle_rev_ini_ngap(pmsg,pkbuf);
 				    if(rv==OGS_OK)
 				   	 ogs_info(" ICPS rev INTERNEL_MSG_NGAP,ICPS Send TO Ngap OK! ");
+                    ngapmsgflag=1;
                     break;
                 }
                 case  INTERNEL_MSG_SBI:
@@ -1239,7 +1241,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             }			
 		}
 
-        if (is_amf_icps()&& (pmsg->msg_type == INTERNEL_MSG_NGAP||pmsg->msg_type == 0)){
+        //if (is_amf_icps()&& (pmsg->msg_type == INTERNEL_MSG_NGAP||pmsg->msg_type == 0)){
+        if (is_amf_icps()&& (ngapmsgflag==1)){
             //NGAP的在sctp发送后自行释放,这里不需要再次释放
         }else{
             ogs_pkbuf_free(pkbuf);

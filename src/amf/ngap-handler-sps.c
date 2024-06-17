@@ -482,8 +482,7 @@ void ngap_handle_initial_context_setup_response_sps(
         }
     }
 
-
-
+    ran_ue->initial_context_setup_response_received = true;
     amf_ue = ran_ue->amf_ue;
     if (!amf_ue) {
         ogs_error("Cannot find AMF-UE Context [%lld]",
@@ -831,7 +830,7 @@ void ngap_handle_pdu_session_resource_setup_response_sps(ran_ue_t * ran_ue,ogs_n
 			break;
 		}
 	}
-       ran_ue->initial_context_setup_response_received = true;
+
     	amf_ue = ran_ue->amf_ue;
     	if (!amf_ue) {
     		ogs_error("Cannot find AMF-UE Context [%lld]",
