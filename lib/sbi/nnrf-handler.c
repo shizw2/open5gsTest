@@ -1114,20 +1114,20 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
 
     ogs_sbi_message_t message;
     ogs_sbi_header_t header;
-    bool isICPS = false;
+    bool isSPS = false;
 
     ogs_assert(recvmsg);
     
-    isICPS = recvmsg->udp_h.isICPS;
+    isSPS = recvmsg->udp_h.isSPS;
     
-    if (isICPS){
+    if (!isSPS){
         ogs_assert(stream);   
     }
 
     NotificationData = recvmsg->NotificationData;
     if (!NotificationData) {
         ogs_error("No NotificationData");
-        if (isICPS){
+        if (!isSPS){
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
                     recvmsg, "No NotificationData", NULL, NULL));
@@ -1137,7 +1137,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
 
     if (!NotificationData->nf_instance_uri) {
         ogs_error("No nfInstanceUri");
-        if (isICPS){
+        if (!isSPS){
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
                     recvmsg, "No nfInstanceUri", NULL, NULL));
@@ -1151,7 +1151,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
     rv = ogs_sbi_parse_header(&message, &header);
     if (rv != OGS_OK) {
         ogs_error("Cannot parse nfInstanceUri [%s]", header.uri);
-        if (isICPS){
+        if (!isSPS){
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
                     recvmsg, "Cannot parse nfInstanceUri", header.uri, NULL));
@@ -1161,7 +1161,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
 
     if (!message.h.resource.component[1]) {
         ogs_error("No nfInstanceId [%s]", header.uri);
-        if (isICPS){
+        if (!isSPS){
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
                     recvmsg, "Cannot parse nfInstanceUri", header.uri, NULL));
@@ -1173,7 +1173,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
     if (NF_INSTANCE_ID_IS_SELF(message.h.resource.component[1])) {
         ogs_warn("[%s] The notification is not allowed",
                 message.h.resource.component[1]);
-        if (isICPS){        
+        if (!isSPS){        
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_FORBIDDEN,
                     recvmsg, "The notification is not allowed",
@@ -1191,7 +1191,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
         NFProfile = NotificationData->nf_profile;
         if (!NFProfile) {
             ogs_error("No NFProfile");
-            if (isICPS){
+            if (!isSPS){
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
@@ -1203,7 +1203,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
 
         if (!NFProfile->nf_instance_id) {
             ogs_error("No NFProfile.NFInstanceId");
-            if (isICPS){
+            if (!isSPS){
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
@@ -1215,7 +1215,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
 
         if (!NFProfile->nf_type) {
             ogs_error("No NFProfile.NFType");
-            if (isICPS){
+            if (!isSPS){
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
@@ -1227,7 +1227,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
 
         if (!NFProfile->nf_status) {
             ogs_error("No NFProfile.NFStatus");
-            if (isICPS){
+            if (!isSPS){
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
@@ -1283,7 +1283,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
         NFProfile = NotificationData->nf_profile;
         if (!NFProfile) {
             ogs_error("No NFProfile");
-            if (isICPS){
+            if (!isSPS){
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
@@ -1295,7 +1295,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
 
         if (!NFProfile->nf_instance_id) {
             ogs_error("No NFProfile.NFInstanceId");
-            if (isICPS){
+            if (!isSPS){
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
@@ -1307,7 +1307,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
 
         if (!NFProfile->nf_type) {
             ogs_error("No NFProfile.NFType");
-            if (isICPS){
+            if (!isSPS){
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
@@ -1319,7 +1319,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
 
         if (!NFProfile->nf_status) {
             ogs_error("No NFProfile.NFStatus");
-            if (isICPS){
+            if (!isSPS){
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
@@ -1368,7 +1368,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
         } else {
             ogs_warn("[%s] (NRF-notify) Not found",
                     message.h.resource.component[1]);
-            if (isICPS){        
+            if (!isSPS){        
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_NOT_FOUND,
@@ -1383,7 +1383,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
                             NotificationData->event);
         ogs_error("Not supported event [%d:%s]",
                 NotificationData->event, eventstr ? eventstr : "Unknown");
-        if (isICPS){        
+        if (!isSPS){        
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
                     recvmsg, "Not supported event",
@@ -1393,13 +1393,10 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
         return false;
     }
 
-    if (isICPS){//sps不返回应答
+    if (!isSPS){//sps不返回应答
         response = ogs_sbi_build_response(recvmsg, OGS_SBI_HTTP_STATUS_NO_CONTENT);
         ogs_assert(response);
         ogs_assert(true == ogs_sbi_server_send_response(stream, response));
-        ogs_info("test:send response.");
-    }else{
-        ogs_info("test:no send response.");
     }
 
     ogs_sbi_header_free(&header);
