@@ -247,8 +247,9 @@ static void _gtpv1_tun_recv_common_cb(
     }
 
 cleanup:
-    if (free_recvbuf)
+    if (free_recvbuf){
         ogs_pkbuf_free(recvbuf);
+    }
 }
 
 static void _gtpv1_tun_recv_cb(short when, ogs_socket_t fd, void *data)
@@ -709,7 +710,9 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
     }
 
 cleanup:
-    ogs_pkbuf_free(pkbuf);
+    if (free_recvbuf){
+        ogs_pkbuf_free(pkbuf);
+    }
 }
 
 int upf_gtp_init(void)

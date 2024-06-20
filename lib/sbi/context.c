@@ -1279,7 +1279,6 @@ void ogs_sbi_nf_instance_set_type(
     ogs_assert(nf_type);
 
     nf_instance->nf_type = nf_type;
-    ogs_warn("test:ogs_sbi_nf_instance_set_type:%d[%s], id:%s.",nf_type,OpenAPI_nf_type_ToString(nf_type),nf_instance->id);
 }
 
 void ogs_sbi_nf_instance_set_status(
@@ -1697,7 +1696,7 @@ void ogs_sbi_nf_instances_find_by_routing_indicator(ogs_sbi_nf_instance_t *match
             //ogs_info("routing_indicator matched nf instances, nf_type:%s,id:%s.", OpenAPI_nf_type_ToString(matched_nf_instances[i]->nf_type),matched_nf_instances[i]->id);
         }
     } else {
-        ogs_error("matched_nf_instance, no valid instance.");
+        ogs_warn("matched_nf_instance, no valid instance.");
     }
 }
 
