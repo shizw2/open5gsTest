@@ -1269,7 +1269,7 @@ static int on_stream_close(nghttp2_session *session, int32_t stream_id,
                 session, NGHTTP2_FLAG_NONE, stream_id, error_code);
     }
 
-    ogs_debug("STREAM closed [%d]", stream_id);
+    ogs_info("STREAM closed [%d]", stream_id);
     stream_remove(stream);
     return 0;
 }

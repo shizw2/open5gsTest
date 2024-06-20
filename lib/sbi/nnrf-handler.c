@@ -1397,6 +1397,9 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
         response = ogs_sbi_build_response(recvmsg, OGS_SBI_HTTP_STATUS_NO_CONTENT);
         ogs_assert(response);
         ogs_assert(true == ogs_sbi_server_send_response(stream, response));
+        ogs_info("test:send response.");
+    }else{
+        ogs_info("test:no send response.");
     }
 
     ogs_sbi_header_free(&header);

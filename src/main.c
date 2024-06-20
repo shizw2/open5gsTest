@@ -78,7 +78,8 @@ static int check_signal(int signum)
     case SIGUSR2:
         talloc_report_full(__ogs_talloc_core, stderr);
         break;
-
+    case SIGCHLD:
+        break;
     default:
         ogs_error("Signal-NUM[%d] received (%s)",
                 signum, ogs_signal_description_get(signum));
