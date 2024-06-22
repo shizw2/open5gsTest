@@ -519,6 +519,9 @@ void ogs_log_printf(ogs_log_level_e level, int id,
 {
     va_list args;
 
+    if (ogs_core()->log.level < level){
+        return;
+    }
     va_start(args, format);
     ogs_log_vprintf(level, id,
             err, file, line, func, content_only, format, args);
