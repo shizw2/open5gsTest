@@ -25,6 +25,7 @@
 #include "license.h"
 #include "ogs-app-timer.h"
 #include "telnet.h"
+#include "nbr-sctp.h"
 #if defined(USE_DPDK)
 #include <unistd.h>
 #include <sched.h>
@@ -92,6 +93,8 @@ int upf_initialize(void)
     rv = upf_context_parse_config();
     if (rv != OGS_OK) return rv;
 
+    rv = upf_context_parse_nbr_config();
+    if (rv != OGS_OK) return rv;
 #if defined(USE_DPDK)
     rv = upf_dpdk_context_parse_config();
     if (rv != OGS_OK) return rv;
@@ -114,6 +117,9 @@ int upf_initialize(void)
 #else
     rv = upf_gtp_open();
 #endif
+    if (rv != OGS_OK) return rv;
+
+    rv = nbr_open();
     if (rv != OGS_OK) return rv;
 
     /*启动yaml配置检测定时器*/

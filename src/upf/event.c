@@ -101,10 +101,63 @@ const char *upf_event_get_name(upf_event_t *e)
         return "UPF_EVT_N4_TIMER";
     case UPF_EVT_N4_NO_HEARTBEAT:
         return "UPF_EVT_N4_NO_HEARTBEAT";
-
+    case UPF_EVT_NBR_LO_ACCEPT:
+        return "UPF_EVT_NBR_LO_ACCEPT";
+    case UPF_EVT_NBR_REMOTECLIENT_LO_SCTP_COMM_UP:
+        return "UPF_EVT_NBR_REMOTECLIENT_LO_SCTP_COMM_UP";
+    case UPF_EVT_NBR_REMOTECLIENT_LO_CONNREFUSED:
+        return "UPF_EVT_NBR_REMOTECLIENT_LO_CONNREFUSED";
+    case UPF_EVT_NBR_REMOTECLIENT_MESSAGE:
+        return "UPF_EVT_NBR_REMOTECLIENT_MESSAGE";
+    case UPF_EVT_NBR_REMOTESERVER_LO_SCTP_COMM_UP:
+        return "UPF_EVT_NBR_REMOTESERVER_LO_SCTP_COMM_UP";
+    case UPF_EVT_NBR_REMOTESERVER_LO_CONNREFUSED:
+        return "UPF_EVT_NBR_REMOTESERVER_LO_CONNREFUSED";
+    case UPF_EVT_NBR_REMOTESERVER_MESSAGE:
+        return "UPF_EVT_NBR_REMOTESERVER_MESSAGE";
+    case UPF_EVT_NBR_LO_CONNECTED:
+        return "UPF_EVT_NBR_LO_CONNECTED";
     default: 
        break;
     }
 
     return "UNKNOWN_EVENT";
 }
+
+
+void upf_sctp_event_push(upf_event_e id,
+        void *sock, ogs_sockaddr_t *addr, ogs_pkbuf_t *pkbuf,
+        uint16_t max_num_of_istreams, uint16_t max_num_of_ostreams)
+{
+    upf_event_t *e = NULL;
+    int rv;
+
+    ogs_assert(id);
+    ogs_assert(sock);
+    ogs_assert(addr);
+
+    e = upf_event_new(id);
+    ogs_assert(e);
+
+    e->pkbuf = pkbuf;
+
+    e->nbr.sock = sock;
+    e->nbr.addr = addr;
+    e->nbr.max_num_of_istreams = max_num_of_istreams;
+    e->nbr.max_num_of_ostreams = max_num_of_ostreams;
+
+    rv = ogs_queue_push(ogs_app()->queue, e);
+    if (rv != OGS_OK) {
+        ogs_warn("ogs_queue_push() failed:%d", (int)rv);
+        ogs_free(e->nbr.addr);
+        if (e->pkbuf)
+            ogs_pkbuf_free(e->pkbuf);
+        upf_event_free(e);
+    }
+#if HAVE_USRSCTP
+    else {
+        ogs_pollset_notify(ogs_app()->pollset);
+    }
+#endif
+}
+

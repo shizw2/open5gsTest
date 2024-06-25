@@ -40,6 +40,14 @@ typedef enum {
 
     UPF_EVT_TOP,
 
+    UPF_EVT_NBR_LO_ACCEPT,
+    UPF_EVT_NBR_REMOTECLIENT_LO_SCTP_COMM_UP,
+    UPF_EVT_NBR_REMOTECLIENT_LO_CONNREFUSED,
+    UPF_EVT_NBR_REMOTECLIENT_MESSAGE,
+    UPF_EVT_NBR_REMOTESERVER_LO_SCTP_COMM_UP,
+    UPF_EVT_NBR_REMOTESERVER_LO_CONNREFUSED,
+    UPF_EVT_NBR_REMOTESERVER_MESSAGE,
+    UPF_EVT_NBR_LO_CONNECTED,
 } upf_event_e;
 
 typedef struct upf_event_s {
@@ -51,6 +59,14 @@ typedef struct upf_event_s {
     ogs_pfcp_node_t *pfcp_node;
     ogs_pfcp_xact_t *pfcp_xact;
     ogs_pfcp_message_t *pfcp_message;
+    struct {
+        ogs_sock_t *sock;
+        ogs_sockaddr_t *addr;
+        uint16_t max_num_of_istreams;
+        uint16_t max_num_of_ostreams;
+
+        //ogs_ngap_message_t *message;
+    } nbr;
 } upf_event_t;
 
 OGS_STATIC_ASSERT(OGS_EVENT_SIZE >= sizeof(upf_event_t));
@@ -63,6 +79,9 @@ upf_event_t *upf_event_new(upf_event_e id);
 void upf_event_free(upf_event_t *e);
 
 const char *upf_event_get_name(upf_event_t *e);
+void upf_sctp_event_push(upf_event_e id,
+        void *sock, ogs_sockaddr_t *addr, ogs_pkbuf_t *pkbuf,
+        uint16_t max_num_of_istreams, uint16_t max_num_of_ostreams);
 
 #ifdef __cplusplus
 }

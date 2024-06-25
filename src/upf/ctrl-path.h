@@ -31,19 +31,25 @@ typedef enum {
     UPF_DPDK_SESS_ESTAB,
     UPF_DPDK_SESS_MOD,
     UPF_DPDK_SESS_DEL,
-    UPF_DPDK_SESS_REPORT
+    UPF_DPDK_SESS_REPORT,
+    UPF_DPDK_NBR_MSG
 } upf_dpdk_event_type_e;
 
 typedef struct upf_dpdk_event_report_s {
     uint8_t pdr_id;
     uint8_t qfi;
     uint32_t sess_index;
+    uint8_t type_volume;
+    uint64_t total_octets;
+    uint64_t ul_octets;
+    uint64_t dl_octets;
     void *paylod;
 } upf_dpdk_event_report_t;
 
 typedef enum {
     SESS_REPORT_NORMAL,
     SESS_REPORT_ERR_IND,
+    SESS_REPORT_VOLUME
 } upf_dpdk_event_report_subtype_t;
 
 typedef struct upf_dpdk_event_s {
@@ -69,4 +75,5 @@ int upf_dpdk_sess_report(int fwd_id, upf_dpdk_event_t *event);
 
 int build_report_event(void);
 
+int upf_dpdk_nbr_notify(upf_nbr_message_t *nbrmsg);
 #endif

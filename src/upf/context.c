@@ -20,6 +20,10 @@
 #include "context.h"
 #include "pfcp-path.h"
 #include "ogs-app-timer.h"
+#if defined(USE_DPDK)
+#include "upf-dpdk.h"
+#include "ctrl-path.h"
+#endif
 
 static upf_context_t self;
 
@@ -27,7 +31,8 @@ int __upf_log_domain;
 
 static OGS_POOL(upf_sess_pool, upf_sess_t);
 static OGS_POOL(upf_n4_seid_pool, ogs_pool_id_t);
-
+static OGS_POOL(upf_remoteclient_pool, upf_remoteclient_t);
+static OGS_POOL(upf_remoteserver_pool, upf_remoteserver_t);
 static int context_initialized = 0;
 
 static void upf_sess_urr_acc_remove_all(upf_sess_t *sess);
@@ -65,6 +70,18 @@ void upf_context_init(void)
     self.ipv6_hash = ogs_hash_make();
     ogs_assert(self.ipv6_hash);
 
+    ogs_list_init(&self.nbrlocalserver_list);
+    ogs_list_init(&self.nbrremoteserver_list);
+
+    ogs_list_init(&self.remoteclient_list);
+    self.remoteclient_addr_hash = ogs_hash_make();
+    ogs_assert(self.remoteclient_addr_hash);
+    ogs_pool_init(&upf_remoteclient_pool, 10);
+
+    ogs_list_init(&self.remoteserver_list);
+    self.remoteserver_addr_hash = ogs_hash_make();
+    ogs_assert(self.remoteserver_addr_hash);
+    ogs_pool_init(&upf_remoteserver_pool, 10);
     context_initialized = 1;
 }
 
@@ -421,6 +438,7 @@ uint8_t upf_sess_set_ue_ip(upf_sess_t *sess,
                 return cause_value;
             }
             ogs_hash_set(self.ipv4_hash, sess->ipv4->addr, OGS_IPV4_LEN, sess);
+	    upf_send_singlelocalueip_to_nbrclient((uint32_t)ue_ip->addr);
         } else {
             ogs_warn("Cannot support PDN-Type[%d], [IPv4:%d IPv6:%d DNN:%s]",
                 session_type, ue_ip->ipv4, ue_ip->ipv6,
@@ -902,3 +920,512 @@ int yaml_check_proc(void)
     
     return 0;
 }
+
+int upf_context_parse_nbr_config(void)
+{
+    int rv;
+    yaml_document_t *document = NULL;
+    ogs_yaml_iter_t root_iter;
+
+    document = ogs_app()->document;
+    ogs_assert(document);
+
+    rv = upf_context_prepare();
+    if (rv != OGS_OK) return rv;
+
+    ogs_yaml_iter_init(&root_iter, document);
+    while (ogs_yaml_iter_next(&root_iter)) {
+        const char *root_key = ogs_yaml_iter_key(&root_iter);
+        ogs_assert(root_key);
+        if (!strcmp(root_key, "upf")) {
+            ogs_yaml_iter_t upf_iter;
+            ogs_yaml_iter_recurse(&root_iter, &upf_iter);
+            while (ogs_yaml_iter_next(&upf_iter)) {
+                const char *upf_key = ogs_yaml_iter_key(&upf_iter);
+                ogs_assert(upf_key);
+                if (!strcmp(upf_key, "nbrlocalserver")) {
+                    ogs_yaml_iter_t nbrlocalserver_array, nbrlocalserver_iter;
+                    ogs_yaml_iter_recurse(&upf_iter, &nbrlocalserver_array);
+                    do {
+                        int family = AF_UNSPEC;
+                        int i, num = 0;
+                        const char *hostname[OGS_MAX_NUM_OF_HOSTNAME];
+                        uint16_t port = self.nbrlocalserver_port;
+                        const char *dev = NULL;
+                        ogs_sockaddr_t *addr = NULL;
+
+                        if (ogs_yaml_iter_type(&nbrlocalserver_array) ==
+                                YAML_MAPPING_NODE) {
+                            memcpy(&nbrlocalserver_iter, &nbrlocalserver_array,
+                                    sizeof(ogs_yaml_iter_t));
+                        } else if (ogs_yaml_iter_type(&nbrlocalserver_array) ==
+                            YAML_SEQUENCE_NODE) {
+                            if (!ogs_yaml_iter_next(&nbrlocalserver_array))
+                                break;
+                            ogs_yaml_iter_recurse(&nbrlocalserver_array, &nbrlocalserver_iter);
+                        } else if (ogs_yaml_iter_type(&nbrlocalserver_array) ==
+                            YAML_SCALAR_NODE) {
+                            break;
+                        } else
+                            ogs_assert_if_reached();
+
+                        while (ogs_yaml_iter_next(&nbrlocalserver_iter)) {
+                            const char *nbrlocalserver_key =
+                                ogs_yaml_iter_key(&nbrlocalserver_iter);
+                            ogs_assert(nbrlocalserver_key);
+                            if (!strcmp(nbrlocalserver_key, "family")) {
+                                const char *v = ogs_yaml_iter_value(&nbrlocalserver_iter);
+                                if (v) family = atoi(v);
+                                if (family != AF_UNSPEC &&
+                                    family != AF_INET && family != AF_INET6) {
+                                    ogs_warn("Ignore family(%d) : "
+                                        "AF_UNSPEC(%d), "
+                                        "AF_INET(%d), AF_INET6(%d) ",
+                                        family, AF_UNSPEC, AF_INET, AF_INET6);
+                                    family = AF_UNSPEC;
+                                }
+                            } else if (!strcmp(nbrlocalserver_key, "addr") ||
+                                    !strcmp(nbrlocalserver_key, "name")) {
+                                ogs_yaml_iter_t hostname_iter;
+                                ogs_yaml_iter_recurse(
+                                        &nbrlocalserver_iter, &hostname_iter);
+                                ogs_assert(ogs_yaml_iter_type(&hostname_iter) !=
+                                    YAML_MAPPING_NODE);
+
+                                do {
+                                    if (ogs_yaml_iter_type(&hostname_iter) ==
+                                            YAML_SEQUENCE_NODE) {
+                                        if (!ogs_yaml_iter_next(&hostname_iter))
+                                            break;
+                                    }
+
+                                    ogs_assert(num < OGS_MAX_NUM_OF_HOSTNAME);
+                                    hostname[num++] =
+                                        ogs_yaml_iter_value(&hostname_iter);
+                                } while (
+                                    ogs_yaml_iter_type(&hostname_iter) ==
+                                        YAML_SEQUENCE_NODE);
+                            } else if (!strcmp(nbrlocalserver_key, "port")) {
+                                const char *v = ogs_yaml_iter_value(&nbrlocalserver_iter);
+                                if (v) port = atoi(v);
+                            } else if (!strcmp(nbrlocalserver_key, "dev")) {
+                                dev = ogs_yaml_iter_value(&nbrlocalserver_iter);
+                            } else
+                                ogs_warn("unknown key `%s`", nbrlocalserver_key);
+                        }
+
+                        addr = NULL;
+                        for (i = 0; i < num; i++) {
+                            rv = ogs_addaddrinfo(&addr,
+                                    family, hostname[i], port, 0);
+                            ogs_assert(rv == OGS_OK);
+                        }
+
+                        if (addr) {
+                            ogs_socknode_add(
+                                        &self.nbrlocalserver_list, AF_INET, addr, NULL);
+
+                            ogs_freeaddrinfo(addr);
+                        }
+
+                    } while (ogs_yaml_iter_type(&nbrlocalserver_array) ==
+                            YAML_SEQUENCE_NODE);
+                }
+				else if(!strcmp(upf_key, "nbrremoteserver")){
+                    ogs_yaml_iter_t nbrremoteserver_array, nbrremoteserver_iter;
+                    ogs_yaml_iter_recurse(&upf_iter, &nbrremoteserver_array);
+                    do {
+                        int family = AF_UNSPEC;
+                        int i, num = 0;
+                        const char *hostname[OGS_MAX_NUM_OF_HOSTNAME];
+                        uint16_t port;
+                        const char *dev = NULL;
+                        ogs_sockaddr_t *addr = NULL;
+
+                        if (ogs_yaml_iter_type(&nbrremoteserver_array) ==
+                                YAML_MAPPING_NODE) {
+                            memcpy(&nbrremoteserver_iter, &nbrremoteserver_array,
+                                    sizeof(ogs_yaml_iter_t));
+                        } else if (ogs_yaml_iter_type(&nbrremoteserver_array) ==
+                            YAML_SEQUENCE_NODE) {
+                            if (!ogs_yaml_iter_next(&nbrremoteserver_array))
+                                break;
+                            ogs_yaml_iter_recurse(&nbrremoteserver_array, &nbrremoteserver_iter);
+                        } else if (ogs_yaml_iter_type(&nbrremoteserver_array) ==
+                            YAML_SCALAR_NODE) {
+                            break;
+                        } else
+                            ogs_assert_if_reached();
+
+                        while (ogs_yaml_iter_next(&nbrremoteserver_iter)) {
+                            const char *nbrremoteserver_key =
+                                ogs_yaml_iter_key(&nbrremoteserver_iter);
+                            ogs_assert(nbrremoteserver_key);
+                            if (!strcmp(nbrremoteserver_key, "family")) {
+                                const char *v = ogs_yaml_iter_value(&nbrremoteserver_iter);
+                                if (v) family = atoi(v);
+                                if (family != AF_UNSPEC &&
+                                    family != AF_INET && family != AF_INET6) {
+                                    ogs_warn("Ignore family(%d) : "
+                                        "AF_UNSPEC(%d), "
+                                        "AF_INET(%d), AF_INET6(%d) ",
+                                        family, AF_UNSPEC, AF_INET, AF_INET6);
+                                    family = AF_UNSPEC;
+                                }
+                            } else if (!strcmp(nbrremoteserver_key, "addr") ||
+                                    !strcmp(nbrremoteserver_key, "name")) {
+                                ogs_yaml_iter_t hostname_iter;
+                                ogs_yaml_iter_recurse(
+                                        &nbrremoteserver_iter, &hostname_iter);
+                                ogs_assert(ogs_yaml_iter_type(&hostname_iter) !=
+                                    YAML_MAPPING_NODE);
+
+                                do {
+                                    if (ogs_yaml_iter_type(&hostname_iter) ==
+                                            YAML_SEQUENCE_NODE) {
+                                        if (!ogs_yaml_iter_next(&hostname_iter))
+                                            break;
+                                    }
+
+                                    ogs_assert(num < OGS_MAX_NUM_OF_HOSTNAME);
+                                    hostname[num++] =
+                                        ogs_yaml_iter_value(&hostname_iter);
+                                } while (
+                                    ogs_yaml_iter_type(&hostname_iter) ==
+                                        YAML_SEQUENCE_NODE);
+                            } else if (!strcmp(nbrremoteserver_key, "port")) {
+                                const char *v = ogs_yaml_iter_value(&nbrremoteserver_iter);
+                                if (v) port = atoi(v);
+                            } else if (!strcmp(nbrremoteserver_key, "dev")) {
+                                dev = ogs_yaml_iter_value(&nbrremoteserver_iter);
+                            } else
+                                ogs_warn("unknown key `%s`", nbrremoteserver_key);
+                        }
+
+                        addr = NULL;
+                        for (i = 0; i < num; i++) {
+                            rv = ogs_addaddrinfo(&addr,
+                                    family, hostname[i], port, 0);
+                            ogs_assert(rv == OGS_OK);
+                        }
+
+                        if (addr) {
+                            ogs_socknode_add(
+                                        &self.nbrremoteserver_list, AF_INET, addr, NULL);
+
+                            ogs_freeaddrinfo(addr);
+                        }
+
+                    } while (ogs_yaml_iter_type(&nbrremoteserver_array) ==
+                            YAML_SEQUENCE_NODE);
+                }
+            }
+        }
+    }
+
+    //rv = upf_context_validation();
+    //if (rv != OGS_OK) return rv;
+
+    return OGS_OK;
+}
+
+upf_remoteclient_t *upf_remoteclient_find_by_addr(ogs_sockaddr_t *addr)
+{
+    ogs_assert(addr);
+    return (upf_remoteclient_t *)ogs_hash_get(self.remoteclient_addr_hash,
+            addr, sizeof(ogs_sockaddr_t));
+
+    return NULL;
+}
+
+
+upf_remoteclient_t *upf_remoteclient_add(ogs_sock_t *sock, ogs_sockaddr_t *addr)
+{
+    upf_remoteclient_t *remoteclient = NULL;
+    upf_event_t e;
+
+    ogs_assert(sock);
+    ogs_assert(addr);
+
+    ogs_pool_alloc(&upf_remoteclient_pool, &remoteclient);
+    ogs_assert(remoteclient);
+    memset(remoteclient, 0, sizeof *remoteclient);
+
+    remoteclient->sctp.sock = sock;
+    remoteclient->sctp.addr = addr;
+    remoteclient->sctp.type = SOCK_STREAM;
+    remoteclient->sctp.poll.read = ogs_pollset_add(ogs_app()->pollset,
+        OGS_POLLIN, sock->fd, nbr_recvremotclient_upcall, sock);
+    ogs_assert(remoteclient->sctp.poll.read);
+
+    remoteclient->max_num_of_ostreams = OGS_DEFAULT_SCTP_MAX_NUM_OF_OSTREAMS;
+    remoteclient->ostream_id = 0;
+    /*if (ogs_app()->sctp.max_num_of_ostreams) {
+        remoteclient->max_num_of_ostreams = ogs_app()->sctp.max_num_of_ostreams;
+        ogs_info("[NBR] max_num_of_ostreams : %d", remoteclient->max_num_of_ostreams);
+    }*/
+
+    ogs_hash_set(self.remoteclient_addr_hash,
+            remoteclient->sctp.addr, sizeof(ogs_sockaddr_t), remoteclient);
+
+
+    ogs_list_add(&self.remoteclient_list, remoteclient);
+
+    ogs_info("[Added] Number of remoteclient is now %d",
+            ogs_list_count(&self.remoteclient_list));
+
+    return remoteclient;
+}
+
+upf_remoteserver_t *upf_remoteserver_find_by_addr(ogs_sockaddr_t *addr)
+{
+    ogs_assert(addr);
+    return (upf_remoteserver_t *)ogs_hash_get(self.remoteserver_addr_hash,
+            addr, sizeof(ogs_sockaddr_t));
+
+    return NULL;
+}
+
+
+upf_remoteserver_t *upf_remoteserver_add(ogs_sock_t *sock, ogs_sockaddr_t *addr)
+{
+    upf_remoteserver_t *remoteserver = NULL;
+    upf_event_t e;
+
+    ogs_assert(sock);
+    ogs_assert(addr);
+
+    ogs_pool_alloc(&upf_remoteserver_pool, &remoteserver);
+    ogs_assert(remoteserver);
+    memset(remoteserver, 0, sizeof *remoteserver);
+
+    remoteserver->sctp.sock = sock;
+    remoteserver->sctp.addr = addr;
+	remoteserver->sctp.type = SOCK_SEQPACKET;
+    /*
+    remoteserver->sctp.poll.read = ogs_pollset_add(ogs_app()->pollset,
+        OGS_POLLIN, sock->fd, nbr_recvremotclient_upcall, sock);
+    ogs_assert(remoteserver->sctp.poll.read);
+    */
+    remoteserver->max_num_of_ostreams = OGS_DEFAULT_SCTP_MAX_NUM_OF_OSTREAMS;
+    remoteserver->ostream_id = 0;
+    /*if (ogs_app()->sctp.max_num_of_ostreams) {
+        remoteserver->max_num_of_ostreams = ogs_app()->sctp.max_num_of_ostreams;
+        ogs_info("[NBR] max_num_of_ostreams : %d", remoteserver->max_num_of_ostreams);
+    }*/
+
+    ogs_hash_set(self.remoteserver_addr_hash,
+            remoteserver->sctp.addr, sizeof(ogs_sockaddr_t), remoteserver);
+
+
+    ogs_list_add(&self.remoteserver_list, remoteserver);
+
+    ogs_info("[Added] Number of remoteserver is now %d",
+            ogs_list_count(&self.remoteserver_list));
+
+    return remoteserver;
+}
+
+void upf_remoteclient_remove(upf_remoteclient_t *remoteclient)
+{
+
+    ogs_assert(remoteclient);
+    ogs_assert(remoteclient->sctp.sock);
+
+    ogs_list_remove(&self.remoteclient_list, remoteclient);
+
+
+    ogs_hash_set(self.remoteclient_addr_hash,
+            remoteclient->sctp.addr, sizeof(ogs_sockaddr_t), NULL);
+
+    ogs_sctp_flush_and_destroy(&remoteclient->sctp);
+
+    ogs_pool_free(&upf_remoteclient_pool, remoteclient);
+
+    ogs_info("[Removed] Number of Remoteclient is now %d",
+            ogs_list_count(&self.remoteclient_list));
+}
+
+void upf_remoteserver_remove(upf_remoteserver_t *remoteserver)
+{
+    ogs_socknode_t *node = NULL;
+	
+    ogs_assert(remoteserver);
+    ogs_assert(remoteserver->sctp.sock);
+
+    ogs_list_remove(&self.remoteserver_list, remoteserver);
+
+
+    ogs_hash_set(self.remoteserver_addr_hash,
+            remoteserver->sctp.addr, sizeof(ogs_sockaddr_t), NULL);
+    ogs_list_for_each(&upf_self()->nbrremoteserver_list, node)
+    {
+        if(node->addr->sin.sin_addr.s_addr == remoteserver->sctp.addr->sin.sin_addr.s_addr)
+        {
+            if (node->poll)
+            {
+                ogs_info("[Removed] upf_remoteserver_remove remove node->poll");
+                ogs_pollset_remove(node->poll);
+            }
+			break;
+        }
+    }
+    //ogs_sctp_flush_and_destroy(&remoteserver->sctp);
+    if (remoteserver->sctp.sock){
+        ogs_sctp_destroy(remoteserver->sctp.sock);
+    }
+	if(remoteserver->sctp.addr){
+	    ogs_free(remoteserver->sctp.addr);
+	}
+    ogs_pool_free(&upf_remoteserver_pool, remoteserver);
+
+    ogs_info("[Removed] Number of Remoteserver is now %d",
+            ogs_list_count(&self.remoteserver_list));
+}
+
+void upf_remoteclient_remove_all(void)
+{
+    upf_remoteclient_t *remoteclient = NULL, *next_remoteclient = NULL;
+
+    ogs_list_for_each_safe(&self.remoteclient_list, next_remoteclient, remoteclient)
+        upf_remoteclient_remove(remoteclient);
+}
+
+void upf_remoteserver_remove_all(void)
+{
+    upf_remoteserver_t *remoteserver = NULL, *next_remoteserver = NULL;
+
+    ogs_list_for_each_safe(&self.remoteserver_list, next_remoteserver, remoteserver)
+        upf_remoteserver_remove(remoteserver);
+}
+
+void upf_send_singlelocalueip_to_nbrclient(uint32_t ueaddr)
+{
+    upf_nbr_message_t nbrmessage;
+    int sent;
+	uint16_t len;
+	upf_remoteclient_t *remoteclient = NULL;
+	
+	memset(&nbrmessage, 0, sizeof(upf_nbr_message_t));
+	#if defined(USE_DPDK)
+	nbrmessage.serveraddr = dkuf.n6_addr.ipv4;
+	#endif
+	nbrmessage.optype = 1;
+	nbrmessage.uenum = 1;
+	nbrmessage.addr[0] = ueaddr;
+    len = sizeof(upf_nbr_message_t) - (200 - nbrmessage.uenum)*4;
+
+    ogs_list_for_each(&upf_self()->remoteclient_list, remoteclient)
+    {
+		sent = ogs_sctp_sendmsg(remoteclient->sctp.sock, &nbrmessage, len,
+	            remoteclient->sctp.addr, 88, 0);
+	    if (sent < 0 || sent != len) {
+	        ogs_error("upf_send_singlelocalueip_to_nbrclient(len:%d,ssn:%d) error (%d:%s)",
+	                len, 0, errno, strerror(errno));
+	    }
+    }
+}
+
+void upf_handle_remoteserver_nbrmessage(upf_nbr_message_t *nbrmessage, uint16_t len)
+{
+    ogs_error("upf_handle_remoteserver_nbrmessage() start");
+	#if defined(USE_DPDK)
+	upf_dpdk_nbr_notify(nbrmessage);
+    #endif
+}
+
+upf_remoteserver_t *upf_remoteserver_find_by_remoteclient_ipaddr(uint32_t ipaddr)
+{    
+	upf_remoteserver_t *remoteserver = NULL, *next_remoteserver = NULL;
+
+    ogs_list_for_each_safe(&self.remoteserver_list, next_remoteserver, remoteserver)
+    {
+        if(remoteserver->sctp.addr->sin.sin_addr.s_addr == ipaddr)
+        {
+            return remoteserver;
+        }
+    }
+
+	return NULL;
+}
+
+
+void upf_send_singlelocalueip_to_nbrclient_del(uint32_t ueaddr)
+{
+    upf_nbr_message_t nbrmessage;
+    int sent;
+	uint16_t len;
+	upf_remoteclient_t *remoteclient = NULL;
+	
+	memset(&nbrmessage, 0, sizeof(upf_nbr_message_t));
+	#if defined(USE_DPDK)
+	nbrmessage.serveraddr = dkuf.n6_addr.ipv4;
+	#endif
+	nbrmessage.optype = 2;
+	nbrmessage.uenum = 1;
+	nbrmessage.addr[0] = ueaddr;
+    len = sizeof(upf_nbr_message_t) - (200 - nbrmessage.uenum)*4;
+
+    ogs_list_for_each(&upf_self()->remoteclient_list, remoteclient)
+    {
+		sent = ogs_sctp_sendmsg(remoteclient->sctp.sock, &nbrmessage, len,
+	            remoteclient->sctp.addr, 88, 0);
+	    if (sent < 0 || sent != len) {
+	        ogs_error("upf_send_singlelocalueip_to_nbrclient_del(len:%d,ssn:%d) error (%d:%s)",
+	                len, 0, errno, strerror(errno));
+	    }
+    }
+}
+
+void upf_handle_remoteserver_lost(uint32_t nbrserveraddr)
+{
+    upf_nbr_message_t nbrmsg;
+
+	memset(&nbrmsg, 0, sizeof(upf_nbr_message_t));
+
+	nbrmsg.serveraddr = nbrserveraddr;
+	nbrmsg.optype = 3;
+	nbrmsg.uenum = 0;
+    ogs_error("upf_handle_remoteserver_lost() nbrmsg.serveraddr 0x%x, nbrmsg.optype %d", nbrmsg.serveraddr, nbrmsg.optype);
+	#if defined(USE_DPDK)
+	upf_dpdk_nbr_notify(&nbrmsg);
+    #endif
+}
+
+
+void upf_send_alllocalueip_to_newnbrclient(upf_remoteclient_t *remoteclient)
+{
+    upf_nbr_message_t nbrmessage;
+    int sent;
+	uint16_t len;
+	upf_sess_t *sess = NULL, *next = NULL;;
+
+	memset(&nbrmessage, 0, sizeof(upf_nbr_message_t));
+	#if defined(USE_DPDK)
+	nbrmessage.serveraddr = dkuf.n6_addr.ipv4;
+	#endif
+	nbrmessage.optype = 1;
+    ogs_list_for_each_safe(&self.sess_list, next, sess)
+	{
+	    if(nbrmessage.uenum < 200)
+	    {
+	        if(sess && sess->ipv4)
+	        {
+	            nbrmessage.addr[nbrmessage.uenum++] = sess->ipv4->addr[0];
+	        }
+	    }
+    }
+	ogs_info("upf_send_alllocalueip_to_newnbrclient uenum %d",nbrmessage.uenum);
+	if(nbrmessage.uenum)
+	{
+	    len = sizeof(upf_nbr_message_t) - (200 - nbrmessage.uenum)*4;
+
+		sent = ogs_sctp_sendmsg(remoteclient->sctp.sock, &nbrmessage, len,
+		            remoteclient->sctp.addr, 88, 0);
+	    if (sent < 0 || sent != len) {
+	        ogs_error("upf_send_singlelocalueip_to_nbrclient(len:%d,ssn:%d) error (%d:%s)",
+	                len, 0, errno, strerror(errno));
+	    }
+	}
+}
+

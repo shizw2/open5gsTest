@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 misc_db = '''
-    open5gs-dbctl
+    5gc-dbctl
 '''.split()
 
 foreach file : misc_db

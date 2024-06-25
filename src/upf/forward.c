@@ -19,6 +19,7 @@
 #include <rte_tcp.h>
 #include <rte_icmp.h>
 
+int ipv4_hash_remove_nbrservaddr(struct ipv4_hashtbl *h, uint32_t ip);
 
 int32_t handle_arp(struct lcore_conf *lconf, struct rte_mbuf *m);
 int32_t handle_arp(struct lcore_conf *lconf, struct rte_mbuf *m)
@@ -296,6 +297,17 @@ static int32_t handle_n6_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
         return -1;
     }
 
+    if(sess->bnbr)
+    {
+        //ogs_error("%s, destination ue %s is belong to nbr 0x%x\n", __func__, ip_printf(l3_head, 1), sess->nbraddr);
+        //Ŀ��ue������������ע��
+        if(send_packet_to_nbr(lconf, m, sess->nbraddr) < 0)
+        {
+            return -1;
+			
+        }
+		return 0;
+    }
     pdr = n6_pdr_find_by_local_sess(sess, l3_head);
     if (!pdr) {
         ogs_error("%s, unfound pdr by local session, ip %s\n", __func__, ip_printf(l3_head, 1));
@@ -535,6 +547,123 @@ static int upf_local_sess_del(struct lcore_conf *lconf, void *body)
     return 0;
 }
 
+
+int ipv4_hash_remove_nbrservaddr(struct ipv4_hashtbl *h, uint32_t ip)
+{
+    ipv4_node_t *prev, *next = NULL;
+    ipv4_node_t *cur = NULL;
+    uint32_t i;
+	upf_sess_t *sess = NULL;
+	//ogs_error("%s, serveraddr 0x%x\n", __func__, ip);
+	assert(h && h->htable);
+
+    for (i = 0; i < h->size; i++)
+	{
+        cur = h->htable[i];
+        while (cur) 
+		{
+
+			sess = (upf_sess_t *)cur->sess;
+			#if 0
+			if(sess)
+			{
+			    ogs_error("%s, sess->nbraddr 0x%x\n", __func__, sess->nbraddr);
+			}
+			#endif
+			if(sess && sess->nbraddr == ip)
+			{
+			    next = cur->next;
+	            next->prev = cur->prev;
+
+				if (cur->prev)
+				{
+			        prev = cur->prev;
+			        prev->next = cur->next;
+			    } else
+				{
+			        h->htable[ip & h->bitmask] = next;
+			    }
+				free(cur);
+				free_upf_dpdk_sess(sess);
+				h->num--;
+				cur = next;
+			}
+			else
+			{
+	            next = cur->next;
+	            cur = next;
+			}
+
+			
+        }
+    }
+    return 0;
+}
+
+
+static int upf_local_nbr_handle(struct lcore_conf *lconf, upf_nbr_message_t *nbrmessage)
+{
+    upf_sess_t *old = NULL;
+	upf_sess_t *new_sess = NULL;
+	upf_sess_t *sess = NULL;
+    uint16_t loop;
+	//ogs_error("%s, optype %d\n", __func__, nbrmessage->optype);
+	//ogs_error("%s, serveraddr 0x%x\n", __func__, nbrmessage->serveraddr);
+	//ogs_error("%s, uenum %d\n", __func__, nbrmessage->uenum);
+	//ogs_error("%s, coreid %d\n", __func__, lconf->lcore);
+	//����nbr ue
+	if(nbrmessage->optype == 1)
+	{
+		for(loop = 0; loop < nbrmessage->uenum; loop++)
+		{
+		    ogs_error("loop %d, addr 0x%x\n", loop, nbrmessage->addr[loop]);
+		    old = ipv4_sess_find(lconf->ipv4_hash, nbrmessage->addr[loop]);
+
+			if (old)
+			{
+		        ipv4_hash_remove(lconf->ipv4_hash, nbrmessage->addr[loop]);
+		        fwd_flush_buffered_packet(old);
+		        free_upf_dpdk_sess(old);
+		    }
+			new_sess = dpdk_malloc(sizeof(upf_sess_t));
+			if(!new_sess)
+			{
+			    ogs_error("dpdk_malloc failed\n");
+			    continue;
+			}
+			new_sess->bnbr = 1;
+			new_sess->nbraddr = nbrmessage->serveraddr;
+			ogs_error("upf_local_nbr_handle ipaddr 0x%x\n", nbrmessage->addr[loop]);
+			ipv4_hash_insert(lconf->ipv4_hash, nbrmessage->addr[loop], new_sess);
+		}
+	}
+    else if(nbrmessage->optype == 2)
+    {
+        //ɾ��ue
+        for(loop = 0; loop < nbrmessage->uenum; loop++)
+		{
+		    old = ipv4_sess_find(lconf->ipv4_hash, nbrmessage->addr[loop]);
+
+			if (old)
+			{
+			    if(old->nbraddr == nbrmessage->serveraddr)
+			    {
+			        ipv4_hash_remove(lconf->ipv4_hash, nbrmessage->addr[loop]);
+			        fwd_flush_buffered_packet(old);
+			        free_upf_dpdk_sess(old);
+			    }
+		    }
+		}
+    }
+	else if(nbrmessage->optype == 3)
+	{
+	    //remote nbr server lost,delete all nbrserver ue
+	    ipv4_hash_remove_nbrservaddr(lconf->ipv4_hash, nbrmessage->serveraddr);
+	}
+    return 0;
+}
+
+
 static int handle_event(struct lcore_conf *lconf, upf_dpdk_event_t *event)
 {
     int ret = 0;
@@ -550,6 +679,9 @@ static int handle_event(struct lcore_conf *lconf, upf_dpdk_event_t *event)
         case UPF_DPDK_SESS_DEL:
             ret = upf_local_sess_del(lconf, event->event_body);
             break;
+        case UPF_DPDK_NBR_MSG:
+            upf_local_nbr_handle(lconf, event->event_body);
+	    break;
         default:
             return -1;
     }

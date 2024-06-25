@@ -433,3 +433,54 @@ int upf_dpdk_sess_report(int fwd_id, upf_dpdk_event_t *event) {
     }
     return OGS_OK;
 }
+
+static struct rte_ring *get_p2f_nbr_ring(void){
+    int fwd_index = 0;
+    uint32_t ipv4;
+    struct dpdk_upf_s *context;
+    context = upf_dpdk_context();
+    // TODO: dispatch ipv6
+
+	fwd_index = 0;
+    return context->p2f_ring[fwd_index];
+}
+
+static int send_p2f_nbr_event(upf_dpdk_event_t *event)
+{
+    int ret = 0;
+    struct rte_ring *ring = NULL;
+
+    ring = get_p2f_nbr_ring();
+    ret = rte_ring_enqueue(ring, event);
+
+    if (ret != 0) {
+        ogs_error("Error enqueue upf to dpdk event");
+        dpdk_free(event->event_body);
+        dpdk_free(event);
+        return OGS_ERROR;
+    }
+    ogs_error("CP send event type=%d", event->event_type);
+    return OGS_OK;
+}
+int upf_dpdk_nbr_notify(upf_nbr_message_t *nbrmsg)
+{
+    ogs_error("upf_dpdk_nbr_notify() start");
+    upf_dpdk_event_t *event = dpdk_malloc(sizeof(upf_dpdk_event_t));
+    if (!event) {
+        ogs_error("Error allocate memory.");
+        return OGS_ERROR;
+    }
+    upf_nbr_message_t *nbrmsgnew = dpdk_malloc(sizeof(upf_nbr_message_t));
+	memcpy(nbrmsgnew, nbrmsg, sizeof(upf_nbr_message_t));
+	ogs_error("upf_dpdk_nbr_notify nbrmsgnew->serveraddr 0x%x, nbrmsgnew->optype %d", nbrmsgnew->serveraddr, nbrmsgnew->optype);
+    void *event_body = (void *)nbrmsgnew;
+    if (!event_body) {
+        ogs_error("Error copy upf nbrmsg.");
+        return OGS_ERROR;
+    }
+
+    event->event_type = UPF_DPDK_NBR_MSG;
+    event->event_body = event_body;
+
+    return send_p2f_nbr_event(event);
+}

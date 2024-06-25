@@ -53,6 +53,12 @@ void upf_state_operational(ogs_fsm_t *s, upf_event_t *e)
     ogs_pfcp_xact_t *xact = NULL;
     int license_state;
 
+    ogs_sock_t *sock = NULL;
+    ogs_sockaddr_t *addr = NULL;
+    upf_remoteclient_t *remoteclient = NULL;
+    upf_remoteserver_t *remoteserver = NULL;
+    char buf[OGS_ADDRSTRLEN];
+    uint16_t max_num_of_ostreams = 0;
     upf_sm_debug(e);
 
     ogs_assert(s);
@@ -140,6 +146,148 @@ void upf_state_operational(ogs_fsm_t *s, upf_event_t *e)
             ogs_error("Unknown timer[%s:%d]",
                     ogs_timer_get_name(e->timer_id), e->timer_id);
         }
+        break;
+    case UPF_EVT_NBR_LO_ACCEPT:
+        sock = e->nbr.sock;
+        ogs_assert(sock);
+        addr = e->nbr.addr;
+        ogs_assert(addr);
+
+        ogs_info("nbr remote client accepted[%s] in upf_sm module",
+            OGS_ADDR(addr, buf));
+
+        remoteclient = upf_remoteclient_find_by_addr(addr);
+        if (!remoteclient) {
+            remoteclient = upf_remoteclient_add(sock, addr);
+            ogs_assert(remoteclient);
+            //将在线ue通知给客户端
+            upf_send_alllocalueip_to_newnbrclient(remoteclient);
+        } else {
+            ogs_warn("remoteclient context duplicated with IP-address [%s]!!!",
+                    OGS_ADDR(addr, buf));
+            ogs_sock_destroy(sock);
+            ogs_free(addr);
+            ogs_warn("NBR Socket Closed");
+        }
+        remoteserver = upf_remoteserver_find_by_remoteclient_ipaddr(addr->sin.sin_addr.s_addr);
+        if(!remoteserver)
+        {
+            ogs_error("current node not connect to remote server 0x%x",
+                    addr->sin.sin_addr.s_addr);
+            nbr_open_client_by_ip(addr->sin.sin_addr.s_addr);
+        }
+        break;
+    case UPF_EVT_NBR_REMOTECLIENT_LO_SCTP_COMM_UP:
+        sock = e->nbr.sock;
+        ogs_assert(sock);
+        addr = e->nbr.addr;
+        ogs_assert(addr);
+
+        max_num_of_ostreams = e->nbr.max_num_of_ostreams;
+
+        remoteclient = upf_remoteclient_find_by_addr(addr);
+        if (!remoteclient) {
+            remoteclient = upf_remoteclient_add(sock, addr);
+            ogs_assert(remoteclient);
+        } else {
+            ogs_free(addr);
+        }
+
+        remoteclient->max_num_of_ostreams =
+                ogs_min(max_num_of_ostreams, remoteclient->max_num_of_ostreams);
+
+        ogs_debug("RemoteClient SCTP_COMM_UP[%s] Max Num of Outbound Streams[%d]", 
+            OGS_ADDR(remoteclient->sctp.addr, buf), remoteclient->max_num_of_ostreams);
+
+        break;
+
+    case UPF_EVT_NBR_REMOTECLIENT_LO_CONNREFUSED:
+        sock = e->nbr.sock;
+        ogs_assert(sock);
+        addr = e->nbr.addr;
+        ogs_assert(addr);
+
+        remoteclient = upf_remoteclient_find_by_addr(addr);
+        if (remoteclient) {
+            ogs_info("remoteclient[%s] connection refused!!!", OGS_ADDR(addr, buf));
+
+            upf_remoteclient_remove(remoteclient);
+        } else {
+            ogs_warn("RemoteClient[%s] connection refused, Already Removed!",
+                    OGS_ADDR(addr, buf));
+        }
+        ogs_free(addr);
+
+        break;
+    case UPF_EVT_NBR_LO_CONNECTED:
+        sock = e->nbr.sock;
+        ogs_assert(sock);
+        addr = e->nbr.addr;
+        ogs_assert(addr);
+
+        ogs_info("connected to nbr remote server [%s] in upf_sm module",
+            OGS_ADDR(addr, buf));
+
+        remoteserver = upf_remoteserver_find_by_addr(addr);
+        if (!remoteserver) {
+            remoteserver = upf_remoteserver_add(sock, addr);
+            ogs_assert(remoteserver);
+        } else {
+            ogs_warn("remoteserver context duplicated with IP-address [%s]!!!",
+                    OGS_ADDR(addr, buf));
+            ogs_sock_destroy(sock);
+            ogs_free(addr);
+            ogs_warn("NBR Socket Closed");
+        }
+        break;
+    case UPF_EVT_NBR_REMOTESERVER_LO_SCTP_COMM_UP:
+        sock = e->nbr.sock;
+        ogs_assert(sock);
+        addr = e->nbr.addr;
+        ogs_assert(addr);
+
+        max_num_of_ostreams = e->nbr.max_num_of_ostreams;
+
+        remoteserver = upf_remoteserver_find_by_addr(addr);
+        if (!remoteserver) {
+            remoteserver = upf_remoteserver_add(sock, addr);
+            ogs_assert(remoteserver);
+        } else {
+            ogs_free(addr);
+        }
+
+        remoteserver->max_num_of_ostreams =
+                ogs_min(max_num_of_ostreams, remoteserver->max_num_of_ostreams);
+
+        ogs_debug("RemoteServer SCTP_COMM_UP[%s] Max Num of Outbound Streams[%d]", 
+            OGS_ADDR(remoteserver->sctp.addr, buf), remoteserver->max_num_of_ostreams);
+
+        break;
+
+    case UPF_EVT_NBR_REMOTESERVER_LO_CONNREFUSED:
+        sock = e->nbr.sock;
+        ogs_assert(sock);
+        addr = e->nbr.addr;
+        ogs_assert(addr);
+
+        remoteserver = upf_remoteserver_find_by_addr(addr);
+        if (remoteserver) {
+            ogs_info("remoteserver[%s] connection refused!!!", OGS_ADDR(addr, buf));
+            upf_handle_remoteserver_lost(addr->sin.sin_addr.s_addr);
+            upf_remoteserver_remove(remoteserver);
+        } else {
+            ogs_warn("RemoteServer[%s] connection refused, Already Removed!",
+                    OGS_ADDR(addr, buf));
+        }
+        //upf_handle_remoteserver_lost(addr->sin.sin_addr.s_addr);
+        ogs_free(addr);
+
+        break;
+    case UPF_EVT_NBR_REMOTESERVER_MESSAGE:
+        ogs_assert(e);
+        recvbuf = e->pkbuf;
+        ogs_assert(recvbuf);
+        upf_handle_remoteserver_nbrmessage((upf_nbr_message_t *)recvbuf->data, recvbuf->len);
         break;
     default:
         ogs_error("No handler for event %s", upf_event_get_name(e));

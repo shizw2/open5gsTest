@@ -55,7 +55,8 @@ libupf_sources = files('''
     pfcp-path.h
     n4-build.h
     n4-handler.h
-
+    nbr-sctp.h
+    nbr-sctp.c
     rule-match.c
     init.c
     metrics.c
@@ -100,6 +101,7 @@ libupf = static_library('upf',
     sources : libupf_sources,
     dependencies : [
         libmetrics_dep,
+        libsctp_dep,
         libpfcp_dep,
         libtun_dep,
         liblicense_dep,
@@ -112,6 +114,7 @@ libupf_dep = declare_dependency(
     link_with : libupf,
     dependencies : [
         libmetrics_dep,
+        libsctp_dep,
         libpfcp_dep,
         libtun_dep,
         liblicense_dep,
@@ -162,6 +165,7 @@ libupf_dpdk = static_library('upf-dpdk',
         libdpdk_dep,
         libapp_dep,
         libgtp_dep,
+        libsctp_dep,
         libpfcp_dpdk_dep,
         libtun_dep,
         libarp_nd_dep,
@@ -177,6 +181,7 @@ libupf_dpdk_dep = declare_dependency(
         libdpdk_dep,
         libapp_dep,
         libgtp_dep,
+        libsctp_dep,
         libpfcp_dpdk_dep,
         libtun_dep,
         libarp_nd_dep,  

@@ -465,6 +465,10 @@ void upf_n4_handle_session_deletion_request(
 #endif
 
     upf_pfcp_send_session_deletion_response(xact, sess);
+    if(sess->ipv4)
+    {
+        upf_send_singlelocalueip_to_nbrclient_del(sess->ipv4->addr[0]);
+    }
 
     ogs_list_for_each(&sess->pfcp.qer_list, qer) {
         upf_metrics_inst_by_dnn_add(sess->apn_dnn,
