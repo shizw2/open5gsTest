@@ -1,3 +1,4 @@
+import { object } from "prop-types";
 
 let promptRestart = "修改本配置项需重启系统";
 
@@ -393,6 +394,205 @@ export const nrfNFSchema = {
   title:"NRF",
   properties: {
     sbi: {
+      type: "object",
+      title:"SBI",
+      properties: {
+        server:{
+          type: "array",
+          title:"Server",
+          "minItems": 1,
+          "maxItems": 4,
+          "messages": {
+            "minItems": "At least 1 Interface is required",
+            "maxItems": "4 Interfaces are supported"
+          },
+          items: {
+            type: "object",
+            properties: {
+              address: {
+                type: "string",
+                title: "IP Address",
+                anyOf: [
+                  { format: "ipv4" },
+                  { format: "ipv6" },
+                ],
+                messages: {
+                  "anyOf": "IPv4 or IPv6 allowed"
+                },
+                //format:"ipv4",
+                //description: "Please enter a valid IPv4/IPv6 Address",
+                required: true,
+                //default: "127.0.0.5"
+              },
+              port: {
+                type: "number",
+                title: "Port",
+                minimum: 1,
+                maximum: 65535,
+                required: true,
+                //default: 7777
+              }
+            }
+          }
+        },
+      }
+    },
+    metrics: {
+      type: "object",
+      title:"Metrics",
+      properties: {
+        server:{
+          type: "array",
+          title: "Server",
+          "minItems": 1,
+          "maxItems": 4,
+          "messages": {
+            "minItems": "At least 1 Interface is required",
+            "maxItems": "4 Interfaces are supported"
+          },
+          items: {
+            type: "object",
+            properties: {
+              address: {
+                type: "string",
+                title: "IP Address",
+                anyOf: [
+                  { format: "ipv4" },
+                  { format: "ipv6" }
+                ],
+                messages: {
+                  "anyOf": "IPv4 or IPv6 allowed"
+                },
+                default: "127.0.0.5"
+              },
+              port: {
+                type: "number",
+                title: "Port",
+                minimum: 1,
+                maximum: 65535,
+                default: 9090
+              }
+            }
+          }
+        }
+      }
+    },
+    serving: {
+      type: "array",
+      title: "Serving For Roaming",
+      minItems: 1,
+      maxItems: 8,
+      items: {
+        type: "object",
+        properties: {
+          plmn_id: {
+            type: "object",
+            title: "PLMN_ID",
+            properties: {
+              mcc: {
+                type: "string",
+                title: "MCC",
+                maxLength: 3,
+                //required: true,
+                pattern: "^\\d+$",
+                messages: {
+                  pattern: "Only digits are allowed"
+                }
+              },
+              mnc: {
+                type: "string",
+                title: "MNC",
+                maxLength: 3,
+                //required: true,
+                pattern: "^\\d+$",
+                messages: {
+                  pattern: "Only digits are allowed"
+                }
+              }
+            },
+            required: ["mcc", "mnc"]
+          },
+        },
+      },
+    },
+    relative_capacity:
+    {
+      type: "number",
+      title: "Relative Capacity",
+      minimum: 0,
+      maximum: 100,
+      required: true,
+    }
+  },
+  //required:["addr","port"],
+};
+
+export const nrfNFUiSchema = {
+  classNames: "col-xs-12",
+  metrics: {
+    classNames: "col-xs-6",
+    "ui:title": <CustomTitle18 title="Metrics" />,
+    "ui:description": <Customhelp14 title={promptRestart} />,
+    server:{
+      classNames: "col-xs-12",
+      "ui:title": <CustomTitle18 title="Server" />,
+        items: {
+          address: {
+            classNames: "col-xs-8",
+          },
+          port: {
+            classNames: "col-xs-4",
+          },
+      },
+    }
+  },
+  sbi: {
+    classNames: "col-xs-6",
+    "ui:title": <CustomTitle18 title="SBI Interface" />,
+    "ui:description": <Customhelp14 title={promptRestart} />,
+    server: {
+      classNames: "col-xs-12",
+      "ui:title": <CustomTitle18 title="Server" />,
+      items: {
+        address: {
+          classNames: "col-xs-8",
+          //"ui:help": "Enter a valid IPv4/IPv6 Address",
+          //"ui:placeholder": "Enter a valid IPv4/IPv6 Address",
+        },
+        port: {
+          classNames: "col-xs-4"
+        }
+      }
+    },
+  },
+  serving: {
+    classNames: "col-xs-6",
+    "ui:title": <CustomTitle18 title="Serving For Roaming" />,
+    items: {
+      plmn_id: {
+        classNames: "col-xs-12",
+        "ui:title": <CustomTitle18 title="PLMN_ID" />,
+        mcc: {
+          classNames: "col-xs-6"
+        },
+        mnc: {
+          classNames: "col-xs-6"
+        }
+      },
+    }
+  },
+  relative_capacity: 
+  {
+    classNames: "col-xs-6",
+    "ui:title": <CustomTitle18 title="Relative Capacity" />,
+  }
+};
+
+export const nrfNFOldSchema = {
+  type: "object",
+  title:"NRF",
+  properties: {
+    sbi: {
       type: "array",
       title: "SBI Interface",
       items: {
@@ -465,7 +665,7 @@ export const nrfNFSchema = {
   //required:["addr","port"],
 };
 
-export const nrfNFUiSchema = {
+export const nrfNFOldUiSchema = {
   classNames: "col-xs-12",
   metrics: {
     classNames: "col-xs-12",
@@ -589,6 +789,11 @@ export const relative_capSchema = {
 export const relative_capUiSchema = {
   classNames: "col-xs-12",
   "ui:title": <CustomTitle18 title="Relative Capacity" />,
+}
+
+export const relative_capShortUiSchema = {
+  classNames: "col-xs-4",
+  "ui:title": <CustomTitle18Border15 title="Relative Capacity" />,
 }
 
 export const paraSchema = {
@@ -725,7 +930,7 @@ export const nf_sbi_Schema = {
               uri: {
                 type: "string",
                 title: "URI",
-                required: true,
+                //required: true,
               }
             }
           }
@@ -740,7 +945,7 @@ export const nf_sbi_Schema = {
               uri: {
                 type: "string",
                 title: "URI",
-                required: true,
+                //required: true,
               }
             }
           }
@@ -795,6 +1000,201 @@ export const nf_sbi_UiSchema = {
         }
       }
     }
+  }
+};
+
+export const nssf_sbi_Schema = {
+  type: "object",
+  title:"SBI",
+  properties: {
+    server:{
+      type: "array",
+      title:"Server",
+      "minItems": 1,
+      "maxItems": 4,
+      "messages": {
+        "minItems": "At least 1 Interface is required",
+        "maxItems": "4 Interfaces are supported"
+      },
+      items: {
+        type: "object",
+        properties: {
+          address: {
+            type: "string",
+            title: "IP Address",
+            anyOf: [
+              { format: "ipv4" },
+              { format: "ipv6" },
+            ],
+            messages: {
+              "anyOf": "IPv4 or IPv6 allowed"
+            },
+            //format:"ipv4",
+            //description: "Please enter a valid IPv4/IPv6 Address",
+            required: true,
+            //default: "127.0.0.5"
+          },
+          port: {
+            type: "number",
+            title: "Port",
+            minimum: 1,
+            maximum: 65535,
+            required: true,
+            //default: 7777
+          }
+        }
+      }
+    },
+    client: {
+      type: "object",
+      title: "Client",
+      properties: {
+        nrf: {
+          type: "array",
+          title:"NRF",
+          "maxItems": 4,
+          items: {
+            type: "object",
+            properties: {
+              uri: {
+                type: "string",
+                title: "URI",
+                //required: true,
+              }
+            }
+          }
+        },
+        scp: {
+          type: "array",
+          title:"SCP",
+          "maxItems": 4,
+          items: {
+            type: "object",
+            properties: {
+              uri: {
+                type: "string",
+                title: "URI",
+                //required: true,
+              }
+            }
+          }
+        },
+        nsi: {
+          type: "array",
+          title:"NSI",
+          "minItems": 1,
+          "maxItems": 8,
+          "messages": {
+            "minItems": "At least 1 item is required",          
+          },
+          items: {
+            type: "object",
+            properties: {
+              uri: {
+                type: "string",
+                title: "URI",
+                required: true,
+              },
+              s_nssai: {
+                type: "object",
+                title:"S_NSSAI",
+                properties: {
+                  sst: {
+                    type: "number",
+                    title: "SST*",
+                    enum: [ 1, 2, 3, 4 ],
+                    required:true,
+                  },
+                  sd: {
+                    type: "string",
+                    title: "SD",
+                    pattern: "^[0-9a-fA-F]+$",
+                    minLength: 6,
+                    maxLength: 6,
+                    messages: {
+                      "pattern": "Only hexadecimal digits are allowed"
+                    }
+                  }
+                },
+                //required: ["sst"]
+              }
+            },
+            //required: ["addr", "port", "s_nssai"]
+          }
+        }
+      }
+    }
+  }
+};
+
+export const nssf_sbi_UiSchema = {
+  classNames: "col-xs-12",
+  "ui:title": <CustomTitle18 title="SBI Interface" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
+  server: {
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="Server" />,
+    items: {
+      address: {
+        classNames: "col-xs-8",
+        //"ui:help": "Enter a valid IPv4/IPv6 Address",
+        //"ui:placeholder": "Enter a valid IPv4/IPv6 Address",
+      },
+      port: {
+        classNames: "col-xs-4"
+      }
+    }
+  },
+  client: {
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="Client" />,
+    nrf: {
+      classNames: "col-xs-6",
+      "ui:title": <CustomTitle15 title="NRF URI" />,
+      items: {
+        uri: {
+          classNames: "col-xs-12",
+          "ui:options": {
+            "label": false
+          }
+        }
+      }
+    },
+    scp: {
+      classNames: "col-xs-6",
+      "ui:title": <CustomTitle15 title="SCP URI" />,
+      items: {
+        uri: {
+          classNames: "col-xs-12",
+          "ui:options": {
+            "label": false
+          }
+        }
+      }
+    },
+    nsi:{
+      classNames: "col-xs-12",
+      "ui:title": <CustomTitle15 title="NSI" />,
+      items: {
+        uri: {
+          classNames: "col-xs-5",
+          "ui:title": <CustomTitle14 title="URI" />,
+        },
+        s_nssai: {
+          classNames: "col-xs-7",
+          "ui:title": <CustomTitle14 title="S_NSSAI" />,
+          sst: {
+            classNames: "col-xs-7",
+            "ui:widget": "radio",
+            "ui:options": { "inline": true },
+          },
+          sd: {
+            classNames: "col-xs-5",
+            //"ui:widget": "updown"
+          },
+        }
+      }
+    } 
   }
 };
 
@@ -1313,11 +1713,17 @@ export const access_controlSchema = {
         type: "object",
         title: "PLMN_ID",
         properties: {
+          reject_cause: {
+            type: "integer",
+            title: "Reject Cause",
+            minimum: 0,
+            required: true,
+          },
           mcc: {
             type: "string",
             title: "MCC",
             maxLength: 3,
-            //required: true,
+            required: true,
             pattern: "^\\d+$",
             messages: {
               pattern: "Only digits are allowed"
@@ -1327,31 +1733,34 @@ export const access_controlSchema = {
             type: "string",
             title: "MNC",
             maxLength: 3,
-            //required: true,
+            required: true,
             pattern: "^\\d+$",
             messages: {
               pattern: "Only digits are allowed"
             }
           }
         },
-        required: ["mcc", "mnc"]
+        //required: ["mcc", "mnc"]
       },
     },
   },
 };
 
 export const access_controlUiSchema = {
-  classNames: "col-xs-6",
+  classNames: "col-xs-12",
   "ui:title": <CustomTitle18 title="Access Control" />,
   items: {
     plmn_id: {
       classNames: "col-xs-12",
       "ui:title": <CustomTitle18 title="PLMN_ID" />,
+      reject_cause: {
+        classNames: "col-xs-4"
+      },
       mcc: {
-        classNames: "col-xs-6"
+        classNames: "col-xs-4"
       },
       mnc: {
-        classNames: "col-xs-6"
+        classNames: "col-xs-4"
       }
     },
   }
@@ -1553,7 +1962,255 @@ export const amf_nameUiSchema = {
   "ui:title": <CustomTitle18Border39 title="AMF Name" />,
 };
 
-export const pfcpSchema = {
+export const smfpfcpSchema = {
+  type: "object",
+  title: "PFCP",
+  properties: {
+    server: {
+      type: "array",
+      title: "Server",
+      "minItems": 1,
+      "maxItems": 4,
+      "messages": {
+        "minItems": "At least 1 Interface is required",
+        "maxItems": "4 Interfaces are supported"
+      },
+      items: {
+        type: "object",
+        properties: {
+          address: {
+            type: "string",
+            title: "IP Address",
+            anyOf: [
+              { format: "ipv4" },
+              { format: "ipv6" },
+            ],
+            messages: {
+              "anyOf": "IPv4 or IPv6 allowed"
+            },
+            //format:"ipv4",
+            //description: "Please enter a valid IPv4/IPv6 Address",
+            required: true,
+            //default: "127.0.0.5"
+          },
+        }
+      }
+    },
+    client: {
+      type: "object",
+      title: "Client",
+      properties: {
+        upf: {
+          type: "array",
+          title: "UPF",
+          "minItems": 1,
+          "maxItems": 4,
+          "messages": {
+            "minItems": "At least 1 Interface is required",
+            "maxItems": "4 Interfaces are supported"
+          },
+          items: {
+            type: "object",
+            properties: {
+              address: {
+                type: "string",
+                title: "IP Address",
+                anyOf: [
+                  { format: "ipv4" },
+                  { format: "ipv6" },
+                ],
+                messages: {
+                  "anyOf": "IPv4 or IPv6 allowed"
+                },
+                //format:"ipv4",
+                //description: "Please enter a valid IPv4/IPv6 Address",
+                required: true,
+                //default: "127.0.0.5"
+              },
+              dnn: {
+                type: "array",
+                title: "DNN",
+                items: {
+                  type: "string",
+                  required: true,
+                }
+              },
+              tac: {
+                type: "array",
+                title: "TAC",
+                items: {
+                  type: "string",
+                  pattern: /^(?:\d+|\d+-\d+)$/,
+                  messages: {
+                    pattern: "Format like 1 or 3-5",
+                    type: "Format like 1 or 3-5",
+                  },
+                  required: true,
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+};
+
+export const smfpfcpUiSchema = {
+  classNames: "col-xs-12",
+  "ui:title": <CustomTitle18 title="PFCP" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
+  //pfcp: {  //不需要再加一层。加了反而没层次感
+  server: {
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="Server" />,
+    items: {
+      address: {
+        classNames: "col-xs-12",
+        //"ui:help": "Enter a valid IPv4/IPv6 Address",
+        //"ui:placeholder": "Enter a valid IPv4/IPv6 Address",
+      },
+    }
+  },
+  client: {
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="Client" />,
+    upf: {
+      classNames: "col-xs-12",
+      "ui:title": <CustomTitle15 title="UPF" />,
+      items: {
+        address: {
+          classNames: "col-xs-12",
+        },
+        dnn: {
+          classNames: "col-xs-6",
+          "ui:title": <CustomTitle14 title="DNN" />,
+          items:{
+            classNames: "col-xs-12",
+          }
+        },
+        tac: {
+          classNames: "col-xs-6",
+          "ui:title": <CustomTitle14 title="TAC" />,
+          //"ui:title": <CustomTitle18Margin45 title="TAC" />,
+          items:{
+            classNames: "col-xs-12",
+            "ui:placeholder": "Format like 1 or 3-5",
+          }
+        }
+      }
+    }
+  }
+};
+
+export const upfpfcpSchema = {
+  type: "object",
+  title: "PFCP",
+  properties: {
+    server: {
+      type: "array",
+      title: "Server",
+      "minItems": 1,
+      "maxItems": 4,
+      "messages": {
+        "minItems": "At least 1 Interface is required",
+        "maxItems": "4 Interfaces are supported"
+      },
+      items: {
+        type: "object",
+        properties: {
+          address: {
+            type: "string",
+            title: "IP Address",
+            anyOf: [
+              { format: "ipv4" },
+              { format: "ipv6" },
+            ],
+            messages: {
+              "anyOf": "IPv4 or IPv6 allowed"
+            },
+            //format:"ipv4",
+            //description: "Please enter a valid IPv4/IPv6 Address",
+            required: true,
+            //default: "127.0.0.5"
+          },
+        }
+      }
+    },
+    client: {
+      type: "object",
+      title: "Client",
+      properties: {
+        smf: {
+          type: "array",
+          title: "UPF",
+          "minItems": 1,
+          "maxItems": 4,
+          "messages": {
+            "minItems": "At least 1 Interface is required",
+            "maxItems": "4 Interfaces are supported"
+          },
+          items: {
+            type: "object",
+            properties: {
+              address: {
+                type: "string",
+                title: "IP Address",
+                anyOf: [
+                  { format: "ipv4" },
+                  { format: "ipv6" },
+                ],
+                messages: {
+                  "anyOf": "IPv4 or IPv6 allowed"
+                },
+                //format:"ipv4",
+                //description: "Please enter a valid IPv4/IPv6 Address",
+                required: true,
+                //default: "127.0.0.5"
+              },
+            }
+          }
+        }
+      }
+    }
+  }
+};
+
+export const upfpfcpUiSchema = {
+  classNames: "col-xs-12",
+  "ui:title": <CustomTitle18 title="PFCP" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
+  //pfcp: {  //不需要再加一层。加了反而没层次感
+  server: {
+    classNames: "col-xs-6",
+    "ui:title": <CustomTitle18 title="Server" />,
+    items: {
+      address: {
+        classNames: "col-xs-12",
+        //"ui:help": "Enter a valid IPv4/IPv6 Address",
+        //"ui:placeholder": "Enter a valid IPv4/IPv6 Address",
+      },
+    }
+  },
+  client: {
+    classNames: "col-xs-6",
+    "ui:title": <CustomTitle18 title="Client" />,
+    smf: {
+      classNames: "col-xs-12",
+      "ui:title": <CustomTitle14 title="SMF Address" />,
+      items: {
+        address: {
+          classNames: "col-xs-12",
+          "ui:options": {
+            "label": false
+          }
+        },
+      }
+    }
+  }
+};
+
+export const pfcpOldSchema = {
   type: "array",
   title: "PFCP Address",
   minItems: 1,
@@ -1577,7 +2234,7 @@ export const pfcpSchema = {
   }
 };
 
-export const pfcpUiSchema = {
+export const pfcpOldUiSchema = {
   classNames: "col-xs-6",
   "ui:title": <CustomTitle18 title="PFCP Address" />,
   "ui:description": <Customhelp14 title={promptRestart} />,
@@ -1595,79 +2252,104 @@ export const pfcpUiSchema = {
 };
 
 export const gtpcSchema = {
-  type: "array",
-  title: "GTPC Address",
-  minItems: 1,
-  maxItems: 8,
-  items: {
-    type: "object",
-    properties: {
-      addr: {
-        type: "string",
-        title: "IP Address",
-        anyOf: [
-          { format: "ipv4" },
-          { format: "ipv6" }
-        ],
-        messages: {
-          "anyOf": "IPv4 or IPv6 allowed"
-        },
-        //default: "127.0.0.5"
-        required: true,
-      },
+  type: "object",
+  title: "GTPC",
+  properties: {
+    server:{
+      type: "array",
+      minItems: 1,
+      maxItems: 8,
+      items: {
+        type: "object",
+        properties: {
+          address: {
+            type: "string",
+            title: "IP Address",
+            anyOf: [
+              { format: "ipv4" },
+              { format: "ipv6" }
+            ],
+            messages: {
+              "anyOf": "IPv4 or IPv6 allowed"
+            },
+            //default: "127.0.0.5"
+            required: true,
+          },
+        }
+      }
     }
   }
 };
 
 export const gtpcUiSchema = {
   classNames: "col-xs-6",
-  "ui:title": <CustomTitle18 title="GTPC Address" />,
-  items: {
+  "ui:title": <CustomTitle18 title="GTPC" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
+  server: {
     classNames: "col-xs-12",
-    addr: {
+    "ui:title": <CustomTitle14 title="Server Address" />,
+    "ui:options": {
+      "label": false
+    },
+    items: {
       classNames: "col-xs-12",
-      "ui:options": {
-        "label": false
+      address: {
+        classNames: "col-xs-12",
+        "ui:options": {
+          "label": false
+        }
       }
     }
-  } 
+  }
 };
 
 export const gtpuSchema = {
-  type: "array",
-  title: "GTPU Address",
-  minItems: 1,
-  maxItems: 8,
-  items: {
-    type: "object",
-    properties: {
-      addr: {
-        type: "string",
-        title: "IP Address",
-        anyOf: [
-          { format: "ipv4" },
-          { format: "ipv6" }
-        ],
-        messages: {
-          "anyOf": "IPv4 or IPv6 allowed"
-        },
-        //default: "127.0.0.5"
-        required: true,
-      },
+  type: "object",
+  title: "GTPU",
+  properties: {
+    server:{
+      type: "array",
+      minItems: 1,
+      maxItems: 8,
+      items: {
+        type: "object",
+        properties: {
+          address: {
+            type: "string",
+            title: "IP Address",
+            anyOf: [
+              { format: "ipv4" },
+              { format: "ipv6" }
+            ],
+            messages: {
+              "anyOf": "IPv4 or IPv6 allowed"
+            },
+            //default: "127.0.0.5"
+            required: true,
+          },
+        }
+      }
     }
   }
 };
 
 export const gtpuUiSchema = {
   classNames: "col-xs-6",
-  "ui:title": <CustomTitle18 title="GTPU Address" />,
+  "ui:title": <CustomTitle18 title="GTPU" />,
   "ui:description": <Customhelp14 title={promptRestart} />,
-  items: {
+  server: {
     classNames: "col-xs-12",
-    addr: {
+    "ui:title": <CustomTitle14 title="Server Address" />,
+    "ui:options": {
+      "label": false
+    },
+    items: {
       classNames: "col-xs-12",
-      "ui:options": {
-        "label": false
+      address: {
+        classNames: "col-xs-12",
+        "ui:options": {
+          "label": false
+        }
       }
     }
   }
@@ -1680,6 +2362,68 @@ const subnetipv4Regex = /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})$/;
 //const subnetipv6Regex = /^([A-Fa-f0-9]{1,4}(::)?){1,7}[A-Fa-f0-9]{1,4}\/\d{1,3}$/;
 //const subnetipv6Regex = /^(?:[A-Fa-f0-9]{1,4}:){7}[A-Fa-f0-9]{1,4}(?:\/\d{1,3})?$/;
 const subnetipv6Regex = /^([a-f0-9]{1,4}(:[a-f0-9]{1,4}){7}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){0,7}::[a-f0-9]{0,4}(:[a-f0-9]{1,4}){0,7})(?:\/\d{1,3})$/
+
+export const sessionSchema = {
+  type: "array",
+  title: "UE IP Pool",
+  "minItems": 1,
+  "maxItems": 16,
+  "messages": {
+    "minItems": "At least 1 subnet is required",
+    "maxItems": "16 subnets are supported"
+  },
+  items: {
+    type: "object",
+    properties: {
+      subnet: {
+        type: "string",
+        title: "Subnet",
+        anyOf: [
+          { pattern: subnetipv4Regex.source },
+          { pattern: subnetipv6Regex.source },
+        ],
+        messages: {
+          "anyOf": "IPv4 or IPv6 subnet allowed"
+        },
+        default: "10.45.0.1/16",
+        required: true,
+      },
+      gateway: {
+        type: "string",
+        title: "Gatewy",
+        anyOf: [
+          { format: "ipv4" },
+          { format: "ipv6" },
+        ],
+        messages: {
+          "anyOf": "IPv4 or IPv6 allowed"
+        },
+      },
+      dnn: {
+        type: "string",
+        title: "DNN",
+      }
+    }
+  }
+};
+
+export const sessionUiSchema = {
+  classNames: "col-xs-12",
+  "ui:title": <CustomTitle18 title="Session Configuration" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
+  items: {
+    subnet: {
+      classNames: "col-xs-5",
+      "ui:placeholder": "ipv4/v6 subnet address",
+    },
+    gateway: {
+      classNames: "col-xs-4",
+    },
+    dnn: {
+      classNames: "col-xs-3",
+    }
+  }
+};
 
 export const subnetSchema = {
   type: "array",
@@ -1946,7 +2690,7 @@ export const mtuSchema = {
 };
 
 export const mtuUiSchema = {
-  classNames: "col-xs-3",
+  classNames: "col-xs-4",
   "ui:title": <CustomTitle18Border15 title="MTU" />,
 };
 
@@ -1965,7 +2709,7 @@ export const ctfSchema = {
 };
 
 export const ctfUiSchema = {
-  classNames: "col-xs-3",
+  classNames: "col-xs-4",
   "ui:title": <CustomTitle18 title="CTF Gy Enabled" />,
   enabled: {
     classNames:"col-xs-12",
@@ -1980,11 +2724,10 @@ export const freeDiameterSchema = {
 };
 
 export const freeDiameterUiSchema = {
-  classNames: "col-xs-6",
-  "ui:title": <CustomTitle18Border15 title="Diameter Config" />,
+  classNames: "col-xs-12",
+  "ui:title": <CustomTitle18 title="Diameter Config" />,
   "ui:description": <Customhelp14 title={promptRestart} />,
 };
-
 
 export const smfinfoSchema = {
   type: "array",
@@ -2586,6 +3329,21 @@ function CustomTitle14({ title }) {
         style={{
           fontWeight: "700",
           fontSize: "14px",
+        }}
+      >
+        {title}
+      </label>
+    </div>
+  );
+}
+
+function CustomTitle15({ title }) {
+  return (
+    <div>
+      <label
+        style={{
+          fontWeight: "700",
+          fontSize: "15px",
         }}
       >
         {title}

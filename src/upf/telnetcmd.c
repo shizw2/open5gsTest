@@ -2,15 +2,19 @@
 #include "context.h"
 char                g_chCmdName[128] = {0};
 T_pttCmdParas       g_tCmdPara[128];
+int                 pkt_metric_flag = 0;
 void upf(void);
 void showsess(uint32_t id);
 void showsessBriefAll( void );
 void showsessDetail( uint32_t id );
 void setCommands(void);
+void set_pkt_metric(uint32_t flag);
+
 
 telnet_command_t g_commands[] = {
     {"showsess",      (GenericFunc)showsess,         1, {INTEGER}},
     {"upf",           (GenericFunc)upf,              0, {}},
+    {"set_pkt_metric",(GenericFunc)set_pkt_metric,   1, {INTEGER}},
 };
 int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);
 
@@ -217,4 +221,14 @@ void showsessDetail( uint32_t id )
     printf("\r\n"); 
     
     return ;
+}
+
+void set_pkt_metric(uint32_t id){
+    pkt_metric_flag = id;
+
+    if (id == 0) {
+        printf("packet metrics is turned off.\r\n");
+    } else {
+        printf("packet metrics is turned on, it will reduce data plane performance.\r\n");
+    }
 }

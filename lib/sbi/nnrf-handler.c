@@ -1117,7 +1117,7 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
     bool isSPS = false;
 
     ogs_assert(recvmsg);
-    
+
     isSPS = recvmsg->udp_h.isSPS;
     
     if (!isSPS){

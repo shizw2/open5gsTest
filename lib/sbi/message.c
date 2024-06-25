@@ -259,8 +259,6 @@ void ogs_sbi_request_free(ogs_sbi_request_t *request)
 {
     ogs_assert(request);
 
-    ogs_info("*test ogs_sbi_request_free:%p, headers cnt:%d,params cnt:%d,request:%s method:%s",request,ogs_hash_count(request->http.headers),ogs_hash_count(request->http.params),request->http.content,request->h.method);
-
     if (request->h.uri)
         ogs_free(request->h.uri);
 
@@ -1072,6 +1070,8 @@ int ogs_sbi_parse_udp_request(
         ogs_sbi_message_free(message);
         return OGS_ERROR;
     }
+
+    message->udp_h.isSPS = p_udp_header->isSPS;
 
     return OGS_OK;
 }

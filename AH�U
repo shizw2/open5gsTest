@@ -1,6 +1,0 @@
-12/23 16:29:16.535: 123249:123249[app] INFO: SIGTERM received (../src/main.c:55)
-12/23 16:29:16.536: 123249:123249[app] INFO: 5gc daemon terminating... (../src/main.c:232)
-12/23 16:29:16.536: 123249:123249[sbi] INFO: [3855e9d4-a168-41ee-84cb-db987c72583c] NF de-registered (../lib/sbi/nf-sm.c:241)
-12/23 16:29:16.551: 123249:123249[smf] INFO: PFCP de-associated [127.0.0.7]:8805 (../src/smf/pfcp-sm.c:211)
-12/23 16:29:17.650: 123249:123249[app] INFO: SMF terminate...done (../src/smf/app.c:39)
-12/23 16:29:17.666: 123249:123249[event] ERROR: 1 in '&manager->pool[320000]' were not released. (../lib/core/ogs-timer.c:72)

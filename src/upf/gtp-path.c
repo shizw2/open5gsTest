@@ -61,6 +61,8 @@ static ogs_pkbuf_pool_t *packet_pool = NULL;
 
 static void upf_gtp_handle_multicast(ogs_pkbuf_t *recvbuf);
 
+extern int pkt_metric_flag;
+
 static int check_framed_routes(upf_sess_t *sess, int family, uint32_t *addr)
 {
     int i = 0;
@@ -226,7 +228,9 @@ static void _gtpv1_tun_recv_common_cb(
      */
 
 //暂时放开测试性能展示
-    //upf_metrics_inst_global_inc(UPF_METR_GLOB_CTR_GTP_OUTDATAPKTN3UPF);
+    if (pkt_metric_flag){//统计降低upf性能,默认关闭,可通过命令行打开
+        upf_metrics_inst_global_inc(UPF_METR_GLOB_CTR_GTP_OUTDATAPKTN3UPF);
+    }
 #if 0
 
     upf_metrics_inst_by_qfi_add(pdr->qer->qfi,
@@ -399,7 +403,9 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
          */
 
 //暂时放开测试性能展示
-        //upf_metrics_inst_global_inc(UPF_METR_GLOB_CTR_GTP_INDATAPKTN3UPF);
+        if (pkt_metric_flag){//统计降低upf性能,默认关闭,可通过命令行打开
+            upf_metrics_inst_global_inc(UPF_METR_GLOB_CTR_GTP_INDATAPKTN3UPF);
+        }
 
 #if 0
 

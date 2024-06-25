@@ -519,6 +519,8 @@ void ogs_log_printf(ogs_log_level_e level, int id,
 {
     va_list args;
 
+    //ogs_log_vprintf会损耗部分性能,将level判断提前,但这种改法会导致domain级别控制丢失
+    //后续需要domain级别的控制时再考虑
     if (ogs_core()->log.level < level){
         return;
     }

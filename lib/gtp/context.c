@@ -568,6 +568,10 @@ void ogs_gtp_node_free(ogs_gtp_node_t *node)
     ogs_gtp_xact_delete_all(node);
 
     ogs_freeaddrinfo(node->sa_list);
+
+    if (node->connect_flag){
+        ogs_sock_destroy(node->sock);
+    }
     ogs_pool_free(&pool, node);
 }
 

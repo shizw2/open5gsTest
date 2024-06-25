@@ -49,6 +49,25 @@ int ogs_gtp_connect(ogs_sock_t *ipv4, ogs_sock_t *ipv6, ogs_gtp_node_t *gnode)
     while (addr) {
         ogs_sock_t *sock = NULL;
 
+        sock = ogs_sock_socket(addr->ogs_sa_family, SOCK_DGRAM, IPPROTO_UDP);
+        if (sock) {
+            if (ogs_sock_connect(sock, addr) == OGS_OK) {
+                ogs_debug("ogs_gtp_connect() [%s]:%d",
+                        OGS_ADDR(addr, buf), OGS_PORT(addr));
+                if (gnode->sock != NULL){
+                    ogs_sock_destroy(gnode->sock);
+                    gnode->sock = NULL;
+                }       
+                gnode->sock = sock;
+                gnode->connect_flag = true;
+                memcpy(&gnode->addr, addr, sizeof gnode->addr);
+                break;
+            }
+
+            ogs_sock_destroy(sock);
+        }
+
+#if 0
         if (addr->ogs_sa_family == AF_INET)
             sock = ipv4;
         else if (addr->ogs_sa_family == AF_INET6)
@@ -64,7 +83,7 @@ int ogs_gtp_connect(ogs_sock_t *ipv4, ogs_sock_t *ipv6, ogs_gtp_node_t *gnode)
             memcpy(&gnode->addr, addr, sizeof gnode->addr);
             break;
         }
-
+#endif
         addr = addr->next;
     }
 

@@ -46,7 +46,7 @@ export const amfuiSchema = {
     classNames: "col-xs-12",
     sbi: schemas.nf_sbi_UiSchema,
     ngap: schemas.ngapUiSchema,
-    metrics: schemas.metricsShortUiSchema,
+    metrics: schemas.metricsUiSchema,
     guami: schemas.guamiUiSchema,
     tai: schemas.taiUiSchema,
     access_control: schemas.access_controlUiSchema,
