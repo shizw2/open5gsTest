@@ -20,9 +20,13 @@ export const ViewUDR= ({ nfconfig }) => {
     <div>   
       <DbUriSection db_uri={nfconfig.db_uri} />
       <LOGSection nfconfig={nfconfig} />
-      <NRFSection nfconfig={nfconfig} />
-      <SBISection nfconfig={nfconfig} />
-
+      {nfconfig && nfconfig.global && (
+        <div className="global-section">
+          <div className="global-header">global:</div>
+          {nfconfig.global.cli && <CLISection cli={nfconfig.global.cli} />}
+          {nfconfig.global.parameter && <ParameterSection parameter={nfconfig.global.parameter} />}
+        </div>
+      )}
       <div>
         {udr && (
           <div className="nf-section">
@@ -33,12 +37,10 @@ export const ViewUDR= ({ nfconfig }) => {
           </div>
         )}
       </div>
-
-      {parameter && <ParameterSection parameter={nfconfig.parameter} />}
-      {nfconfig && nfconfig.cli && <CLISection cli={nfconfig.cli} />}
       {/*
       <MaxSection max={max} />
       <TimeSection time={time} />
+      <div className="twenty-spaces">relative_capacity: {udr.relative_capacity && (udr.relative_capacity)}</div>
       */}
     </div>
   );

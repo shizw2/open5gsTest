@@ -7,6 +7,7 @@ import{
   GuamiSection,
   TaiSection,
   PlmnSupportSection,
+  AccessControlSection,
   ParameterSection,
   SecuritySection,
   TimeSection,
@@ -25,9 +26,17 @@ export const ViewAMF = ({ nfconfig }) => {
       {/*<SBISection nfconfig={nfconfig} />*/}
 
       <div>
+      {nfconfig && nfconfig.global && (
+        <div className="global-section">
+          <div className="global-header">global:</div>
+          {nfconfig.global.cli && <CLISection cli={nfconfig.global.cli} />}
+          {nfconfig.global.parameter && <ParameterSection parameter={nfconfig.global.parameter} />}
+        </div>
+      )}
+
       {nfconfig && nfconfig.amf && (
         <div className="nf-section">
-          <div className="nf-header">amf:</div>             
+          <div className="nf-header">amf:</div>
             <NF_SBI_Section  sbi={nfconfig.amf.sbi} />
 
             {nfconfig.amf.ngap && (
@@ -53,9 +62,10 @@ export const ViewAMF = ({ nfconfig }) => {
             )}
 
             <MetricsSection metrics={nfconfig.amf.metrics} />
-            <GuamiSection guamis={nfconfig.amf.guami} />              
-            <TaiSection tais={nfconfig.amf.tai} />      
-            <PlmnSupportSection plmnSupport={nfconfig.amf.plmn_support} />      
+            <GuamiSection guamis={nfconfig.amf.guami} />
+            <TaiSection tais={nfconfig.amf.tai} />
+            <PlmnSupportSection plmnSupport={nfconfig.amf.plmn_support} />
+            <AccessControlSection accessControl={nfconfig.amf.access_control} />
             <SecuritySection security={nfconfig.amf.security} />              
 
             {nfconfig.amf.network_name && (
@@ -71,8 +81,6 @@ export const ViewAMF = ({ nfconfig }) => {
               <div className="twenty-spaces">amf_name: {nfconfig.amf.amf_name}</div>
             </div>
             )}
-
-            <div className="twenty-spaces">relative_capacity: {nfconfig.amf.relative_capacity && (nfconfig.amf.relative_capacity)}</div>
             
             <div className="twenty-spaces">
               {nfconfig.amf.time && <TimeSection time={nfconfig.amf.time} />}
@@ -80,8 +88,6 @@ export const ViewAMF = ({ nfconfig }) => {
           </div>
         )}
       </div>
-
-      {nfconfig && nfconfig.cli && <CLISection cli={nfconfig.cli} />}
     </div>
   );
 };

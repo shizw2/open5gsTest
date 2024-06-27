@@ -8,8 +8,9 @@ import {
   TimeSection,
   FreeDiameterSection,
   MetricsSection,
-  PfcpSection,
+  SmfPfcpSection,
   SubnetSection,
+  SessionSection,
   GtpcSection,
   GtpuSection,
   DnsSection,
@@ -18,7 +19,7 @@ import {
   CtfSection,
   FreeDiameterFileSection,
   SMFInfoSection,
-  CLISection
+  CLISection,
 } from './ViewCfgSection';
 
 
@@ -27,17 +28,22 @@ export const ViewSMF = ({ nfconfig }) => {
   return (
     <div>
       <LOGSection nfconfig={nfconfig} />
-      <NRFSection nfconfig={nfconfig} />
-      <SBISection nfconfig={nfconfig} />
+      {nfconfig && nfconfig.global && (
+        <div className="global-section">
+          <div className="global-header">global:</div>
+          {nfconfig.global.cli && <CLISection cli={nfconfig.global.cli} />}
+          {nfconfig.global.parameter && <ParameterSection parameter={nfconfig.global.parameter} />}
+        </div>
+      )}
 
       <div>
         {smf && (
           <div className="nf-section">
             <div className="nf-header">smf:</div>
             <NF_SBI_Section sbi={smf.sbi} />
-            <PfcpSection pfcp={smf.pfcp} />
-            <SubnetSection subnet={smf.subnet} />
-            {/*<GtpcSection gtpc={smf.gtpc} />*/}
+            <SmfPfcpSection pfcp={smf.pfcp} />
+            <SessionSection session={smf.session} />
+            <GtpcSection gtpc={smf.gtpc} />
             <GtpuSection gtpu={smf.gtpu} />
             <MetricsSection metrics={smf.metrics} />
             <DnsSection dns={smf.dns} />
@@ -49,18 +55,20 @@ export const ViewSMF = ({ nfconfig }) => {
           </div>
         )}
       </div>
-
+{/*
       {upf && ( 
         <div className="upf-section">
           <div className="upf-header">upf:</div>
             {upf.pfcp && <PfcpSection pfcp={upf.pfcp} />}
         </div>
       )}
-      {parameter && <ParameterSection parameter={nfconfig.parameter} />}
       {nfconfig && nfconfig.cli && <CLISection cli={nfconfig.cli} />}
+*/}
+
       {/*
       <MaxSection max={max} />
       <TimeSection time={time} />
+      <div className="twenty-spaces">relative_capacity: {smf.relative_capacity && (smf.relative_capacity)}</div>
       */}
     </div>
   );

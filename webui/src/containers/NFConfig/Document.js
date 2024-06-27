@@ -362,21 +362,21 @@ componentDidUpdate(prevProps) {
       }
     }
 
-    if ( (formData.smf && formData.smf.subnet)
-         || (formData.upf && formData.upf.subnet) )
+    if ( (formData.smf && formData.smf.session)
+         || (formData.upf && formData.upf.session) )
     {
       let ippools;
 
-      if ( formData.smf && formData.smf.subnet )
+      if ( formData.smf && formData.smf.session )
       {
-        ippools = formData.smf.subnet.map(subnet => {
-          return subnet.addr;
+        ippools = formData.smf.session.map(session => {
+          return session.subnet;
         });
       }
-      else if ( formData.upf && formData.upf.subnet )
+      else if ( formData.upf && formData.upf.session )
       {
-        ippools = formData.upf.subnet.map(subnet => {
-          return subnet.addr;
+        ippools = formData.upf.session.map(session => {
+          return session.subnet;
         });
       }
       
@@ -445,18 +445,18 @@ componentDidUpdate(prevProps) {
         }
       }
 
-      if (formData.smf && formData.smf.subnet)
+      if (formData.smf && formData.smf.session)
       {
         for (let key in overlaps) {
           overlaps[key].forEach(index => 
-            errors.smf.subnet[index].addr.addError(`${key} is overlapped`));
+            errors.smf.session[index].subnet.addError(`${key} is overlapped`));
         }
       }
-      else if (formData.upf && formData.upf.subnet)
+      else if (formData.upf && formData.upf.session)
       {
         for (let key in overlaps) {
           overlaps[key].forEach(index => 
-            errors.upf.subnet[index].addr.addError(`${key} is overlapped`));
+            errors.upf.session[index].subnet.addError(`${key} is overlapped`));
         }
       }
     }
@@ -465,23 +465,18 @@ componentDidUpdate(prevProps) {
          || (formData.smf && formData.smf.pfcp && formData.smf.gtpu && formData.smf['p-cscf']) )
     {
       let confNf;
-      let confUnits;
+      let confUnits = [
+        'pfcp',
+        'gtpu',
+      ];
 
       if (formData.upf && formData.upf.pfcp && formData.upf.gtpu)
       {
         confNf = 'upf';
-        confUnits =[
-          'pfcp',
-          'gtpu'
-        ];
       }
       else if (formData.smf && formData.smf.pfcp && formData.smf['gtpu'])
       {
         confNf = 'smf';
-        confUnits =[
-          'pfcp',
-          'gtpu',
-        ];
       }
 
       for (let k=0; k<confUnits.length; k++)
@@ -489,8 +484,8 @@ componentDidUpdate(prevProps) {
 
         let confUnit = confUnits[k];
 
-        let addrs = formData[confNf][confUnit].map(item => {
-          return item.addr;
+        let addrs = formData[confNf][confUnit].server.map(item => {
+          return item.address;
         });
 
         let duplicates = {};
@@ -514,7 +509,7 @@ componentDidUpdate(prevProps) {
 
         for (let key in duplicates) {
           duplicates[key].forEach(index => 
-            errors[confNf][confUnit][index].addr.addError(`${key} is duplicated`));
+            errors[confNf][confUnit].server[index].address.addError(`${key} is duplicated`));
         }
       }
     }

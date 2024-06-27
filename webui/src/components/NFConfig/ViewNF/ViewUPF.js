@@ -8,14 +8,14 @@ import {
   TimeSection,
   FreeDiameterSection,
   MetricsSection,
-  PfcpSection,
+  UpfPfcpSection,
   GtpcSection,
   GtpuSection,
   MtuSection,
   CtfSection,
   FreeDiameterFileSection,
   InfoSection,
-  SubnetSection,
+  SessionSection,
   DPDKSection,
   CLISection
 } from './ViewCfgSection';
@@ -26,27 +26,30 @@ export const ViewUPF = ({ nfconfig }) => {
   return (
     <div>
       <LOGSection nfconfig={nfconfig} />
-      <NRFSection nfconfig={nfconfig} />
-      <SBISection nfconfig={nfconfig} />
-
+      {nfconfig && nfconfig.global && (
+        <div className="global-section">
+          <div className="global-header">global:</div>
+          {nfconfig.global.cli && <CLISection cli={nfconfig.global.cli} />}
+          {nfconfig.global.parameter && <ParameterSection parameter={nfconfig.global.parameter} />}
+        </div>
+      )}
       {upf && (
         <div className="upf-section">
           <div className="upf-header">upf:</div>          
-          <PfcpSection pfcp={upf.pfcp} /> 
+          <UpfPfcpSection pfcp={upf.pfcp} />
           <GtpuSection gtpu={upf.gtpu} />
-          <SubnetSection subnet={upf.subnet} />
+          <SessionSection session={upf.session} />
           <DPDKSection dpdk={upf.dpdk} />
-          <MetricsSection metrics={upf.metrics} /> 
+          <MetricsSection metrics={upf.metrics} />
         </div>
       )}
 
-      {parameter && <ParameterSection parameter={nfconfig.parameter} />}
-      {nfconfig && nfconfig.cli && <CLISection cli={nfconfig.cli} />}
       {/* 
       <div className="smf-section">
       <div className="smf-header">smf:</div>
       {smf && smf.pfcp && smf.pfcp.addr && (
         <div>
+          <div className="twenty-spaces">relative_capacity: {upf.relative_capacity && (upf.relative_capacity)}</div>
           <div className="twenty-spaces">pfcp: </div> 
           <div className="twenty-spaces">&nbsp;&nbsp;addr: {smf.pfcp.addr}</div>
         </div>

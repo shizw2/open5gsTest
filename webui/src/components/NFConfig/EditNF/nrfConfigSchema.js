@@ -5,17 +5,28 @@ export const nrfschema = {
   type: "object",
   properties: {
     nrf: schemas.nrfNFSchema,
-    parameter: schemas.paraSchema,
-    sbi: schemas.sbiSchema,
+    //parameter: schemas.paraSchema,
+    //sbi: schemas.sbiSchema,
     logger: schemas.loggerSchema,
-    cli: schemas.cliSchema,
+    global: {
+      type: "object",
+      title: "Global",
+      properties: {
+        cli: schemas.cliSchema,
+        parameter: schemas.paraSchema,
+      }
+    }
   },
 };
 
 export const nrfuiSchema = {
   logger: schemas.loggerUiSchema,
-  sbi: schemas.sbiUiSchema,
+  //sbi: schemas.sbiUiSchema,
   nrf: schemas.nrfNFUiSchema,
-  parameter: schemas.paraUiSchema,
-  cli: schemas.cliUiSchema,
+  //parameter: schemas.paraUiSchema,
+  global: {
+    classNames: "col-xs-12",
+    cli: schemas.cliUiSchema,
+    parameter: schemas.paraUiSchema,
+  }
 };

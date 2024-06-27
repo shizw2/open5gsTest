@@ -11,14 +11,22 @@ export const udmschema = {
         sbi: schemas.nf_sbi_Schema,
         hnet:schemas.hnetSchema,
         info: schemas.rtsupiInfoSchema,
+        //relative_capacity: schemas.relative_capSchema,
         metrics: schemas.metricsSchema,
       },
     },
-    nrf: schemas.nrfSchema,
-    parameter: schemas.paraSchema,
-    sbi: schemas.sbiSchema,
+    //nrf: schemas.nrfSchema,
+    //parameter: schemas.paraSchema,
+    //sbi: schemas.sbiSchema,
     logger: schemas.loggerSchema,
-    cli: schemas.cliSchema,
+    global: {
+      type: "object",
+      title: "Global",
+      properties: {
+        cli: schemas.cliSchema,
+        parameter: schemas.paraSchema,
+      }
+    }
     //time: {
     //  type: "object",
     //  title: "time",
@@ -31,17 +39,22 @@ export const udmschema = {
 
 export const udmuiSchema = {
   logger: schemas.loggerUiSchema,
-  sbi: schemas.sbiUiSchema,
-  nrf: schemas.nrfUiSchema,
-  parameter: schemas.paraUiSchema,
+  //sbi: schemas.sbiUiSchema,
+  //nrf: schemas.nrfUiSchema,
+  //parameter: schemas.paraUiSchema,
   udm: {
     classNames: "col-xs-12",
     sbi: schemas.nf_sbi_UiSchema,
     hnet: schemas.hnetUiSchema,
     info: schemas.rtsupiInfoUiSchema,
+    //relative_capacity: schemas.relative_capUiSchema,
     metrics: schemas.metricsUiSchema,
   },
-  cli: schemas.cliUiSchema,
+  global: {
+    classNames: "col-xs-12",
+    cli: schemas.cliUiSchema,
+    parameter: schemas.paraUiSchema,
+  }
   //time: {
   //  classNames: "col-xs-12",
   //  instance: schemas.time_instanceUiSchema,

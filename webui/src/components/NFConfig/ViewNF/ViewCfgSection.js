@@ -6,6 +6,30 @@ export const NRFSection = ({ nfconfig }) => (
         {nfconfig.nrf.sbi && (
           <div className="sbi-section">
             <div className="twenty-spaces">sbi:</div>
+            <div className="forty-spaces">server:</div>
+            <div className="sixty-spaces">
+              {nfconfig.nrf.sbi.server.map((item, index) => (
+                <div key={index}>
+                  <div>- address: {item.address}</div>
+                  <div>&nbsp;&nbsp;port: {item.port}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+);
+
+export const NRFOldSection = ({ nfconfig }) => (
+  <div>
+    {nfconfig && nfconfig.nrf && (
+      <div className="nrf-section">
+        <div className="nrf-header">nrf:</div>
+        {nfconfig.nrf.sbi && (
+          <div className="sbi-section">
+            <div className="twenty-spaces">sbi:</div>
             {Array.isArray(nfconfig.nrf.sbi) ? (
               // 如果 nfconfig.nrf.sbi 是数组
               nfconfig.nrf.sbi.map((item, index) => (
@@ -43,7 +67,6 @@ export const NRFSection = ({ nfconfig }) => (
     )}
   </div>
 );
-
 
 export const SBISection = ({ nfconfig }) => (
   <div>
@@ -170,6 +193,25 @@ export const OldNF_SBI_Section = ({ sbi }) => (
   </div>
 );
 
+export const NRFSBISection = ({ sbi }) => (
+  <div>
+    {sbi && (
+      <div className="sbi-section">
+        <div className="twenty-spaces">sbi:</div>
+        <div className="forty-spaces">server:</div>
+        <div className="sixty-spaces">
+          {sbi.server.map((item, index) => (
+            <div key={index}>
+              <div>- address: {item.address}</div>
+              <div>&nbsp;&nbsp;port: {item.port}</div>
+            </div>
+          ))}
+        </div>
+        </div>
+    )}
+  </div>
+);
+
 //NF下的sbi，如AMF，SMF内部的SBI配置
 export const NF_SBI_Section = ({ sbi }) => (
   <div>
@@ -210,6 +252,65 @@ export const NF_SBI_Section = ({ sbi }) => (
             </div>
           </div>
         )}
+      </div>
+    )}
+  </div>
+);
+
+export const NSSF_SBI_Section = ({ sbi }) => (
+  <div>
+    {sbi && (
+      <div className="sbi-section">
+        <div className="twenty-spaces">sbi:</div>
+        <div className="forty-spaces">server:</div>
+        <div className="sixty-spaces">
+          {sbi.server.map((item, index) => (
+            <div key={index}>
+              <div>- address: {item.address}</div>
+              <div>&nbsp;&nbsp;port: {item.port}</div>
+            </div>
+          ))}
+        </div>
+        <div className="forty-spaces">client:</div>
+        {sbi.client && sbi.client.nrf && (
+          <div className="nrf-section">
+            <div className="sixty-spaces">nrf:</div>
+            <div className="eighty-spaces">
+              {sbi.client.nrf.map((item, index) => (
+                <div key={index}>
+                  <div>- uri: {item.uri}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {sbi.client && sbi.client.scp && (
+          <div className="scp-section">
+            <div className="sixty-spaces">scp:</div>
+            <div className="eighty-spaces">
+              {sbi.client.scp.map((item, index) => (
+                <div key={index}>
+                  <div>- uri: {item.uri}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {sbi.client && sbi.client.nsi && (
+        <div className="nsi-section">
+          <div className="sixty-spaces">nsi:</div>
+          {sbi.client.nsi.map((item, index) => (
+            <div key={index} className="sixty-spaces">
+              <div className="twenty-spaces">- uri: {item.uri}</div>
+              <div className="twenty-spaces">
+                &nbsp;&nbsp;s_nssai:
+                <div className="twenty-spaces">sst: {item.s_nssai && item.s_nssai.sst}</div>
+                <div className="twenty-spaces">sd: {item.s_nssai && item.s_nssai.sd}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       </div>
     )}
   </div>
@@ -289,6 +390,45 @@ export const PlmnSupportSection = ({ plmnSupport }) => (
   </div>
 );
 
+export const AccessControlSection = ({ accessControl }) => (
+  <div>
+    {accessControl && (
+      <div className="access-control-section">
+        <div className="twenty-spaces">access_control:</div>
+        <div className="forty-spaces">
+          {accessControl.map((item, index) => (
+            <div key={index}>
+              <div>- plmn_id:</div>
+              <div className="twenty-spaces">reject_cause: {item.plmn_id.reject_cause}</div>
+              <div className="twenty-spaces">mcc: {item.plmn_id.mcc.toString()}</div>
+              <div className="twenty-spaces">mnc: {item.plmn_id.mnc.toString()}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+);
+
+export const ServingSection = ({ serving }) => (
+  <div>
+    {serving && (
+      <div className="serving-section">
+        <div className="twenty-spaces">serving:</div>
+        <div className="forty-spaces">
+          {serving.map((item, index) => (
+            <div key={index}>
+              <div>- plmn_id:</div>
+              <div className="twenty-spaces">mcc: {item.plmn_id.mcc.toString()}</div>
+              <div className="twenty-spaces">mnc: {item.plmn_id.mnc.toString()}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+);
+
 export const SecuritySection = ({ security }) => (
   <div>
     {security && (
@@ -306,7 +446,6 @@ export const SecuritySection = ({ security }) => (
     )}
   </div>
 );
-
 
 export const TimeSection = ({ time }) => (
   <div>
@@ -340,11 +479,12 @@ export const CLISection = ({ cli }) => (
   <div>
     {cli && (
       <div className="cli-section">
-        <div>cli:</div>
-        <div className="twenty-spaces">
-          {cli.map((item, index) => (
+        <div className="twenty-spaces">cli:</div>
+        <div className="forty-spaces">server:</div>
+        <div className="sixty-spaces">
+          {cli.server.map((item, index) => (
             <div key={index}>
-              <div>- addr: {item.addr}</div>
+              <div>- address: {item.address}</div>
               <div>&nbsp;&nbsp;port: {item.port}</div>
             </div>
           ))}
@@ -418,10 +558,10 @@ export const RTSUPIInfoSection = ({ info }) => (
 export const ParameterSection = ({ parameter }) => (
   <div>
     <div className="parameter-section">
-      <div className="parameter-header">parameter:</div>
+      <div className="twenty-spaces">parameter:</div>
       {parameter ? (
         <div className="parameter-body">
-          {(parameter.capacity >= 0) && <div className="twenty-spaces">capacity: {parameter.capacity}</div>}
+          {(parameter.capacity >= 0) && <div className="forty-spaces">capacity: {parameter.capacity}</div>}
         </div>
       ) : (
         <div> </div>
@@ -511,19 +651,60 @@ export const FreeDiameterSection = ({ freeDiameter }) => {
   );
 };
 
-export const PfcpSection = ({ pfcp }) => {
+export const SmfPfcpSection = ({ pfcp }) => {
   return (
     <div>
       {pfcp && (
         <div className="pfcp-section">
           <div className="twenty-spaces">pfcp:</div>
-          {pfcp.map((item, index) => (
-            <div key={index} className="twenty-spaces">
-              <div className="twenty-spaces">- addr: {item.addr}</div>
-              {item.tac && item.tac.length > 0 && <div className="twenty-spaces">&nbsp;&nbsp;tac: [{item.tac.join(', ')}]</div>}
-              {item.dnn && item.dnn.length > 0 && <div className="twenty-spaces">&nbsp;&nbsp;dnn: [{item.dnn.join(', ')}]</div>}
-            </div>
-          ))}
+          <div className="forty-spaces">server:</div>
+          <div className="sixty-spaces">
+            {pfcp.server.map((item, index) => (
+              <div key={index}>
+                <div>- address: {item.address}</div>
+              </div>
+            ))}
+          </div>
+          <div className="forty-spaces">client:</div>
+          <div className="sixty-spaces">upf:</div>
+          <div className="eighty-spaces">
+            {pfcp.client.upf.map((item, index) => (
+              <div key={index}>
+                <div>- address: {item.address}</div>
+                {item.tac && item.tac.length > 0 && <div>&nbsp;&nbsp;tac: [{item.tac.join(', ')}]</div>}
+                {item.dnn && item.dnn.length > 0 && <div>&nbsp;&nbsp;dnn: [{item.dnn.join(', ')}]</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const UpfPfcpSection = ({ pfcp }) => {
+  return (
+    <div>
+      {pfcp && (
+        <div className="pfcp-section">
+          <div className="twenty-spaces">pfcp:</div>
+          <div className="forty-spaces">server:</div>
+          <div className="sixty-spaces">
+            {pfcp.server.map((item, index) => (
+              <div key={index}>
+                <div>- address: {item.address}</div>
+              </div>
+            ))}
+          </div>
+          <div className="forty-spaces">client:</div>
+          <div className="sixty-spaces">smf:</div>
+          <div className="eighty-spaces">
+            {pfcp.client.smf.map((item, index) => (
+              <div key={index}>
+                <div>- address: {item.address}</div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -536,9 +717,10 @@ export const GtpcSection = ({ gtpc }) => {
       {gtpc && (
         <div className="gtpc-section">
           <div className="twenty-spaces">gtpc:</div>
-          {gtpc.map((item, index) => (
-            <div key={index} className="twenty-spaces">
-              <div className="twenty-spaces">- addr: {item.addr}</div>          
+          <div className="forty-spaces">server:</div>
+          {gtpc.server.map((item, index) => (
+            <div key={index} className="sixty-spaces">
+              <div>- address: {item.address}</div>
             </div>
           ))}
         </div>
@@ -553,9 +735,10 @@ export const GtpuSection = ({ gtpu }) => {
       {gtpu && (
         <div className="gtpu-section">
           <div className="twenty-spaces">gtpu:</div>
-          {gtpu.map((item, index) => (
-            <div key={index} className="twenty-spaces">
-              <div className="twenty-spaces">- addr: {item.addr}</div>          
+          <div className="forty-spaces">server:</div>
+          {gtpu.server.map((item, index) => (
+            <div key={index} className="sixty-spaces">
+              <div>- address: {item.address}</div>          
             </div>
           ))}
         </div>
@@ -573,6 +756,25 @@ export const SubnetSection = ({ subnet }) => {
           {subnet.map((item, index) => (
             <div key={index} className="twenty-spaces">
               <div className="twenty-spaces">- addr: {item.addr}</div>
+              {item.dnn && <div className="twenty-spaces">&nbsp;&nbsp;dnn: {item.dnn}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const SessionSection = ({ session }) => {
+  return (
+    <div>
+      {session && (
+        <div className="subnet-section">
+          <div className="twenty-spaces">session:</div>
+          {session.map((item, index) => (
+            <div key={index} className="twenty-spaces">
+              <div className="twenty-spaces">- subnet: {item.subnet}</div>
+              {item.gateway && <div className="twenty-spaces">&nbsp;&nbsp;gateway: {item.gateway}</div>}
               {item.dnn && <div className="twenty-spaces">&nbsp;&nbsp;dnn: {item.dnn}</div>}
             </div>
           ))}

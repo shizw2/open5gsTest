@@ -18,7 +18,7 @@ export const amfschema = {
         amf_name:schemas.amf_nameSchema,
         access_control: schemas.access_controlSchema,
         metrics: schemas.metricsSchema,
-        relative_capacity: schemas.relative_capSchema,
+        //relative_capacity: schemas.relative_capSchema,
         time: {
           type: "object",
           title: "Time",
@@ -34,7 +34,14 @@ export const amfschema = {
     //parameter: schemas.paraSchema,
     //sbi: schemas.sbiSchema,
     logger: schemas.loggerSchema,
-    cli: schemas.cliSchema,
+    global: {
+      type: "object",
+      title: "Global",
+      properties: {
+        cli: schemas.cliSchema,
+        parameter: schemas.paraSchema,
+      }
+    }
   },
 };
 
@@ -54,7 +61,7 @@ export const amfuiSchema = {
     security:schemas.securityUiSchema,
     network_name:schemas.network_nameUiSchema,
     amf_name:schemas.amf_nameUiSchema,
-    relative_capacity: schemas.relative_capUiSchema,
+    //relative_capacity: schemas.relative_capUiSchema,
     time: {
       classNames: "col-xs-12",
       nf_instance: schemas.time_nf_instanceUiSchema,
@@ -63,5 +70,9 @@ export const amfuiSchema = {
     },
   },
   //parameter: schemas.paraUiSchema,
-  cli: schemas.cliUiSchema,
+  global: {
+    classNames: "col-xs-12",
+    cli: schemas.cliUiSchema,
+    parameter: schemas.paraUiSchema,
+  }
 };

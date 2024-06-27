@@ -7,19 +7,27 @@ export const upfschema = {
     upf: {
       type: "object",
       title: "UPF",
-      properties: {          
-        pfcp:schemas.pfcpSchema,
+      properties: {
+        pfcp:schemas.upfpfcpSchema,
         gtpu:schemas.gtpuSchema,
-        emptyLine1:schemas.emptyLineSchema,
-        subnet:schemas.subnetSchema,
-        dpdk: schemas.dpdkSchema,
         metrics: schemas.metricsSchema,
+        emptyLine1:schemas.emptyLineSchema,
+        session: schemas.sessionSchema,
+        dpdk: schemas.dpdkSchema,
+        //relative_capacity: schemas.relative_capSchema,
       },
     },
     //smf: schemas.smfSchema,
-    parameter: schemas.paraSchema,
+    //parameter: schemas.paraSchema,
     logger: schemas.loggerSchema,
-    cli: schemas.cliSchema,
+    global: {
+      type: "object",
+      title: "Global",
+      properties: {
+        cli: schemas.cliSchema,
+        parameter: schemas.paraSchema,
+      }
+    }
   },
 };
 
@@ -28,13 +36,18 @@ export const upfuiSchema = {
   parameter: schemas.paraUiSchema,
   upf: {
     classNames: "col-xs-12",
-    pfcp:schemas.pfcpUiSchema,
+    pfcp:schemas.upfpfcpUiSchema,
     gtpu:schemas.gtpuUiSchema,
     emptyLine1:schemas.emptyLineUiSchema,
     dpdk: schemas.dpdkUiSchema,
-    metrics: schemas.metricsUiSchema,
-    subnet:schemas.subnetUiSchema,
+    //relative_capacity: schemas.relative_capUiSchema,
+    metrics: schemas.metricsShortUiSchema,
+    session: schemas.sessionUiSchema,
   },
-  cli: schemas.cliUiSchema,
+  global: {
+    classNames: "col-xs-12",
+    cli: schemas.cliUiSchema,
+    parameter: schemas.paraUiSchema,
+  }
   //smf: schemas.smfUiSchema,
 };

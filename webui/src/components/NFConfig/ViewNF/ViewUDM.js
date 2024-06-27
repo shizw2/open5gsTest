@@ -19,12 +19,13 @@ export const ViewUDM = ({ nfconfig }) => {
     <div>
       {/* 使用 LOGSection 组件 */}
       <LOGSection nfconfig={nfconfig} />
-
-      {/* 使用 NRFSection 组件 */}
-      <NRFSection nfconfig={nfconfig} />
-
-      {/* 使用 SBISection 组件 */}
-      <SBISection nfconfig={nfconfig} />
+      {nfconfig && nfconfig.global && (
+        <div className="global-section">
+          <div className="global-header">global:</div>
+          {nfconfig.global.cli && <CLISection cli={nfconfig.global.cli} />}
+          {nfconfig.global.parameter && <ParameterSection parameter={nfconfig.global.parameter} />}
+        </div>
+      )}
 
       <div>
         {udm && (
@@ -37,11 +38,13 @@ export const ViewUDM = ({ nfconfig }) => {
           </div>
         )}
       </div>
-      {parameter && <ParameterSection parameter={nfconfig.parameter} />}
-      {nfconfig && nfconfig.cli && <CLISection cli={nfconfig.cli} />}
+      
       {/*
       <MaxSection max={max} />
       <TimeSection time={time} />
+      {parameter && <ParameterSection parameter={nfconfig.parameter} />}
+      {nfconfig && nfconfig.cli && <CLISection cli={nfconfig.cli} />}
+      <div className="twenty-spaces">relative_capacity: {udm.relative_capacity && (udm.relative_capacity)}</div>
       */}
     </div>
   );

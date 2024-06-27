@@ -65,6 +65,17 @@ class Edit extends Component {
       if (formData.nrf && formData.nrf.relative_capacity)
         formData.nrf.relative_capacity = parseInt(formData.nrf.relative_capacity);
 
+      if (formData.nrf&&formData.nrf.serving &&Array.isArray(formData.nrf.serving)) {
+        formData.nrf.serving.forEach(serving => {         
+          if (typeof serving.plmn_id.mcc === 'number') {
+            serving.plmn_id.mcc = String(serving.plmn_id.mcc);
+          }
+          if (typeof serving.plmn_id.mnc === 'number') {
+            serving.plmn_id.mnc = String(serving.plmn_id.mnc);
+          }
+        });
+      }
+
       selectedSchema = nrfschema;
       selectedUiSchema = nrfuiSchema;
     } else if (formData._id === 'bsf' || formData._nf === 'bsf') {
@@ -120,6 +131,17 @@ class Edit extends Component {
               if (s_nssai.sd)
                 s_nssai.sd = String(s_nssai.sd);
             })
+          }
+        });
+      }
+
+      if (formData.amf && formData.amf.access_control && Array.isArray(formData.amf.access_control)) {
+        formData.amf.access_control.forEach(access_control => {         
+          if (access_control.plmn_id && typeof access_control.plmn_id.mcc === 'number') {
+            access_control.plmn_id.mcc = String(access_control.plmn_id.mcc);
+          }
+          if (access_control.plmn_id && typeof access_control.plmn_id.mnc === 'number') {
+            access_control.plmn_id.mnc = String(access_control.plmn_id.mnc);
           }
         });
       }

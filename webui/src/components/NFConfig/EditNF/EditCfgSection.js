@@ -59,9 +59,9 @@ export const loggerSchema = {
 };
 
 export const loggerUiSchema = {
-  classNames: "col-xs-6",
+  classNames: "col-xs-12",
   file: {
-    classNames: "col-xs-12",
+    classNames: "col-xs-8",
     "ui:title": <CustomTitle14 title="Log File" />,
     path: {
       classNames: "col-xs-12",
@@ -71,61 +71,71 @@ export const loggerUiSchema = {
     }
   },
   level: {
-    classNames: "col-xs-12",
+    classNames: "col-xs-4",
+    "ui:title": <CustomTitle14Border14 title="Log Level" />,
   },
 };
 
 export const cliSchema = {
-  type: "array",
+  type: "object",
   title: "CLI Configuration",
-  "maxItems": 4,
-  "messages": {
-      "maxItems": "4 Interfaces are supported"
-  },
-  items: {
-    type: "object",
-    properties: {
-      addr: {
-        type: "string",
-        title: "IP Address",
-        anyOf: [
-          { format: "ipv4" },
-          { format: "ipv6" },
-        ],
-        messages: {
-          "anyOf": "IPv4 or IPv6 allowed"
-        },
-        //format:"ipv4",
-        //description: "Please enter a valid IPv4/IPv6 Address",
-        required: true,
-        //default: "127.0.0.5"
+  properties: {
+    server:{
+      type: "array",
+      title: "Server",
+      "maxItems": 4,
+      "messages": {
+          "maxItems": "4 Interfaces are supported"
       },
-      port: {
-        type: "number",
-        title: "Port",
-        minimum: 1,
-        maximum: 65535,
-        required: true,
-        //default: 7777
+      items: {
+        type: "object",
+        properties: {
+          address: {
+            type: "string",
+            title: "IP Address",
+            anyOf: [
+              { format: "ipv4" },
+              { format: "ipv6" },
+            ],
+            messages: {
+              "anyOf": "IPv4 or IPv6 allowed"
+            },
+            //format:"ipv4",
+            //description: "Please enter a valid IPv4/IPv6 Address",
+            required: true,
+            //default: "127.0.0.5"
+          },
+          port: {
+            type: "number",
+            title: "Port",
+            minimum: 1,
+            maximum: 65535,
+            required: true,
+            //default: 7777
+          }
+        }
       }
     }
   }
 }
 
 export const cliUiSchema = {
-  classNames: "col-xs-6",
-  //"ui:title": <CustomTitle18 title="CLI Configuration" />,
-  //"ui:description": <Customhelp14 title={promptRestart} />,
-  items: {
-    addr: {
-      classNames: "col-xs-8",
-      //"ui:help": "Enter a valid IPv4/IPv6 Address",
-      //"ui:placeholder": "Enter a valid IPv4/IPv6 Address",
-    },
-    port: {
-      classNames: "col-xs-4"
+  classNames: "col-xs-12",
+  "ui:title": <CustomTitle18 title="CLI Configuration" />,
+  server: {
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="Server" />,
+    items: {
+      address: {
+        classNames: "col-xs-8",
+        //"ui:help": "Enter a valid IPv4/IPv6 Address",
+        //"ui:placeholder": "Enter a valid IPv4/IPv6 Address",
+      },
+      port: {
+        classNames: "col-xs-4"
+      }
     }
-  }
+  },
 };
 
 export const sbiSchema = {
@@ -437,6 +447,44 @@ export const nrfNFSchema = {
         },
       }
     },
+    serving: {
+      type: "array",
+      title: "Serving For Roaming",
+      minItems: 1,
+      maxItems: 8,
+      items: {
+        type: "object",
+        properties: {
+          plmn_id: {
+            type: "object",
+            title: "PLMN_ID",
+            properties: {
+              mcc: {
+                type: "string",
+                title: "MCC",
+                maxLength: 3,
+                //required: true,
+                pattern: "^\\d+$",
+                messages: {
+                  pattern: "Only digits are allowed"
+                }
+              },
+              mnc: {
+                type: "string",
+                title: "MNC",
+                maxLength: 3,
+                //required: true,
+                pattern: "^\\d+$",
+                messages: {
+                  pattern: "Only digits are allowed"
+                }
+              }
+            },
+            required: ["mcc", "mnc"]
+          },
+        },
+      },
+    },
     metrics: {
       type: "object",
       title:"Metrics",
@@ -477,44 +525,7 @@ export const nrfNFSchema = {
         }
       }
     },
-    serving: {
-      type: "array",
-      title: "Serving For Roaming",
-      minItems: 1,
-      maxItems: 8,
-      items: {
-        type: "object",
-        properties: {
-          plmn_id: {
-            type: "object",
-            title: "PLMN_ID",
-            properties: {
-              mcc: {
-                type: "string",
-                title: "MCC",
-                maxLength: 3,
-                //required: true,
-                pattern: "^\\d+$",
-                messages: {
-                  pattern: "Only digits are allowed"
-                }
-              },
-              mnc: {
-                type: "string",
-                title: "MNC",
-                maxLength: 3,
-                //required: true,
-                pattern: "^\\d+$",
-                messages: {
-                  pattern: "Only digits are allowed"
-                }
-              }
-            },
-            required: ["mcc", "mnc"]
-          },
-        },
-      },
-    },
+/*
     relative_capacity:
     {
       type: "number",
@@ -523,6 +534,7 @@ export const nrfNFSchema = {
       maximum: 100,
       required: true,
     }
+*/
   },
   //required:["addr","port"],
 };
@@ -530,7 +542,7 @@ export const nrfNFSchema = {
 export const nrfNFUiSchema = {
   classNames: "col-xs-12",
   metrics: {
-    classNames: "col-xs-6",
+    classNames: "col-xs-12",
     "ui:title": <CustomTitle18 title="Metrics" />,
     "ui:description": <Customhelp14 title={promptRestart} />,
     server:{
@@ -581,11 +593,13 @@ export const nrfNFUiSchema = {
       },
     }
   },
+/*
   relative_capacity: 
   {
     classNames: "col-xs-6",
     "ui:title": <CustomTitle18 title="Relative Capacity" />,
   }
+*/
 };
 
 export const nrfNFOldSchema = {
@@ -812,7 +826,7 @@ export const paraSchema = {
 
 export const paraUiSchema = {
   classNames: "col-xs-12",
-  //"ui:title": <CustomTitle18 title="Parameter" />,
+  "ui:title": <CustomTitle18 title="Parameter" />,
   capacity: {
     classNames: "col-xs-12"
   }
@@ -2690,7 +2704,7 @@ export const mtuSchema = {
 };
 
 export const mtuUiSchema = {
-  classNames: "col-xs-4",
+  classNames: "col-xs-6",
   "ui:title": <CustomTitle18Border15 title="MTU" />,
 };
 
@@ -2709,7 +2723,7 @@ export const ctfSchema = {
 };
 
 export const ctfUiSchema = {
-  classNames: "col-xs-4",
+  classNames: "col-xs-6",
   "ui:title": <CustomTitle18 title="CTF Gy Enabled" />,
   enabled: {
     classNames:"col-xs-12",

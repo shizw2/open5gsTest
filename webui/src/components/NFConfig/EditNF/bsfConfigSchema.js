@@ -10,14 +10,21 @@ export const bsfschema = {
       properties: {
         sbi: schemas.nf_sbi_Schema, 
         metrics: schemas.metricsSchema,
-        relative_capacity: schemas.relative_capSchema,
+        //relative_capacity: schemas.relative_capSchema,
       },
     },
     //nrf: schemas.nrfSchema,
     //parameter: schemas.paraSchema,
     //sbi: schemas.sbiSchema,
     logger: schemas.loggerSchema,
-    cli: schemas.cliSchema,
+    global: {
+      type: "object",
+      title: "Global",
+      properties: {
+        cli: schemas.cliSchema,
+        parameter: schemas.paraSchema,
+      }
+    }
   },
 };
 
@@ -30,7 +37,11 @@ export const bsfuiSchema = {
     classNames: "col-xs-12",
     sbi: schemas.nf_sbi_UiSchema,
     metrics: schemas.metricsUiSchema,
-    relative_capacity: schemas.relative_capUiSchema,
+    //relative_capacity: schemas.relative_capUiSchema,
   },
-  cli: schemas.cliUiSchema,
+  global: {
+    classNames: "col-xs-12",
+    cli: schemas.cliUiSchema,
+    parameter: schemas.paraUiSchema,
+  }
 };

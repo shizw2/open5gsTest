@@ -102,7 +102,7 @@ void amf_sps_update_cli_port(void){
     ogs_list_for_each(&ogs_global_conf()->cli_list, node) {
         addr = node->addr;
         port = OGS_PORT(addr);
-        addr->ogs_sin_port = htobe16(be16toh(addr->ogs_sin_port) + 1);
+        addr->ogs_sin_port = htobe16(be16toh(addr->ogs_sin_port) + g_sps_id);
         ogs_info("cli port change from %u to %u.\r\n", port,OGS_PORT(addr));
     }    
 }

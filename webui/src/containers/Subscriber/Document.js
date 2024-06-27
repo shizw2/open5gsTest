@@ -368,6 +368,14 @@ class Document extends Component {
                 {
                   errors.slice[i].session[j].pcc_rule[k].qos.gbr.uplink.value.addError(`non-GBR QCI`);
                 }
+                if (formData.slice[i].session[j].pcc_rule[k].qos.mbr.downlink.value)
+                {
+                  errors.slice[i].session[j].pcc_rule[k].qos.mbr.downlink.value.addError(`non-GBR QCI`);
+                }
+                if (formData.slice[i].session[j].pcc_rule[k].qos.mbr.uplink.value)
+                {
+                  errors.slice[i].session[j].pcc_rule[k].qos.mbr.uplink.value.addError(`non-GBR QCI`);
+                }
               }
             }
           }

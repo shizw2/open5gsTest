@@ -23,22 +23,29 @@ export const ViewAUSF = ({ nfconfig }) => {
       {/*<SBISection nfconfig={nfconfig} />*/}
 
       <div>
+      {nfconfig && nfconfig.global && (
+        <div className="global-section">
+          <div className="global-header">global:</div>
+          {nfconfig.global.cli && <CLISection cli={nfconfig.global.cli} />}
+          {nfconfig.global.parameter && <ParameterSection parameter={nfconfig.global.parameter} />}
+        </div>
+      )}
+
       {nfconfig && nfconfig.ausf && (
         <div className="nf-section">
           <div className="nf-header">ausf:</div>             
             <NF_SBI_Section  sbi={nfconfig.ausf.sbi} />
             <RTSUPIInfoSection info={nfconfig.ausf.info} />
             <MetricsSection metrics={nfconfig.ausf.metrics} />
-            <div className="twenty-spaces">relative_capacity: {nfconfig.ausf.relative_capacity && (nfconfig.ausf.relative_capacity)}</div>
         </div>
       )}
       </div>
       
-      {nfconfig && nfconfig.cli && <CLISection cli={nfconfig.cli} />}
       {/*
       <MaxSection max={max} />
       <TimeSection time={time} />
       {parameter && <ParameterSection parameter={nfconfig.parameter} />}
+      <div className="twenty-spaces">relative_capacity: {nfconfig.ausf.relative_capacity && (nfconfig.ausf.relative_capacity)}</div>
       */}
     </div>
   );
