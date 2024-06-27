@@ -282,6 +282,44 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
     return 0;
 }
 
+static int32_t handle_n6_ipip_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
+{
+	struct packet *pkt = (struct packet *)(m->buf_addr);
+    uint32_t ring = 0;
+	
+	int decrease = pkt->l2_len + pkt->l3_len - sizeof(struct rte_ether_hdr);
+	m->data_off += decrease;
+	m->data_len -= decrease;
+	m->pkt_len -= decrease;
+	struct rte_ether_hdr *eth_h = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
+
+	pkt->l2_len = sizeof(struct rte_ether_hdr);
+	struct ip *ip_h = rte_pktmbuf_mtod_offset(m, struct ip *, pkt->l2_len);
+	struct rte_ipv4_hdr *in_ipv4_h = (struct rte_ipv4_hdr *)ip_h;
+	if (UNLIKELY(ip_h->ip_v == 6)) {
+		//pkt->is_ipv4 = 0;
+		//get_ipv6_proto((struct rte_ipv6_hdr *)ip_h, &pkt->l3_len);
+		//eth_h->ether_type = BE_ETH_P_IPV6;
+	} else {
+		pkt->is_ipv4 = 1;
+		pkt->l3_len = (((struct rte_ipv4_hdr *)ip_h)->version_ihl & 0x0f) * 4;
+		eth_h->ether_type = BE_ETH_P_IP;
+	}
+	pkt->l4_len = 0;
+	pkt->tunnel_len = 0;
+
+	pkt->pkt_type = PKT_TYPE_IP_N6;
+    ring = ntohl(in_ipv4_h->dst_addr) % dkuf.fwd_num;
+    if (-ENOBUFS == rte_ring_sp_enqueue(dkuf.lconf[dkuf.fwd_lcore[ring]].f2f_ring, m)) {
+        ogs_error("%s, to %s enqueue f2fring failed\n", __func__, ip2str(in_ipv4_h->dst_addr));
+        return -1;
+    }
+    lconf->lstat.f2f_enqueue++;
+	return 0;
+	
+}
+
+
 static int32_t handle_n6_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
 {
     struct packet *pkt = (struct packet *)(m->buf_addr);
@@ -290,18 +328,27 @@ static int32_t handle_n6_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
     upf_sess_t *sess = NULL;
     ogs_pfcp_pdr_t *pdr = NULL;
 
+    struct ip *ip_h = (struct ip *)l3_head;
+    if(ip_h->ip_v == 4)
+    {
+        struct rte_ipv4_hdr *in_ipv4_h = (struct rte_ipv4_hdr *)ip_h;
+        if(in_ipv4_h->next_proto_id == IPPROTO_IPIP)
+        {
+            handle_n6_ipip_pkt(lconf, m);
+            return 0;
+        }
+    }
     sess = local_sess_find_by_ue_ip(lconf, l3_head, 1);
     if (!sess) {
         ogs_debug("%s, unmatch session by ip %s\n", __func__, ip_printf(l3_head, 1));
         lconf->lstat.sess_unmatch[1]++;
         return -1;
     }
-
     if(sess->bnbr)
     {
         //ogs_error("%s, destination ue %s is belong to nbr 0x%x\n", __func__, ip_printf(l3_head, 1), sess->nbraddr);
         //Ŀ��ue������������ע��
-        if(send_packet_to_nbr(lconf, m, sess->nbraddr) < 0)
+        if(send_packet_to_nbr_ipip(lconf, m, sess->nbraddr) < 0)
         {
             return -1;
 			

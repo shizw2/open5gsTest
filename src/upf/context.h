@@ -63,6 +63,7 @@ typedef struct upf_context_s {
     ogs_list_t sess_list;
 
     ogs_list_t      nbrlocalserver_list;
+    ogs_list_t      nbrlocalclient_list;
     ogs_list_t      nbrremoteserver_list;
 
     ogs_list_t      remoteclient_list;
@@ -72,6 +73,8 @@ typedef struct upf_context_s {
     ogs_list_t      remoteserver_list;
     ogs_hash_t      *remoteserver_addr_hash;
     uint16_t        nbrremoteserver_port;
+    ogs_timer_t    *nbr_timer;
+    uint16_t        clientportbegin;
 } upf_context_t;
 
 /* trie mapping from IP framed routes to session. */

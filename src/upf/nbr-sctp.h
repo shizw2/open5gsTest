@@ -34,6 +34,8 @@ void nbr_close(void);
 
 ogs_sock_t *nbr_server(ogs_socknode_t *node);
 ogs_sock_t *nbr_client(ogs_socknode_t *node);
+ogs_sock_t *nbr_client_byip(ogs_socknode_t *node, ogs_socknode_t *localnode);
+
 
 void nbr_recvremotclient_upcall(short when, ogs_socket_t fd, void *data);
 int nbr_send(ogs_sock_t *sock,
@@ -41,7 +43,8 @@ int nbr_send(ogs_sock_t *sock,
 
 
 int nbr_open_client_by_ip(uint32_t addr);
-int nbr_open_single_client(ogs_socknode_t *node);
+int nbr_open_single_client(ogs_socknode_t *node, uint16_t index);
+void nbr_client_check_timer_cb(void *data);
 
 #ifdef __cplusplus
 }

@@ -71,6 +71,7 @@ void upf_context_init(void)
     ogs_assert(self.ipv6_hash);
 
     ogs_list_init(&self.nbrlocalserver_list);
+    ogs_list_init(&self.nbrlocalclient_list);
     ogs_list_init(&self.nbrremoteserver_list);
 
     ogs_list_init(&self.remoteclient_list);
@@ -177,6 +178,10 @@ int upf_context_parse_config(void)
                     /* handle config in metrics library */
                 } else if (!strcmp(upf_key, "dpdk")) {
                     /* handle config in dpdk library */
+                } else if (!strcmp(upf_key, "nbrlocalserver")) {
+                    /* handle config in nbr function */
+                } else if (!strcmp(upf_key, "nbrremoteserver")) {
+                    /* handle config in nbr function */
                 } else
                     ogs_warn("unknown key `%s`", upf_key);
             }
@@ -1029,6 +1034,98 @@ int upf_context_parse_nbr_config(void)
                         }
 
                     } while (ogs_yaml_iter_type(&nbrlocalserver_array) ==
+                            YAML_SEQUENCE_NODE);
+                }
+				else if (!strcmp(upf_key, "nbrlocalclient")) {
+                    ogs_yaml_iter_t nbrlocalclient_array, nbrlocalclient_iter;
+                    ogs_yaml_iter_recurse(&upf_iter, &nbrlocalclient_array);
+                    do {
+                        int family = AF_UNSPEC;
+                        int i, num = 0;
+                        const char *hostname[OGS_MAX_NUM_OF_HOSTNAME];
+                        uint16_t port = 0;
+                        const char *dev = NULL;
+                        ogs_sockaddr_t *addr = NULL;
+
+                        if (ogs_yaml_iter_type(&nbrlocalclient_array) ==
+                                YAML_MAPPING_NODE) {
+                            memcpy(&nbrlocalclient_iter, &nbrlocalclient_array,
+                                    sizeof(ogs_yaml_iter_t));
+                        } else if (ogs_yaml_iter_type(&nbrlocalclient_array) ==
+                            YAML_SEQUENCE_NODE) {
+                            if (!ogs_yaml_iter_next(&nbrlocalclient_array))
+                                break;
+                            ogs_yaml_iter_recurse(&nbrlocalclient_array, &nbrlocalclient_iter);
+                        } else if (ogs_yaml_iter_type(&nbrlocalclient_array) ==
+                            YAML_SCALAR_NODE) {
+                            break;
+                        } else
+                            ogs_assert_if_reached();
+
+                        while (ogs_yaml_iter_next(&nbrlocalclient_iter)) {
+                            const char *nbrlocalclient_key =
+                                ogs_yaml_iter_key(&nbrlocalclient_iter);
+                            ogs_assert(nbrlocalclient_key);
+                            if (!strcmp(nbrlocalclient_key, "family")) {
+                                const char *v = ogs_yaml_iter_value(&nbrlocalclient_iter);
+                                if (v) family = atoi(v);
+                                if (family != AF_UNSPEC &&
+                                    family != AF_INET && family != AF_INET6) {
+                                    ogs_warn("Ignore family(%d) : "
+                                        "AF_UNSPEC(%d), "
+                                        "AF_INET(%d), AF_INET6(%d) ",
+                                        family, AF_UNSPEC, AF_INET, AF_INET6);
+                                    family = AF_UNSPEC;
+                                }
+                            } else if (!strcmp(nbrlocalclient_key, "addr") ||
+                                    !strcmp(nbrlocalclient_key, "name")) {
+                                ogs_yaml_iter_t hostname_iter;
+                                ogs_yaml_iter_recurse(
+                                        &nbrlocalclient_iter, &hostname_iter);
+                                ogs_assert(ogs_yaml_iter_type(&hostname_iter) !=
+                                    YAML_MAPPING_NODE);
+
+                                do {
+                                    if (ogs_yaml_iter_type(&hostname_iter) ==
+                                            YAML_SEQUENCE_NODE) {
+                                        if (!ogs_yaml_iter_next(&hostname_iter))
+                                            break;
+                                    }
+
+                                    ogs_assert(num < OGS_MAX_NUM_OF_HOSTNAME);
+                                    hostname[num++] =
+                                        ogs_yaml_iter_value(&hostname_iter);
+                                } while (
+                                    ogs_yaml_iter_type(&hostname_iter) ==
+                                        YAML_SEQUENCE_NODE);
+                            } else if (!strcmp(nbrlocalclient_key, "port")) {
+                                const char *v = ogs_yaml_iter_value(&nbrlocalclient_iter);
+                                if (v)
+								{
+								    port = atoi(v);
+									self.clientportbegin = port;
+                                }
+                            } else if (!strcmp(nbrlocalclient_key, "dev")) {
+                                dev = ogs_yaml_iter_value(&nbrlocalclient_iter);
+                            } else
+                                ogs_warn("unknown key `%s`", nbrlocalclient_key);
+                        }
+
+                        addr = NULL;
+                        for (i = 0; i < num; i++) {
+                            rv = ogs_addaddrinfo(&addr,
+                                    family, hostname[i], port, 0);
+                            ogs_assert(rv == OGS_OK);
+                        }
+
+                        if (addr) {
+                                ogs_socknode_add(
+                                        &self.nbrlocalclient_list, AF_INET, addr, NULL);
+
+                            ogs_freeaddrinfo(addr);
+                        }
+
+                    } while (ogs_yaml_iter_type(&nbrlocalclient_array) ==
                             YAML_SEQUENCE_NODE);
                 }
 				else if(!strcmp(upf_key, "nbrremoteserver")){

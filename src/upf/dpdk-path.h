@@ -46,6 +46,7 @@ void fwd_flush_buffered_packet(upf_sess_t *sess);
 
 int fwd_handle_volume_session_report(struct rte_ring *r, ogs_pfcp_pdr_t *pdr, upf_sess_t *sess, uint8_t type_volume);
 int send_packet_to_nbr(struct lcore_conf *lconf, struct rte_mbuf *m, uint32_t nbraddr);
+int send_packet_to_nbr_ipip(struct lcore_conf *lconf, struct rte_mbuf *m, uint32_t nbraddr);
 
 #endif
 

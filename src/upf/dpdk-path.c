@@ -1122,4 +1122,111 @@ int send_packet_to_nbr(struct lcore_conf *lconf, struct rte_mbuf *m, uint32_t nb
 	return 0;
 }
 
+int send_packet_to_nbr_ipip(struct lcore_conf *lconf, struct rte_mbuf *m, uint32_t nbraddr)
+{
+    struct rte_ether_hdr *eth_h;
+    struct packet *pkt = (struct packet *)(m->buf_addr);
+    uint8_t is_ipv4 = 0;
+	uint32_t netxhop = 0;
+	arp_node_t *arp = NULL;
+	nd_node_t *nd = NULL;
+    struct rte_ipv4_hdr *ipv4_h = NULL;
+	
+    char *ptr = rte_pktmbuf_mtod(m, char *);
+	ipv4_h = (struct rte_ipv4_hdr *)(ptr + pkt->l2_len - IP_HDR_LEN);
+	
+    int l4_len = m->pkt_len - pkt->l2_len + IP_HDR_LEN;
+	
+    eth_h = (struct rte_ether_hdr *)((char *)ipv4_h - L2_HDR_LEN);
+    pkt->l3_len = IP_HDR_LEN;
+
+	static uint16_t pkt_id = 100;
+    ipv4_h->version_ihl = IP_VHL_DEF;
+    ipv4_h->type_of_service = 0;
+    ipv4_h->packet_id = pkt_id++;
+    ipv4_h->fragment_offset = 0; /* [15,14,13] bits for flags, [12 - 0] bits for offset */
+    ipv4_h->time_to_live = IPDEFTTL - 1;
+    ipv4_h->next_proto_id = IPPROTO_IPIP;
+    ipv4_h->src_addr = dkuf.n6_addr.ipv4;
+    ipv4_h->dst_addr = nbraddr;
+    ipv4_h->total_length = rte_cpu_to_be_16(IP_HDR_LEN + l4_len);
+    ipv4_h->hdr_checksum = 0;
+    if (dkuf.tx_offloads[0] & DEV_TX_OFFLOAD_IPV4_CKSUM) {
+        m->l3_len = IP_HDR_LEN;  //set l2_len & used m->l2_len/l3_len later;
+        m->ol_flags |= (PKT_TX_IPV4 | PKT_TX_IP_CKSUM);
+    } else {
+        m->ol_flags &= (~(PKT_TX_IPV4 | PKT_TX_IP_CKSUM));
+        ipv4_h->hdr_checksum = rte_ipv4_cksum(ipv4_h);
+    }
+    eth_h->ether_type = BE_ETH_P_IP;
+    is_ipv4 = 1;
+
+	int increase = IP_HDR_LEN;
+    m->data_len += increase;
+    m->pkt_len += increase;
+    m->data_off -= increase;
+	
+    char *l3_head = rte_pktmbuf_mtod_offset(m, char *, pkt->l2_len);
+	
+	struct ip *ip_h = (struct ip *)l3_head;
+	if (ip_h->ip_v == 4) {
+		is_ipv4 = 1;
+		struct rte_ipv4_hdr *in_ipv4_h = (struct rte_ipv4_hdr *)ip_h;
+
+		//mac_copy((struct rte_ether_addr *)&dkuf.mac[1], &eth_h->src_addr);
+		mac_copy((struct rte_ether_addr *)&dkuf.mac[0], &eth_h->s_addr);
+		//arp = arp_find(lconf, in_ipv4_h->dst_addr, 1);
+#if 0   /* getnexthop 后续搞清楚再完善*/     
+		netxhop = getnexthop(lconf, nbraddr);
+		if(netxhop == 0)
+		{   
+			lconf->lstat.tx_dropped[1]++;
+			return -1;
+		}
+		//arp = arp_find(lconf, in_ipv4_h->dst_addr, 0);
+		arp = arp_find(lconf, netxhop, 0);
+#endif   
+        arp = arp_find(lconf, in_ipv4_h->dst_addr, 0);  
+		if (arp->flag == ARP_ND_SEND) {
+			if (arp->pkt_list_cnt < MAX_PKT_BURST) {
+				pkt->next = arp->pkt_list;
+				arp->pkt_list = pkt;
+				arp->pkt_list_cnt++;
+				return 0;
+			} else {
+				lconf->lstat.tx_dropped[1]++;
+				return -1;
+			}
+		}
+		mac_copy((struct rte_ether_addr *)arp->mac, &eth_h->d_addr);
+	} else if (ip_h->ip_v == 6) {
+		#if 0
+		struct rte_ipv6_hdr *in_ipv6_h = (struct rte_ipv6_hdr *)ip_h;
+
+		eth_h = (struct rte_ether_hdr *)((char *)ip_h - sizeof(*eth_h));
+		mac_copy((struct rte_ether_addr *)&dkuf.mac[0], &eth_h->s_addr);
+		nd = nd_find(lconf, in_ipv6_h->dst_addr, 1);
+		if (nd->flag == ARP_ND_SEND) {
+			if (nd->pkt_list_cnt < MAX_PKT_BURST) {
+				pkt->next = nd->pkt_list;
+				nd->pkt_list = pkt;
+				nd->pkt_list_cnt++;
+				return 0;
+			} else {
+				lconf->lstat.tx_dropped[1]++;
+				return -1;
+			}
+		}
+		mac_copy((struct rte_ether_addr *)nd->mac, &eth_h->d_addr);
+		#endif
+	} else {
+		return -1;
+	}
+
+	//send_packet(lconf, 1, m, is_ipv4);
+	send_packet(lconf, 0, m, is_ipv4);
+
+	return 0;
+}
+
 

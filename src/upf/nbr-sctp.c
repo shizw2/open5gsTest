@@ -22,6 +22,8 @@
 
 #include "nbr-sctp.h"
 
+#define NBR_CLIENT_LOOP_INTERVAL    60
+
 static void lksctp_accept_handler(short when, ogs_socket_t fd, void *data);
 static void lksctp_recv_handler(short when, ogs_socket_t fd, void *data);
 
@@ -74,6 +76,35 @@ ogs_sock_t *nbr_client(ogs_socknode_t *node)
     return sock;
 }
 
+
+ogs_sock_t *nbr_client_byip(ogs_socknode_t *node, ogs_socknode_t *localnode)
+{
+    char buf[OGS_ADDRSTRLEN];
+	char buf1[OGS_ADDRSTRLEN];
+    ogs_sock_t *sock = NULL;
+
+    ogs_assert(node);
+
+	ogs_info("nbr_client_byip current local addr [%s]:%d",
+                OGS_ADDR(localnode->addr, buf1), OGS_PORT(localnode->addr));
+    sock = ogs_sctp_client_byip(SOCK_STREAM, node, localnode);
+    if (sock) {
+        node->poll = ogs_pollset_add(ogs_app()->pollset,
+                OGS_POLLIN, sock->fd, lksctp_recv_handler, sock);
+        ogs_assert(node->poll);
+        ogs_info("nbr client remote server() [%s]:%d",
+                OGS_ADDR(&sock->remote_addr, buf), OGS_PORT(&sock->remote_addr));
+		ogs_sockaddr_t *addr = NULL;
+
+        addr = ogs_calloc(1, sizeof(ogs_sockaddr_t));
+        ogs_assert(addr);
+        memcpy(addr, &sock->remote_addr, sizeof(ogs_sockaddr_t));
+		nbr_event_push(UPF_EVT_NBR_LO_CONNECTED,
+                sock, addr, NULL, 0, 0);
+    }
+
+    return sock;
+}
 
 void nbr_recvremotclient_upcall(short when, ogs_socket_t fd, void *data)
 {
@@ -365,10 +396,44 @@ void nbr_recv_remoteserver_handler(ogs_sock_t *sock)
     ogs_pkbuf_free(pkbuf);
 }
 
+void nbr_client_check_timer_cb(void *data)
+{
+    ogs_socknode_t *node = NULL;
+    uint16_t index = 0;
+	upf_remoteserver_t *remoteserver = NULL;
+
+	ogs_error("nbr_client_check_timer_cb time out");
+	ogs_socknode_t *node2 = NULL;
+	ogs_list_for_each(&upf_self()->nbrlocalclient_list, node2)
+	{
+		break;
+	}
+	if(!node2)
+	{
+	    return;
+	}
+	ogs_list_for_each(&upf_self()->nbrremoteserver_list, node)
+	{
+	    remoteserver = upf_remoteserver_find_by_remoteclient_ipaddr(node->addr->sin.sin_addr.s_addr);
+		if(!remoteserver)
+		{
+		    ogs_error("current node not connect to remote server 0x%x, index %d, clientportbegin %d",
+                    node->addr->sin.sin_addr.s_addr, index, upf_self()->clientportbegin);
+			node2->addr->ogs_sin_port = htobe16(upf_self()->clientportbegin) + htobe16(index);
+		    if (nbr_client_byip(node, node2) == NULL)
+		    {
+				ogs_error("Connect to remote server failed");
+		    }
+		}
+		index++;
+	}
+	ogs_timer_start(upf_self()->nbr_timer, ogs_time_from_sec(NBR_CLIENT_LOOP_INTERVAL));
+}
 int nbr_open(void)
 {
     ogs_socknode_t *node = NULL;
-
+    ogs_socknode_t *node2 = NULL;
+	uint16_t index = 0;
     ogs_list_for_each(&upf_self()->nbrlocalserver_list, node)
     {
         if (nbr_server(node) == NULL)
@@ -376,27 +441,63 @@ int nbr_open(void)
 			continue;
         }
     }
-
+    
+	ogs_list_for_each(&upf_self()->nbrlocalclient_list, node2)
+    {
+        break;
+    }
+    if(!node2)
+    {
+        ogs_info("nbrlocalclient_list is null");
+        return OGS_OK;
+    }
+	ogs_info("upf_self()->clientportbegin is 0x%x", upf_self()->clientportbegin);
     ogs_list_for_each(&upf_self()->nbrremoteserver_list, node)
     {
-        if (nbr_client(node) == NULL)
+        ogs_info("nbrremoteserver_list index is %d", index);
+        node2->addr->ogs_sin_port = htobe16(upf_self()->clientportbegin) + htobe16(index);
+        if (nbr_client_byip(node, node2) == NULL)
         {
-			continue;
+			//continue;
         }
+		index++;
     }
 
+	if(node2)
+	{
+	    ogs_info("start nbr client check timer");
+		upf_self()->nbr_timer = ogs_timer_add(ogs_app()->timer_mgr, nbr_client_check_timer_cb, NULL);
+	    ogs_assert(upf_self()->nbr_timer);
+
+	    ogs_timer_start(upf_self()->nbr_timer, ogs_time_from_sec(NBR_CLIENT_LOOP_INTERVAL));
+	}
     return OGS_OK;
 }
 
 void nbr_close()
 {
     ogs_socknode_remove_all(&upf_self()->nbrlocalserver_list);
+    ogs_socknode_remove_all(&upf_self()->nbrlocalclient_list);
     ogs_socknode_remove_all(&upf_self()->nbrremoteserver_list);
 }
-int nbr_open_single_client(ogs_socknode_t *node)
+int nbr_open_single_client(ogs_socknode_t *node, uint16_t index)
 {
-
-    if (nbr_client(node) == NULL)
+    ogs_socknode_t *node2 = NULL;
+	ogs_list_for_each(&upf_self()->nbrlocalclient_list, node2)
+	{
+		break;
+	}
+    if(node2)
+    {
+        node2->addr->ogs_sin_port = htobe16(upf_self()->clientportbegin) + htobe16(index);
+		ogs_error("index is %d, port is 0x%x", index, node2->addr->ogs_sin_port);
+    }
+	else
+	{
+	    ogs_error("local client not exist,return");
+		return OGS_OK;
+	}
+    if (nbr_client_byip(node, node2) == NULL)
     {
 		ogs_error("Connect to remote server failed");
     }
@@ -407,14 +508,15 @@ int nbr_open_single_client(ogs_socknode_t *node)
 int nbr_open_client_by_ip(uint32_t addr)
 {
     ogs_socknode_t *node = NULL;
-
+    uint16_t index = 0;
 	ogs_list_for_each(&upf_self()->nbrremoteserver_list, node)
 	{
 	    if(node->addr->sin.sin_addr.s_addr == addr)
 	    {
-	        nbr_open_single_client(node);
+	        nbr_open_single_client(node, index);
 			break;
 	    }
+		index++;
 	}
 	return  OGS_OK;
 }

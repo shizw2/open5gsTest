@@ -187,6 +187,48 @@ ogs_sock_t *ogs_sctp_client(
     return new;
 }
 
+ogs_sock_t *ogs_sctp_client_byip(int type, ogs_socknode_t *node, ogs_socknode_t *localnode)
+{
+    ogs_sock_t *new = NULL;
+    ogs_sockaddr_t *addr;
+    char buf[OGS_ADDRSTRLEN];
+
+    ogs_assert(node);
+    ogs_assert(node->addr);
+
+    addr = node->addr;
+    while (addr) {
+        new = ogs_sctp_socket(addr->ogs_sa_family, type);
+        if (new) {
+			if(localnode && localnode->addr)
+			{
+			    ogs_assert(ogs_sock_bind(new, localnode->addr) == OGS_OK);
+                ogs_debug("new->local_addr[%s]:%d", OGS_ADDR(&new->local_addr, buf), OGS_PORT(&new->local_addr));
+			}
+            if (ogs_sock_connect(new, addr) == OGS_OK) {
+                ogs_debug("sctp_client() [%s]:%d",
+                        OGS_ADDR(addr, buf), OGS_PORT(addr));
+                break;
+            }
+
+            ogs_sock_destroy(new);
+        }
+
+        addr = addr->next;
+    }
+
+    if (addr == NULL) {
+        ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
+                "sctp_client() [%s]:%d failed",
+                OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
+        return NULL;
+    }
+
+    node->sock = new;
+
+    return new;
+}
+
 int ogs_sctp_connect(ogs_sock_t *sock, ogs_sockaddr_t *sa_list)
 {
     ogs_sockaddr_t *addr;
