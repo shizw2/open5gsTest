@@ -53,6 +53,7 @@ typedef struct upf_context_s {
     ogs_hash_t *smf_n4_seid_hash;   /* hash table (SMF-N4-SEID) */
     ogs_hash_t *smf_n4_f_seid_hash; /* hash table (SMF-N4-F-SEID) */
     ogs_hash_t *ipv4_hash;  /* hash table (IPv4 Address) */
+    struct ipv4_hashtbl *nbr_ipv4_hash;
     ogs_hash_t *ipv6_hash;  /* hash table (IPv6 Address) */
     ogs_hash_t *frag_hash;  /* hash table (frag key) */
     /* IPv4 framed routes trie */

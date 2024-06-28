@@ -100,6 +100,24 @@ static uint16_t _get_eth_type(uint8_t *data, uint len) {
     }
     return 0;
 }
+uint16_t ip_checksum(void *data, int len) ;
+uint16_t ip_checksum(void *data, int len) {
+    uint32_t sum = 0;
+    uint16_t *buf = data;
+
+    while (len > 1) {
+        sum += *buf++;
+        len -= 2;
+    }
+
+    if (len == 1) {
+        sum += htons(*(uint8_t *)buf);
+    }
+
+    sum = (sum >> 16) + (sum & 0xFFFF);
+    sum += (sum >> 16);
+    return ~sum;
+} 
 
 static void _gtpv1_tun_recv_common_cb(
         short when, ogs_socket_t fd, bool has_eth, void *data)
@@ -166,10 +184,47 @@ static void _gtpv1_tun_recv_common_cb(
         ogs_pkbuf_pull(recvbuf, ETHER_HDR_LEN);
     }
 
+    //TODO:判断如果为IP over IP，则剥掉第一个IP头
+    struct ip *ip_h = (struct ip *)recvbuf->data;
+    if(ip_h->ip_v == 4){
+        if(ip_h->ip_p == IPPROTO_IPIP){
+            ogs_pkbuf_pull(recvbuf, ip_h->ip_hl*4);
+        }
+    }
+    
     sess = upf_sess_find_by_ue_ip_address(recvbuf);
     if (!sess)
         goto cleanup;
 
+    //TODO:如果是sess->bnbr，则添加IP头，发送IP over IP报文
+    if (sess->bnbr) {
+        // 创建并添加 IPv4 头部
+        struct ip *ip_header = (struct ip *)ogs_pkbuf_push(recvbuf, sizeof(struct ip));
+        memset(ip_header, 0, sizeof(struct ip)); // 清除头部以确保没有垃圾数据
+        static uint16_t pkt_id = 100;
+        // 设置 IPv4 头部字段
+        ip_header->ip_hl = sizeof(struct ip) >> 2; // 头部长度（32位字）
+        ip_header->ip_v = 4; // IPv4 版本
+        ip_header->ip_tos = 0; // 服务类型（TOS）
+        ip_header->ip_id = pkt_id++; 
+        ip_header->ip_off = 0; // 片段偏移
+        ip_header->ip_ttl = 64; // 时间到活（TTL）
+        ip_header->ip_p = IPPROTO_IPIP;
+        ip_header->ip_sum = 0; // 校验和，稍后计算
+
+        // 设置源和目的 IP 地址
+        //inet_pton(AF_INET, "源IP地址", &ip_header->ip_src);
+        //inet_pton(AF_INET, "目的IP地址", &ip_header->ip_dst);
+        ip_header->ip_dst.s_addr  = sess->nbraddr;
+
+        // 计算 IPv4 头部的校验和
+        ip_header->ip_sum = ip_checksum((char *)ip_header, sizeof(struct ip));
+        
+        if (ogs_tun_write(fd, recvbuf) != OGS_OK)
+                ogs_warn("ogs_tun_write() ipip failed");
+            
+        goto cleanup;            
+    }
     ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
         far = pdr->far;
         ogs_assert(far);
