@@ -501,10 +501,10 @@ int nbr_open(void)
         filter_code,
     };
 
-    if(setsockopt(upf_self()->nbr_rawsocket, SOL_SOCKET, SO_ATTACH_FILTER, &filter_prog, sizeof(filter_prog)) == -1) {
+    /*if(setsockopt(upf_self()->nbr_rawsocket, SOL_SOCKET, SO_ATTACH_FILTER, &filter_prog, sizeof(filter_prog)) == -1) {
         perror("Failed to set socket filter");
         exit(EXIT_FAILURE);
-    }
+    }*/
 
     ogs_pollset_add(ogs_app()->pollset,
                 OGS_POLLIN, upf_self()->nbr_rawsocket, _gtpv1_nbr_recv_common_cb, upf_self()->nbr_rawsocket);
