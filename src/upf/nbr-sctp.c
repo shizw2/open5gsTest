@@ -505,10 +505,10 @@ int nbr_open(void)
         perror("Failed to set socket filter");
         exit(EXIT_FAILURE);
     }*/
-
+    
     ogs_pollset_add(ogs_app()->pollset,
                 OGS_POLLIN, upf_self()->nbr_rawsocket, _gtpv1_nbr_recv_common_cb, upf_self()->nbr_rawsocket);
-    
+    ogs_info("add raw socket success。fd:%d.",upf_self()->nbr_rawsocket);
     return OGS_OK;
 }
 
