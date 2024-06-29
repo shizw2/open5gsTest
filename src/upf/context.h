@@ -225,7 +225,7 @@ upf_remoteserver_t *upf_remoteserver_find_by_remoteclient_ipaddr(uint32_t ipaddr
 void upf_send_singlelocalueip_to_nbrclient_del(uint32_t ueaddr);
 void upf_send_alllocalueip_to_newnbrclient(upf_remoteclient_t *remoteclient);
 void upf_handle_remoteserver_lost(uint32_t nbrserveraddr);
-
+int ipv4_hash_remove_nbrservaddr(struct ipv4_hashtbl *h, uint32_t ip);
 #ifdef __cplusplus
 }
 #endif

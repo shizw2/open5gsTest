@@ -23,6 +23,9 @@
 #if defined(USE_DPDK)
 #include "upf-dpdk.h"
 #include "ctrl-path.h"
+#else
+#include <assert.h>
+#include "hash.h"
 #endif
 
 static upf_context_t self;
@@ -70,6 +73,9 @@ void upf_context_init(void)
     self.ipv6_hash = ogs_hash_make();
     ogs_assert(self.ipv6_hash);
 
+    self.nbr_ipv4_hash = ipv4_hash_create(1024);
+    ogs_assert(self.nbr_ipv4_hash);
+
     ogs_list_init(&self.nbrlocalserver_list);
     ogs_list_init(&self.nbrlocalclient_list);
     ogs_list_init(&self.nbrremoteserver_list);
@@ -111,6 +117,12 @@ void upf_context_final(void)
     ogs_hash_destroy(self.ipv4_hash);
     ogs_assert(self.ipv6_hash);
     ogs_hash_destroy(self.ipv6_hash);
+    ogs_assert(self.nbr_ipv4_hash);
+    ipv4_hash_destroy(self.nbr_ipv4_hash);
+    ogs_assert(self.remoteclient_addr_hash);
+    ogs_hash_destroy(self.remoteclient_addr_hash);
+    ogs_assert(self.remoteserver_addr_hash);
+    ogs_hash_destroy(self.remoteserver_addr_hash);
 
     free_upf_route_trie_node(self.ipv4_framed_routes);
     free_upf_route_trie_node(self.ipv6_framed_routes);
@@ -1425,7 +1437,65 @@ void upf_send_singlelocalueip_to_nbrclient(uint32_t ueaddr)
 
 void upf_handle_remoteserver_nbrmessage(upf_nbr_message_t *nbrmessage, uint16_t len)
 {
+    upf_sess_t *old = NULL;
+	upf_sess_t *new_sess = NULL;
+	upf_sess_t *sess = NULL;
+    uint16_t loop;
     ogs_error("upf_handle_remoteserver_nbrmessage() start");
+
+    //增加nbr ue
+	if(nbrmessage->optype == 1)
+	{
+		for(loop = 0; loop < nbrmessage->uenum; loop++)
+		{
+		    ogs_error("loop %d, addr %s\n", loop, ogs_ipv4_to_string(nbrmessage->addr[loop]));
+		    old = ipv4_sess_find(self.nbr_ipv4_hash, nbrmessage->addr[loop]);
+
+			if (old)
+			{
+		        ipv4_hash_remove(self.nbr_ipv4_hash, nbrmessage->addr[loop]);
+		        //fwd_flush_buffered_packet(old);
+		        //free_upf_dpdk_sess(old);
+                ogs_free(old);
+		    }
+			new_sess = ogs_malloc(sizeof(upf_sess_t));
+			if(!new_sess)
+			{
+			    ogs_error("dpdk_malloc failed\n");
+			    continue;
+			}
+			new_sess->bnbr = 1;
+			new_sess->nbraddr = nbrmessage->serveraddr;
+			ogs_error("upf_local_nbr_handle ipaddr %s\n", ogs_ipv4_to_string(nbrmessage->addr[loop]));
+			ipv4_hash_insert(self.nbr_ipv4_hash, nbrmessage->addr[loop], new_sess);
+		}
+	}
+    else if(nbrmessage->optype == 2)
+    {
+        //删除ue
+        for(loop = 0; loop < nbrmessage->uenum; loop++)
+		{
+		    old = ipv4_sess_find(self.nbr_ipv4_hash, nbrmessage->addr[loop]);
+
+			if (old)
+			{
+			    if(old->nbraddr == nbrmessage->serveraddr)
+			    {
+			        ipv4_hash_remove(self.nbr_ipv4_hash, nbrmessage->addr[loop]);
+			        //fwd_flush_buffered_packet(old);
+			        //free_upf_dpdk_sess(old);
+                    ogs_free(old);
+			    }
+		    }
+		}
+    }
+	else if(nbrmessage->optype == 3)
+	{
+	    //remote nbr server lost,delete all nbrserver ue
+	    ipv4_hash_remove_nbrservaddr(self.nbr_ipv4_hash, nbrmessage->serveraddr);
+	}
+
+
 	#if defined(USE_DPDK)
 	upf_dpdk_nbr_notify(nbrmessage);
     #endif
@@ -1526,3 +1596,59 @@ void upf_send_alllocalueip_to_newnbrclient(upf_remoteclient_t *remoteclient)
 	}
 }
 
+
+int ipv4_hash_remove_nbrservaddr(struct ipv4_hashtbl *h, uint32_t ip)
+{
+    ipv4_node_t *prev, *next = NULL;
+    ipv4_node_t *cur = NULL;
+    uint32_t i;
+	upf_sess_t *sess = NULL;
+	//ogs_error("%s, serveraddr 0x%x\n", __func__, ip);
+	assert(h && h->htable);
+
+    for (i = 0; i < h->size; i++)
+	{
+        cur = h->htable[i];
+        while (cur) 
+		{
+
+			sess = (upf_sess_t *)cur->sess;
+			#if 0
+			if(sess)
+			{
+			    ogs_error("%s, sess->nbraddr 0x%x\n", __func__, sess->nbraddr);
+			}
+			#endif
+			if(sess && sess->nbraddr == ip)
+			{
+			    next = cur->next;
+	            next->prev = cur->prev;
+
+				if (cur->prev)
+				{
+			        prev = cur->prev;
+			        prev->next = cur->next;
+			    } else
+				{
+			        h->htable[ip & h->bitmask] = next;
+			    }
+				free(cur);
+                #if defined(USE_DPDK)
+				free_upf_dpdk_sess(sess);
+                #else
+                ogs_free(sess);
+                #endif
+				h->num--;
+				cur = next;
+			}
+			else
+			{
+	            next = cur->next;
+	            cur = next;
+			}
+
+			
+        }
+    }
+    return 0;
+}

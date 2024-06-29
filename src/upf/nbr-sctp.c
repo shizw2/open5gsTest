@@ -44,6 +44,8 @@ ogs_sock_t *nbr_server(ogs_socknode_t *node)
             OGS_POLLIN, sock->fd, lksctp_accept_handler, sock);
     ogs_assert(node->poll);
 
+    node->sock = sock;//新增,否则内存泄露
+
     ogs_info("nbr_server() [%s]:%d",
             OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
 

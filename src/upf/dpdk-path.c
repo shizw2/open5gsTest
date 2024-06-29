@@ -292,7 +292,7 @@ int gtp_send_user_plane(
 
     /* Fill Extention Header */
     if (gtp_h->flags & OGS_GTPU_FLAGS_E) {
-        uint8_t *ext_h = (uint8_t *)(gtp_h + OGS_GTPV1U_HEADER_LEN + OGS_GTPV1U_EXTENSION_HEADER_LEN);//不确定
+        uint8_t *ext_h = (uint8_t *)((char*)gtp_h + OGS_GTPV1U_HEADER_LEN + OGS_GTPV1U_EXTENSION_HEADER_LEN);
         ogs_assert(ext_h);
 
         /* Copy Header Type */

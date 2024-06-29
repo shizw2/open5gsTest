@@ -19,7 +19,7 @@
 #include <rte_tcp.h>
 #include <rte_icmp.h>
 
-int ipv4_hash_remove_nbrservaddr(struct ipv4_hashtbl *h, uint32_t ip);
+
 
 int32_t handle_arp(struct lcore_conf *lconf, struct rte_mbuf *m);
 int32_t handle_arp(struct lcore_conf *lconf, struct rte_mbuf *m)
@@ -595,57 +595,6 @@ static int upf_local_sess_del(struct lcore_conf *lconf, void *body)
 }
 
 
-int ipv4_hash_remove_nbrservaddr(struct ipv4_hashtbl *h, uint32_t ip)
-{
-    ipv4_node_t *prev, *next = NULL;
-    ipv4_node_t *cur = NULL;
-    uint32_t i;
-	upf_sess_t *sess = NULL;
-	//ogs_error("%s, serveraddr 0x%x\n", __func__, ip);
-	assert(h && h->htable);
-
-    for (i = 0; i < h->size; i++)
-	{
-        cur = h->htable[i];
-        while (cur) 
-		{
-
-			sess = (upf_sess_t *)cur->sess;
-			#if 0
-			if(sess)
-			{
-			    ogs_error("%s, sess->nbraddr 0x%x\n", __func__, sess->nbraddr);
-			}
-			#endif
-			if(sess && sess->nbraddr == ip)
-			{
-			    next = cur->next;
-	            next->prev = cur->prev;
-
-				if (cur->prev)
-				{
-			        prev = cur->prev;
-			        prev->next = cur->next;
-			    } else
-				{
-			        h->htable[ip & h->bitmask] = next;
-			    }
-				free(cur);
-				free_upf_dpdk_sess(sess);
-				h->num--;
-				cur = next;
-			}
-			else
-			{
-	            next = cur->next;
-	            cur = next;
-			}
-
-			
-        }
-    }
-    return 0;
-}
 
 
 static int upf_local_nbr_handle(struct lcore_conf *lconf, upf_nbr_message_t *nbrmessage)
@@ -658,7 +607,7 @@ static int upf_local_nbr_handle(struct lcore_conf *lconf, upf_nbr_message_t *nbr
 	//ogs_error("%s, serveraddr 0x%x\n", __func__, nbrmessage->serveraddr);
 	//ogs_error("%s, uenum %d\n", __func__, nbrmessage->uenum);
 	//ogs_error("%s, coreid %d\n", __func__, lconf->lcore);
-	//����nbr ue
+	//增加nbr ue
 	if(nbrmessage->optype == 1)
 	{
 		for(loop = 0; loop < nbrmessage->uenum; loop++)
@@ -686,7 +635,7 @@ static int upf_local_nbr_handle(struct lcore_conf *lconf, upf_nbr_message_t *nbr
 	}
     else if(nbrmessage->optype == 2)
     {
-        //ɾ��ue
+        //删除ue
         for(loop = 0; loop < nbrmessage->uenum; loop++)
 		{
 		    old = ipv4_sess_find(lconf->ipv4_hash, nbrmessage->addr[loop]);
