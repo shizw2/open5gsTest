@@ -287,7 +287,11 @@ void upf_state_operational(ogs_fsm_t *s, upf_event_t *e)
         ogs_assert(e);
         recvbuf = e->pkbuf;
         ogs_assert(recvbuf);
+        addr = e->nbr.addr;
         upf_handle_remoteserver_nbrmessage((upf_nbr_message_t *)recvbuf->data, recvbuf->len);
+        if (addr){
+            ogs_free(addr);
+        }
         break;
     default:
         ogs_error("No handler for event %s", upf_event_get_name(e));

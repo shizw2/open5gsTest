@@ -168,7 +168,7 @@ void upf_terminate(void)
 
     upf_metrics_final();
 
-    nbr_close();
+    //nbr_close(); 
 }
 
 #if defined(USE_DPDK)

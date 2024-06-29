@@ -107,6 +107,9 @@ void upf_context_final(void)
 
     upf_sess_remove_all();
 
+    upf_remoteclient_remove_all();
+    upf_remoteserver_remove_all();
+
     ogs_assert(self.upf_n4_seid_hash);
     ogs_hash_destroy(self.upf_n4_seid_hash);
     ogs_assert(self.smf_n4_seid_hash);
@@ -130,6 +133,8 @@ void upf_context_final(void)
     ogs_pool_final(&upf_sess_pool);
     ogs_pool_final(&upf_n4_seid_pool);
 
+    ogs_pool_final(&upf_remoteclient_pool);
+    ogs_pool_final(&upf_remoteserver_pool);
     context_initialized = 0;
 }
 
@@ -300,6 +305,7 @@ void upf_sess_remove_all(void)
         upf_sess_remove(sess);
     }
 }
+
 
 upf_sess_t *upf_sess_find_by_smf_n4_seid(uint64_t seid)
 {
@@ -1309,6 +1315,7 @@ upf_remoteserver_t *upf_remoteserver_add(ogs_sock_t *sock, ogs_sockaddr_t *addr)
     memset(remoteserver, 0, sizeof *remoteserver);
 
     remoteserver->sctp.sock = sock;
+    ogs_info("upf_remoteserver_add,add:%p",addr);
     remoteserver->sctp.addr = addr;
 	remoteserver->sctp.type = SOCK_SEQPACKET;
     /*
@@ -1384,6 +1391,7 @@ void upf_remoteserver_remove(upf_remoteserver_t *remoteserver)
         ogs_sctp_destroy(remoteserver->sctp.sock);
     }
 	if(remoteserver->sctp.addr){
+        ogs_info("upf_remoteserver_remove,free addr:%p",remoteserver->sctp.addr);
 	    ogs_free(remoteserver->sctp.addr);
 	}
     ogs_pool_free(&upf_remoteserver_pool, remoteserver);
@@ -1414,6 +1422,8 @@ void upf_send_singlelocalueip_to_nbrclient(uint32_t ueaddr)
     int sent;
 	uint16_t len;
 	upf_remoteclient_t *remoteclient = NULL;
+
+    ogs_info("upf_send_singlelocalueip_to_nbrclient, addr:0x%x.",ueaddr);
 	
 	memset(&nbrmessage, 0, sizeof(upf_nbr_message_t));
 	#if defined(USE_DPDK)
@@ -1441,14 +1451,16 @@ void upf_handle_remoteserver_nbrmessage(upf_nbr_message_t *nbrmessage, uint16_t 
 	upf_sess_t *new_sess = NULL;
 	upf_sess_t *sess = NULL;
     uint16_t loop;
-    ogs_error("upf_handle_remoteserver_nbrmessage() start");
+    char *ipstr = NULL;
+    ogs_error("upf_handle_remoteserver_nbrmessage() start,uenum:%d",nbrmessage->uenum);
 
     //增加nbr ue
 	if(nbrmessage->optype == 1)
 	{
 		for(loop = 0; loop < nbrmessage->uenum; loop++)
 		{
-		    ogs_error("loop %d, addr %s\n", loop, ogs_ipv4_to_string(nbrmessage->addr[loop]));
+            ipstr = ogs_ipv4_to_string(nbrmessage->addr[loop]);
+		    ogs_error("loop %d, addr %s\n", loop, ipstr);
 		    old = ipv4_sess_find(self.nbr_ipv4_hash, nbrmessage->addr[loop]);
 
 			if (old)
@@ -1466,8 +1478,9 @@ void upf_handle_remoteserver_nbrmessage(upf_nbr_message_t *nbrmessage, uint16_t 
 			}
 			new_sess->bnbr = 1;
 			new_sess->nbraddr = nbrmessage->serveraddr;
-			ogs_error("upf_local_nbr_handle ipaddr %s\n", ogs_ipv4_to_string(nbrmessage->addr[loop]));
+			ogs_error("upf_handle_remoteserver_nbrmessage, ipaddr %s\n", ipstr);
 			ipv4_hash_insert(self.nbr_ipv4_hash, nbrmessage->addr[loop], new_sess);
+            ogs_free(ipstr);
 		}
 	}
     else if(nbrmessage->optype == 2)
