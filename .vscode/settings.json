@@ -98,6 +98,8 @@
         "string_view": "c",
         "telnet.h": "c",
         "ogs-sbi.h": "c",
-        "hash.h": "c"
+        "hash.h": "c",
+        "nbr-sctp.h": "c",
+        "filter.h": "c"
     }
 }

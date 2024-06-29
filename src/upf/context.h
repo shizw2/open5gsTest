@@ -76,6 +76,8 @@ typedef struct upf_context_s {
     uint16_t        nbrremoteserver_port;
     ogs_timer_t    *nbr_timer;
     uint16_t        clientportbegin;
+
+    int nbr_rawsocket;
 } upf_context_t;
 
 /* trie mapping from IP framed routes to session. */

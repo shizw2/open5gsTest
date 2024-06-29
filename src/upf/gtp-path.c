@@ -703,6 +703,52 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 #endif
                 goto cleanup;
             }
+            
+            //如果目的IP是同网段的
+            if (ip_h->ip_v == 4){
+                if (subnet->sub.sub[0] == (ip_h->ip_dst.s_addr & subnet->sub.mask[0])) {
+                    ogs_info("target ue is in the same subnet, it is a ue to ue msg.");
+                    sess = upf_sess_find_by_ue_ip_address(pkbuf);
+                    
+                    //如果是sess->bnbr，则添加IP头，发送IP over IP报文
+                    //if (sess && sess->bnbr) {
+                    if (1){
+                        ogs_info("test:it is a nbr pkt.");
+                        // 创建并添加 IPv4 头部
+                        struct ip *ip_header = (struct ip *)ogs_pkbuf_push(pkbuf, sizeof(struct ip));
+                        memset(ip_header, 0, sizeof(struct ip)); // 清除头部以确保没有垃圾数据
+                        static uint16_t pkt_id = 100;
+                        // 设置 IPv4 头部字段
+                        ip_header->ip_hl = sizeof(struct ip) >> 2; // 头部长度（32位字）
+                        ip_header->ip_v = 4; // IPv4 版本
+                        ip_header->ip_tos = 0; // 服务类型（TOS）
+                        ip_header->ip_id = pkt_id++; 
+                        ip_header->ip_off = 0; // 片段偏移
+                        ip_header->ip_ttl = 64; // 时间到活（TTL）
+                        ip_header->ip_p = IPPROTO_IPIP;
+                        ip_header->ip_sum = 0; // 校验和，稍后计算
+                        ip_header->ip_len = htons(pkbuf->len);
+                        // 设置源和目的 IP 地址
+                        
+                        //ip_header->ip_dst.s_addr  = sess->nbraddr;
+                        //ip_header->ip_src.s_addr  = sess->nbraddr;
+                        inet_pton(AF_INET, "192.168.6.31", &ip_header->ip_src);
+                        inet_pton(AF_INET, "192.168.6.33", &ip_header->ip_dst);
+                        // 计算 IPv4 头部的校验和
+                        ip_header->ip_sum = ip_checksum((char *)ip_header, sizeof(struct ip));
+                        
+                        struct sockaddr_in sin;
+                        sin.sin_family = AF_INET;
+                        sin.sin_addr.s_addr = ip_header->ip_dst.s_addr;
+                        if (ogs_tun_write(subnet->dev->fd, pkbuf) != OGS_OK)
+                                ogs_warn("ogs_tun_write() ipip failed");
+                        /*if (sendto(upf_self()->nbr_rawsocket, pkbuf->data, pkbuf->len, 0, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+                        }*/        
+                            
+                        goto cleanup;            
+                    }
+                }
+            }
 
             dev = subnet->dev;
             ogs_assert(dev);
@@ -967,5 +1013,165 @@ static void upf_gtp_handle_multicast(ogs_pkbuf_t *recvbuf)
                 }
             }
         }
+    }
+}
+
+void _gtpv1_nbr_recv_common_cb(
+        short when, ogs_socket_t fd, void *data);
+void _gtpv1_nbr_recv_common_cb(
+        short when, ogs_socket_t fd, void *data)
+{
+    ogs_pkbuf_t *recvbuf = NULL;
+
+    upf_sess_t *sess = NULL;
+    ogs_pfcp_pdr_t *pdr = NULL;
+    ogs_pfcp_pdr_t *fallback_pdr = NULL;
+    ogs_pfcp_far_t *far = NULL;
+    ogs_pfcp_user_plane_report_t report;
+    int i;
+    bool free_recvbuf = true;
+    ogs_sockaddr_t from;
+    ssize_t size;
+
+    recvbuf = ogs_pkbuf_alloc(packet_pool, OGS_MAX_PKT_LEN);
+    ogs_assert(recvbuf);
+    ogs_pkbuf_reserve(recvbuf, OGS_TUN_MAX_HEADROOM);
+    ogs_pkbuf_put(recvbuf, OGS_MAX_PKT_LEN-OGS_TUN_MAX_HEADROOM);
+
+    size = ogs_recvfrom(fd, recvbuf->data, recvbuf->len, 0, &from);
+    if (size <= 0) {
+        ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
+                "ogs_recv() failed");
+        goto cleanup;
+    }
+
+    ogs_pkbuf_trim(recvbuf, size);
+
+    
+    //TODO:判断如果为IP over IP，则剥掉第一个IP头
+    struct ip *ip_h = (struct ip *)recvbuf->data;
+    if(ip_h->ip_v == 4){
+        ogs_info("test: it is a ip over ip pkt.");
+        if(ip_h->ip_p == IPPROTO_IPIP){
+            ogs_pkbuf_pull(recvbuf, ip_h->ip_hl*4);
+        }
+    }
+    
+    sess = upf_sess_find_by_ue_ip_address(recvbuf);
+    if (!sess)
+        goto cleanup;
+
+    //TODO:如果是sess->bnbr，则添加IP头，发送IP over IP报文
+    if (sess->bnbr) {
+        // 创建并添加 IPv4 头部
+        struct ip *ip_header = (struct ip *)ogs_pkbuf_push(recvbuf, sizeof(struct ip));
+        memset(ip_header, 0, sizeof(struct ip)); // 清除头部以确保没有垃圾数据
+        static uint16_t pkt_id = 100;
+        // 设置 IPv4 头部字段
+        ip_header->ip_hl = sizeof(struct ip) >> 2; // 头部长度（32位字）
+        ip_header->ip_v = 4; // IPv4 版本
+        ip_header->ip_tos = 0; // 服务类型（TOS）
+        ip_header->ip_id = pkt_id++; 
+        ip_header->ip_off = 0; // 片段偏移
+        ip_header->ip_ttl = 64; // 时间到活（TTL）
+        ip_header->ip_p = IPPROTO_IPIP;
+        ip_header->ip_sum = 0; // 校验和，稍后计算
+
+        // 设置源和目的 IP 地址
+        //inet_pton(AF_INET, "源IP地址", &ip_header->ip_src);
+        //inet_pton(AF_INET, "目的IP地址", &ip_header->ip_dst);
+        ip_header->ip_dst.s_addr  = sess->nbraddr;
+
+        // 计算 IPv4 头部的校验和
+        ip_header->ip_sum = ip_checksum((char *)ip_header, sizeof(struct ip));
+        
+        if (ogs_tun_write(fd, recvbuf) != OGS_OK)
+                ogs_warn("ogs_tun_write() ipip failed");
+            
+        goto cleanup;            
+    }
+    ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
+        far = pdr->far;
+        ogs_assert(far);
+
+        /* Check if PDR is Downlink */
+        if (pdr->src_if != OGS_PFCP_INTERFACE_CORE)
+            continue;
+
+        /* Save the Fallback PDR : Lowest precedence downlink PDR */
+        fallback_pdr = pdr;
+
+        /* Check if FAR is Downlink */
+        if (far->dst_if != OGS_PFCP_INTERFACE_ACCESS)
+            continue;
+
+        /* Check if Outer header creation */
+        if (far->outer_header_creation.ip4 == 0 &&
+            far->outer_header_creation.ip6 == 0 &&
+            far->outer_header_creation.udp4 == 0 &&
+            far->outer_header_creation.udp6 == 0 &&
+            far->outer_header_creation.gtpu4 == 0 &&
+            far->outer_header_creation.gtpu6 == 0)
+            continue;
+
+        /* Check if Rule List in PDR */
+        if (ogs_list_first(&pdr->rule_list) &&
+            ogs_pfcp_pdr_rule_find_by_packet(pdr, recvbuf) == NULL)
+            continue;
+
+        break;
+    }
+
+    if (!pdr)
+        pdr = fallback_pdr;
+
+    if (!pdr) {
+        if (ogs_global_conf()->parameter.multicast) {
+            upf_gtp_handle_multicast(recvbuf);
+        }
+        goto cleanup;
+    }
+
+    /* Increment total & dl octets + pkts */
+    for (i = 0; i < pdr->num_of_urr; i++)
+        upf_sess_urr_acc_add(sess, pdr->urr[i], recvbuf->len, false);
+
+    ogs_assert(true == ogs_pfcp_up_handle_pdr(
+                pdr, OGS_GTPU_MSGTYPE_GPDU, NULL, recvbuf, &report, false));
+    free_recvbuf = false;
+    /*
+     * Issue #2210, Discussion #2208, #2209
+     *
+     * Metrics reduce data plane performance.
+     * It should not be used on the UPF/SGW-U data plane
+     * until this issue is resolved.
+     */
+
+//暂时放开测试性能展示
+    if (pkt_metric_flag){//统计降低upf性能,默认关闭,可通过命令行打开
+        upf_metrics_inst_global_inc(UPF_METR_GLOB_CTR_GTP_OUTDATAPKTN3UPF);
+    }
+#if 0
+
+    upf_metrics_inst_by_qfi_add(pdr->qer->qfi,
+        UPF_METR_CTR_GTP_OUTDATAVOLUMEQOSLEVELN3UPF, recvbuf->len);
+#endif
+
+    if (report.type.downlink_data_report) {
+        ogs_assert(pdr->sess);
+        sess = UPF_SESS(pdr->sess);
+        ogs_assert(sess);
+
+        report.downlink_data.pdr_id = pdr->id;
+        if (pdr->qer && pdr->qer->qfi)
+            report.downlink_data.qfi = pdr->qer->qfi; /* for 5GC */
+
+        ogs_assert(OGS_OK ==
+            upf_pfcp_send_session_report_request(sess, &report));
+    }
+
+cleanup:
+    if (free_recvbuf){
+        ogs_pkbuf_free(recvbuf);
     }
 }

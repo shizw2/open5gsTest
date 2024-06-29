@@ -21,7 +21,7 @@
 #include "context.h"
 
 #include "nbr-sctp.h"
-
+#include <linux/filter.h>
 #define NBR_CLIENT_LOOP_INTERVAL    60
 
 static void lksctp_accept_handler(short when, ogs_socket_t fd, void *data);
@@ -431,6 +431,10 @@ void nbr_client_check_timer_cb(void *data)
 	}
 	ogs_timer_start(upf_self()->nbr_timer, ogs_time_from_sec(NBR_CLIENT_LOOP_INTERVAL));
 }
+
+void _gtpv1_nbr_recv_common_cb(
+        short when, ogs_socket_t fd, void *data);
+
 int nbr_open(void)
 {
     ogs_socknode_t *node = NULL;
@@ -473,8 +477,41 @@ int nbr_open(void)
 
 	    ogs_timer_start(upf_self()->nbr_timer, ogs_time_from_sec(NBR_CLIENT_LOOP_INTERVAL));
 	}
+
+    upf_self()->nbr_rawsocket = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+    if (upf_self()->nbr_rawsocket < 0) {
+        perror("Error creating socket");
+        exit(1);
+    }
+
+    ogs_list_for_each(&upf_self()->nbrremoteserver_list, node)
+    {
+        
+    }
+
+    struct sock_filter filter_code[] = {
+    { 0x20, 0, 0, 0x00000000 },
+    { 0x15, 0, 1, 0xC0A80621 }, // 修改为实际使用的IP地址（192.168.6.33）的网络字节序表示
+    { 0x06, 0, 0, 0xFFFFFFFF },
+    { 0x06, 0, 0, 0x00000000 },
+    };
+
+    struct sock_fprog filter_prog = {
+        sizeof(filter_code) / sizeof(struct sock_filter),
+        filter_code,
+    };
+
+    if(setsockopt(upf_self()->nbr_rawsocket, SOL_SOCKET, SO_ATTACH_FILTER, &filter_prog, sizeof(filter_prog)) == -1) {
+        perror("Failed to set socket filter");
+        exit(EXIT_FAILURE);
+    }
+
+    ogs_pollset_add(ogs_app()->pollset,
+                OGS_POLLIN, upf_self()->nbr_rawsocket, _gtpv1_nbr_recv_common_cb, upf_self()->nbr_rawsocket);
+    
     return OGS_OK;
 }
+
 
 void nbr_close()
 {
