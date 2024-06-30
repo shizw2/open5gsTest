@@ -307,8 +307,8 @@ const schema = {
                             "direction": {
                               "type": "number",
                               "title": "Flow Direction*",
-                              "enum": [1, 2],
-                              "enumNames": ["Downlink", "Uplink"],
+                              "enum": [1, 2, 3],
+                              "enumNames": ["Downlink", "Uplink", "Bidirection"],
                               "default": 1,
                             },
                             "description": {

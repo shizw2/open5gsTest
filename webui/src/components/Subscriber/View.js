@@ -578,6 +578,7 @@ const View = ({ visible, disableOnClickOutside, subscriber, onEdit, onDelete, on
                                   <div className="small_data" style={{color:oc.gray[5]}}>
                                     {flow.direction == 1 && "Downlink"}
                                     {flow.direction == 2 && "Uplink"}
+                                    {flow.direction == 3 && "Bidirection"}
                                   </div>
                                   <div className="large_data" style={{width:"480px"}}>{flow.description}</div>
                                 </div>
