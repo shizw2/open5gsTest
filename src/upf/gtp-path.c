@@ -183,21 +183,15 @@ static void _gtpv1_tun_recv_common_cb(
         }
         ogs_pkbuf_pull(recvbuf, ETHER_HDR_LEN);
     }
-    
-   
-    //TODO:判断如果为IP over IP，则剥掉第一个IP头
+
     struct ip *ip_h = (struct ip *)recvbuf->data;
-    if(ip_h->ip_v == 4){
-        if(ip_h->ip_p == IPPROTO_IPIP){
-            ogs_pkbuf_pull(recvbuf, ip_h->ip_hl*4);
-        }
-    }
     ogs_info("tun receive a new msg, 0x%x.",ip_h->ip_dst.s_addr);
     sess = ipv4_sess_find(upf_self()->nbr_ipv4_hash, ip_h->ip_dst.s_addr); 
 
     //如果是sess->bnbr，则添加IP头，发送IP over IP报文
     if (sess && sess->bnbr) {
-        ogs_info("it is a nbr pkt.");
+        
+        #if 0
         // 创建并添加 IPv4 头部
         struct ip *ip_header = (struct ip *)ogs_pkbuf_push(recvbuf, sizeof(struct ip));
         memset(ip_header, 0, sizeof(struct ip)); // 清除头部以确保没有垃圾数据
@@ -222,11 +216,16 @@ static void _gtpv1_tun_recv_common_cb(
         inet_pton(AF_INET, "10.7.202.111", &ip_header->ip_dst);
         // 计算 IPv4 头部的校验和
         ip_header->ip_sum = ip_checksum((char *)ip_header, sizeof(struct ip));
+        #endif
+        
+        if (sess->nbraddr == 0){
+            inet_pton(AF_INET, "10.7.202.111", &sess->nbraddr);
+        }
         
         struct sockaddr_in sin;
         sin.sin_family = AF_INET;
-        sin.sin_addr.s_addr = ip_header->ip_dst.s_addr;
-
+        sin.sin_addr.s_addr = sess->nbraddr;
+        ogs_info("it is a nbr pkt,sendto:0x%x",sess->nbraddr);
         if (sendto(upf_self()->nbr_rawsocket, recvbuf->data, recvbuf->len, 0, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
         }       
             
