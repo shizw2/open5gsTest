@@ -28,17 +28,21 @@ int ogs_gtp2_send_user_plane(
     int rv;
 
     ogs_gtp2_fill_header(gtp_hdesc, ext_hdesc, pkbuf);
-#if 0
-    ogs_trace("SEND GTP-U[%d] to Peer[%s] : TEID[0x%x]",
-            gtp_hdesc->type, OGS_ADDR(&gnode->addr, buf), gtp_hdesc->teid);
-#endif
 //    ogs_gtp_msendto(gnode, pkbuf);
-#if 1 
     if (gnode->connect_flag){
         rv = ogs_gtp_send(gnode, pkbuf);
     }else{
         rv = ogs_gtp_sendto(gnode, pkbuf);
     }
+
+    if (ogs_core()->log.level >= OGS_LOG_TRACE){//即使打印级别不够,ogs_trace仍然会损失部分性能
+        ogs_trace("SEND GTP-U[%d] to Peer[%s] : TEID[0x%x]",
+                gtp_hdesc->type, OGS_ADDR(&gnode->addr, buf), gtp_hdesc->teid);
+    }
+
+    //rv = ogs_gtp_sendto(gnode, pkbuf); //ogs_gtp_send比ogs_gtp_sendto少了路由查找,性能更高
+    rv = ogs_gtp_send(gnode, pkbuf);
+>>>>>>> c1e483cea76f4cf43b75e8a3304f7a1b518dbf1f
     if (rv != OGS_OK) {
         if (ogs_socket_errno != OGS_EAGAIN) {
             ogs_error("SEND GTP-U[%d] to Peer[%s] : TEID[0x%x]",
@@ -47,7 +51,7 @@ int ogs_gtp2_send_user_plane(
     }
 
     ogs_pkbuf_free(pkbuf);
-#endif
+
     return rv;
 }
 

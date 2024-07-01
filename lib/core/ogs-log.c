@@ -372,6 +372,10 @@ int ogs_log_config_domain(const char *domain, const char *level)
             }
         }
 
+        if (!domain){
+            ogs_core()->log.level = l;//更新level
+        }
+
         ogs_log_set_mask_level(domain, l);
     }
 

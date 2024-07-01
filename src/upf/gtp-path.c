@@ -215,7 +215,7 @@ static void _gtpv1_tun_recv_common_cb(
         upf_sess_urr_acc_add(sess, pdr->urr[i], recvbuf->len, false);
 
     ogs_assert(true == ogs_pfcp_up_handle_pdr(
-                pdr, OGS_GTPU_MSGTYPE_GPDU, recvbuf, &report));
+                pdr, OGS_GTPU_MSGTYPE_GPDU, recvbuf, &report, false));
     free_recvbuf = false;
     /*
      * Issue #2210, Discussion #2208, #2209
@@ -245,7 +245,7 @@ static void _gtpv1_tun_recv_common_cb(
         ogs_assert(OGS_OK ==
             upf_pfcp_send_session_report_request(sess, &report));
     }
-    
+
 cleanup:
     if (free_recvbuf)
         ogs_pkbuf_free(recvbuf);
@@ -279,7 +279,8 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
     uint32_t teid;
     uint8_t qfi;
-
+    bool free_recvbuf = true;
+    
     ogs_assert(fd != INVALID_SOCKET);
     sock = data;
     ogs_assert(sock);
@@ -332,8 +333,9 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
     teid = be32toh(gtp_h->teid);
 
+
     ogs_trace("[RECV] GPU-U Type [%d] from [%s] : TEID[0x%x]",
-            gtp_h->type, OGS_ADDR(&from, buf1), teid);
+                gtp_h->type, OGS_ADDR(&from, buf1), teid);
 
     qfi = 0;
     if (gtp_h->flags & OGS_GTPU_FLAGS_E) {
@@ -687,7 +689,8 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
         } else if (far->dst_if == OGS_PFCP_INTERFACE_ACCESS) {
             ogs_assert(true == ogs_pfcp_up_handle_pdr(
-                        pdr, gtp_h->type, pkbuf, &report));
+                        pdr, gtp_h->type, pkbuf, &report, false));
+            free_recvbuf = false;
 
             if (report.type.downlink_data_report) {
                 ogs_error("Indirect Data Fowarding Buffered");
@@ -714,7 +717,8 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             }
 
             ogs_assert(true == ogs_pfcp_up_handle_pdr(
-                        pdr, gtp_h->type, pkbuf, &report));
+                        pdr, gtp_h->type, pkbuf, &report, false));
+            free_recvbuf = false;
 
             ogs_assert(report.type.downlink_data_report == 0);
 
@@ -912,7 +916,7 @@ static void upf_gtp_handle_multicast(ogs_pkbuf_t *recvbuf)
                         if (pdr->src_if == OGS_PFCP_INTERFACE_CORE) {
                             ogs_assert(true ==
                                 ogs_pfcp_up_handle_pdr(pdr,
-                                    OGS_GTPU_MSGTYPE_GPDU, recvbuf, &report));
+                                    OGS_GTPU_MSGTYPE_GPDU, recvbuf, &report, true));
                             break;
                         }
                     }
