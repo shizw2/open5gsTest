@@ -43,7 +43,7 @@ extern "C" {
  *
  * So, we'll just use 12bytes.
  */
-#define OGS_TUN_MAX_HEADROOM 16
+#define OGS_TUN_MAX_HEADROOM 20
 
 ogs_socket_t ogs_tun_open(char *ifname, int maxlen, int is_tap);
 int ogs_tun_set_ip(char *ifname, ogs_ipsubnet_t *gw,  ogs_ipsubnet_t *sub);

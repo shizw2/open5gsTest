@@ -195,7 +195,7 @@ static void _gtpv1_tun_recv_common_cb(
     ogs_info("tun receive a new msg, 0x%x.",ip_h->ip_dst.s_addr);
     sess = ipv4_sess_find(upf_self()->nbr_ipv4_hash, ip_h->ip_dst.s_addr); 
 
-    //TODO:如果是sess->bnbr，则添加IP头，发送IP over IP报文
+    //如果是sess->bnbr，则添加IP头，发送IP over IP报文
     if (sess && sess->bnbr) {
         ogs_info("it is a nbr pkt.");
         // 创建并添加 IPv4 头部
@@ -211,17 +211,24 @@ static void _gtpv1_tun_recv_common_cb(
         ip_header->ip_ttl = 64; // 时间到活（TTL）
         ip_header->ip_p = IPPROTO_IPIP;
         ip_header->ip_sum = 0; // 校验和，稍后计算
-
+        ip_header->ip_len = htons(recvbuf->len);
         // 设置源和目的 IP 地址
         //inet_pton(AF_INET, "源IP地址", &ip_header->ip_src);
         //inet_pton(AF_INET, "目的IP地址", &ip_header->ip_dst);
         ip_header->ip_dst.s_addr  = sess->nbraddr;
 
+        
+        inet_pton(AF_INET, "10.7.4.45", &ip_header->ip_src);
+        inet_pton(AF_INET, "10.7.202.111", &ip_header->ip_dst);
         // 计算 IPv4 头部的校验和
         ip_header->ip_sum = ip_checksum((char *)ip_header, sizeof(struct ip));
         
-        if (ogs_tun_write(fd, recvbuf) != OGS_OK)
-                ogs_warn("ogs_tun_write() ipip failed");
+        struct sockaddr_in sin;
+        sin.sin_family = AF_INET;
+        sin.sin_addr.s_addr = ip_header->ip_dst.s_addr;
+
+        if (sendto(upf_self()->nbr_rawsocket, recvbuf->data, recvbuf->len, 0, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+        }       
             
         goto cleanup;            
     }
@@ -1068,7 +1075,7 @@ void _gtpv1_nbr_recv_common_cb(
     sess = upf_sess_find_by_ue_ip_address(recvbuf);
     if (!sess)
         goto cleanup;
-
+#if 0
     //TODO:如果是sess->bnbr，则添加IP头，发送IP over IP报文
     if (sess->bnbr) {
         // 创建并添加 IPv4 头部
@@ -1098,6 +1105,7 @@ void _gtpv1_nbr_recv_common_cb(
             
         goto cleanup;            
     }
+#endif    
     ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
         far = pdr->far;
         ogs_assert(far);
