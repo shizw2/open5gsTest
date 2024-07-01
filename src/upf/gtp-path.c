@@ -52,7 +52,7 @@
 #include "gtp-path.h"
 #include "pfcp-path.h"
 #include "rule-match.h"
-
+#include "hash.h"
 #define UPF_GTP_HANDLED     1
 
 const uint8_t proxy_mac_addr[] = { 0x0e, 0x00, 0x00, 0x00, 0x00, 0x01 };
@@ -192,12 +192,10 @@ static void _gtpv1_tun_recv_common_cb(
         }
     }
     
-    sess = upf_sess_find_by_ue_ip_address(recvbuf);
-    if (!sess)
-        goto cleanup;
+    sess = ipv4_sess_find(upf_self()->nbr_ipv4_hash, ip_h->ip_dst.s_addr); 
 
     //TODO:如果是sess->bnbr，则添加IP头，发送IP over IP报文
-    if (sess->bnbr) {
+    if (sess && sess->bnbr) {
         // 创建并添加 IPv4 头部
         struct ip *ip_header = (struct ip *)ogs_pkbuf_push(recvbuf, sizeof(struct ip));
         memset(ip_header, 0, sizeof(struct ip)); // 清除头部以确保没有垃圾数据
@@ -225,6 +223,11 @@ static void _gtpv1_tun_recv_common_cb(
             
         goto cleanup;            
     }
+    
+    sess = upf_sess_find_by_ue_ip_address(recvbuf);
+    if (!sess)
+        goto cleanup;
+    
     ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
         far = pdr->far;
         ogs_assert(far);
@@ -704,6 +707,8 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
                 goto cleanup;
             }
             
+            //发送到TUN口后，目的地址如果是同一网段，TUN口还能收到。所以在tun口收包处进行处理即可
+            #if 0
             //如果目的IP是同网段的
             if (ip_h->ip_v == 4){
                 if (subnet->sub.sub[0] == (ip_h->ip_dst.s_addr & subnet->sub.mask[0])) {
@@ -749,6 +754,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
                     }
                 }
             }
+            #endif
 
             dev = subnet->dev;
             ogs_assert(dev);

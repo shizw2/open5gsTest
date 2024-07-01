@@ -190,7 +190,7 @@ ipv4_hash_destroy(struct ipv4_hashtbl *h)
     uint32_t i;
     ipv4_node_t *cur, *next;
 
-    assert(h && h->htable);
+    //assert(h && h->htable);
 
     for (i = 0; i < h->size; i++) {
         cur = h->htable[i];
