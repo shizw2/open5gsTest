@@ -1579,10 +1579,15 @@ void upf_send_alllocalueip_to_newnbrclient(upf_remoteclient_t *remoteclient)
     int sent;
 	uint16_t len;
 	upf_sess_t *sess = NULL, *next = NULL;;
-
+    ogs_socknode_t *node = NULL;
 	memset(&nbrmessage, 0, sizeof(upf_nbr_message_t));
 	#if defined(USE_DPDK)
 	nbrmessage.serveraddr = dkuf.n6_addr.ipv4;
+    #else
+    node = ogs_list_first(&self.nbrlocalserver_list);
+    if (node != NULL){
+        nbrmessage.serveraddr = node->addr->sin.sin_addr;
+    }
 	#endif
 	nbrmessage.optype = 1;
     ogs_list_for_each_safe(&self.sess_list, next, sess)
