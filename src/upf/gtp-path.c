@@ -183,7 +183,8 @@ static void _gtpv1_tun_recv_common_cb(
         }
         ogs_pkbuf_pull(recvbuf, ETHER_HDR_LEN);
     }
-
+    
+   
     //TODO:判断如果为IP over IP，则剥掉第一个IP头
     struct ip *ip_h = (struct ip *)recvbuf->data;
     if(ip_h->ip_v == 4){
@@ -191,11 +192,12 @@ static void _gtpv1_tun_recv_common_cb(
             ogs_pkbuf_pull(recvbuf, ip_h->ip_hl*4);
         }
     }
-    
+    ogs_info("tun receive a new msg, 0x%x.",ip_h->ip_dst.s_addr);
     sess = ipv4_sess_find(upf_self()->nbr_ipv4_hash, ip_h->ip_dst.s_addr); 
 
     //TODO:如果是sess->bnbr，则添加IP头，发送IP over IP报文
     if (sess && sess->bnbr) {
+        ogs_info("it is a nbr pkt.");
         // 创建并添加 IPv4 头部
         struct ip *ip_header = (struct ip *)ogs_pkbuf_push(recvbuf, sizeof(struct ip));
         memset(ip_header, 0, sizeof(struct ip)); // 清除头部以确保没有垃圾数据

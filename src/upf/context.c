@@ -1478,7 +1478,7 @@ void upf_handle_remoteserver_nbrmessage(upf_nbr_message_t *nbrmessage, uint16_t 
 			}
 			new_sess->bnbr = 1;
 			new_sess->nbraddr = nbrmessage->serveraddr;
-			ogs_error("upf_handle_remoteserver_nbrmessage, ipaddr %s\n", ipstr);
+			ogs_error("upf_handle_remoteserver_nbrmessage, ipaddr %s, 0x%x\n", ipstr,nbrmessage->addr[loop]);
 			ipv4_hash_insert(self.nbr_ipv4_hash, nbrmessage->addr[loop], new_sess);
             ogs_free(ipstr);
 		}
