@@ -46,6 +46,7 @@ upf_sess_t *upf_sess_find_by_ue_ip_address(ogs_pkbuf_t *pkbuf)
     ip_h = (struct ip *)pkbuf->data;
     if (ip_h->ip_v == 4) {
         ip_h = (struct ip *)pkbuf->data;
+        ogs_info("dstaddr:0x%x",ip_h->ip_dst.s_addr);
         sess = upf_sess_find_by_ipv4(ip_h->ip_dst.s_addr);
     } else if (ip_h->ip_v == 6) {
         ip6_h = (struct ip6_hdr *)pkbuf->data;

@@ -1066,15 +1066,17 @@ void _gtpv1_nbr_recv_common_cb(
     //TODO:判断如果为IP over IP，则剥掉第一个IP头
     struct ip *ip_h = (struct ip *)recvbuf->data;
     if(ip_h->ip_v == 4){
-        ogs_info("test: it is a ip over ip pkt.");
         if(ip_h->ip_p == IPPROTO_IPIP){
+            ogs_info("test: it is a ip over ip pkt,pull len:%d.",ip_h->ip_hl*4);        
             ogs_pkbuf_pull(recvbuf, ip_h->ip_hl*4);
         }
     }
     
     sess = upf_sess_find_by_ue_ip_address(recvbuf);
-    if (!sess)
+    if (!sess){
+        ogs_info("test: not find sess.");        
         goto cleanup;
+    }
 #if 0
     //TODO:如果是sess->bnbr，则添加IP头，发送IP over IP报文
     if (sess->bnbr) {
