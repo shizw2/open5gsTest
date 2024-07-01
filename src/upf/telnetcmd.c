@@ -95,7 +95,7 @@ void showsessDetail( uint32_t id )
     ogs_list_for_each(&sess->pfcp.pdr_list, pdr){
         printf("          **************pdr index:%d, id: %d***********\r\n",pdr_index, pdr->id);     
         printf("          |--teid              : %d \r\n", pdr->teid);
-        printf("          |--src_if            : %s \r\n", ogs_pfcp_interface_get_name(pdr->src_if));
+        //printf("          |--src_if            : %s \r\n", ogs_pfcp_interface_get_name(pdr->src_if));
         printf("          |--dnn               : %s \r\n", pdr->dnn);
         printf("          |--f_teid            :  \r\n");
         printf("              |--teid             : %d \r\n", pdr->f_teid.teid);
@@ -175,7 +175,7 @@ void showsessDetail( uint32_t id )
     ogs_list_for_each(&sess->pfcp.far_list, far){
         printf("          **************far id: %d***********\r\n",far->id);     
         printf("          |--dnn               : %s \r\n", far->dnn);
-        printf("          |--dst_if            : %s \r\n", ogs_pfcp_interface_get_name(far->dst_if));
+        //printf("          |--dst_if            : %s \r\n", ogs_pfcp_interface_get_name(far->dst_if));
         printf("          |--apply_action      : %d \r\n", far->apply_action);
         printf("          |--num_of_buffered_packet: %d \r\n", far->num_of_buffered_packet);        
         printf("          |--smreq_flags       : %d \r\n", far->smreq_flags.value);

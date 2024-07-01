@@ -116,13 +116,13 @@ int upf_initialize(void)
     rv = ogs_yaml_check_init();
     if (rv != OGS_OK) return rv;
     
+    //setCommands();
+    //cli_thread = ogs_thread_create(telnetMain, &ogs_app()->cli_list);
+ 
     thread = ogs_thread_create(upf_main, NULL);
     if (!thread) return OGS_ERROR;
     
-    setCommands();
-    cli_thread = ogs_thread_create(telnetMain, &ogs_app()->cli_list);
-    initialized = 1;
-
+    initialized = 1;   
     return OGS_OK;
 }
 

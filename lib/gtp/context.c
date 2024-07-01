@@ -541,6 +541,7 @@ ogs_gtp_node_t *ogs_gtp_node_new(ogs_sockaddr_t *sa_list)
     ogs_list_init(&node->local_list);
     ogs_list_init(&node->remote_list);
 
+    node->connect_flag = true;
     return node;
 }
 
@@ -622,6 +623,8 @@ ogs_gtp_node_t *ogs_gtp_node_add_by_addr(ogs_list_t *list, ogs_sockaddr_t *addr)
     }
 
     memcpy(&gnode->addr, new, sizeof gnode->addr);
+    
+    
 
     ogs_list_add(list, gnode);
 

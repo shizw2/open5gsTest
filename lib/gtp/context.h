@@ -80,6 +80,7 @@ typedef struct ogs_gtp_node_s {
 
     ogs_list_t      local_list;
     ogs_list_t      remote_list;
+    bool            connect_flag;
 } ogs_gtp_node_t;
 
 typedef struct ogs_gtpu_resource_s {

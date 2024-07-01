@@ -290,7 +290,7 @@ static int32_t handle_n6_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
 
     sess = local_sess_find_by_ue_ip(lconf, l3_head, 1);
     if (!sess) {
-        ogs_debug("%s, unmatch session by ip %s\n", __func__, ip_printf(l3_head, 1));
+        //ogs_debug("%s, unmatch session by ip %s\n", __func__, ip_printf(l3_head, 1));
         lconf->lstat.sess_unmatch[1]++;
         return -1;
     }
@@ -328,7 +328,7 @@ static int handle_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
     int ret = 0;
     struct packet *pkt = (struct packet *)(m->buf_addr);
 
-    ogs_debug("%s, pkt type %d\n", __func__, pkt->pkt_type);
+    //ogs_debug("%s, pkt type %d\n", __func__, pkt->pkt_type);
 
     switch (pkt->pkt_type) {
         case PKT_TYPE_ARP:

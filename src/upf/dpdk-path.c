@@ -223,7 +223,7 @@ upf_sess_t *local_sess_find_by_ue_ip(struct lcore_conf *lconf, char *l3_head, ui
                 return NULL;
             }
         }
-        ogs_debug("PAA IPv4:%s", ip2str(sess->ipv4->addr[0]));
+        //ogs_debug("PAA IPv4:%s", ip2str(sess->ipv4->addr[0]));
     } else if (ip_h->ip_v == 6) {
         off = dst ? 24 : 8;
         sess = (upf_sess_t *)ogs_hash_get(lconf->ipv6_hash,
@@ -231,7 +231,7 @@ upf_sess_t *local_sess_find_by_ue_ip(struct lcore_conf *lconf, char *l3_head, ui
         if (!sess || !sess->ipv6) {
             return NULL;
         }
-        ogs_debug("PAA IPv6:%s", ip62str(sess->ipv6->addr));
+        //ogs_debug("PAA IPv6:%s", ip62str(sess->ipv6->addr));
     } else {
         ogs_error("Invalid packet [IP version:%d]", ip_h->ip_v);
     }
@@ -349,7 +349,7 @@ int gtp_send_user_plane(
         //arp_node_t *arp = arp_find(lconf, ipv4_h->dst_addr, 0);
         arp_node_t *arp = NULL;
         //如果目的IP跟N3在同一网段,则直接查询目的IP的MAC,否则查询GW的MAC
-        ogs_info("dstaddr:%s, n3addr:%s, gw:%s,mask:%s", ip2str(ipv4_h->dst_addr),ip2str(dkuf.n3_addr.ipv4),ip2str(dkuf.n3_addr.gw),ip2str(dkuf.n3_addr.mask));
+        //ogs_info("dstaddr:%s, n3addr:%s, gw:%s,mask:%s", ip2str(ipv4_h->dst_addr),ip2str(dkuf.n3_addr.ipv4),ip2str(dkuf.n3_addr.gw),ip2str(dkuf.n3_addr.mask));
         if ((ipv4_h->dst_addr&dkuf.n3_addr.mask ) == (dkuf.n3_addr.ipv4 & dkuf.n3_addr.mask)){
             arp = arp_find(lconf, ipv4_h->dst_addr, 0);
         }else{
