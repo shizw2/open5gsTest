@@ -168,7 +168,7 @@ void upf_terminate(void)
 
     upf_metrics_final();
 
-    //nbr_close(); 
+    nbr_close(); 
 }
 
 #if defined(USE_DPDK)
@@ -199,6 +199,8 @@ static void upf_main(void *data)
 #if defined(USE_DPDK)
     //bind core pfcp;
     bind_core(dkuf.pfcp_lcore);
+#else
+    setAffinity(1);    
 #endif
 
     ogs_fsm_init(&upf_sm, upf_state_initial, upf_state_final, 0);

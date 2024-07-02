@@ -183,7 +183,7 @@ void ogs_thread_destroy_ex(ogs_thread_t *thread)
 
 void setAffinity(int coreId)
 {
-#if 0
+#if 1
 	cpu_set_t cpuset;
 	CPU_ZERO(&cpuset);
 	CPU_SET(coreId, &cpuset);

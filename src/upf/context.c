@@ -1382,13 +1382,15 @@ void upf_remoteserver_remove(upf_remoteserver_t *remoteserver)
             {
                 ogs_info("[Removed] upf_remoteserver_remove remove node->poll");
                 ogs_pollset_remove(node->poll);
+                node->poll = NULL;
             }
 			break;
         }
     }
     //ogs_sctp_flush_and_destroy(&remoteserver->sctp);
     if (remoteserver->sctp.sock){
-        ogs_sctp_destroy(remoteserver->sctp.sock);
+        ogs_info("test:remoteserver->sctp.sock:%p",remoteserver->sctp.sock);
+        //ogs_sctp_destroy(remoteserver->sctp.sock);//TODO;这里可以不释放,因为socket在nbrremoteserver_list中会释放
     }
 	if(remoteserver->sctp.addr){
         ogs_info("upf_remoteserver_remove,free addr:%p",remoteserver->sctp.addr);

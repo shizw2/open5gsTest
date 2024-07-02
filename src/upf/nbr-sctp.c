@@ -94,6 +94,7 @@ ogs_sock_t *nbr_client_byip(ogs_socknode_t *node, ogs_socknode_t *localnode)
         node->poll = ogs_pollset_add(ogs_app()->pollset,
                 OGS_POLLIN, sock->fd, lksctp_recv_handler, sock);
         ogs_assert(node->poll);
+        ogs_info("test:nbr_client_byip, nodepoll:%p",node->poll);
         ogs_info("nbr client remote server() [%s]:%d",
                 OGS_ADDR(&sock->remote_addr, buf), OGS_PORT(&sock->remote_addr));
 		ogs_sockaddr_t *addr = NULL;
@@ -484,15 +485,18 @@ int nbr_open(void)
         exit(1);
     }
     
-    ogs_pollset_add(ogs_app()->pollset,
+    upf_self()->nbr_rawpoll = ogs_pollset_add(ogs_app()->pollset,
                 OGS_POLLIN, upf_self()->nbr_rawsocket, _gtpv1_nbr_recv_common_cb, upf_self()->nbr_rawsocket);
-    ogs_info("add raw socket success。fd:%d.",upf_self()->nbr_rawsocket);
+    ogs_info("add nbr raw socket for ip over ip success,fd:%d.",upf_self()->nbr_rawsocket);
     return OGS_OK;
 }
 
 
 void nbr_close()
 {
+    if (upf_self()->nbr_rawpoll)
+        ogs_pollset_remove(upf_self()->nbr_rawpoll);
+
     ogs_socknode_remove_all(&upf_self()->nbrlocalserver_list);
     ogs_socknode_remove_all(&upf_self()->nbrlocalclient_list);
     ogs_socknode_remove_all(&upf_self()->nbrremoteserver_list);

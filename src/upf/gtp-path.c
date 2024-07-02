@@ -185,7 +185,7 @@ static void _gtpv1_tun_recv_common_cb(
     }
 
     struct ip *ip_h = (struct ip *)recvbuf->data;
-    ogs_info("tun receive a new msg, 0x%x.",ip_h->ip_dst.s_addr);
+    
     sess = ipv4_sess_find(upf_self()->nbr_ipv4_hash, ip_h->ip_dst.s_addr); 
 
     //如果是sess->bnbr，则添加IP头，发送IP over IP报文
@@ -217,15 +217,11 @@ static void _gtpv1_tun_recv_common_cb(
         // 计算 IPv4 头部的校验和
         ip_header->ip_sum = ip_checksum((char *)ip_header, sizeof(struct ip));
         #endif
-        
-        if (sess->nbraddr == 0){
-            inet_pton(AF_INET, "10.7.202.111", &sess->nbraddr);
-        }
-        
+
         struct sockaddr_in sin;
         sin.sin_family = AF_INET;
         sin.sin_addr.s_addr = sess->nbraddr;
-        ogs_info("it is a nbr pkt,sendto:0x%x",sess->nbraddr);
+        //ogs_info("it is a nbr pkt,sendto:0x%x",sess->nbraddr);
         if (sendto(upf_self()->nbr_rawsocket, recvbuf->data, recvbuf->len, 0, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
         }       
             

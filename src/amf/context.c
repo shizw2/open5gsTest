@@ -185,6 +185,7 @@ static int amf_context_prepare(void)
     self.num_of_integrity_order = 0;          
     self.num_of_ciphering_order = 0; 
     self.num_of_access_control  = 0;
+    self.default_reject_cause   = 0;
     return OGS_OK;
 }
 
@@ -1039,7 +1040,9 @@ int amf_context_parse_config(bool reloading)
                                             self.num_of_access_control].
                                                 plmn_id,
                                         atoi(mcc), atoi(mnc), strlen(mnc));
-                                    if (reject_cause)
+                                    //if (reject_cause)
+                                    /*目前gmm_cause_from_access_control的实现逻辑是不配置原因值reject_cause=0为允许接入
+                                    为了修改配置能实时生效，修改为不配置时，需要赋值为false*/
                                         self.access_control[
                                             self.num_of_access_control].
                                                 reject_cause = reject_cause;
