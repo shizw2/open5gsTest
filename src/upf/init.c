@@ -39,7 +39,6 @@ static void upf_main(void *data);
 void setCommands(void);
 static int initialized = 0;
 
-#if defined(USE_DPDK)
 static void bind_core(int core)
 {
     int cpus = 0;
@@ -55,7 +54,7 @@ static void bind_core(int core)
         return ;
     }
 }
-#endif
+
 
 int upf_initialize(void)
 {
@@ -200,7 +199,7 @@ static void upf_main(void *data)
     //bind core pfcp;
     bind_core(dkuf.pfcp_lcore);
 #else
-    setAffinity(1);    
+    bind_core(0);    
 #endif
 
     ogs_fsm_init(&upf_sm, upf_state_initial, upf_state_final, 0);
