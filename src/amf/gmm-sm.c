@@ -243,6 +243,10 @@ void gmm_state_de_registered(ogs_fsm_t *s, amf_event_t *e)
                         amf_ue, state, NULL);
                     ogs_expect(r == OGS_OK);
                     ogs_assert(r != OGS_ERROR);
+            }else{
+                ogs_warn(" Do Network-initiated De-register, gmm_state_ue_context_will_remove");
+                  OGS_FSM_TRAN(&amf_ue->sm,
+                &gmm_state_ue_context_will_remove);
             }
             break;
 

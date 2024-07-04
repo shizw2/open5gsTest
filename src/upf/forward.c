@@ -20,7 +20,6 @@
 #include <rte_icmp.h>
 
 
-
 int32_t handle_arp(struct lcore_conf *lconf, struct rte_mbuf *m);
 int32_t handle_arp(struct lcore_conf *lconf, struct rte_mbuf *m)
 {

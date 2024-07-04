@@ -500,7 +500,7 @@ ogs_pfcp_subnet_t *ogs_pfcp_find_subnet_by_dnn(int family, const char *dnn);
 
 void ogs_pfcp_pool_init(ogs_pfcp_sess_t *sess);
 void ogs_pfcp_pool_final(ogs_pfcp_sess_t *sess);
-
+int upf_dpdk_context_parse_config_by_nodpdk(void);
 #ifdef __cplusplus
 }
 #endif

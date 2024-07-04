@@ -101,6 +101,8 @@
         "hash.h": "c",
         "nbr-sctp.h": "c",
         "filter.h": "c",
-        "upf-dpdk.h": "c"
+        "upf-dpdk.h": "c",
+        "ogs-gtp.h": "c",
+        "test-common.h": "c"
     }
 }
