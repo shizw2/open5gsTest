@@ -60,6 +60,7 @@ const uint8_t proxy_mac_addr[] = { 0x0e, 0x00, 0x00, 0x00, 0x00, 0x01 };
 static ogs_pkbuf_pool_t *packet_pool = NULL;
 
 static void upf_gtp_handle_multicast(ogs_pkbuf_t *recvbuf);
+static void upf_gtp_try_handle_nbr_pkt(ogs_pkbuf_t * recvbuf);
 
 extern int pkt_metric_flag;
 
@@ -183,54 +184,12 @@ static void _gtpv1_tun_recv_common_cb(
         }
         ogs_pkbuf_pull(recvbuf, ETHER_HDR_LEN);
     }
-
-    struct ip *ip_h = (struct ip *)recvbuf->data;
-    
-    sess = ipv4_sess_find(upf_self()->nbr_ipv4_hash, ip_h->ip_dst.s_addr); 
-
-    //如果是sess->bnbr，则添加IP头，发送IP over IP报文
-    if (sess && sess->bnbr) {
-        
-        #if 0
-        // 创建并添加 IPv4 头部
-        struct ip *ip_header = (struct ip *)ogs_pkbuf_push(recvbuf, sizeof(struct ip));
-        memset(ip_header, 0, sizeof(struct ip)); // 清除头部以确保没有垃圾数据
-        static uint16_t pkt_id = 100;
-        // 设置 IPv4 头部字段
-        ip_header->ip_hl = sizeof(struct ip) >> 2; // 头部长度（32位字）
-        ip_header->ip_v = 4; // IPv4 版本
-        ip_header->ip_tos = 0; // 服务类型（TOS）
-        ip_header->ip_id = pkt_id++; 
-        ip_header->ip_off = 0; // 片段偏移
-        ip_header->ip_ttl = 64; // 时间到活（TTL）
-        ip_header->ip_p = IPPROTO_IPIP;
-        ip_header->ip_sum = 0; // 校验和，稍后计算
-        ip_header->ip_len = htons(recvbuf->len);
-        // 设置源和目的 IP 地址
-        //inet_pton(AF_INET, "源IP地址", &ip_header->ip_src);
-        //inet_pton(AF_INET, "目的IP地址", &ip_header->ip_dst);
-        ip_header->ip_dst.s_addr  = sess->nbraddr;
-
-        
-        inet_pton(AF_INET, "10.7.4.45", &ip_header->ip_src);
-        inet_pton(AF_INET, "10.7.202.111", &ip_header->ip_dst);
-        // 计算 IPv4 头部的校验和
-        ip_header->ip_sum = ip_checksum((char *)ip_header, sizeof(struct ip));
-        #endif
-
-        struct sockaddr_in sin;
-        sin.sin_family = AF_INET;
-        sin.sin_addr.s_addr = sess->nbraddr;
-        //ogs_info("it is a nbr pkt,sendto:0x%x",sess->nbraddr);
-        if (sendto(upf_self()->nbr_rawsocket, recvbuf->data, recvbuf->len, 0, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
-        }       
-            
-        goto cleanup;            
-    }
     
     sess = upf_sess_find_by_ue_ip_address(recvbuf);
-    if (!sess)
+    if (!sess){
+        upf_gtp_try_handle_nbr_pkt(recvbuf);//如果报文不是本地的，则找找是否是邻居的
         goto cleanup;
+    }
     
     ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
         far = pdr->far;
@@ -1186,5 +1145,22 @@ void _gtpv1_nbr_recv_common_cb(
 cleanup:
     if (free_recvbuf){
         ogs_pkbuf_free(recvbuf);
+    }
+}
+
+static void upf_gtp_try_handle_nbr_pkt(ogs_pkbuf_t * recvbuf){
+    upf_sess_t *sess = NULL;
+    struct ip *ip_h = (struct ip *)recvbuf->data;
+    
+    sess = ipv4_sess_find(upf_self()->nbr_ipv4_hash, ip_h->ip_dst.s_addr); 
+
+    //如果是sess->bnbr，则添加IP头，发送IP over IP报文
+    if (sess && sess->bnbr) {
+        struct sockaddr_in sin;
+        sin.sin_family = AF_INET;
+        sin.sin_addr.s_addr = sess->nbraddr;
+        //ogs_info("it is a nbr pkt,sendto:0x%x",sess->nbraddr);
+        if (sendto(upf_self()->nbr_rawsocket, recvbuf->data, recvbuf->len, 0, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+        }          
     }
 }
