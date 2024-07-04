@@ -696,15 +696,8 @@ export const UpfPfcpSection = ({ pfcp }) => {
               </div>
             ))}
           </div>
-          <div className="forty-spaces">client:</div>
-          <div className="sixty-spaces">smf:</div>
-          <div className="eighty-spaces">
-            {pfcp.client.smf.map((item, index) => (
-              <div key={index}>
-                <div>- address: {item.address}</div>
-              </div>
-            ))}
-          </div>
+          
+          
         </div>
       )}
     </div>
