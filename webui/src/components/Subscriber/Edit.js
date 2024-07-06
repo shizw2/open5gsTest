@@ -1008,7 +1008,7 @@ class Edit extends Component {
 
     if (action === 'create' && Object.keys(profiles).length > 0) {
       if (this.state.profile !== formData.profile) {
-        let data = this.getFormDataFromProfile(formData.profile)
+        let data = Edit.getFormDataFromProfile(formData.profile,this.props.profiles)
         this.setState({
           profile: formData.profile,
           formData : data

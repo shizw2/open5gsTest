@@ -119,7 +119,7 @@ class Document extends Component {
       const message = action === 'create' ? "New IEMI created" : `${status.id} IMEI updated`;
   
       dispatch(Notification.success({
-        title: 'Account',
+        title: '黑白名单',
         message
       }));
   

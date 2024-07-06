@@ -5,7 +5,7 @@ logger:
 test:
   serving:
     - plmn_id:
-        mcc: 460
+        mcc: 999
         mnc: 70
 
 global:
@@ -147,19 +147,19 @@ amf:
       - address: 127.0.0.5
   guami:
     - plmn_id:
-        mcc: 460
+        mcc: 999
         mnc: 70
       amf_id:
         region: 2
         set: 1
   tai:
     - plmn_id:
-        mcc: 460
+        mcc: 999
         mnc: 70
       tac: 1
   plmn_support:
     - plmn_id:
-        mcc: 460
+        mcc: 999
         mnc: 70
       s_nssai:
         - sst: 1

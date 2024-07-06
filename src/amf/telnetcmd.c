@@ -132,15 +132,15 @@ void showueAll( void )
 	char buf1[OGS_PLMNIDSTRLEN];
     char buf2[OGS_PLMNIDSTRLEN];
     printf("\namf ue Brief All(current %u ue count):\r\n", ogs_list_count(&amf_self()->amf_ue_list));
-    printf("+----------------------+---------------+---------------------+---------------------------+---------------------+\n\r");
-    printf("|         supi         | register_type |          tai        |            cgi            |      timestamp      |\n\r");
-    printf("+----------------------+---------------+---------------------+---------------------------+---------------------+\n\r");
+    printf("+----------------------+---------------+----------------------+---------------------------+---------------------+\n\r");
+    printf("|         supi         | register_type |          tai         |            cgi            |      timestamp      |\n\r");
+    printf("+----------------------+---------------+----------------------+---------------------------+---------------------+\n\r");
     
     ogs_list_for_each(&amf_self()->amf_ue_list, ue) {
 		time_t time = ogs_time_sec(ue->ue_location_timestamp);
 		struct tm *timeInfo = localtime(&time);  
         strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeInfo);    
-        printf("| %-15s | %-13u | plmn_id:%sTAC:%-2d | plmn_id:%sCELL:%-7lu | %s |\r\n",
+        printf("| %-15s | %-13u | plmn_id:%s,tac:%-2d | plmn_id:%s,cell:%-6lu | %s |\r\n",
 		   ue->supi,
            ue->nas.registration.value,
            ogs_plmn_id_to_string(&ue->nr_tai.plmn_id,buf1),
@@ -152,7 +152,7 @@ void showueAll( void )
            buffer);        
     }
     
-    printf("+----------------------+---------------+---------------------+---------------------------+---------------------+\n\r");
+    printf("+----------------------+---------------+----------------------+---------------------------+---------------------+\n\r");
     printf("\r\n");
     
     return ;

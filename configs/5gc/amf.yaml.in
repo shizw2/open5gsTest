@@ -215,7 +215,7 @@ amf:
 #    - plmn_id:
 #        mcc: 009
 #        mnc: 09
-#      tac: [07, 80]
+#      tac: [70, 80]
 #
 #  o PLMN Support
 #  plmn_support:
