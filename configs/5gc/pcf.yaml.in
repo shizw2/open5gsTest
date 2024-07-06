@@ -61,8 +61,8 @@ pcf:
 #
 #  policy:
 #    - plmn_id:
-#        mcc: 999
-#        mnc: 70
+#        mcc: 460
+#        mnc: 07
 #      slice:
 #        - sst: 1  # 1,2,3,4
 #          default_indicator: true

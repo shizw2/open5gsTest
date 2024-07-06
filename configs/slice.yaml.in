@@ -5,8 +5,8 @@ logger:
 test:
   serving:
     - plmn_id:
-        mcc: 999
-        mnc: 70
+        mcc: 460
+        mnc: 07
 
 global:
   parameter:
@@ -60,14 +60,14 @@ mme:
         - address: 127.0.0.4
   gummei:
     - plmn_id:
-        mcc: 999
-        mnc: 70
+        mcc: 460
+        mnc: 07
       mme_gid: 2
       mme_code: 1
   tai:
     - plmn_id:
-        mcc: 999
-        mnc: 70
+        mcc: 460
+        mnc: 07
       tac: 1
   security:
     integrity_order : [ EIA2, EIA1, EIA0 ]
@@ -150,20 +150,20 @@ amf:
       - address: 127.0.0.5
   guami:
     - plmn_id:
-        mcc: 999
-        mnc: 70
+        mcc: 460
+        mnc: 07
       amf_id:
         region: 202
         set: 1016
   tai:
     - plmn_id:
-        mcc: 999
-        mnc: 70
+        mcc: 460
+        mnc: 07
       tac: 1
   plmn_support:
     - plmn_id:
-        mcc: 999
-        mnc: 70
+        mcc: 460
+        mnc: 07
       s_nssai:
         - sst: 1
         - sst: 1

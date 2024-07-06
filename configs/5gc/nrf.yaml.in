@@ -17,8 +17,8 @@ global:
 nrf:
   serving:  # 5G roaming requires PLMN in NRF
     - plmn_id:
-        mcc: 999
-        mnc: 70
+        mcc: 460
+        mnc: 07
   sbi:
     server:
       - address: 127.0.0.10

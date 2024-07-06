@@ -680,7 +680,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
                     
                     //如果是sess->bnbr，则添加IP头，发送IP over IP报文
                     if (sess && sess->bnbr) {
-                        ogs_debug("test:it is a nbr pkt.");
+                        ogs_info("test:it is a nbr pkt.");
                         // 创建并添加 IPv4 头部
                         struct ip *ip_header = (struct ip *)ogs_pkbuf_push(pkbuf, sizeof(struct ip));
                         memset(ip_header, 0, sizeof(struct ip)); // 清除头部以确保没有垃圾数据

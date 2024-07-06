@@ -5,7 +5,7 @@ logger:
 test:
   serving:
     - plmn_id:
-        mcc: 999
+        mcc: 460
         mnc: 70
 
 global:

@@ -36,20 +36,20 @@ amf:
         port: 9090
   guami:
     - plmn_id:
-        mcc: 999
-        mnc: 70
+        mcc: 460
+        mnc: 07
       amf_id:
         region: 2
         set: 1
   tai:
     - plmn_id:
-        mcc: 999
-        mnc: 70
+        mcc: 460
+        mnc: 07
       tac: [1]
   plmn_support:
     - plmn_id:
-        mcc: 999
-        mnc: 70
+        mcc: 460
+        mnc: 07
       s_nssai:
         - sst: 1
   security:
@@ -162,8 +162,8 @@ amf:
 #  o GUAMI
 #  guami:
 #    - plmn_id:
-#        mcc: 999
-#        mnc: 70
+#        mcc: 460
+#        mnc: 07
 #      amf_id:
 #        region: 2
 #        set: 1
@@ -215,19 +215,19 @@ amf:
 #    - plmn_id:
 #        mcc: 009
 #        mnc: 09
-#      tac: [70, 80]
+#      tac: [07, 80]
 #
 #  o PLMN Support
 #  plmn_support:
 #    - plmn_id:
-#        mcc: 999
-#        mnc: 70
+#        mcc: 460
+#        mnc: 07
 #      s_nssai:
 #        - sst: 1
 #          sd: 010000
 #    - plmn_id:
-#        mcc: 999
-#        mnc: 70
+#        mcc: 460
+#        mnc: 07
 #      s_nssai:
 #        - sst: 1
 #
@@ -242,8 +242,8 @@ amf:
 #        mcc: 002
 #        mnc: 02
 #    - plmn_id:
-#        mcc: 999
-#        mnc: 70
+#        mcc: 460
+#        mnc: 07
 #
 #  o Relative Capacity
 #  relative_capacity: 100

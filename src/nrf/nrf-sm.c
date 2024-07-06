@@ -67,7 +67,7 @@ void nrf_state_operational(ogs_fsm_t *s, nrf_event_t *e)
         stream = e->h.sbi.data;
         ogs_assert(stream);
 
-        ogs_info("*test nrf_state_operational :%p headers cnt:%d,params cnt:%d,request:%s method:%s",request, ogs_hash_count(request->http.headers),ogs_hash_count(request->http.params),request->http.content,request->h.method);
+        ogs_debug("*test nrf_state_operational :%p headers cnt:%d,params cnt:%d,request:%s method:%s",request, ogs_hash_count(request->http.headers),ogs_hash_count(request->http.params),request->http.content,request->h.method);
 
         rv = ogs_sbi_parse_request(&message, request);
         if (rv != OGS_OK) {

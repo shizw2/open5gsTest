@@ -46,13 +46,13 @@ upf:
     n6_addr6: 2001::10/48       
     n6_default_gw6: 2001::1
   nbrlocalserver:
-    addr: 127.0.0.7
+    #addr: 127.0.0.7
     port: 38413
   nbrlocalclient:
-    addr: 127.0.0.7
+    #addr: 127.0.0.7
     port: 38414
   nbrremoteserver:
-    addr: 127.0.0.17
+    #addr: 127.0.0.17
     port: 38413
 ################################################################################
 # PFCP Server
