@@ -1324,10 +1324,10 @@ export const ngapSchema = {
       type: "array",
       title: "Server",
       "minItems": 1,
-      "maxItems": 4,
+      "maxItems": 8,
       "messages": {
         "minItems": "At least 1 IP is required",
-        "maxItems": "4 IPs are supported"
+        "maxItems": "8 IPs are supported"
       },
       items: {
         type: "object",
@@ -1620,10 +1620,8 @@ export const guamiUiSchema = {
 export const taiSchema = {
   type: "array",
   title: "TAI",
-  "minItems": 1,
   "maxItems": 8,
   "messages": {
-    "minItems": "At least 1 Item is required",
     "maxItems": "8 Items are supported"
   },
   items: {
@@ -1659,7 +1657,7 @@ export const taiSchema = {
       tac: {
         type: "array",
         title: "TAC",
-        minItems: 1,
+        //minItems: 1,
         items: {
           type: "string",
           pattern: /^(?:\d+|\d+-\d+)$/,
@@ -1718,8 +1716,7 @@ export const taiUiSchema = {
 export const access_controlSchema = {
   type: "array",
   title: "Access Control",
-  minItems: 1,
-  maxItems: 8,
+  maxItems: 16,
   items: {
     type: "object",
     properties: {
@@ -1731,7 +1728,7 @@ export const access_controlSchema = {
             type: "integer",
             title: "Reject Cause",
             minimum: 0,
-            required: true,
+            //required: true,
           },
           mcc: {
             type: "string",
@@ -2157,11 +2154,9 @@ export const upfpfcpSchema = {
       properties: {
         smf: {
           type: "array",
-          title: "UPF",
-          "minItems": 1,
+          title: "SMF",
           "maxItems": 4,
           "messages": {
-            "minItems": "At least 1 Interface is required",
             "maxItems": "4 Interfaces are supported"
           },
           items: {

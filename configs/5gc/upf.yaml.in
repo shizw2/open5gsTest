@@ -18,7 +18,7 @@ upf:
   pfcp:
     server:
       - address: 127.0.0.7
-    client:
+#    client:
 #      smf:     #  UPF PFCP Client try to associate SMF PFCP Server
 #        - address: 127.0.0.4
   gtpu:
@@ -45,6 +45,15 @@ upf:
     n6_default_gw: 192.168.6.1
     n6_addr6: 2001::10/48       
     n6_default_gw6: 2001::1
+  nbrlocalserver:
+    addr: 127.0.0.7
+    port: 38413
+  nbrlocalclient:
+    addr: 127.0.0.7
+    port: 38414
+  nbrremoteserver:
+    addr: 127.0.0.17
+    port: 38413
 ################################################################################
 # PFCP Server
 ################################################################################

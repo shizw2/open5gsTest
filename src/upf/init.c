@@ -199,7 +199,7 @@ static void upf_main(void *data)
     //bind core pfcp;
     bind_core(dkuf.pfcp_lcore);
 #else
-    bind_core(0);    
+    bind_core(0);//非dpdk版本,upf固定绑到0核,如需要还可设置0核独占
 #endif
 
     ogs_fsm_init(&upf_sm, upf_state_initial, upf_state_final, 0);

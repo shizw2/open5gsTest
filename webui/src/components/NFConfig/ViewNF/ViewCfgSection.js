@@ -396,10 +396,10 @@ export const AccessControlSection = ({ accessControl }) => (
       <div className="access-control-section">
         <div className="twenty-spaces">access_control:</div>
         <div className="forty-spaces">
-          {accessControl.map((item, index) => (
+          {accessControl.plmn_id && accessControl.map((item, index) => (
             <div key={index}>
               <div>- plmn_id:</div>
-              <div className="twenty-spaces">reject_cause: {item.plmn_id.reject_cause}</div>
+              {item.plmn_id.reject_cause && (<div className="twenty-spaces">reject_cause: {item.plmn_id.reject_cause}</div>)}
               <div className="twenty-spaces">mcc: {item.plmn_id.mcc.toString()}</div>
               <div className="twenty-spaces">mnc: {item.plmn_id.mnc.toString()}</div>
             </div>
@@ -696,8 +696,15 @@ export const UpfPfcpSection = ({ pfcp }) => {
               </div>
             ))}
           </div>
-          
-          
+          <div className="forty-spaces">client:</div>
+          <div className="sixty-spaces">smf:</div>
+          <div className="eighty-spaces">
+            {pfcp.client && pfcp.client.smf && pfcp.client.smf.map((item, index) => (
+              <div key={index}>
+                <div>- address: {item.address}</div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

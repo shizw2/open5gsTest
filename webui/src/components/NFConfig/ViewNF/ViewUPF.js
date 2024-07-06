@@ -22,7 +22,7 @@ import {
 
 
 export const ViewUPF = ({ nfconfig }) => {  
-  const { parameter, max, time, upf } = nfconfig;
+  const { smf, parameter, max, time, upf } = nfconfig;
   return (
     <div>
       <LOGSection nfconfig={nfconfig} />

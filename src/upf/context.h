@@ -79,8 +79,6 @@ typedef struct upf_context_s {
 
     int             nbr_rawsocket;
     ogs_poll_t      *nbr_rawpoll;
-
-    int             pfcp_lcore;
 } upf_context_t;
 
 /* trie mapping from IP framed routes to session. */
