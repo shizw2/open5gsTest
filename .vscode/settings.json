@@ -103,6 +103,7 @@
         "filter.h": "c",
         "upf-dpdk.h": "c",
         "ogs-gtp.h": "c",
-        "test-common.h": "c"
+        "test-common.h": "c",
+        "ctrl-path.h": "c"
     }
 }

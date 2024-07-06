@@ -121,7 +121,11 @@ void upf_context_final(void)
     ogs_assert(self.ipv6_hash);
     ogs_hash_destroy(self.ipv6_hash);
     ogs_assert(self.nbr_ipv4_hash);
+    #if defined(USE_DPDK)
     ipv4_hash_destroy(self.nbr_ipv4_hash);
+    #else
+    ipv4_hash_destroy_include_sess(self.nbr_ipv4_hash);
+    #endif
     ogs_assert(self.remoteclient_addr_hash);
     ogs_hash_destroy(self.remoteclient_addr_hash);
     ogs_assert(self.remoteserver_addr_hash);
@@ -1686,4 +1690,35 @@ int ipv4_hash_remove_nbrservaddr(struct ipv4_hashtbl *h, uint32_t ip)
         }
     }
     return 0;
+}
+
+//DPDK版本不需要使用
+void ipv4_hash_destroy_include_sess(struct ipv4_hashtbl *h)
+{
+    uint32_t i;
+    ipv4_node_t *cur, *next;
+    upf_sess_t *sess = NULL;
+
+    ogs_assert(h && h->htable);
+
+    for (i = 0; i < h->size; i++) {
+        cur = h->htable[i];
+        while (cur) {
+            next = cur->next;
+            sess = (upf_sess_t *)cur->sess;
+            if(sess){
+                ogs_free(sess);
+            }
+            free(cur);
+            
+            cur = next;
+        }
+        h->htable[i] = NULL;
+    }
+
+    h->htable = NULL;
+
+    free(h);
+
+    return;
 }
