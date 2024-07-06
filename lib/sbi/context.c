@@ -3321,7 +3321,8 @@ void showgnfDetail(char *id){
 
 void print_ogs_sbi_nf_info(ogs_sbi_nf_info_t *nf_info) {
     int i,j;
-    
+    char buf[OGS_PLMNIDSTRLEN];
+
     printf("     |--nf_type            : %s(%d) \r\n", OpenAPI_nf_type_ToString(nf_info->nf_type),nf_info->nf_type);
 
     if (nf_info->nf_type == OpenAPI_nf_type_SMF) {
@@ -3337,14 +3338,13 @@ void print_ogs_sbi_nf_info(ogs_sbi_nf_info_t *nf_info) {
         
         printf("        |--num_of_nr_tai       : %d \r\n", nf_info->smf.num_of_nr_tai);
         for (i = 0; i < nf_info->smf.num_of_nr_tai; i++) {            
-            printf("          |--nr_tai[%d]: MCC:%d,MNC:%-3dTAC:%d \r\n", i, ogs_plmn_id_mcc(&nf_info->smf.nr_tai[i].plmn_id),
-                                                               ogs_plmn_id_mnc(&nf_info->smf.nr_tai[i].plmn_id),
+            printf("          |--nr_tai[%d]: plmn_id:%s,TAC:%d \r\n", i, ogs_plmn_id_to_string(&nf_info->smf.nr_tai[i].plmn_id,buf),
                                                                nf_info->smf.nr_tai[i].tac.v);
         }
         printf("        |--num_of_nr_tai_range       : %d \r\n", nf_info->smf.num_of_nr_tai_range);
         for (i = 0; i < nf_info->smf.num_of_nr_tai_range; i++) {
             printf("          |--nr_tai_range[%d]\n", i);
-            printf("             |--plmn_id       : MCC:%d,MNC:%d \r\n", ogs_plmn_id_mcc(&nf_info->smf.nr_tai_range[i].plmn_id),ogs_plmn_id_mnc(&nf_info->smf.nr_tai_range[i].plmn_id));
+            printf("             |--plmn_id       : %s \r\n", ogs_plmn_id_to_string(&nf_info->smf.nr_tai_range[i].plmn_id,buf));
             printf("             |--num_of_tac_range       : %d \r\n", nf_info->smf.nr_tai_range[i].num_of_tac_range);
             for (j = 0; j < nf_info->smf.nr_tai_range[i].num_of_tac_range; j++) {
                 printf("               |--start[%d]       : %d \r\n", j, nf_info->smf.nr_tai_range[i].start[j].v);
@@ -3359,19 +3359,18 @@ void print_ogs_sbi_nf_info(ogs_sbi_nf_info_t *nf_info) {
             printf("        |--guami[%d]\n", i);
             printf("        |--amf_id           : region:%d,set1:%d,set2:%d,pointer:%d\r\n", 
                     nf_info->amf.guami[i].amf_id.region,nf_info->amf.guami[i].amf_id.set1,nf_info->amf.guami[i].amf_id.set2,nf_info->amf.guami[i].amf_id.pointer);
-            printf("        |--plmn_id          : MCC:%d,MNC:%d \r\n", ogs_plmn_id_mcc(&nf_info->amf.guami[i].plmn_id),ogs_plmn_id_mnc(&nf_info->amf.guami[i].plmn_id));
+            printf("        |--plmn_id          : %s \r\n", ogs_plmn_id_to_string(&nf_info->amf.guami[i].plmn_id, buf));
         }
         
         printf("        |--num_of_nr_tai       : %d \r\n", nf_info->amf.num_of_nr_tai);
         for (i = 0; i < nf_info->amf.num_of_nr_tai; i++) {            
-            printf("        |--nr_tai[%d]: MCC:%d,MNC:%-3dTAC:%d \r\n", i, ogs_plmn_id_mcc(&nf_info->amf.nr_tai[i].plmn_id),
-                                                               ogs_plmn_id_mnc(&nf_info->amf.nr_tai[i].plmn_id),
+            printf("        |--nr_tai[%d]: plmn_id:%s,TAC:%d \r\n", i, ogs_plmn_id_to_string(&nf_info->amf.nr_tai[i].plmn_id, buf),
                                                                nf_info->amf.nr_tai[i].tac.v);
         }
         printf("        |--num_of_nr_tai_range       : %d \r\n", nf_info->amf.num_of_nr_tai_range);
         for (i = 0; i < nf_info->amf.num_of_nr_tai_range; i++) {
             printf("        |--nr_tai_range[%d]\n", i);
-            printf("           |--plmn_id       : MCC:%d,MNC:%d \r\n", ogs_plmn_id_mcc(&nf_info->amf.nr_tai_range[i].plmn_id),ogs_plmn_id_mnc(&nf_info->amf.nr_tai_range[i].plmn_id));
+            printf("           |--plmn_id       : %s \r\n", ogs_plmn_id_to_string(&nf_info->amf.nr_tai_range[i].plmn_id, buf));
             printf("           |--num_of_tac_range       : %d \r\n", nf_info->amf.nr_tai_range[i].num_of_tac_range);
             for (j = 0; j < nf_info->amf.nr_tai_range[i].num_of_tac_range; j++) {
                 printf("           |--start[%d]       : %d \r\n", j, nf_info->amf.nr_tai_range[i].start[j].v);

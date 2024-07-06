@@ -63,23 +63,22 @@ void showgnb(uint32_t enbID)
 void showgnbBriefAll( void )
 {
     amf_gnb_t *gnb = NULL;
-    
+    char buf[OGS_PLMNIDSTRLEN];
     printf("\ngnb Brief All(current %u gnb count):\r\n", ogs_list_count(&amf_self()->gnb_list));
-    printf("+---------+----------------+----------+----------+--------+\n\r");
-    printf("| gnb_id  |    plmn_id     |  state   |  ta_num  | UECnt  |\n\r");
-    printf("+---------+----------------+----------+----------+--------+\n\r");
+    printf("+---------+---------+----------+----------+--------+\n\r");
+    printf("| gnb_id  | plmn_id |  state   |  ta_num  | UECnt  |\n\r");
+    printf("+---------+---------+----------+----------+--------+\n\r");
     
     ogs_list_for_each(&amf_self()->gnb_list, gnb) {
-        printf("| %-7u | MCC:%sMNC:%-3s | %-8d | %-8d | %-6u |\r\n",
+        printf("| %-7u | %-7s | %-8d | %-8d | %-6u |\r\n",
                gnb->gnb_id, 
-               ogs_plmn_id_mcc_string(&gnb->plmn_id),
-               ogs_plmn_id_mnc_string(&gnb->plmn_id),
+               ogs_plmn_id_to_string(&gnb->plmn_id,buf),
                gnb->state.ng_setup_success,
                gnb->num_of_supported_ta_list, 
                ogs_list_count(&gnb->ran_ue_list));
     }
     
-    printf("+---------+----------------+----------+----------+--------+\n\r");
+    printf("+---------+---------+----------+----------+--------+\n\r");
     
     printf("\r\n");
     
@@ -130,7 +129,8 @@ void showueAll( void )
     amf_ue_t *ue = NULL;
     char buffer[20] = {};
     struct tm tm;
-	
+	char buf1[OGS_PLMNIDSTRLEN];
+    char buf2[OGS_PLMNIDSTRLEN];
     printf("\namf ue Brief All(current %u ue count):\r\n", ogs_list_count(&amf_self()->amf_ue_list));
     printf("+----------------------+---------------+---------------------+---------------------------+---------------------+\n\r");
     printf("|         supi         | register_type |          tai        |            cgi            |      timestamp      |\n\r");
@@ -140,14 +140,12 @@ void showueAll( void )
 		time_t time = ogs_time_sec(ue->ue_location_timestamp);
 		struct tm *timeInfo = localtime(&time);  
         strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeInfo);    
-        printf("| %-15s | %-13u | MCC:%sMNC:%-2sTAC:%d | MCC:%sMNC:%-2sCELL:%-7lu | %s |\r\n",
+        printf("| %-15s | %-13u | plmn_id:%sTAC:%-2d | plmn_id:%sCELL:%-7lu | %s |\r\n",
 		   ue->supi,
            ue->nas.registration.value,
-           ogs_plmn_id_mcc_string(&ue->nr_tai.plmn_id),
-           ogs_plmn_id_mnc_string(&ue->nr_tai.plmn_id),
+           ogs_plmn_id_to_string(&ue->nr_tai.plmn_id,buf1),
            ue->nr_tai.tac.v,
-           ogs_plmn_id_mcc_string(&ue->nr_cgi.plmn_id),
-           ogs_plmn_id_mnc_string(&ue->nr_cgi.plmn_id),
+           ogs_plmn_id_to_string(&ue->nr_cgi.plmn_id,buf2),
            ue->nr_cgi.cell_id,
            //ue->ue_ambr.downlink,
            //ue->ue_ambr.uplink,
@@ -166,7 +164,8 @@ void showueDetail( char * supi )
     char buffer[20] = {};
     struct tm tm;
 	int i;
-
+	char buf1[OGS_PLMNIDSTRLEN];
+    
 	ue = amf_ue_find_by_supi(supi);
  
 	if (ue == NULL){
@@ -197,16 +196,14 @@ void showueDetail( char * supi )
 	if (ue->guami){
 		printf("  |--guami              : \r\n");
 		printf("    |--amf_id           : region:%d,set1:%d,set2:%d,pointer:%d\r\n", ue->guami->amf_id.region,ue->guami->amf_id.set1,ue->guami->amf_id.set2,ue->guami->amf_id.pointer);
-		printf("    |--plmn_id          : MCC:%s,MNC:%s \r\n", ogs_plmn_id_mcc_string(&ue->guami->plmn_id),ogs_plmn_id_mnc_string(&ue->guami->plmn_id));
+		printf("    |--plmn_id          : %s \r\n", ogs_plmn_id_to_string(&ue->guami->plmn_id,buf1));
 	}
-	printf("  |--nr_tai             : MCC:%s,MNC:%-3sTAC:%d \r\n", ogs_plmn_id_mcc_string(&ue->nr_tai.plmn_id),
-															       ogs_plmn_id_mnc_string(&ue->nr_tai.plmn_id),
+	printf("  |--nr_tai             : plmn_id:%s,TAC:%d \r\n", ogs_plmn_id_to_string(&ue->nr_tai.plmn_id,buf1),
 															       ue->nr_tai.tac.v);
-	printf("  |--nr_cgi             : MCC:%s,MNC:%-3sCELL:%lu \r\n", ogs_plmn_id_mcc_string(&ue->nr_cgi.plmn_id),
-																       ogs_plmn_id_mnc_string(&ue->nr_cgi.plmn_id),
+	printf("  |--nr_cgi             : plmn_id:%s,CELL:%lu \r\n", ogs_plmn_id_to_string(&ue->nr_cgi.plmn_id,buf1),
 																       ue->nr_cgi.cell_id);
 
-	printf("  |--last_visited_plmn_id: MCC:%s,MNC:%-3s \r\n", ogs_plmn_id_mcc_string(&ue->last_visited_plmn_id),ogs_plmn_id_mnc_string(&ue->last_visited_plmn_id));
+	printf("  |--last_visited_plmn_id: %s \r\n", ogs_plmn_id_to_string(&ue->last_visited_plmn_id,buf1));
 	printf("  |--gmm_capability     :   \r\n");
 	printf("    |--lte_positioning_protocol_capability: %d  \r\n", ue->gmm_capability.lte_positioning_protocol_capability);
 	printf("    |--ho_attach        : %d \r\n", ue->gmm_capability.ho_attach);

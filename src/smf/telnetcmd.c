@@ -128,11 +128,9 @@ void showueDetail( char * supi )
         printf("  |--policy_association_id      : %s \r\n", sess->policy_association.id);
         printf("  |--up_cnx_state       : %d \r\n", sess->up_cnx_state);
         printf("  |--serving_plmn_id    : %s \r\n", ogs_plmn_id_to_string(&sess->serving_plmn_id,buf));
-        printf("  |--nr_tai             : MCC:%s,MNC:%-3sTAC:%d \r\n", ogs_plmn_id_mcc_string(&sess->nr_tai.plmn_id),
-                                                                   ogs_plmn_id_mnc_string(&sess->nr_tai.plmn_id),
+        printf("  |--nr_tai             : plmn_id:%s,TAC:%d \r\n", ogs_plmn_id_to_string(&sess->nr_tai.plmn_id, buf),
                                                                    sess->nr_tai.tac.v);
-        printf("  |--nr_cgi             : MCC:%s,MNC:%-3sCELL:%lu \r\n", ogs_plmn_id_mcc_string(&sess->nr_cgi.plmn_id),
-                                                                           ogs_plmn_id_mnc_string(&sess->nr_cgi.plmn_id),
+        printf("  |--nr_cgi             : plmn_id:%s,CELL:%lu \r\n", ogs_plmn_id_to_string(&sess->nr_cgi.plmn_id, buf),
                                                                            sess->nr_cgi.cell_id);
         time_t time = ogs_time_sec(sess->ue_location_timestamp);
         struct tm *timeInfo = localtime(&time);  
