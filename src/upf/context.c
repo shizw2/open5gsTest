@@ -1385,6 +1385,7 @@ void upf_remoteserver_remove(upf_remoteserver_t *remoteserver)
             }
             if (node->sock){//add at 20240706
                 ogs_sctp_destroy(node->sock);
+                node->sock = NULL;
             }
 			break;
         }
