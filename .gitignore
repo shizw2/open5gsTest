@@ -10,5 +10,6 @@ version/
 *.docx
 install*/
 omm/
+web.log
 webui/.next
 *.si4project
