@@ -38,12 +38,6 @@ export const loggerSchema = {
   type: "object",
   title: "Logger",
   properties: {
-    level: {
-      type: "string",
-      title: "Log Level",
-      enum: ["fatal", "error", "warn", "info", "debug", "trace"],
-      default: "info",
-    },
     file: {
       type: "object",
       title: "Log File",
@@ -54,6 +48,12 @@ export const loggerSchema = {
           default: "",
         }
       }
+    },
+    level: {
+      type: "string",
+      title: "Log Level",
+      enum: ["fatal", "error", "warn", "info", "debug", "trace"],
+      //default: "info",
     },
   },
 };
@@ -450,7 +450,7 @@ export const nrfNFSchema = {
     serving: {
       type: "array",
       title: "Serving For Roaming",
-      minItems: 1,
+      //minItems: 1,
       maxItems: 8,
       items: {
         type: "object",
@@ -492,7 +492,7 @@ export const nrfNFSchema = {
         server:{
           type: "array",
           title: "Server",
-          "minItems": 1,
+          //"minItems": 1,
           "maxItems": 4,
           "messages": {
             "minItems": "At least 1 Interface is required",
@@ -949,6 +949,7 @@ export const nf_sbi_Schema = {
             }
           }
         },
+/*
         scp: {
           type: "array",
           title:"SCP",
@@ -964,6 +965,7 @@ export const nf_sbi_Schema = {
             }
           }
         }
+*/
       }
     }
   }
@@ -1002,6 +1004,7 @@ export const nf_sbi_UiSchema = {
         }
       }
     },
+/*
     scp: {
       classNames: "col-xs-12",
       "ui:title": <CustomTitle14 title="SCP URI" />,
@@ -1014,6 +1017,7 @@ export const nf_sbi_UiSchema = {
         }
       }
     }
+*/
   }
 };
 
@@ -1433,7 +1437,7 @@ export const metricsSchema = {
     server:{
       type: "array",
       title: "Server",
-      "minItems": 1,
+      //"minItems": 1,
       "maxItems": 4,
       "messages": {
         "minItems": "At least 1 Interface is required",
@@ -1724,17 +1728,11 @@ export const access_controlSchema = {
         type: "object",
         title: "PLMN_ID",
         properties: {
-          reject_cause: {
-            type: "integer",
-            title: "Reject Cause",
-            minimum: 0,
-            //required: true,
-          },
           mcc: {
             type: "string",
             title: "MCC",
             maxLength: 3,
-            required: true,
+            //required: true,
             pattern: "^\\d+$",
             messages: {
               pattern: "Only digits are allowed"
@@ -1744,12 +1742,18 @@ export const access_controlSchema = {
             type: "string",
             title: "MNC",
             maxLength: 3,
-            required: true,
+            //required: true,
             pattern: "^\\d+$",
             messages: {
               pattern: "Only digits are allowed"
             }
-          }
+          },
+          reject_cause: {
+            type: "integer",
+            title: "Reject Cause",
+            minimum: 0,
+            //required: true,
+          },
         },
         //required: ["mcc", "mnc"]
       },
@@ -1780,7 +1784,7 @@ export const access_controlUiSchema = {
 export const plmn_supportSchema = {
   type: "array",
   title: "PLMN_SUPPORT",
-  minItems: 1,
+  //minItems: 1,
   maxItems: 8,
   items: {
     type: "object",
@@ -2375,8 +2379,8 @@ const subnetipv6Regex = /^([a-f0-9]{1,4}(:[a-f0-9]{1,4}){7}|[a-f0-9]{1,4}(:[a-f0
 export const sessionSchema = {
   type: "array",
   title: "UE IP Pool",
-  "minItems": 1,
-  "maxItems": 16,
+  //"minItems": 1,
+  "maxItems": 32,
   "messages": {
     "minItems": "At least 1 subnet is required",
     "maxItems": "16 subnets are supported"
@@ -2634,8 +2638,8 @@ export const dpdkUiSchema = {
 export const dnsSchema = {
   type: "array",
   title:"DNS Address",
-  minItems: 1,
-  maxItems: 8,
+  //minItems: 1,
+  maxItems: 16,
   items: {
     type: "string",
     anyOf: [
