@@ -1,0 +1,15 @@
+[Unit]
+Description=@project_name@ WebUI
+Wants=mongodb.service mongod.service
+
+[Service]
+Type=simple
+
+WorkingDirectory=/home/@project_name@/webui
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node server/index.js
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

@@ -41,6 +41,7 @@ systemd_conf_in = '''
     5gc-udrd.service
     5gc-amf-spsd@.service
     5gc-eird.service
+    5gc-webui.service
 '''.split()
 
 foreach file : systemd_conf_in
