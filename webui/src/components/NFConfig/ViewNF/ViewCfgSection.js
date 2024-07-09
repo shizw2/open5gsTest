@@ -240,6 +240,7 @@ export const NF_SBI_Section = ({ sbi }) => (
             </div>
           </div>
         )}
+{/*
         {sbi.client && sbi.client.scp && (
           <div className="scp-section">
             <div className="sixty-spaces">scp:</div>
@@ -252,6 +253,7 @@ export const NF_SBI_Section = ({ sbi }) => (
             </div>
           </div>
         )}
+*/}
       </div>
     )}
   </div>
@@ -396,12 +398,14 @@ export const AccessControlSection = ({ accessControl }) => (
       <div className="access-control-section">
         <div className="twenty-spaces">access_control:</div>
         <div className="forty-spaces">
-          {accessControl.plmn_id && accessControl.map((item, index) => (
+          {accessControl.map((item, index) => (
             <div key={index}>
-              <div>- plmn_id:</div>
-              {item.plmn_id.reject_cause && (<div className="twenty-spaces">reject_cause: {item.plmn_id.reject_cause}</div>)}
-              <div className="twenty-spaces">mcc: {item.plmn_id.mcc.toString()}</div>
-              <div className="twenty-spaces">mnc: {item.plmn_id.mnc.toString()}</div>
+              {item.default_reject_cause && (<div>- default_reject_cause: {item.default_reject_cause}</div>)}
+              {item.default_reject_cause && item.plmn_id && (<div>&nbsp;&nbsp;plmn_id:</div>)}
+              {!item.default_reject_cause && item.plmn_id && (<div>- plmn_id:</div>)}
+              {item.plmn_id && item.plmn_id.reject_cause && (<div className="twenty-spaces">reject_cause: {item.plmn_id.reject_cause}</div>)}
+              {item.plmn_id && item.plmn_id.mcc &&(<div className="twenty-spaces">mcc: {item.plmn_id.mcc.toString()}</div>)}
+              {item.plmn_id && item.plmn_id.mnc &&(<div className="twenty-spaces">mnc: {item.plmn_id.mnc.toString()}</div>)}
             </div>
           ))}
         </div>
