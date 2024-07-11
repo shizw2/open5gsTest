@@ -47,7 +47,7 @@ static void stats_remove_ran_ue(void);
 static void stats_add_amf_session(void);
 static void stats_remove_amf_session(void);
 static bool amf_namf_comm_parse_guti(ogs_nas_5gs_guti_t *guti, char *ue_context_id);
-
+void change_utf8_2_ucs2(const char *c_network_name,uint8_t size, ogs_nas_network_name_t *network_full_name);
 void amf_context_init(void)
 {
     ogs_assert(context_initialized == 0);
@@ -1164,15 +1164,35 @@ int amf_context_parse_config(bool reloading)
                             const char *c_network_name =
                                 ogs_yaml_iter_value(&network_name_iter);
                             uint8_t size = strlen(c_network_name);
-                            uint8_t i;
-                            for (i = 0;i<size;i++) {
-                                /* Workaround to convert the ASCII to USC-2 */
-                                network_full_name->name[i*2] = 0;
-                                network_full_name->name[(i*2)+1] =
-                                    c_network_name[i];
-
+                            change_utf8_2_ucs2(c_network_name,size,network_full_name);
+                            /*uint8_t i;
+                            uint8_t j = 0;
+                            uint16_t ucs2_buffer[255]; // 用于保存转换后的UCS-2码流
+                            for (i = 0; i < size; i++) {
+                                // 将UTF-8码流逐个字符转换为UCS-2
+                                if ((c_network_name[i] & 0xF8) == 0xF0) { // 4字节UTF-8字符
+                                    ucs2_buffer[j++] = ((c_network_name[i] & 0x07) << 18) |
+                                                     ((c_network_name[i + 1] & 0x3F) << 12) |
+                                                     ((c_network_name[i + 2] & 0x3F) << 6) |
+                                                     (c_network_name[i + 3] & 0x3F);
+                                    i += 3;
+                                } else if ((c_network_name[i] & 0xF0) == 0xE0) { // 3字节UTF-8字符
+                                    ucs2_buffer[j++] = ((c_network_name[i] & 0x0F) << 12) |
+                                                     ((c_network_name[i + 1] & 0x3F) << 6) |
+                                                     (c_network_name[i + 2] & 0x3F);
+                                    i += 2;
+                                } else if ((c_network_name[i] & 0xE0) == 0xC0) { // 2字节UTF-8字符
+                                    ucs2_buffer[j++] = ((c_network_name[i] & 0x1F) << 6) |
+                                                     (c_network_name[i + 1] & 0x3F);
+                                    i += 1;
+                                } else { // 单字节UTF-8字符
+                                    ucs2_buffer[j++] = c_network_name[i];
+                                }
                             }
-                            network_full_name->length = size*2+1;
+    
+                            memcpy(network_full_name->name, ucs2_buffer, j * sizeof(uint16_t));
+                            network_full_name->length = j*2+1;*/
+                            
                             network_full_name->coding_scheme = 1;
                             network_full_name->ext = 1;
                         } else if (!strcmp(network_name_key, "short")) {
@@ -1181,6 +1201,8 @@ int amf_context_parse_config(bool reloading)
                             const char *c_network_name =
                                 ogs_yaml_iter_value(&network_name_iter);
                             uint8_t size = strlen(c_network_name);
+                            change_utf8_2_ucs2(c_network_name,size,network_short_name);
+                            #if 0
                             uint8_t i;
                             for (i = 0;i<size;i++) {
                                 /* Workaround to convert the ASCII to USC-2 */
@@ -1190,6 +1212,7 @@ int amf_context_parse_config(bool reloading)
 
                             }
                             network_short_name->length = size*2+1;
+                            #endif
                             network_short_name->coding_scheme = 1;
                             network_short_name->ext = 1;
                         } else
@@ -3777,4 +3800,39 @@ int yaml_check_proc(void)
 bool amf_is_imeicheck(void)
 {
     return self.imeicheckflag;
+}
+
+void change_utf8_2_ucs2(const char *c_network_name,uint8_t size, ogs_nas_network_name_t *network_full_name){
+    uint8_t i;
+    uint8_t j = 0;
+    uint16_t ucs2_buffer[255]; // 用于保存转换后的UCS-2码流
+    uint16_t ucs2;
+    for (i = 0; i < size; i++) {
+        // 将UTF-8码流逐个字符转换为UCS-2
+        if ((c_network_name[i] & 0xF8) == 0xF0) { // 4字节UTF-8字符
+            ucs2 = ((c_network_name[i] & 0x07) << 18) |
+                             ((c_network_name[i + 1] & 0x3F) << 12) |
+                             ((c_network_name[i + 2] & 0x3F) << 6) |
+                             (c_network_name[i + 3] & 0x3F);
+            ucs2_buffer[j++] = htons(ucs2);                 
+            i += 3;
+        } else if ((c_network_name[i] & 0xF0) == 0xE0) { // 3字节UTF-8字符
+            ucs2 = ((c_network_name[i] & 0x0F) << 12) |
+                             ((c_network_name[i + 1] & 0x3F) << 6) |
+                             (c_network_name[i + 2] & 0x3F);
+            ucs2_buffer[j++] = htons(ucs2); 
+            i += 2;
+        } else if ((c_network_name[i] & 0xE0) == 0xC0) { // 2字节UTF-8字符
+            ucs2 = ((c_network_name[i] & 0x1F) << 6) |
+                             (c_network_name[i + 1] & 0x3F);
+            ucs2_buffer[j++] = htons(ucs2); 
+            i += 1;
+        } else { // 单字节UTF-8字符
+            ucs2 = c_network_name[i];
+            ucs2_buffer[j++] = htons(ucs2); 
+        }
+    }
+
+    memcpy(network_full_name->name, ucs2_buffer, j * sizeof(uint16_t));
+    network_full_name->length = j*2+1;
 }
