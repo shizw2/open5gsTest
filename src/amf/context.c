@@ -3790,6 +3790,11 @@ void change_network_name_from_utf8_2_ucs2(const char *c_network_name,uint8_t siz
     uint8_t j = 0;
     uint16_t ucs2_buffer[OGS_NAS_MAX_NETWORK_NAME_LEN]; // 用于保存转换后的UCS-2码流
     uint16_t ucs2;
+  
+    if (c_network_name == NULL || network_full_name == NULL){
+        return;
+    }
+   
     for (i = 0; i < size; i++) {
         // 将UTF-8码流逐个字符转换为UCS-2
         if ((c_network_name[i] & 0xF8) == 0xF0) { // 4字节UTF-8字符
@@ -3811,7 +3816,11 @@ void change_network_name_from_utf8_2_ucs2(const char *c_network_name,uint8_t siz
             ucs2 = c_network_name[i];            
         }
         
-        ucs2_buffer[j++] = htons(ucs2);        
+        ucs2_buffer[j++] = htons(ucs2);
+
+        if (j >= OGS_NAS_MAX_NETWORK_NAME_LEN){
+            break;
+        }
     }
 
     memcpy(network_full_name->name, ucs2_buffer, j * sizeof(uint16_t));
