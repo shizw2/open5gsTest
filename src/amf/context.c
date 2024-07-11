@@ -1164,7 +1164,20 @@ int amf_context_parse_config(bool reloading)
                             const char *c_network_name =
                                 ogs_yaml_iter_value(&network_name_iter);
                             uint8_t size = strlen(c_network_name);
-                            change_network_name_from_utf8_2_ucs2(c_network_name,size,network_full_name);                            
+                            change_network_name_from_utf8_2_ucs2(c_network_name,size,network_full_name);
+                            #if 0
+                            uint8_t i;
+                            for (i = 0;i<size;i++) {
+                                /* Workaround to convert the ASCII to USC-2 */
+                                network_full_name->name[i*2] = 0;
+                                network_full_name->name[(i*2)+1] =
+                                    c_network_name[i];
+
+                            }
+                            network_full_name->length = size*2+1;
+                            network_full_name->coding_scheme = 1;
+                            network_full_name->ext = 1;
+                            #endif
                         } else if (!strcmp(network_name_key, "short")) {
                             ogs_nas_network_name_t *network_short_name =
                                 &self.short_name;
