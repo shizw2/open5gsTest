@@ -237,8 +237,7 @@ static void _gtpv1_tun_recv_common_cb(
         upf_sess_urr_acc_add(sess, pdr->urr[i], recvbuf->len, false);
 
     ogs_assert(true == ogs_pfcp_up_handle_pdr(
-                pdr, OGS_GTPU_MSGTYPE_GPDU, NULL, recvbuf, &report, false));
-    free_recvbuf = false;
+                pdr, OGS_GTPU_MSGTYPE_GPDU, NULL, recvbuf, &report));
     /*
      * Issue #2210, Discussion #2208, #2209
      *
@@ -1008,7 +1007,6 @@ void _gtpv1_nbr_recv_common_cb(
     ogs_pfcp_far_t *far = NULL;
     ogs_pfcp_user_plane_report_t report;
     int i;
-    bool free_recvbuf = true;
     ogs_sockaddr_t from;
     ssize_t size;
 
@@ -1087,8 +1085,8 @@ void _gtpv1_nbr_recv_common_cb(
         upf_sess_urr_acc_add(sess, pdr->urr[i], recvbuf->len, false);
 
     ogs_assert(true == ogs_pfcp_up_handle_pdr(
-                pdr, OGS_GTPU_MSGTYPE_GPDU, NULL, recvbuf, &report, false));
-    free_recvbuf = false;
+                pdr, OGS_GTPU_MSGTYPE_GPDU, NULL, recvbuf, &report));
+
     /*
      * Issue #2210, Discussion #2208, #2209
      *
@@ -1120,10 +1118,13 @@ void _gtpv1_nbr_recv_common_cb(
             upf_pfcp_send_session_report_request(sess, &report));
     }
 
-cleanup:
-    if (free_recvbuf){
-        ogs_pkbuf_free(recvbuf);
-    }
+    /*
+     * The ogs_pfcp_up_handle_pdr() function
+     * buffers or frees the Packet Buffer(pkbuf) memory.
+     */
+    return;
+cleanup:    
+    ogs_pkbuf_free(recvbuf);    
 }
 
 static void upf_gtp_try_handle_nbr_pkt(ogs_pkbuf_t * recvbuf){

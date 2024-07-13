@@ -43,7 +43,7 @@ bool pcf_npcf_policyauthorization_handle_delete(
         pcf_sess_t *sess, pcf_app_t *app,
         ogs_sbi_stream_t *stream, ogs_sbi_message_t *recvmsg);
 
-int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message_t *rx_message);
+int pcf_n7_send_rar(ogs_pool_id_t sess_id,pcf_app_t *app_session, ogs_diam_rx_message_t *rx_message);
 int pcf_n7_send_rar_to_main_thread(pcf_sess_t *sess,
         pcf_app_t *app_session, ogs_diam_rx_message_t *rx_message);
 #ifdef __cplusplus

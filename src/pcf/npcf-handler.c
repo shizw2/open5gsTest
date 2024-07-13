@@ -1710,7 +1710,7 @@ int pcf_n7_send_rar_to_main_thread(pcf_sess_t *sess,
 
     e = pcf_event_new(PCF_EVENT_RX_CMD);
     ogs_assert(e);
-    e->sess = sess;         
+    e->sess_id = sess->id;         
     e->app = app_session;
     e->rx_message = rx_message;
 
@@ -1727,7 +1727,7 @@ int pcf_n7_send_rar_to_main_thread(pcf_sess_t *sess,
 #endif
 
 //模仿pcrf_gx_send_rar
-int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message_t *rx_message)
+int pcf_n7_send_rar(ogs_pool_id_t sess_id,pcf_app_t *app_session, ogs_diam_rx_message_t *rx_message)
 {
     OpenAPI_list_t *PccRuleList = NULL;
     OpenAPI_map_t *PccRuleMap = NULL;
@@ -1742,12 +1742,17 @@ int pcf_n7_send_rar(pcf_sess_t *sess,pcf_app_t *app_session, ogs_diam_rx_message
     int rv;
     int i, j;
     pcf_ue_t *pcf_ue = NULL;
+    pcf_sess_t *sess = NULL;
 
     ogs_session_data_t session_data;
 
     ogs_assert(rx_message);
 
-    pcf_ue = sess->pcf_ue;
+    sess = pcf_sess_find_by_id(sess_id);
+    ogs_assert(sess);
+
+    pcf_ue = pcf_ue_find_by_id(sess->pcf_ue_id);
+    ogs_assert(pcf_ue);
 
     ogs_info("[PCF] Re-Auth-Request");
 

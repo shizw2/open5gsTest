@@ -69,7 +69,11 @@ void nrf_state_operational(ogs_fsm_t *s, nrf_event_t *e)
         ogs_assert(stream_id >= OGS_MIN_POOL_ID &&
                 stream_id <= OGS_MAX_POOL_ID);
 
-        ogs_debug("*test nrf_state_operational :%p headers cnt:%d,params cnt:%d,request:%s method:%s",request, ogs_hash_count(request->http.headers),ogs_hash_count(request->http.params),request->http.content,request->h.method);
+        stream = ogs_sbi_stream_find_by_id(stream_id);
+        if (!stream) {
+            ogs_error("STREAM has already been removed [%d]", stream_id);
+            break;
+        }
 
         rv = ogs_sbi_parse_request(&message, request);
         if (rv != OGS_OK) {

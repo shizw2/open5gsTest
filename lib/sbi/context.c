@@ -2774,25 +2774,10 @@ ogs_sbi_client_t *ogs_sbi_client_find_by_service_type(
 
 void ogs_sbi_object_free(ogs_sbi_object_t *sbi_object)
 {
-    int i;
-
     ogs_assert(sbi_object);
 
     if (ogs_list_count(&sbi_object->xact_list))
         ogs_error("SBI running [%d]", ogs_list_count(&sbi_object->xact_list));
-
-    for (i = 0; i < OGS_SBI_MAX_NUM_OF_SERVICE_TYPE; i++) {
-        ogs_sbi_nf_instance_t *nf_instance =
-            sbi_object->service_type_array[i].nf_instance;
-        if (nf_instance)
-            ogs_sbi_nf_instance_remove(nf_instance);
-    }
-    for (i = 0; i < OGS_SBI_MAX_NUM_OF_NF_TYPE; i++) {
-        ogs_sbi_nf_instance_t *nf_instance =
-            sbi_object->nf_type_array[i].nf_instance;
-        if (nf_instance)
-            ogs_sbi_nf_instance_remove(nf_instance);
-    }
 }
 
 ogs_sbi_xact_t *ogs_sbi_xact_add(
