@@ -40,16 +40,16 @@ int nssf_initialize(void)
     ogs_sbi_context_init(OpenAPI_nf_type_NSSF);
     nssf_context_init();
 
+    rv = ogs_log_config_domain(
+            ogs_app()->logger.domain, ogs_app()->logger.level);
+    if (rv != OGS_OK) return rv;
+
     rv = ogs_sbi_context_parse_config(APP_NAME, "nrf", "scp");
     if (rv != OGS_OK) return rv;
 
     rv = nssf_context_parse_config();
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_log_config_domain(
-            ogs_app()->logger.domain, ogs_app()->logger.level);
-    if (rv != OGS_OK) return rv;
-    
     rv = ogs_metrics_context_parse_config("nssf");
     if (rv != OGS_OK) return rv;
 

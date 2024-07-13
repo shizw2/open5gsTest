@@ -223,9 +223,8 @@ upf_sess_t *upf_sess_add(ogs_pfcp_f_seid_t *cp_f_seid)
 
     ogs_assert(cp_f_seid);
 
-    ogs_pool_alloc(&upf_sess_pool, &sess);
+    ogs_pool_id_calloc(&upf_sess_pool, &sess);
     ogs_assert(sess);
-    memset(sess, 0, sizeof *sess);
 
     ogs_pfcp_pool_init(&sess->pfcp);
 
@@ -292,7 +291,7 @@ int upf_sess_remove(upf_sess_t *sess)
     ogs_pfcp_pool_final(&sess->pfcp);
 
     ogs_pool_free(&upf_n4_seid_pool, sess->upf_n4_seid_node);
-    ogs_pool_free(&upf_sess_pool, sess);
+    ogs_pool_id_free(&upf_sess_pool, sess);
     if (sess->apn_dnn)
         ogs_free(sess->apn_dnn);
     upf_metrics_inst_global_dec(UPF_METR_GLOB_GAUGE_UPF_SESSIONNBR);
@@ -400,6 +399,11 @@ upf_sess_t *upf_sess_find_by_ipv6(uint32_t *addr6)
     return ret;
 }
 
+upf_sess_t *upf_sess_find_by_id(ogs_pool_id_t id)
+{
+    return ogs_pool_find_by_id(&upf_sess_pool, id);
+}
+
 upf_sess_t *upf_sess_add_by_message(ogs_pfcp_message_t *message)
 {
     upf_sess_t *sess = NULL;
@@ -411,6 +415,10 @@ upf_sess_t *upf_sess_add_by_message(ogs_pfcp_message_t *message)
     f_seid = req->cp_f_seid.data;
     if (req->cp_f_seid.presence == 0 || f_seid == NULL) {
         ogs_error("No CP F-SEID");
+        return NULL;
+    }
+    if (f_seid->ipv4 == 0 && f_seid->ipv6 == 0) {
+        ogs_error("No IPv4 or IPv6");
         return NULL;
     }
     f_seid->seid = be64toh(f_seid->seid);

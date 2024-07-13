@@ -1246,24 +1246,23 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
                     nf_instance, message.h.resource.component[1]);
             ogs_sbi_nf_fsm_init(nf_instance);
 
-            ogs_info("(NRF-notify) NF registered [%s:%d]",
-                    nf_instance->id, nf_instance->reference_count);
+            ogs_info("[%s] (NRF-notify) NF registered", nf_instance->id);
         } else {
-            ogs_warn("[%s] (NRF-notify) NF has already been added [%s:%d]",
-                    nf_instance->nf_type ?
-                        OpenAPI_nf_type_ToString(nf_instance->nf_type) : "NULL",
-                    nf_instance->id, nf_instance->reference_count);
-
-            ogs_assert(OGS_FSM_STATE(&nf_instance->sm));
-            ogs_sbi_nf_fsm_tran(nf_instance, ogs_sbi_nf_state_registered);
+            ogs_warn("[%s] (NRF-notify) NF has already been added [type:%s]",
+                    nf_instance->id,
+                    OpenAPI_nf_type_ToString(nf_instance->nf_type));
+            if (!OGS_FSM_CHECK(&nf_instance->sm, ogs_sbi_nf_state_registered)) {
+                ogs_error("[%s] (NRF-notify) NF invalid state [type:%s]",
+                        nf_instance->id,
+                        OpenAPI_nf_type_ToString(nf_instance->nf_type));
+            }
         }
 
         ogs_nnrf_nfm_handle_nf_profile(nf_instance, NFProfile);
 
-        ogs_info("[%s] (NRF-notify) NF Profile updated [%s:%d]",
-                    nf_instance->nf_type ?
-                        OpenAPI_nf_type_ToString(nf_instance->nf_type) : "NULL",
-                    nf_instance->id, nf_instance->reference_count);
+        ogs_info("[%s] (NRF-notify) NF Profile updated [type:%s]",
+                    nf_instance->id,
+                    OpenAPI_nf_type_ToString(nf_instance->nf_type));
 
         ogs_sbi_client_associate(nf_instance);
 
@@ -1344,27 +1343,11 @@ bool ogs_nnrf_nfm_handle_nf_status_notify(
             OpenAPI_notification_event_type_NF_DEREGISTERED) {
         nf_instance = ogs_sbi_nf_instance_find(message.h.resource.component[1]);
         if (nf_instance) {
-            if (OGS_OBJECT_IS_REF(nf_instance)) {
-                /* There are references to other contexts. */
-                ogs_warn("[%s] (NRF-notify) NF was referenced "
-                        "in other contexts [%s:%d]",
-                        nf_instance->nf_type ?
-                            OpenAPI_nf_type_ToString(nf_instance->nf_type) :
-                            "NULL",
-                        nf_instance->id, nf_instance->reference_count);
-
-                ogs_assert(OGS_FSM_STATE(&nf_instance->sm));
-                ogs_sbi_nf_fsm_tran(
-                        nf_instance, ogs_sbi_nf_state_de_registered);
-            } else {
-                ogs_info("[%s] (NRF-notify) NF_DEREGISTERED event [%s:%d]",
-                        nf_instance->nf_type ?
-                            OpenAPI_nf_type_ToString(nf_instance->nf_type) :
-                            "NULL",
-                        nf_instance->id, nf_instance->reference_count);
-                ogs_sbi_nf_fsm_fini((nf_instance));
-                ogs_sbi_nf_instance_remove(nf_instance);
-            }
+            ogs_info("[%s] (NRF-notify) NF_DEREGISTERED event [type:%s]",
+                    nf_instance->id,
+                    OpenAPI_nf_type_ToString(nf_instance->nf_type));
+            ogs_sbi_nf_fsm_fini(nf_instance);
+            ogs_sbi_nf_instance_remove(nf_instance);
         } else {
             ogs_warn("[%s] (NRF-notify) Not found",
                     message.h.resource.component[1]);
@@ -1446,18 +1429,18 @@ void ogs_nnrf_disc_handle_nf_discover_search_result(
             ogs_sbi_nf_instance_set_id(nf_instance, NFProfile->nf_instance_id);
             ogs_sbi_nf_fsm_init(nf_instance);
 
-            ogs_info("[%s] (NRF-discover) NF registered [%s:%d]",
-                    nf_instance->nf_type ?
-                        OpenAPI_nf_type_ToString(nf_instance->nf_type) : "NULL",
-                    nf_instance->id, nf_instance->reference_count);
+            ogs_info("[%s] (NRF-discover) NF registered [type:%s]",
+                    nf_instance->id,
+                    OpenAPI_nf_type_ToString(nf_instance->nf_type));
         } else {
-            ogs_warn("[%s] (NRF-discover) NF has already been added [%s:%d]",
-                    nf_instance->nf_type ?
-                        OpenAPI_nf_type_ToString(nf_instance->nf_type) : "NULL",
-                    nf_instance->id, nf_instance->reference_count);
-
-            ogs_assert(OGS_FSM_STATE(&nf_instance->sm));
-            ogs_sbi_nf_fsm_tran(nf_instance, ogs_sbi_nf_state_registered);
+            ogs_warn("[%s] (NRF-discover) NF has already been added [type:%s]",
+                    nf_instance->id,
+                    OpenAPI_nf_type_ToString(nf_instance->nf_type));
+            if (!OGS_FSM_CHECK(&nf_instance->sm, ogs_sbi_nf_state_registered)) {
+                ogs_error("[%s] (NRF-notify) NF invalid state [type:%s]",
+                        nf_instance->id,
+                        OpenAPI_nf_type_ToString(nf_instance->nf_type));
+            }
         }
 
         if (NF_INSTANCE_ID_IS_OTHERS(nf_instance->id)) {
@@ -1484,15 +1467,18 @@ void ogs_nnrf_disc_handle_nf_discover_search_result(
                     ogs_time_from_sec(nf_instance->time.validity_duration));
 
             } else
-                ogs_warn("[%s] NF Instance validity-time should not 0 [%s:%d]",
+                ogs_warn("[%s] NF Instance validity-time should not 0 "
+                        "[type:%s]",
+                    nf_instance->id,
                     nf_instance->nf_type ?
-                        OpenAPI_nf_type_ToString(nf_instance->nf_type) : "NULL",
-                    nf_instance->id, nf_instance->reference_count);
+                        OpenAPI_nf_type_ToString(nf_instance->nf_type) :
+                        "NULL");
 
-            ogs_info("[%s] (NF-discover) NF Profile updated [%s:%d]",
-                    nf_instance->nf_type ?
-                        OpenAPI_nf_type_ToString(nf_instance->nf_type) : "NULL",
-                    nf_instance->id, nf_instance->reference_count);
+            ogs_info("[%s] (NF-discover) NF Profile updated "
+                    "[type:%s validity:%ds]",
+                    nf_instance->id,
+                    OpenAPI_nf_type_ToString(nf_instance->nf_type),
+                    nf_instance->time.validity_duration);
         }
     }
 }

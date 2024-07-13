@@ -236,7 +236,7 @@ bool pcf_npcf_smpolicycontrol_handle_create(pcf_sess_t *sess,
     char *home_network_domain = NULL;
 
     ogs_assert(sess);
-    pcf_ue = sess->pcf_ue;
+    pcf_ue = pcf_ue_find_by_id(sess->pcf_ue_id);
     ogs_assert(stream);
     ogs_assert(message);
 
@@ -506,7 +506,8 @@ bool pcf_npcf_smpolicycontrol_handle_create(pcf_sess_t *sess,
 
         service_type = OGS_SBI_SERVICE_TYPE_NPCF_POLICYAUTHORIZATION;
 
-        nf_instance = sess->sbi.service_type_array[service_type].nf_instance;
+        nf_instance = OGS_SBI_GET_NF_INSTANCE(
+                sess->sbi.service_type_array[service_type]);
         if (!nf_instance) {
             OpenAPI_nf_type_e requester_nf_type =
                         NF_INSTANCE_TYPE(ogs_sbi_self()->nf_instance);
@@ -580,7 +581,7 @@ bool pcf_npcf_smpolicycontrol_handle_delete(pcf_sess_t *sess,
     OpenAPI_sm_policy_delete_data_t *SmPolicyDeleteData = NULL;
 
     ogs_assert(sess);
-    pcf_ue = sess->pcf_ue;
+    pcf_ue = pcf_ue_find_by_id(sess->pcf_ue_id);
     ogs_assert(stream);
     ogs_assert(message);
 
@@ -691,7 +692,7 @@ bool pcf_npcf_policyauthorization_handle_create(pcf_sess_t *sess,
     OpenAPI_lnode_t *node = NULL, *node2 = NULL, *node3 = NULL;
 
     ogs_assert(sess);
-    pcf_ue = sess->pcf_ue;
+    pcf_ue = pcf_ue_find_by_id(sess->pcf_ue_id);
     ogs_assert(stream);
     ogs_assert(recvmsg);
 
@@ -1198,7 +1199,7 @@ bool pcf_npcf_policyauthorization_handle_update(
     OpenAPI_lnode_t *node = NULL, *node2 = NULL, *node3 = NULL;
 
     ogs_assert(sess);
-    pcf_ue = sess->pcf_ue;
+    pcf_ue = pcf_ue_find_by_id(sess->pcf_ue_id);
     ogs_assert(app_session);
     ogs_assert(stream);
     ogs_assert(recvmsg);

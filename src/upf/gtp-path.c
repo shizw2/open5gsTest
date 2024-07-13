@@ -131,8 +131,7 @@ static void _gtpv1_tun_recv_common_cb(
     ogs_pfcp_far_t *far = NULL;
     ogs_pfcp_user_plane_report_t report;
     int i;
-    bool free_recvbuf = true;
-    
+
     recvbuf = ogs_tun_read(fd, packet_pool);
     if (!recvbuf) {
         ogs_warn("ogs_tun_read() failed");
@@ -271,10 +270,14 @@ static void _gtpv1_tun_recv_common_cb(
             upf_pfcp_send_session_report_request(sess, &report));
     }
 
+    /*
+     * The ogs_pfcp_up_handle_pdr() function
+     * buffers or frees the Packet Buffer(pkbuf) memory.
+     */
+    return;
+
 cleanup:
-    if (free_recvbuf){
-        ogs_pkbuf_free(recvbuf);
-    }
+    ogs_pkbuf_free(recvbuf);
 }
 
 static void _gtpv1_tun_recv_cb(short when, ogs_socket_t fd, void *data)
@@ -398,7 +401,6 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             ogs_error("[DROP] Cannot find FAR by Error-Indication");
             ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
         }
-
     } else if (header_desc.type == OGS_GTPU_MSGTYPE_GPDU) {
         uint16_t eth_type = 0;
         struct ip *ip_h = NULL;
@@ -741,8 +743,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
         } else if (far->dst_if == OGS_PFCP_INTERFACE_ACCESS) {
             ogs_assert(true == ogs_pfcp_up_handle_pdr(
-                        pdr, header_desc.type, &header_desc, pkbuf, &report, false));
-            free_recvbuf = false;
+                        pdr, header_desc.type, &header_desc, pkbuf, &report));
 
             if (report.type.downlink_data_report) {
                 ogs_error("Indirect Data Fowarding Buffered");
@@ -754,6 +755,12 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
                 ogs_assert(OGS_OK ==
                     upf_pfcp_send_session_report_request(sess, &report));
             }
+
+            /*
+             * The ogs_pfcp_up_handle_pdr() function
+             * buffers or frees the Packet Buffer(pkbuf) memory.
+             */
+            return;
 
         } else if (far->dst_if == OGS_PFCP_INTERFACE_CP_FUNCTION) {
 
@@ -769,10 +776,15 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             }
 
             ogs_assert(true == ogs_pfcp_up_handle_pdr(
-                        pdr, header_desc.type, &header_desc, pkbuf, &report, false));
-            free_recvbuf = false;
+                        pdr, header_desc.type, &header_desc, pkbuf, &report));
 
             ogs_assert(report.type.downlink_data_report == 0);
+
+            /*
+             * The ogs_pfcp_up_handle_pdr() function
+             * buffers or frees the Packet Buffer(pkbuf) memory.
+             */
+            return;
 
         } else {
             ogs_fatal("Not implemented : FAR-DST_IF[%d]", far->dst_if);
@@ -784,9 +796,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
     }
 
 cleanup:
-    if (free_recvbuf){
-        ogs_pkbuf_free(pkbuf);
-    }
+    ogs_pkbuf_free(pkbuf);
 }
 
 int upf_gtp_init(void)
@@ -968,10 +978,12 @@ static void upf_gtp_handle_multicast(ogs_pkbuf_t *recvbuf)
 
                     ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
                         if (pdr->src_if == OGS_PFCP_INTERFACE_CORE) {
+                            ogs_pkbuf_t *sendbuf = ogs_pkbuf_copy(recvbuf);
+                            ogs_assert(sendbuf);
                             ogs_assert(true ==
                                 ogs_pfcp_up_handle_pdr(
                                     pdr, OGS_GTPU_MSGTYPE_GPDU,
-                                    NULL, recvbuf, &report, true));
+                                    NULL, sendbuf, &report));
                             break;
                         }
                     }

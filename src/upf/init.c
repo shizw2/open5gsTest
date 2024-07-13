@@ -77,8 +77,11 @@ int upf_initialize(void)
     rv = license_check_init();
     if (rv != OGS_OK) return rv;
 
-
     rv = ogs_pfcp_xact_init();
+    if (rv != OGS_OK) return rv;
+
+    rv = ogs_log_config_domain(
+            ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;
 
     rv = ogs_gtp_context_parse_config(APP_NAME, "smf");
@@ -99,10 +102,6 @@ int upf_initialize(void)
     rv = upf_dpdk_context_parse_config();
     if (rv != OGS_OK) return rv;
 #endif
-
-    rv = ogs_log_config_domain(
-            ogs_app()->logger.domain, ogs_app()->logger.level);
-    if (rv != OGS_OK) return rv;
 
     rv = ogs_pfcp_ue_pool_generate();
     if (rv != OGS_OK) return rv;

@@ -42,8 +42,8 @@ typedef enum {
 typedef struct pcf_event_s {
     ogs_event_t h;
 
-    pcf_ue_t *pcf_ue;
-    pcf_sess_t *sess;
+    ogs_pool_id_t pcf_ue_id;
+    ogs_pool_id_t sess_id;
     pcf_app_t *app;
     ogs_diam_rx_message_t *rx_message;
 } pcf_event_t;

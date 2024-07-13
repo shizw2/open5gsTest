@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2024 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -41,6 +41,7 @@ void nrf_state_operational(ogs_fsm_t *s, nrf_event_t *e)
 {
     int rv;
     ogs_sbi_stream_t *stream = NULL;
+    ogs_pool_id_t stream_id = OGS_INVALID_POOL_ID;
     ogs_sbi_request_t *request = NULL;
 
     ogs_sbi_nf_instance_t *nf_instance = NULL;
@@ -64,8 +65,9 @@ void nrf_state_operational(ogs_fsm_t *s, nrf_event_t *e)
     case OGS_EVENT_SBI_SERVER:
         request = e->h.sbi.request;
         ogs_assert(request);
-        stream = e->h.sbi.data;
-        ogs_assert(stream);
+        stream_id = OGS_POINTER_TO_UINT(e->h.sbi.data);
+        ogs_assert(stream_id >= OGS_MIN_POOL_ID &&
+                stream_id <= OGS_MAX_POOL_ID);
 
         ogs_debug("*test nrf_state_operational :%p headers cnt:%d,params cnt:%d,request:%s method:%s",request, ogs_hash_count(request->http.headers),ogs_hash_count(request->http.params),request->http.content,request->h.method);
 
@@ -168,9 +170,7 @@ void nrf_state_operational(ogs_fsm_t *s, nrf_event_t *e)
                         ogs_fsm_dispatch(&nf_instance->sm, e);
                         if (OGS_FSM_CHECK(&nf_instance->sm,
                                     nrf_nf_state_de_registered)) {
-                            ogs_info("[%s:%d] NF de-registered",
-                                    nf_instance->id,
-                                    nf_instance->reference_count);
+                            ogs_info("[%s] NF de-registered", nf_instance->id);
                             nrf_nf_fsm_fini(nf_instance);
                             ogs_sbi_nf_instance_remove(nf_instance);
                         } else if (OGS_FSM_CHECK(&nf_instance->sm,

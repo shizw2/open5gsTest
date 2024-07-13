@@ -193,7 +193,7 @@ bool pcf_nudr_dr_handle_query_sm_data(
     int r;
 
     ogs_assert(sess);
-    pcf_ue = sess->pcf_ue;
+    pcf_ue = pcf_ue_find_by_id(sess->pcf_ue_id);
     ogs_assert(pcf_ue);
     ogs_assert(stream);
     server = ogs_sbi_server_from_stream(stream);
@@ -215,7 +215,8 @@ bool pcf_nudr_dr_handle_query_sm_data(
 
         service_type = OGS_SBI_SERVICE_TYPE_NPCF_POLICYAUTHORIZATION;
 
-        nf_instance = sess->sbi.service_type_array[service_type].nf_instance;
+        nf_instance = OGS_SBI_GET_NF_INSTANCE(
+                sess->sbi.service_type_array[service_type]);
         if (!nf_instance) {
             OpenAPI_nf_type_e requester_nf_type =
                         NF_INSTANCE_TYPE(ogs_sbi_self()->nf_instance);

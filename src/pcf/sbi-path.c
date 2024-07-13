@@ -124,6 +124,7 @@ bool pcf_sbi_send_request(
 }
 
 static int pcf_sbi_discover_and_send(
+        ogs_pool_id_t sbi_object_id,
         ogs_sbi_object_t *sbi_object,
         ogs_sbi_service_type_e service_type,
         ogs_sbi_discovery_option_t *discovery_option,
@@ -132,7 +133,7 @@ static int pcf_sbi_discover_and_send(
 {
     ogs_sbi_xact_t *xact = NULL;
     int r;
-    pcf_ue_t     *ue = NULL;
+    pcf_ue_t   *pcf_ue = NULL;
     pcf_sess_t *sess = NULL;
 
     ogs_assert(service_type);
@@ -140,26 +141,35 @@ static int pcf_sbi_discover_and_send(
     ogs_assert(stream);
     ogs_assert(build);
 
+    ogs_assert(sbi_object_id >= OGS_MIN_POOL_ID &&
+            sbi_object_id <= OGS_MAX_POOL_ID);
+
     xact = ogs_sbi_xact_add(
-            sbi_object, service_type, discovery_option,
+            sbi_object_id, sbi_object, service_type, discovery_option,
             build, context, data);
     if (!xact) {
         ogs_error("ogs_sbi_xact_add() failed");
         return OGS_ERROR;
     }
 
-    xact->assoc_stream = stream;
+    if (stream) {
+        xact->assoc_stream_id = ogs_sbi_id_from_stream(stream);
+        ogs_assert(xact->assoc_stream_id >= OGS_MIN_POOL_ID &&
+                xact->assoc_stream_id <= OGS_MAX_POOL_ID);
+    }
     
     switch(sbi_object->type) {
         case OGS_SBI_OBJ_UE_TYPE:   
-            ue = (pcf_ue_t *)sbi_object;
-            ogs_assert(ue);
-            xact->supi_id = ogs_id_get_value(ue->supi);
+            pcf_ue = pcf_ue_find_by_id(sbi_object_id);
+            ogs_assert(pcf_ue);
+            xact->supi_id = ogs_id_get_value(pcf_ue->supi);
             break;
         case OGS_SBI_OBJ_SESS_TYPE:
-            sess = (pcf_sess_t *)sbi_object;
+            sess = pcf_sess_find_by_id(sbi_object_id);
             ogs_assert(sess);
-            xact->supi_id = ogs_id_get_value(sess->pcf_ue->supi);
+            pcf_ue = pcf_ue_find_by_id(sess->pcf_ue_id);
+            ogs_assert(pcf_ue);
+            xact->supi_id = ogs_id_get_value(pcf_ue->supi);
             break;
         default:
             ogs_error("(NF discover search result) Not implemented [%d]",
@@ -185,8 +195,8 @@ int pcf_ue_sbi_discover_and_send(
     int r;
 
     r = pcf_sbi_discover_and_send(
-                &pcf_ue->sbi, service_type, discovery_option,
-                (ogs_sbi_build_f)build, pcf_ue, stream, data);
+            pcf_ue->id, &pcf_ue->sbi, service_type, discovery_option,
+            (ogs_sbi_build_f)build, pcf_ue, stream, data);
     if (r != OGS_OK) {
         ogs_error("pcf_ue_sbi_discover_and_send() failed");
         ogs_assert(true ==
@@ -204,18 +214,27 @@ int pcf_sess_sbi_discover_only(
         ogs_sbi_service_type_e service_type)
 {
     ogs_sbi_xact_t *xact = NULL;
-
+    pcf_ue_t *pcf_ue = NULL;
+    
     ogs_assert(sess);
     ogs_assert(service_type);
 
-    xact = ogs_sbi_xact_add(&sess->sbi, service_type, NULL, NULL, NULL, NULL);
+    xact = ogs_sbi_xact_add(
+            0, &sess->sbi, service_type, NULL, NULL, NULL, NULL);
     if (!xact) {
         ogs_error("ogs_sbi_xact_add() failed");
         return OGS_ERROR;
     }
 
-    xact->assoc_stream = stream;
-    xact->supi_id = ogs_id_get_value(sess->pcf_ue->supi);
+    if (stream) {
+        xact->assoc_stream_id = ogs_sbi_id_from_stream(stream);
+        ogs_assert(xact->assoc_stream_id >= OGS_MIN_POOL_ID &&
+                xact->assoc_stream_id <= OGS_MAX_POOL_ID);
+    }
+
+    pcf_ue = pcf_ue_find_by_id(sess->pcf_ue_id);
+    ogs_assert(pcf_ue);
+    xact->supi_id = ogs_id_get_value(pcf_ue->supi);
 
     return ogs_sbi_discover_only(xact);
 }
@@ -229,8 +248,8 @@ int pcf_sess_sbi_discover_and_send(
     int r;
 
     r = pcf_sbi_discover_and_send(
-                &sess->sbi, service_type, discovery_option,
-                (ogs_sbi_build_f)build, sess, stream, data);
+            sess->id, &sess->sbi, service_type, discovery_option,
+            (ogs_sbi_build_f)build, sess, stream, data);
     if (r != OGS_OK) {
         ogs_error("pcf_sess_sbi_discover_and_send() failed");
         ogs_assert(true ==

@@ -37,11 +37,10 @@ int esm_handle_pdn_connectivity_request(mme_bearer_t *bearer,
     uint8_t security_protected_required = 0;
 
     ogs_assert(bearer);
-    sess = bearer->sess;
+    sess = mme_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
-    mme_ue = sess->mme_ue;
+    mme_ue = mme_ue_find_by_id(sess->mme_ue_id);
     ogs_assert(mme_ue);
-    MME_UE_CHECK(OGS_LOG_DEBUG, mme_ue);
 
     ogs_assert(req);
 
@@ -57,7 +56,8 @@ int esm_handle_pdn_connectivity_request(mme_bearer_t *bearer,
         return OGS_ERROR;
     }
 
-    memcpy(&sess->request_type, &req->request_type, sizeof(sess->request_type));
+    memcpy(&sess->ue_request_type,
+            &req->request_type, sizeof(sess->ue_request_type));
 
     security_protected_required = 0;
     if (req->presencemask &
@@ -89,10 +89,10 @@ int esm_handle_pdn_connectivity_request(mme_bearer_t *bearer,
             sess->session->session_type == OGS_PDU_SESSION_TYPE_IPV6 ||
             sess->session->session_type == OGS_PDU_SESSION_TYPE_IPV4V6) {
             uint8_t derived_pdn_type =
-                (sess->session->session_type & sess->request_type.type);
+                (sess->session->session_type & sess->ue_request_type.type);
             if (derived_pdn_type == 0) {
                 ogs_error("Cannot derived PDN Type [UE:%d,HSS:%d]",
-                    sess->request_type.type, sess->session->session_type);
+                    sess->ue_request_type.type, sess->session->session_type);
                 r = nas_eps_send_pdn_connectivity_reject(
                         sess, OGS_NAS_ESM_CAUSE_UNKNOWN_PDN_TYPE,
                         create_action);
@@ -179,9 +179,8 @@ int esm_handle_information_response(mme_sess_t *sess,
     mme_ue_t *mme_ue = NULL;
 
     ogs_assert(sess);
-    mme_ue = sess->mme_ue;
+    mme_ue = mme_ue_find_by_id(sess->mme_ue_id);
     ogs_assert(mme_ue);
-    MME_UE_CHECK(OGS_LOG_DEBUG, mme_ue);
 
     ogs_assert(rsp);
 
@@ -215,10 +214,10 @@ int esm_handle_information_response(mme_sess_t *sess,
             sess->session->session_type == OGS_PDU_SESSION_TYPE_IPV6 ||
             sess->session->session_type == OGS_PDU_SESSION_TYPE_IPV4V6) {
             uint8_t derived_pdn_type =
-                (sess->session->session_type & sess->request_type.type);
+                (sess->session->session_type & sess->ue_request_type.type);
             if (derived_pdn_type == 0) {
                 ogs_error("Cannot derived PDN Type [UE:%d,HSS:%d]",
-                    sess->request_type.type, sess->session->session_type);
+                    sess->ue_request_type.type, sess->session->session_type);
                 r = nas_eps_send_pdn_connectivity_reject(
                         sess, OGS_NAS_ESM_CAUSE_UNKNOWN_PDN_TYPE,
                         OGS_GTP_CREATE_IN_ATTACH_REQUEST);
@@ -231,8 +230,7 @@ int esm_handle_information_response(mme_sess_t *sess,
             ogs_assert_if_reached();
         }
 
-        if (SESSION_CONTEXT_IS_AVAILABLE(mme_ue) &&
-            OGS_PDU_SESSION_TYPE_IS_VALID(sess->session->paa.session_type)) {
+        if (SESSION_CONTEXT_IS_AVAILABLE(mme_ue)) {
             mme_csmap_t *csmap = mme_csmap_find_by_tai(&mme_ue->tai);
             mme_ue->csmap = csmap;
 
@@ -278,9 +276,9 @@ int esm_handle_bearer_resource_allocation_request(
     mme_sess_t *sess = NULL;
 
     ogs_assert(bearer);
-    sess = bearer->sess;
+    sess = mme_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
-    mme_ue = sess->mme_ue;
+    mme_ue = mme_ue_find_by_id(sess->mme_ue_id);
     ogs_assert(mme_ue);
 
     r = nas_eps_send_bearer_resource_allocation_reject(
@@ -297,7 +295,7 @@ int esm_handle_bearer_resource_modification_request(
     mme_ue_t *mme_ue = NULL;
 
     ogs_assert(bearer);
-    mme_ue = bearer->mme_ue;
+    mme_ue = mme_ue_find_by_id(bearer->mme_ue_id);
     ogs_assert(mme_ue);
 
     ogs_assert(OGS_OK ==
