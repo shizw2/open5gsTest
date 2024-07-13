@@ -109,6 +109,8 @@ void pcf_terminate(void)
 {
     if (!initialized) return;
 
+    pcf_fd_final();
+
     /* Daemon terminating */
     event_termination();
     ogs_thread_destroy(thread);
