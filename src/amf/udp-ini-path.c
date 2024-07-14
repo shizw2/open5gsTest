@@ -457,7 +457,7 @@ void udp_ini_send_supi_notify(amf_ue_t *amf_ue)
     internel_msg.msg_head.msg_type   = INTERNEL_MSG_SUPI_NOTIFY;
     internel_msg.msg_head.sps_id     = g_sps_id;
     internel_msg.msg_head.sps_state  = 1;
-    internel_msg.msg_head.amf_ue_ngap_id = amf_ue->ran_ue->amf_ue_ngap_id;
+    internel_msg.msg_head.amf_ue_ngap_id = ran_ue_find_by_id(amf_ue->ran_ue_id)->amf_ue_ngap_id;
     
     memcpy(internel_msg.supi,amf_ue->supi,strlen(amf_ue->supi));
 

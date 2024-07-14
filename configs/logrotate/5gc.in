@@ -4,7 +4,7 @@
     missingok
     compress
     rotate 14
-    create 640 @project_name@ @project_name@
+    create 640 @5g_user@ @5g_user@
 
     postrotate
         for i in nrfd scpd seppd pcrfd hssd ausfd udmd udrd upfd sgwcd sgwud smfd mmed amfd eird; do

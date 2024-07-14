@@ -43,7 +43,8 @@ int amf_initialize(void)
 
     ogs_sbi_context_init(OpenAPI_nf_type_AMF);
     amf_context_init();
-
+    rv = ogs_log_config_domain(
+            ogs_app()->logger.domain, ogs_app()->logger.level);
     rv = license_check_init();
     if (rv != OGS_OK) return rv;
 
@@ -57,11 +58,7 @@ int amf_initialize(void)
     if (rv != OGS_OK) return rv;
 
     rv = amf_context_nf_info(false);
-    if (rv != OGS_OK) return rv;
-
-    rv = ogs_log_config_domain(
-            ogs_app()->logger.domain, ogs_app()->logger.level);
-    if (rv != OGS_OK) return rv;
+    if (rv != OGS_OK) return rv;   
 
     ogs_metrics_context_open(ogs_metrics_self());
 
@@ -117,6 +114,9 @@ int amf_sps_initialize()
 
     amf_metrics_init();
     ogs_sbi_context_init(OpenAPI_nf_type_AMF);
+    rv = ogs_log_config_domain(
+            ogs_app()->logger.domain, ogs_app()->logger.level);
+    if (rv != OGS_OK) return rv;
 
     amf_context_init();    
 
@@ -143,9 +143,6 @@ int amf_sps_initialize()
 
     ogs_metrics_context_open(ogs_metrics_self());
 
-    rv = ogs_log_config_domain(
-            ogs_app()->logger.domain, ogs_app()->logger.level);
-    if (rv != OGS_OK) return rv;
 
     //rv = amf_sps_sbi_open();
     //if (rv != OGS_OK) return rv;

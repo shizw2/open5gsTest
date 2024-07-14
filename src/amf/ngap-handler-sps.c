@@ -278,10 +278,10 @@ void ngap_handle_initial_ue_message_sps(ran_ue_t *ran_ue,ogs_ngap_message_t *mes
                         AMF_UE_HAVE_SUCI(amf_ue) ? amf_ue->suci : "Unknown ID",
                         ogs_amf_id_hexdump(&amf_ue->current.guti.amf_id),
                         amf_ue->current.guti.m_tmsi);
-                if(amf_ue->ran_ue){
-                        ogs_info("SPS amf_ue->ran_ue->amf_ue_ngap_id:%lu",amf_ue->ran_ue->amf_ue_ngap_id);
+                if(ran_ue_find_by_id(amf_ue->ran_ue_id)){
+                        ogs_info("SPS amf_ue->ran_ue->amf_ue_ngap_id:%lu",ran_ue_find_by_id(amf_ue->ran_ue_id)->amf_ue_ngap_id);
                         //ran_ue->amf_ue_ngap_id=amf_ue->ran_ue->amf_ue_ngap_id;//add
-				        ran_ue_old=ran_ue_find_by_amf_ue_ngap_id_sps(&(amf_ue->ran_ue->amf_ue_ngap_id));
+				        ran_ue_old=ran_ue_find_by_amf_ue_ngap_id_sps(&(ran_ue_find_by_id(amf_ue->ran_ue_id)->amf_ue_ngap_id));
                         if(ran_ue_old){
                             ogs_info("SPS amf_ue_associate_ran_ue ran_ue_old ===  %lld ran_ue_old->amf_ue_ngap_id= %lu ",(long long)ran_ue_old->ran_ue_ngap_id,ran_ue_old->amf_ue_ngap_id);
                             //ran_ue_remove_sps(ran_ue_old);                         
@@ -313,10 +313,10 @@ void ngap_handle_initial_ue_message_sps(ran_ue_t *ran_ue,ogs_ngap_message_t *mes
 
                 }
                 ogs_info("ran_ue->amf_ue_ngap_id:%lu,ran_ue->ran_ue_ngap_id:%lld",ran_ue->amf_ue_ngap_id,(long long)ran_ue->ran_ue_ngap_id);
-                 if(amf_ue->ran_ue)amf_ue_ran_ue_sps_icps_sync(amf_ue,ran_ue);                
+                if(ran_ue_find_by_id(amf_ue->ran_ue_id))amf_ue_ran_ue_sps_icps_sync(amf_ue,ran_ue);                
                 amf_ue_associate_ran_ue(amf_ue, ran_ue);
                 udp_ini_send_supi_notify(amf_ue);
-				ogs_info("SPS amf_ue_associate_ran_ue RAN UE  NGAP ID =======  %lld amf_ue AMF UE  NGAP ID= %lu ",(long long)amf_ue->ran_ue->ran_ue_ngap_id,amf_ue->ran_ue->amf_ue_ngap_id);
+				ogs_info("SPS amf_ue_associate_ran_ue RAN UE  NGAP ID =======  %lld amf_ue AMF UE  NGAP ID= %lu ",(long long)ran_ue_find_by_id(amf_ue->ran_ue_id)->ran_ue_ngap_id,ran_ue_find_by_id(amf_ue->ran_ue_id)->amf_ue_ngap_id);
                 CLEAR_AMF_UE_TIMER(amf_ue->mobile_reachable);
                 CLEAR_AMF_UE_TIMER(amf_ue->implicit_deregistration);
             }
@@ -373,7 +373,7 @@ void ngap_handle_ue_radio_capability_info_indication_sps(
 {
     char buf[OGS_ADDRSTRLEN];
     int i;
-  
+    amf_ue_t *amf_ue = NULL;
     uint64_t amf_ue_ngap_id;
 
     NGAP_InitiatingMessage_t *initiatingMessage = NULL;
@@ -428,9 +428,10 @@ void ngap_handle_ue_radio_capability_info_indication_sps(
     ogs_debug("    RAN_UE_NGAP_ID[%lld] AMF_UE_NGAP_ID[%lld]",
             (long long)ran_ue->ran_ue_ngap_id, (long long)ran_ue->amf_ue_ngap_id);
 
-    if (ran_ue->amf_ue)
-        OGS_ASN_STORE_DATA(&ran_ue->amf_ue->ueRadioCapability,
-                UERadioCapability);
+   amf_ue = amf_ue_find_by_id(ran_ue->amf_ue_id);
+   if (amf_ue)
+      OGS_ASN_STORE_DATA(&amf_ue->ueRadioCapability, UERadioCapability);
+
 }
 
 void ngap_handle_initial_context_setup_response_sps(
@@ -483,7 +484,7 @@ void ngap_handle_initial_context_setup_response_sps(
     }
 
     ran_ue->initial_context_setup_response_received = true;
-    amf_ue = ran_ue->amf_ue;
+    amf_ue = amf_ue_find_by_id(ran_ue->amf_ue_id);
     if (!amf_ue) {
         ogs_error("Cannot find AMF-UE Context [%lld]",
                 (long long)amf_ue_ngap_id);
@@ -747,7 +748,7 @@ void ngap_handle_initial_context_setup_failure_sps(
      * may in principle be adopted. The RAN should ensure
      * that no hanging resources remain at the RAN.
      */
-    amf_ue = ran_ue->amf_ue;
+    amf_ue = amf_ue_find_by_id(ran_ue->amf_ue_id);
     if (amf_ue) {
         /*
          * if T3550 is running, Registration complete will be sent.
@@ -831,7 +832,7 @@ void ngap_handle_pdu_session_resource_setup_response_sps(ran_ue_t * ran_ue,ogs_n
 		}
 	}
 
-    	amf_ue = ran_ue->amf_ue;
+    	amf_ue = amf_ue_find_by_id(ran_ue->amf_ue_id);
     	if (!amf_ue) {
     		ogs_error("Cannot find AMF-UE Context [%lld]",
     				(long long)ran_ue->amf_ue_ngap_id);
@@ -1142,7 +1143,7 @@ void ngap_handle_ue_context_release_request_sps(
         }
     }
 
-    amf_ue = ran_ue->amf_ue;
+    amf_ue = amf_ue_find_by_id(ran_ue->amf_ue_id);
     if (!amf_ue) {
         ogs_error("Cannot find AMF-UE Context [%lld]",
                 (long long)amf_ue_ngap_id);
@@ -1298,7 +1299,7 @@ void ngap_handle_pdu_session_resource_release_response_sps(
     ogs_debug("    RAN_UE_NGAP_ID[%lld] AMF_UE_NGAP_ID[%lld]",
             (long long)ran_ue->ran_ue_ngap_id, (long long)ran_ue->amf_ue_ngap_id);
 
-    amf_ue = ran_ue->amf_ue;
+    amf_ue = amf_ue_find_by_id(ran_ue->amf_ue_id);
     if (!amf_ue) {
         ogs_error("Cannot find AMF-UE Context [%lld]",
                 (long long)amf_ue_ngap_id);
@@ -1493,7 +1494,7 @@ void ngap_handle_handover_required_sps(
     ogs_debug("    Source : RAN_UE_NGAP_ID[%lld] AMF_UE_NGAP_ID[%lld] ",
         (long long)source_ue->ran_ue_ngap_id, (long long)source_ue->amf_ue_ngap_id);
 
-    amf_ue = source_ue->amf_ue;
+    amf_ue = amf_ue_find_by_id(source_ue->amf_ue_id);
     if (!amf_ue) {
         ogs_error("Cannot find AMF-UE Context [%lld]",
                 (long long)amf_ue_ngap_id);
@@ -1621,7 +1622,7 @@ void ngap_handle_handover_required_sps(
         return;
     }
 #endif
-    target_ue = ran_ue_cycle(source_ue->target_ue);
+    target_ue = ran_ue_find_by_id(source_ue->target_ue_id);
     if (target_ue) {
     /*
      * Issue #3014
@@ -1861,14 +1862,14 @@ void ngap_handle_handover_request_ack_sps(
 
     target_ue->ran_ue_ngap_id = *RAN_UE_NGAP_ID;
 
-    source_ue = target_ue->source_ue;
+    source_ue = ran_ue_find_by_id(target_ue->source_ue_id);
     if (!source_ue) {
         ogs_error("Cannot find Source-UE Context [%lld]",
                 (long long)amf_ue_ngap_id);
        
         return;
     }
-    amf_ue = target_ue->amf_ue;
+    amf_ue = amf_ue_find_by_id(target_ue->amf_ue_id);
     if (!amf_ue) {
         ogs_error("Cannot find AMF-UE Context [%lld]",
                 (long long)amf_ue_ngap_id);
@@ -2023,7 +2024,7 @@ void ngap_handle_handover_failure_sps(
         return;
     }
 
-    source_ue = target_ue->source_ue;
+    source_ue = ran_ue_find_by_id(target_ue->source_ue_id);
     if (!source_ue) {
         ogs_error("Cannot find Source-UE Context [%lld]",
                 (long long)amf_ue_ngap_id);
@@ -2117,14 +2118,14 @@ void ngap_handle_handover_cancel_sps(
         return;
     }
 
-    target_ue = source_ue->target_ue;
+    target_ue = ran_ue_find_by_id(source_ue->target_ue_id);
     if (!target_ue) {
         ogs_error("Cannot find Source-UE Context [%lld]",
                 (long long)amf_ue_ngap_id);
         
         return;
     }
-    amf_ue = source_ue->amf_ue;
+   amf_ue = amf_ue_find_by_id(source_ue->amf_ue_id);
     if (!amf_ue) {
         ogs_error("Cannot find AMF-UE Context [%lld]",
                 (long long)amf_ue_ngap_id);
@@ -2233,11 +2234,11 @@ void   ngap_handle_handover_notification_sps(
         return;
     }
 
-    source_ue = target_ue->source_ue;
+    source_ue = ran_ue_find_by_id(target_ue->source_ue_id);
     if (!source_ue) {
         return;
     }
-    amf_ue = target_ue->amf_ue;
+    amf_ue = amf_ue_find_by_id(target_ue->amf_ue_id);
     if (!amf_ue) {
         ogs_error("Cannot find AMF-UE Context [%lld]",
                 (long long)amf_ue_ngap_id);
@@ -2398,7 +2399,7 @@ void   ngap_handle_handover_notification_sps(
         }
     }
 
-    amf_ue = ran_ue->amf_ue;
+    amf_ue = amf_ue_find_by_id(ran_ue->amf_ue_id);
     if (!amf_ue) {
         ogs_error("Cannot find AMF-UE Context [%lld]",
                 (long long)ran_ue->amf_ue_ngap_id);
@@ -2663,7 +2664,7 @@ void ngap_handle_pdu_session_resource_modify_response_sps(
             break;
         }
     }
-    amf_ue = ran_ue->amf_ue;
+    amf_ue = amf_ue_find_by_id(ran_ue->amf_ue_id);
     if (!amf_ue) {
         ogs_error("Cannot find AMF-UE Context");
         r =  ngap_send_error_indication_sps(
@@ -2923,7 +2924,7 @@ void ngap_handle_ng_reset_sps(        ogs_ngap_message_t *message)
             /* RAN_UE Context where PartOfNG_interface was requested */
             ran_ue->part_of_ng_reset_requested = true;
 
-            amf_ue = ran_ue->amf_ue;
+            amf_ue = amf_ue_find_by_id(ran_ue->amf_ue_id);
             ogs_assert(amf_ue);
 
             old_xact_count = amf_sess_xact_count(amf_ue);
@@ -3028,7 +3029,7 @@ void ngap_handle_uplink_nas_transport_sps(
         return;
     }   
 
-    amf_ue = ran_ue->amf_ue;
+    amf_ue = amf_ue_find_by_id(ran_ue->amf_ue_id);
     if (!amf_ue) {
         ogs_error("Cannot find AMF-UE Context [%lld]",
                 (long long)amf_ue_ngap_id);
