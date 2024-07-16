@@ -99,8 +99,10 @@ smf:
       - address: 127.0.0.4
         port: 7777
     client:
-      scp:
-        - uri: http://127.0.0.200:7777
+      nrf:
+        - uri: http://127.0.0.10:7777
+#      scp:
+#        - uri: http://127.0.0.200:7777
   pfcp:
     server:
       - address: 127.0.0.4
@@ -152,8 +154,10 @@ amf:
       - address: 127.0.0.5
         port: 7777
     client:
-      scp:
-        - uri: http://127.0.0.200:7777
+      nrf:
+        - uri: http://127.0.0.10:7777
+#      scp:
+#        - uri: http://127.0.0.200:7777
   ngap:
     server:
       - address: 127.0.0.5
@@ -272,8 +276,10 @@ ausf:
       - address: 127.0.0.11
         port: 7777
     client:
-      scp:
-        - uri: http://127.0.0.200:7777
+      nrf:
+        - uri: http://127.0.0.10:7777
+#      scp:
+#        - uri: http://127.0.0.200:7777
 
 udm:
   hnet:
@@ -288,8 +294,10 @@ udm:
       - address: 127.0.0.12
         port: 7777
     client:
-      scp:
-        - uri: http://127.0.0.200:7777
+      nrf:
+        - uri: http://127.0.0.10:7777
+#      scp:
+#        - uri: http://127.0.0.200:7777
 
 pcf:
   sbi:
@@ -297,8 +305,10 @@ pcf:
       - address: 127.0.0.13
         port: 7777
     client:
-      scp:
-        - uri: http://127.0.0.200:7777
+      nrf:
+        - uri: http://127.0.0.10:7777
+#      scp:
+#        - uri: http://127.0.0.200:7777
   metrics:
     server:
       - address: 127.0.0.13
@@ -310,8 +320,10 @@ nssf:
       - address: 127.0.0.14
         port: 7777
     client:
-      scp:
-        - uri: http://127.0.0.200:7777
+      nrf:
+        - uri: http://127.0.0.10:7777
+#      scp:
+#        - uri: http://127.0.0.200:7777
       nsi:
         - uri: http://127.0.0.10:7777
           s_nssai:
@@ -322,8 +334,10 @@ bsf:
       - address: 127.0.0.15
         port: 7777
     client:
-      scp:
-        - uri: http://127.0.0.200:7777
+      nrf:
+        - uri: http://127.0.0.10:7777
+#      scp:
+#        - uri: http://127.0.0.200:7777
 
 udr:
   sbi:
@@ -331,5 +345,7 @@ udr:
       - address: 127.0.0.20
         port: 7777
     client:
-      scp:
-        - uri: http://127.0.0.200:7777
+      nrf:
+        - uri: http://127.0.0.10:7777
+#      scp:
+#        - uri: http://127.0.0.200:7777

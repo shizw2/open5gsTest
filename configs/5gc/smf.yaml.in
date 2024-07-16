@@ -57,7 +57,7 @@ smf:
 #  ctf:
 #    enabled: auto   # auto(default)|yes|no
   freeDiameter: @sysconfdir@/freeDiameter/smf.conf
-
+_nf: smf
 ################################################################################
 # SMF Info
 ################################################################################

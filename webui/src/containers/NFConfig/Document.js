@@ -302,6 +302,22 @@ componentDidUpdate(prevProps) {
   validate = (formData, errors) => {
     const { nfconfigs, action, status } = this.props;
 
+    if (formData._nf && formData[formData._nf].sbi && formData[formData._nf].sbi.server)
+    {
+      for (let i = 0; i < formData[formData._nf].sbi.server.length; i++)
+      {
+        let address = formData[formData._nf].sbi.server[i].address;
+        //if ( !(ipToNumberV4(address) || ipToNumberV6(address)) )
+        if ( !(isV4Format(address) || isV6Format(address)) )
+        {
+          if (formData[formData._nf].sbi.server[i].port)
+          {
+            errors[formData._nf].sbi.server[i].port.addError(`Non-IP`);
+          }
+        }
+      }
+    }
+
     if (formData.amf && formData.amf.security && formData.amf.security.integrity_order)
     {
       let NIAs = formData.amf.security.integrity_order.map(integrity_order => {
@@ -384,7 +400,7 @@ componentDidUpdate(prevProps) {
 
       for (let i = 0; i < ippools.length; i++) {
         const ippool = ippools[i];
-            
+
         // 解析并计算当前子网的范围
         const [address, subnetMask] = ippool.split('/');
         const isIPv6 = address.includes(':');
@@ -643,22 +659,53 @@ function ipToNumber(ipAddress) {
   return (parts[0] << 24) + (parts[1] << 16) + (parts[2] << 8) + parseInt(parts[3]);
 }
 
+function isV4Format(ipAddress){
+  return /^(\d{1,3}\.){3}\d{1,3}$/.test(ipAddress);
+}
+
+function isV6Format(ipAddress){
+  return /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i.test(ipAddress) ||
+  /^(?:[A-F0-9]{1,4}:){1,7}:(?:[A-F0-9]{1,4}:){1,7}[A-F0-9]{1,4}$/i.test(ipAddress) ||
+  /^(?:[A-F0-9]{1,4}:){1,6}:[A-F0-9]{1,4}$/i.test(ipAddress) ||
+  /^(?:[A-F0-9]{1,4}:){1,5}(?::[A-F0-9]{1,4}){1,2}$/i.test(ipAddress) ||
+  /^(?:[A-F0-9]{1,4}:){1,4}(?::[A-F0-9]{1,4}){1,3}$/i.test(ipAddress) ||
+  /^(?:[A-F0-9]{1,4}:){1,3}(?::[A-F0-9]{1,4}){1,4}$/i.test(ipAddress) ||
+  /^(?:[A-F0-9]{1,4}:){1,2}(?::[A-F0-9]{1,4}){1,5}$/i.test(ipAddress) ||
+  /^(?:[A-F0-9]{1,4}:){1,1}(?::[A-F0-9]{1,4}){1,6}$/i.test(ipAddress) ||
+  /^(?:[A-F0-9]{1,4}:){1,7}::$/i.test(ipAddress) ||
+  /^:(?::[A-F0-9]{1,4}){1,7}$/i.test(ipAddress) ||
+  /^::$/i.test(ipAddress);
+}
+
 // 辅助函数：将 IPv4 地址转换为 32 位整数
 function ipToNumberV4(ipAddress) {
+  if (!ipAddress)
+  {
+    return 0;
+  }
+
   const parts = ipAddress.split('.');
   let number = 0;
-  for (let i = 0; i < 4; i++) {
-    number += parseInt(parts[i]) << (24 - (8 * i));
+  if ( parts.length > 0 )
+  {
+    for (let i = 0; i < parts.length; i++) {
+      number += parseInt(parts[i]) << (24 - (8 * i));
+   }
   }
   return number;
 }
 
 // 辅助函数：将 IPv6 地址转换为整数
 function ipToHexV6(ipAddress) {
+  if (!ipAddress)
+  {
+    return 0;
+  }
+
   const parts = ipAddress.split(':');
   let number = '';
 
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < parts.length; i++) {
     const segment = parts[i] || '0000'; // 处理连续零位段
     const zerosToAdd = 4 - segment.length;
     const paddedSegment = '0'.repeat(zerosToAdd) + segment;
@@ -670,15 +717,22 @@ function ipToHexV6(ipAddress) {
 
 // 辅助函数：将 IPv6 地址转换为整数
 function ipToNumberV6(ipAddress) {
-  const parts = ipAddress.split(':');
-  let number = '';
-  for (let i = 0; i < 8; i++) {
-    const segment = parts[i] || '0000'; // 处理连续零位段
-    const zerosToAdd = 4 - segment.length;
-    const paddedSegment = '0'.repeat(zerosToAdd) + segment;
-    number += paddedSegment;
+  if (!ipAddress)
+  {
+    return 0;
   }
 
+  const parts = ipAddress.split(':');
+  let number = '';
+  if ( parts.length > 0 )
+  {
+    for (let i = 0; i < parts.length; i++) {
+      const segment = parts[i] || '0000'; // 处理连续零位段
+      const zerosToAdd = 4 - segment.length;
+      const paddedSegment = '0'.repeat(zerosToAdd) + segment;
+      number += paddedSegment;
+    }
+  }
   return BigInt(`0x${number}`);
 }
 

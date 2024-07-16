@@ -148,97 +148,6 @@ static void hash_reset(abts_case *tc, void *data)
 
     ogs_hash_destroy(h);
 }
-ogs_hash_t *name_sps_hash = NULL;
-
-
-typedef struct info_s{
-    uint8_t module_type;
-    uint8_t module_no;
-    uint8_t module_state;
-}info_t;
-
-typedef struct tables_s{
-    uint8_t b_sps_num;
-    info_t ta__infos[10];
-}tables_t;
-
-tables_t tables;
-
-int sps_id_find_by_string(char *name)
-{
-    ogs_assert(name);
-	int *sps_id = NULL;
-    sps_id = (int*)ogs_hash_get(name_sps_hash, name, strlen(name));
-   
-	if (NULL == sps_id){
-        printf("sps_id_find_by_supi can not find sps id by name:%s, nameaddr:%p,len:%ld.\r\n",name,name,strlen(name));
-		return 0;
-	}else{
-        printf("sps_id_find_by_supi nameaddr:%p,spsid addr:%p, value:%d,len:%ld,modueladdr:%p,no:%d.\r\n",name,sps_id, *sps_id,strlen(name),&tables.ta__infos[0].module_no,tables.ta__infos[0].module_no);
-		return *sps_id;
-	}
-}
-
-void sps_id_set_supi(int *sps_id, char *name)
-{
-    ogs_assert(name);
-    ogs_hash_set(name_sps_hash, name, strlen(name), sps_id);
-    printf("sps_id_set_supi ,nameaddr:%p,spsid addr:%p,len:%ld.\r\n",name,sps_id,strlen(name));
-}
-
-
-static void hash_reset2(abts_case *tc, void *data)
-{
-    //ogs_hash_t *h = NULL;
-    char *result = NULL;
-	
-	tables.b_sps_num=1;
-	tables.ta__infos[0].module_no = 1;
-
-    name_sps_hash = ogs_hash_make();
-    ABTS_PTR_NOTNULL(tc, name_sps_hash);
-
-    ogs_hash_set(name_sps_hash, "key", OGS_HASH_KEY_STRING, "value");
-    result = ogs_hash_get(name_sps_hash, "key", OGS_HASH_KEY_STRING);
-    ABTS_STR_EQUAL(tc, "value", result);
-
-    ogs_hash_set(name_sps_hash, "key", OGS_HASH_KEY_STRING, "new");
-    result = ogs_hash_get(name_sps_hash, "key", OGS_HASH_KEY_STRING);
-    ABTS_STR_EQUAL(tc, "new", result);
-	
-	char *name1 = ogs_malloc(20);
-	memcpy(name1,"123456",20);
-
-	char *name2 = ogs_malloc(20);
-	memcpy(name2,"123456",20);
-	
-	
-	int sps_id = sps_id_find_by_string(name1);
-	if (sps_id == 0){
-		sps_id_set_supi(&tables.ta__infos[0].module_no, name1);
-        memcpy(name1,"11111",20);
-		ogs_free(name1);
-		sps_id = sps_id_find_by_string(name2);
-		
-        memcpy(name2,"22222",20);
-		printf("spsid:%d \r\n",sps_id);
-	}
-	
-
-	ogs_free(name2);
-    //ogs_hash_destroy(name_sps_hash);
-}
-
-static void hash_reset3(abts_case *tc, void *data)
-{
-	ogs_msleep(1000);
-	int sps_id = sps_id_find_by_string("123456");
-	
-	printf("test 2spsid:%d\r\n",sps_id);
-
-    ogs_hash_destroy(name_sps_hash);
-}
-
 
 static void same_value(abts_case *tc, void *data)
 {
@@ -485,8 +394,6 @@ abts_suite *test_hash(abts_suite *suite)
     abts_run_test(suite, hash_set_test, NULL);
     abts_run_test(suite, hash_get_or_set_test, NULL);
     abts_run_test(suite, hash_reset, NULL);
-    abts_run_test(suite, hash_reset2, NULL);
-    abts_run_test(suite, hash_reset3, NULL);
     abts_run_test(suite, same_value, NULL);
     abts_run_test(suite, same_value_custom, NULL);
     abts_run_test(suite, key_space, NULL);

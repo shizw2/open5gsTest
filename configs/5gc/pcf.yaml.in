@@ -49,7 +49,7 @@ pcf:
     connect:
       - identity: ims.localdomain
         addr: 127.0.0.1
-
+_nf: pcf
 ################################################################################
 # Locally configured policy
 # - The PCF in the VPLMN uses locally configured policies

@@ -30,3 +30,4 @@ eir:
       - address: 127.0.0.22
         port: 9086
 
+_nf: eir

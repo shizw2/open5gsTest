@@ -247,7 +247,7 @@ bool ogs_pfcp_up_handle_pdr(
 
     if (!far->gnode) {
         buffering = true;
-
+        ogs_error("test buffering");
     } else {
         if (far->apply_action & OGS_PFCP_APPLY_ACTION_FORW) {
             ogs_gtp2_header_desc_t sendhdr;
@@ -269,11 +269,11 @@ bool ogs_pfcp_up_handle_pdr(
                     sendhdr.pdcp_number = recvhdr->pdcp_number;
                 }
             }
-
+            ogs_error("test ogs_pfcp_send_g_pdu");
             ogs_pfcp_send_g_pdu(pdr, &sendhdr, sendbuf);
 
         } else if (far->apply_action & OGS_PFCP_APPLY_ACTION_BUFF) {
-
+            ogs_error("test OGS_PFCP_APPLY_ACTION_BUFF");
             buffering = true;
 
         } else {

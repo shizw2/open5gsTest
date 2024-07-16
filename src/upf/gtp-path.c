@@ -189,7 +189,7 @@ static void _gtpv1_tun_recv_common_cb(
         upf_gtp_try_handle_nbr_pkt(recvbuf);//如果报文不是本地的，则找找是否是邻居的
         goto cleanup;
     }
-
+    ogs_error("test1");
     ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
         far = pdr->far;
         ogs_assert(far);
@@ -226,6 +226,7 @@ static void _gtpv1_tun_recv_common_cb(
         pdr = fallback_pdr;
 
     if (!pdr) {
+        ogs_error("test1 no pdr");
         if (ogs_global_conf()->parameter.multicast) {
             upf_gtp_handle_multicast(recvbuf);
         }
@@ -235,7 +236,7 @@ static void _gtpv1_tun_recv_common_cb(
     /* Increment total & dl octets + pkts */
     for (i = 0; i < pdr->num_of_urr; i++)
         upf_sess_urr_acc_add(sess, pdr->urr[i], recvbuf->len, false);
-
+    ogs_error("test3");
     ogs_assert(true == ogs_pfcp_up_handle_pdr(
                 pdr, OGS_GTPU_MSGTYPE_GPDU, NULL, recvbuf, &report));
     /*

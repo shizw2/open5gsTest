@@ -1568,7 +1568,7 @@ ran_ue_t *ran_ue_add(amf_gnb_t *gnb, uint64_t ran_ue_ngap_id)
     ogs_assert((gnb->max_num_of_ostreams-1) >= 1); /* NEXT_ID(MAX >= MIN) */
     ran_ue->gnb_ostream_id =
         OGS_NEXT_ID(gnb->ostream_id, 1, gnb->max_num_of_ostreams-1);
-    ogs_error("test:ran_ue->gnb_id:%d,ran_ue:%p",gnb->id,ran_ue);
+
     ran_ue->gnb_id = gnb->id;
 
     ogs_list_add(&gnb->ran_ue_list, ran_ue);
@@ -1609,7 +1609,7 @@ ran_ue_t *ran_ue_add_sps( uint64_t ran_ue_ngap_id,uint64_t amf_ue_ngap_id)
     ran_ue_set_amf_ue_ngap_id(ran_ue,&amf_ue_ngap_id);
 
     stats_add_ran_ue();
-    ogs_error("test:ran_ue:%p",ran_ue);
+
     return ran_ue;
 }
 
@@ -1848,7 +1848,7 @@ amf_ue_t *amf_ue_add(ran_ue_t *ran_ue)
     amf_ue_t *amf_ue = NULL;
 
     ogs_assert(ran_ue);
-    ogs_error("ran_ue->gnb_id:%d, ran_ue:%p.",ran_ue->gnb_id,ran_ue);
+
     //gnb = amf_gnb_find_by_id(ran_ue->gnb_id);
     //if (!gnb) {
     //    ogs_error("[%d] gNB has already been removed", ran_ue->gnb_id);
@@ -3725,7 +3725,7 @@ icps_ue_spsno_t* icps_ue_add(char *supi)
         ogs_error("Could not allocate icps_ue context from pool");
         return NULL;
     }
-   memset(icps_ue, 0, sizeof *icps_ue);   
+   //memset(icps_ue, 0, sizeof *icps_ue);   
    icps_ue->supi = ogs_strdup(supi);  
    ogs_hash_set(self.icps_ue_spsno_hash, icps_ue->supi, strlen(icps_ue->supi), icps_ue);
    

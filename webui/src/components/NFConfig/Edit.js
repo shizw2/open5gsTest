@@ -88,7 +88,7 @@ class Edit extends Component {
       if (formData.ausf && formData.ausf.relative_capacity)
         formData.ausf.relative_capacity = parseInt(formData.ausf.relative_capacity);
 
-        selectedSchema = ausfschema;
+      selectedSchema = ausfschema;
       selectedUiSchema = ausfuiSchema;
     }else if (formData._id === 'amf' || formData._nf === 'amf') {        
       //初始配置文件会按数字读取mcc,mnc,将读取到的mcc,mnc的类型改为string

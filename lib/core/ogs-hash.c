@@ -84,6 +84,7 @@ ogs_hash_t *ogs_hash_make(void)
                               (uintptr_t)ht ^ (uintptr_t)&now) - 1;
     ht->array = alloc_array(ht, ht->max);
     ht->hash_func = NULL;
+
     return ht;
 }
 

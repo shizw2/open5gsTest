@@ -421,7 +421,8 @@ export const nrfNFSchema = {
             properties: {
               address: {
                 type: "string",
-                title: "IP Address",
+                title: "Address",
+/*
                 anyOf: [
                   { format: "ipv4" },
                   { format: "ipv6" },
@@ -429,6 +430,7 @@ export const nrfNFSchema = {
                 messages: {
                   "anyOf": "IPv4 or IPv6 allowed"
                 },
+*/
                 //format:"ipv4",
                 //description: "Please enter a valid IPv4/IPv6 Address",
                 required: true,
@@ -439,7 +441,7 @@ export const nrfNFSchema = {
                 title: "Port",
                 minimum: 1,
                 maximum: 65535,
-                required: true,
+                //required: true,
                 //default: 7777
               }
             }
@@ -568,8 +570,8 @@ export const nrfNFUiSchema = {
       items: {
         address: {
           classNames: "col-xs-8",
+          "ui:placeholder": "IPv4/IPv6 or FQDN",
           //"ui:help": "Enter a valid IPv4/IPv6 Address",
-          //"ui:placeholder": "Enter a valid IPv4/IPv6 Address",
         },
         port: {
           classNames: "col-xs-4"
@@ -906,7 +908,8 @@ export const nf_sbi_Schema = {
         properties: {
           address: {
             type: "string",
-            title: "IP Address",
+            title: "Address",
+/*
             anyOf: [
               { format: "ipv4" },
               { format: "ipv6" },
@@ -914,8 +917,9 @@ export const nf_sbi_Schema = {
             messages: {
               "anyOf": "IPv4 or IPv6 allowed"
             },
+*/
             //format:"ipv4",
-            //description: "Please enter a valid IPv4/IPv6 Address",
+            //description: "IPv4/IPv6 Address or FQDN",
             required: true,
             //default: "127.0.0.5"
           },
@@ -924,7 +928,7 @@ export const nf_sbi_Schema = {
             title: "Port",
             minimum: 1,
             maximum: 65535,
-            required: true,
+            //required: true,
             //default: 7777
           }
         }
@@ -937,7 +941,7 @@ export const nf_sbi_Schema = {
         nrf: {
           type: "array",
           title:"NRF",
-          "maxItems": 4,
+          "maxItems": 16,
           items: {
             type: "object",
             properties: {
@@ -981,11 +985,13 @@ export const nf_sbi_UiSchema = {
     items: {
       address: {
         classNames: "col-xs-8",
-        //"ui:help": "Enter a valid IPv4/IPv6 Address",
-        //"ui:placeholder": "Enter a valid IPv4/IPv6 Address",
+        //"ui:help": "IPv4/IPv6 or FQDN",
+        "ui:placeholder": "IPv4/IPv6 or FQDN",
       },
       port: {
-        classNames: "col-xs-4"
+        classNames: "col-xs-4",
+        //"ui:disabled": false,
+        //"ui:readonly": false,
       }
     }
   },
@@ -1039,7 +1045,8 @@ export const nssf_sbi_Schema = {
         properties: {
           address: {
             type: "string",
-            title: "IP Address",
+            title: "Address",
+/*
             anyOf: [
               { format: "ipv4" },
               { format: "ipv6" },
@@ -1047,6 +1054,7 @@ export const nssf_sbi_Schema = {
             messages: {
               "anyOf": "IPv4 or IPv6 allowed"
             },
+*/
             //format:"ipv4",
             //description: "Please enter a valid IPv4/IPv6 Address",
             required: true,
@@ -1057,7 +1065,7 @@ export const nssf_sbi_Schema = {
             title: "Port",
             minimum: 1,
             maximum: 65535,
-            required: true,
+            //required: true,
             //default: 7777
           }
         }
@@ -1070,7 +1078,7 @@ export const nssf_sbi_Schema = {
         nrf: {
           type: "array",
           title:"NRF",
-          "maxItems": 4,
+          "maxItems": 16,
           items: {
             type: "object",
             properties: {
@@ -1082,6 +1090,7 @@ export const nssf_sbi_Schema = {
             }
           }
         },
+/*
         scp: {
           type: "array",
           title:"SCP",
@@ -1097,6 +1106,7 @@ export const nssf_sbi_Schema = {
             }
           }
         },
+*/
         nsi: {
           type: "array",
           title:"NSI",
@@ -1156,7 +1166,7 @@ export const nssf_sbi_UiSchema = {
       address: {
         classNames: "col-xs-8",
         //"ui:help": "Enter a valid IPv4/IPv6 Address",
-        //"ui:placeholder": "Enter a valid IPv4/IPv6 Address",
+        "ui:placeholder": "IPv4/IPv6 or FQDN",
       },
       port: {
         classNames: "col-xs-4"
@@ -1167,7 +1177,7 @@ export const nssf_sbi_UiSchema = {
     classNames: "col-xs-12",
     "ui:title": <CustomTitle18 title="Client" />,
     nrf: {
-      classNames: "col-xs-6",
+      classNames: "col-xs-12",
       "ui:title": <CustomTitle15 title="NRF URI" />,
       items: {
         uri: {
@@ -1178,6 +1188,7 @@ export const nssf_sbi_UiSchema = {
         }
       }
     },
+/*
     scp: {
       classNames: "col-xs-6",
       "ui:title": <CustomTitle15 title="SCP URI" />,
@@ -1190,6 +1201,7 @@ export const nssf_sbi_UiSchema = {
         }
       }
     },
+*/
     nsi:{
       classNames: "col-xs-12",
       "ui:title": <CustomTitle15 title="NSI" />,
