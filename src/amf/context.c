@@ -3725,7 +3725,7 @@ icps_ue_spsno_t* icps_ue_add(char *supi)
         ogs_error("Could not allocate icps_ue context from pool");
         return NULL;
     }
-   //memset(icps_ue, 0, sizeof *icps_ue);   
+
    icps_ue->supi = ogs_strdup(supi);  
    ogs_hash_set(self.icps_ue_spsno_hash, icps_ue->supi, strlen(icps_ue->supi), icps_ue);
    

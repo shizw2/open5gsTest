@@ -781,9 +781,9 @@ int amf_nsmf_pdusession_handle_update_sm_context(
                     amf_ue_deassociate(amf_ue);
 
                     if (ran_ue) {
-                        amf_gnb_t *gnb = NULL;
+                        //amf_gnb_t *gnb = NULL;
 
-                        gnb = amf_gnb_find_by_id(ran_ue->gnb_id);
+                        //gnb = amf_gnb_find_by_id(ran_ue->gnb_id);
 
                         ogs_debug("    SUPI[%s]", amf_ue->supi);
                         ran_ue_remove_sps(ran_ue);

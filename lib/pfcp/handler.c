@@ -244,7 +244,7 @@ bool ogs_pfcp_up_handle_pdr(
     memset(report, 0, sizeof(*report));
 
     buffering = false;
-
+    ogs_error("test ogs_pfcp_up_handle_pdr,far:%p,gnode:%p",far,far->gnode);
     if (!far->gnode) {
         buffering = true;
         ogs_error("test buffering");

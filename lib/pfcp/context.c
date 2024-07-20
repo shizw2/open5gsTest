@@ -983,6 +983,8 @@ int ogs_pfcp_setup_far_gtpu_node(ogs_pfcp_far_t *far)
 
     ogs_assert(far);
 
+    
+
     ogs_pfcp_outer_header_creation_to_ip(&far->outer_header_creation, &ip);
 
     /* No Outer Header Creation */
@@ -1030,6 +1032,13 @@ int ogs_pfcp_setup_far_gtpu_node(ogs_pfcp_far_t *far)
 #else
 #warning "NOT USE DPDK"
         ogs_debug("NOT USE DPDK");
+        char buf[20];
+        ogs_sockaddr_t *tmp_addr = gnode->sa_list;
+        while (tmp_addr) {
+            ogs_info("before ogs_gtp_connect,addr:%s",OGS_ADDR(tmp_addr, buf));
+            tmp_addr = tmp_addr->next;
+        }
+
         rv = ogs_gtp_connect(
                 ogs_gtp_self()->gtpu_sock, ogs_gtp_self()->gtpu_sock6, gnode);
         if (rv != OGS_OK) {
@@ -1038,7 +1047,7 @@ int ogs_pfcp_setup_far_gtpu_node(ogs_pfcp_far_t *far)
         }
 #endif
     }
-
+    ogs_error("ogs_pfcp_setup_far_gtpu_node,far:%p,gnode:%p,ipv4:%d, ipv6:%d,dstif:%s",far, gnode, gnode->ip.ipv4,gnode->ip.ipv6,ogs_pfcp_interface_get_name(far->dst_if));
     OGS_SETUP_GTP_NODE(far, gnode);
 
     return OGS_OK;
