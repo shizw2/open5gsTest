@@ -50,13 +50,17 @@ int ogs_gtp_connect(ogs_sock_t *ipv4, ogs_sock_t *ipv6, ogs_gtp_node_t *gnode)
         ogs_info("ogs_gtp_connect,addr:%s",OGS_ADDR(addr, buf));
         addr = addr->next;
     }
-
+    ogs_info("ipv4 %p, ipv6 %p",ipv4, ipv6); 
     addr = gnode->sa_list;
     while (addr) {
         ogs_sock_t *sock = NULL;
         ogs_info("ogs_gtp_connect,addr:%s",OGS_ADDR(addr, buf));
         
-        sock = ogs_sock_socket(addr->ogs_sa_family, SOCK_DGRAM, IPPROTO_UDP);
+        if (addr->ogs_sa_family == AF_INET && ipv4 != NULL) {
+            sock = ogs_sock_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        } else if (addr->ogs_sa_family == AF_INET6 && ipv6 != NULL) {
+            sock = ogs_sock_socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+        }
         if (sock) {
             if (ogs_sock_connect(sock, addr) == OGS_OK) {
                 ogs_debug("ogs_gtp_connect() [%s]:%d",
