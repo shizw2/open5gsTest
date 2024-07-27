@@ -312,10 +312,12 @@ void ngap_handle_initial_ue_message_sps(ran_ue_t *ran_ue,ogs_ngap_message_t *mes
                      HOLDING_NG_CONTEXT(amf_ue);
 
                 }
-                ogs_info("ran_ue->amf_ue_ngap_id:%lu,ran_ue->ran_ue_ngap_id:%lld",ran_ue->amf_ue_ngap_id,(long long)ran_ue->ran_ue_ngap_id);
-                if(ran_ue_find_by_id(amf_ue->ran_ue_id))amf_ue_ran_ue_sps_icps_sync(amf_ue,ran_ue);                
+                ogs_debug("ran_ue->amf_ue_ngap_id:%lu,ran_ue->ran_ue_ngap_id:%lld",ran_ue->amf_ue_ngap_id,(long long)ran_ue->ran_ue_ngap_id);
+                if(ran_ue_find_by_id(amf_ue->ran_ue_id)){
+                    amf_ue_ran_ue_sps_icps_sync(amf_ue,ran_ue);                    
+                }
                 amf_ue_associate_ran_ue(amf_ue, ran_ue);
-                udp_ini_send_supi_notify(amf_ue);
+                if(ran_ue_find_by_id(amf_ue->ran_ue_id))udp_ini_send_supi_notify(amf_ue);
 				ogs_info("SPS amf_ue_associate_ran_ue RAN UE  NGAP ID =======  %lld amf_ue AMF UE  NGAP ID= %lu ",(long long)ran_ue_find_by_id(amf_ue->ran_ue_id)->ran_ue_ngap_id,ran_ue_find_by_id(amf_ue->ran_ue_id)->amf_ue_ngap_id);
                 CLEAR_AMF_UE_TIMER(amf_ue->mobile_reachable);
                 CLEAR_AMF_UE_TIMER(amf_ue->implicit_deregistration);

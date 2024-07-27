@@ -1,5 +1,5 @@
 import React from 'react';
-const selectedNFArray = ['nssf', 'udm', 'nrf', 'pcf', 'bsf', 'udr', 'ausf', 'amf', 'smf', 'eir', 'upf'];
+const selectedNFArray = ['nssf', 'udm', 'nrf', 'pcf', 'bsf', 'sepp', 'udr', 'ausf', 'amf', 'smf', 'eir', 'upf'];
 class ArchitectureDiagram extends React.Component {
   constructor(props) {
     super(props);
@@ -54,7 +54,7 @@ class ArchitectureDiagram extends React.Component {
   render() {
     const { selectedNF, rectCoordinates } = this.state;
     // 网元数量
-    const numElements = 11;
+    const numElements = 12;
     
     const scale = 0.84;
     const w = 125 * scale;
@@ -74,14 +74,14 @@ class ArchitectureDiagram extends React.Component {
           {/* NF网元1 */}
           {Array.from({ length: numElements }, (_, index) => {
             let x, y;
-            if (index === 10) {
+            if (index === 11) {
               x = 770 * scale; // 特殊情况下的x坐标
               y = 560 * scale; // 特殊情况下的y坐标
             } else {
               //x = index < 5 ? 56 + index * 183 : 133 + (index - 5) * 190; // 计算x坐标
               //y = index < 5 ? 155 : 353; // 计算y坐标
-              x = index < 5 ? 57  * scale+ index * 183 * scale : 134 * scale + (index - 5) * 190 * scale; // 计算x坐标
-              y = index < 5 ? 156 * scale : 354 * scale; // 计算y坐标	
+              x = index < 6 ? 57  * scale+ index * 183 * scale : 134 * scale + (index - 6) * 190 * scale; // 计算x坐标
+              y = index < 6 ? 156 * scale : 354 * scale; // 计算y坐标	
             }
 
             return (

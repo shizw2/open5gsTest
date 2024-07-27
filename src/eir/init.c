@@ -35,7 +35,10 @@ int eir_initialize(void)
 
     ogs_sbi_context_init(OpenAPI_nf_type_5G_EIR);
     eir_context_init();
-    
+    rv = ogs_log_config_domain(
+            ogs_app()->logger.domain, ogs_app()->logger.level);
+    if (rv != OGS_OK) return rv;
+        
     rv = ogs_sbi_context_parse_config(APP_NAME, "nrf", "scp");
     if (rv != OGS_OK) return rv;
     
@@ -45,10 +48,7 @@ int eir_initialize(void)
     rv = eir_context_parse_config();
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_log_config_domain(
-            ogs_app()->logger.domain, ogs_app()->logger.level);
-    if (rv != OGS_OK) return rv;
-    
+
     ogs_metrics_context_open(ogs_metrics_self());
 
     rv = ogs_eir_dbi_init(ogs_app()->db_uri);

@@ -7,6 +7,8 @@ void amf(void);
 void showgnb(uint32_t enbID);
 void showgnbBriefAll( void );
 void showranue( void );
+void showranue_sps( void );
+void showicpsue( void );
 
 void showue(char* id);
 void showueAll(void);
@@ -21,6 +23,7 @@ telnet_command_t g_commands[] = {
     {"showgnb",     (GenericFunc)showgnb,        1, {INTEGER}},
     {"shownf",      (GenericFunc)shownf,         1, {STRING}},
     {"showranue",   (GenericFunc)showranue,      0, {}},
+    {"showicpsue",   (GenericFunc)showicpsue,      0, {}},
 };
 int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);
 
@@ -87,27 +90,108 @@ void showgnbBriefAll( void )
 
 void showranue( void )
 {
-    amf_gnb_t *gnb = NULL;
+    if (is_amf_icps()){
+
+        amf_gnb_t *gnb = NULL;
+        ran_ue_t *ran_ue = NULL;
+        
+        printf("\ngnb Brief All(current %u gnb count):\r\n", ogs_list_count(&amf_self()->gnb_list));
+        printf("+---------+----------------+----------------+--------+----------------------+------------+\n\r");
+        printf("| gnb_id  | ran_ue_ngap_id | amf_ue_ngap_id | sps_no |         supi         |    tmsi    |\n\r");
+        printf("+---------+----------------+----------------+--------+----------------------+------------+\n\r");
+        
+        ogs_list_for_each(&amf_self()->gnb_list, gnb) {
+            ogs_list_for_each(&gnb->ran_ue_list, ran_ue) {
+                printf("| %-7u | %-14lu | %-14lu | %-6d | %-15s | %-10u |\r\n",
+                   gnb->gnb_id, 
+                   ran_ue->ran_ue_ngap_id,
+                   ran_ue->amf_ue_ngap_id,
+                   ran_ue->sps_no,
+                   ran_ue->supi,
+                   ran_ue->m_tmsi);
+            }
+        }
+        
+        printf("+---------+----------------+----------------+--------+----------------------+------------+\n\r");
+       
+        printf("\r\n");
+        }else{
+        showranue_sps();
+    }
+    return ;
+}
+void showranue_sps( void )
+{
+    
     ran_ue_t *ran_ue = NULL;
+    amf_ue_t *ue = NULL;    
     
-    printf("\ngnb Brief All(current %u gnb count):\r\n", ogs_list_count(&amf_self()->gnb_list));
-    printf("+---------+----------------+----------------+--------+----------------------+------------+\n\r");
-    printf("| gnb_id  | ran_ue_ngap_id | amf_ue_ngap_id | sps_no |         supi         |    tmsi    |\n\r");
-    printf("+---------+----------------+----------------+--------+----------------------+------------+\n\r");
+    printf("+-----------+----------------+----------------+-----------+----------------------+------------+\n\r");
+    printf("|     id    | ran_ue_ngap_id | amf_ue_ngap_id | amf_ue_id | amf_ue_ngap_id_icps  |    tmsi    |\n\r");
+    printf("+-----------+----------------+----------------+-----------+----------------------+------------+\n\r");
     
-    ogs_list_for_each(&amf_self()->gnb_list, gnb) {
-        ogs_list_for_each(&gnb->ran_ue_list, ran_ue) {
-            printf("| %-7u | %-14lu | %-14lu | %-6d | %-15s | %-10u |\r\n",
-               gnb->gnb_id, 
-               ran_ue->ran_ue_ngap_id,
-               ran_ue->amf_ue_ngap_id,
-               ran_ue->sps_no,
-               ran_ue->supi,
-               ran_ue->m_tmsi);
+    
+    ogs_list_for_each(&amf_self()->amf_ue_list, ue) {
+        ran_ue = ran_ue_find_by_id(ue->ran_ue_id);
+        if(ran_ue){
+            if (ran_ue->amf_ue_ngap_id_icps) {
+                printf("| %-9d | %-14lu | %-14lu | %-9d | %-20lu | %-10u |\r\n",
+                   ran_ue->id, 
+                   ran_ue->ran_ue_ngap_id,
+                   ran_ue->amf_ue_ngap_id,
+                   ran_ue->amf_ue_id,
+                   *(ran_ue->amf_ue_ngap_id_icps),
+                   ran_ue->m_tmsi);
+                } else {
+                printf("| %-9d | %-14lu | %-14lu | %-9d | %-20s | %-10u |\r\n",
+                   ran_ue->id, 
+                   ran_ue->ran_ue_ngap_id,
+                   ran_ue->amf_ue_ngap_id,
+                   ran_ue->amf_ue_id,
+                   "NULL",
+                   ran_ue->m_tmsi);
+                }
+           }
+    }
+    
+    
+    printf("+-----------+----------------+----------------+-----------+----------------------+------------+\n\r");
+   
+    printf("\r\n");
+    
+    return ;
+}
+void showicpsue( void )
+{
+
+    if (!is_amf_icps())return;    
+    icps_ue_spsno_t *icps_ue = NULL,*next = NULL;
+    
+    printf("\nicps ue Brief All(current %u ue count):\r\n", ogs_list_count(&amf_self()->icps_ue_list));
+    
+    printf("+-----------+----------------------+----------------+\n\r");
+    printf("|     id    | supi                 | sps_no         |\n\r");
+    printf("+-----------+----------------------+----------------+\n\r");
+    
+    ogs_list_for_each_safe(&amf_self()->icps_ue_list, next, icps_ue) {       
+       
+         if(icps_ue){
+            if (icps_ue->supi) {
+                printf("| %-9d | %-20s | %-14d |\r\n",
+                   icps_ue->id, 
+                   icps_ue->supi,
+                   icps_ue->sps_id);
+                } else {
+                printf("| %-9d | %-20s | %-14d |\r\n",
+                   icps_ue->id,
+                   "NULL",
+                   icps_ue->sps_id);
+                }
         }
     }
     
-    printf("+---------+----------------+----------------+--------+----------------------+------------+\n\r");
+    
+    printf("+-----------+----------------------+----------------+\n\r");
    
     printf("\r\n");
     
@@ -132,27 +216,28 @@ void showueAll( void )
 	char buf1[OGS_PLMNIDSTRLEN];
     char buf2[OGS_PLMNIDSTRLEN];
     printf("\namf ue Brief All(current %u ue count):\r\n", ogs_list_count(&amf_self()->amf_ue_list));
-    printf("+----------------------+---------------+----------------------+---------------------------+---------------------+\n\r");
-    printf("|         supi         | register_type |          tai         |            cgi            |      timestamp      |\n\r");
-    printf("+----------------------+---------------+----------------------+---------------------------+---------------------+\n\r");
+    printf("+----------------------+---------------+----------------------+---------------------------+----------------+---------------------+\n\r");
+    printf("|         supi         | register_type |          tai         |            cgi            |CM_CONNECTED(ue)|      timestamp      |\n\r");
+    printf("+----------------------+---------------+----------------------+---------------------------+----------------+---------------------+\n\r");
     
     ogs_list_for_each(&amf_self()->amf_ue_list, ue) {
 		time_t time = ogs_time_sec(ue->ue_location_timestamp);
 		struct tm *timeInfo = localtime(&time);  
         strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeInfo);    
-        printf("| %-15s | %-13u | plmn_id:%s,tac:%-2d | plmn_id:%s,cell:%-6lu | %s |\r\n",
+        printf("| %-15s | %-13u | plmn_id:%s,tac:%-2d | plmn_id:%s,cell:%-6lu | %15d| %s |\r\n",
 		   ue->supi,
            ue->nas.registration.value,
            ogs_plmn_id_to_string(&ue->nr_tai.plmn_id,buf1),
            ue->nr_tai.tac.v,
            ogs_plmn_id_to_string(&ue->nr_cgi.plmn_id,buf2),
            ue->nr_cgi.cell_id,
+           CM_CONNECTED(ue),
            //ue->ue_ambr.downlink,
            //ue->ue_ambr.uplink,
            buffer);        
     }
     
-    printf("+----------------------+---------------+----------------------+---------------------------+---------------------+\n\r");
+    printf("+----------------------+---------------+----------------------+---------------------------+----------------+---------------------+\n\r");
     printf("\r\n");
     
     return ;
@@ -217,6 +302,10 @@ void showueDetail( char * supi )
         printf("    |--s_nssai          : SST:%d SD:0x%x \r\n", ue->slice[i].s_nssai.sst,ue->slice[i].s_nssai.sd.v);
         printf("    |--num_of_session 	: %d \r\n", ue->slice[i].num_of_session);
 	}
+    printf("  |--CM_status     :   \r\n");
+	printf("    |--CM_CONNECTED(amf_ue): %d  \r\n", CM_CONNECTED(ue));
+	printf("    |--CM_IDLE(amf_ue)     : %d  \r\n", CM_IDLE(ue));
+	
 	printf("\r\n");
     
     return ;

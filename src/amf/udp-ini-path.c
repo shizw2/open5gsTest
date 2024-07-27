@@ -446,6 +446,7 @@ void udp_ini_hand_shake_check()
 void udp_ini_send_supi_notify(amf_ue_t *amf_ue)
 {
     amf_internel_msgbuf_t internel_msg;
+    ran_ue_t *ran_ue;
 
     if (NULL == amf_ue)
     {
@@ -457,7 +458,15 @@ void udp_ini_send_supi_notify(amf_ue_t *amf_ue)
     internel_msg.msg_head.msg_type   = INTERNEL_MSG_SUPI_NOTIFY;
     internel_msg.msg_head.sps_id     = g_sps_id;
     internel_msg.msg_head.sps_state  = 1;
-    internel_msg.msg_head.amf_ue_ngap_id = ran_ue_find_by_id(amf_ue->ran_ue_id)->amf_ue_ngap_id;
+
+    ran_ue = ran_ue_find_by_id(amf_ue->ran_ue_id);
+
+    if (NULL == ran_ue){
+        ogs_error("udp_ini_send_supi_notify,can't find ran_ue by ran_ue_id:%d.", amf_ue->ran_ue_id);
+        return;
+    }
+
+    internel_msg.msg_head.amf_ue_ngap_id = ran_ue->amf_ue_ngap_id;
     
     memcpy(internel_msg.supi,amf_ue->supi,strlen(amf_ue->supi));
 

@@ -1293,7 +1293,7 @@ int amf_namf_comm_handle_ue_context_transfer_request(
      */
     ran_ue = ran_ue_find_by_id(amf_ue->ran_ue_id);
     if (ran_ue)
-        ran_ue_remove(ran_ue);
+        ran_ue_remove_sps(ran_ue);
     amf_ue_remove(amf_ue);
 
     return OGS_OK;

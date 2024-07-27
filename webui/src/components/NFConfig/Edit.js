@@ -15,6 +15,7 @@ import { udmschema, udmuiSchema } from './EditNF/udmConfigSchema';
 import { upfschema, upfuiSchema } from './EditNF/upfConfigSchema';
 import { udrschema, udruiSchema } from './EditNF/udrConfigSchema';
 import { eirschema, eiruiSchema } from './EditNF/eirConfigSchema';
+import { seppschema, seppuiSchema } from './EditNF/seppConfigSchema';
 
 class Edit extends Component {
   static propTypes = {
@@ -238,6 +239,12 @@ class Edit extends Component {
 
       selectedSchema = eirschema;
       selectedUiSchema = eiruiSchema;
+    }else if (formData._id === 'sepp' || formData._nf === 'sepp') {
+      if (formData.sepp && formData.sepp.relative_capacity)
+        formData.sepp.relative_capacity = parseInt(formData.sepp.relative_capacity);
+
+      selectedSchema = seppschema;
+      selectedUiSchema = seppuiSchema;
     }else {
       // 默认情况下，选择一个适当的“fallback”模式和 UI 模式
       console.log("Edit Default");     

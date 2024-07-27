@@ -720,13 +720,6 @@ ogs_gtp_node_t *ogs_gtp_node_add_by_ip(
         return NULL;
     }
 
-    char buf[20];
-    ogs_sockaddr_t *tmp_addr = addr;
-    while (tmp_addr) {
-        ogs_info("ogs_gtp_node_add_by_ip,addr:%s",OGS_ADDR(tmp_addr, buf));
-        tmp_addr = tmp_addr->next;
-    }
-
     rv = ogs_filter_ip_version(
             &addr,
             ogs_global_conf()->parameter.no_ipv4,
@@ -741,24 +734,12 @@ ogs_gtp_node_t *ogs_gtp_node_add_by_ip(
     rv = ogs_socknode_fill_scope_id_in_local(addr);
     ogs_assert(rv == OGS_OK);
 #endif
-    tmp_addr = addr;
-    while (tmp_addr) {
-        ogs_info("before ogs_gtp_node_new,addr:%s",OGS_ADDR(tmp_addr, buf));
-        tmp_addr = tmp_addr->next;
-    }
 
     node = ogs_gtp_node_new(addr);
     if (!node) {
         ogs_error("ogs_gtp_node_new() failed");
         ogs_freeaddrinfo(addr);
         return NULL;
-    }
-
-    
-    tmp_addr = node->sa_list;
-    while (tmp_addr) {
-        ogs_info("after ogs_gtp_node_new,addr:%s",OGS_ADDR(tmp_addr, buf));
-        tmp_addr = tmp_addr->next;
     }
 
     memcpy(&node->ip, ip, sizeof(*ip));

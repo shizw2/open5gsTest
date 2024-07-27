@@ -35,6 +35,7 @@ import { ViewUDM } from './ViewNF/ViewUDM';
 import { ViewUDR } from './ViewNF/ViewUDR';
 import { ViewUPF } from './ViewNF/ViewUPF';
 import { ViewEIR } from './ViewNF/ViewEIR';
+import { ViewSEPP } from './ViewNF/ViewSEPP';
 
 const componentMap = {
   nrf: ViewNRF,
@@ -50,6 +51,7 @@ const componentMap = {
   udr: ViewUDR,
   upf: ViewUPF,
   eir: ViewEIR,
+  sepp: ViewSEPP,
   // 其他 nfconfig._id 对应的组件
 };
 

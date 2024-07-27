@@ -47,15 +47,9 @@ int ogs_gtp_connect(ogs_sock_t *ipv4, ogs_sock_t *ipv6, ogs_gtp_node_t *gnode)
 
     addr = gnode->sa_list;
     while (addr) {
-        ogs_info("ogs_gtp_connect,addr:%s",OGS_ADDR(addr, buf));
-        addr = addr->next;
-    }
-    ogs_info("ipv4 %p, ipv6 %p",ipv4, ipv6); 
-    addr = gnode->sa_list;
-    while (addr) {
         ogs_sock_t *sock = NULL;
-        ogs_info("ogs_gtp_connect,addr:%s",OGS_ADDR(addr, buf));
         
+        //根据本端的ip类型，确定连接对端的ip
         if (addr->ogs_sa_family == AF_INET && ipv4 != NULL) {
             sock = ogs_sock_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
         } else if (addr->ogs_sa_family == AF_INET6 && ipv6 != NULL) {

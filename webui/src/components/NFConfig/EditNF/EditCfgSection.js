@@ -543,25 +543,8 @@ export const nrfNFSchema = {
 
 export const nrfNFUiSchema = {
   classNames: "col-xs-12",
-  metrics: {
-    classNames: "col-xs-12",
-    "ui:title": <CustomTitle18 title="Metrics" />,
-    "ui:description": <Customhelp14 title={promptRestart} />,
-    server:{
-      classNames: "col-xs-12",
-      "ui:title": <CustomTitle18 title="Server" />,
-        items: {
-          address: {
-            classNames: "col-xs-8",
-          },
-          port: {
-            classNames: "col-xs-4",
-          },
-      },
-    }
-  },
   sbi: {
-    classNames: "col-xs-6",
+    classNames: "col-xs-12",
     "ui:title": <CustomTitle18 title="SBI Interface" />,
     "ui:description": <Customhelp14 title={promptRestart} />,
     server: {
@@ -592,6 +575,23 @@ export const nrfNFUiSchema = {
         mnc: {
           classNames: "col-xs-6"
         }
+      },
+    }
+  },
+  metrics: {
+    classNames: "col-xs-6",
+    "ui:title": <CustomTitle18 title="Metrics" />,
+    "ui:description": <Customhelp14 title={promptRestart} />,
+    server:{
+      classNames: "col-xs-12",
+      "ui:title": <CustomTitle18 title="Server" />,
+        items: {
+          address: {
+            classNames: "col-xs-8",
+          },
+          port: {
+            classNames: "col-xs-4",
+          },
       },
     }
   },
@@ -821,7 +821,7 @@ export const paraSchema = {
       title: "Capacity",
       minimum: 0,
       maximum: 100,
-      required: true, 
+      //required: true, 
     },
   },
 }
@@ -980,7 +980,7 @@ export const nf_sbi_UiSchema = {
   "ui:title": <CustomTitle18 title="SBI Interface" />,
   "ui:description": <Customhelp14 title={promptRestart} />,
   server: {
-    classNames: "col-xs-6",
+    classNames: "col-xs-12",
     "ui:title": <CustomTitle18 title="Server" />,
     items: {
       address: {
@@ -996,7 +996,7 @@ export const nf_sbi_UiSchema = {
     }
   },
   client: {
-    classNames: "col-xs-6",
+    classNames: "col-xs-12",
     "ui:title": <CustomTitle18 title="Client" />,
     nrf: {
       classNames: "col-xs-12",
@@ -1024,6 +1024,210 @@ export const nf_sbi_UiSchema = {
       }
     }
 */
+  }
+};
+
+export const n32Schema = {
+  type: "object",
+  title:"N32",
+  properties: {
+    server:{
+      type: "array",
+      title:"Server",
+      "minItems": 1,
+      "maxItems": 4,
+      "messages": {
+        "minItems": "At least 1 Interface is required",
+        "maxItems": "4 Interfaces are supported"
+      },
+      items: {
+        type: "object",
+        properties: {
+          sender: {
+            type: "string",
+            title: "Sender",
+            //required: true,
+          },
+          address: {
+            type: "string",
+            title: "Address",
+            anyOf: [
+              { format: "ipv4" },
+              { format: "ipv6" },
+            ],
+            messages: {
+              "anyOf": "IPv4 or IPv6 allowed"
+            },
+            //required: true,
+            //default: "127.0.0.5"
+          },
+          port: {
+            type: "number",
+            title: "Port",
+            minimum: 1,
+            maximum: 65535,
+            //required: true,
+            //default: 7777
+          },
+          n32f: {
+            type: "object",
+            title:"N32f",
+            properties: {
+              address: {
+                type: "string",
+                title: "Address",
+                anyOf: [
+                  { format: "ipv4" },
+                  { format: "ipv6" },
+                ],
+                messages: {
+                  "anyOf": "IPv4 or IPv6 allowed"
+                },
+                //required: true,
+                //default: "127.0.0.5"
+              },
+              port: {
+                type: "number",
+                title: "Port",
+                minimum: 1,
+                maximum: 65535,
+                //required: true,
+                //default: 7777
+              }
+            }
+          }
+        }
+      }
+    },
+    client: {
+      type: "object",
+      title: "Client",
+      properties: {
+        sepp: {
+          type: "array",
+          title:"sepp",
+          "maxItems": 8,
+          items: {
+            type: "object",
+            properties: {
+              receiver: {
+                type: "string",
+                title: "Receiver",
+                //required: true,
+              },
+              uri: {
+                type: "string",
+                title: "URI",
+                //required: true,
+              },
+              resolve: {
+                type: "string",
+                title: "Resolve",
+                anyOf: [
+                  { format: "ipv4" },
+                  { format: "ipv6" },
+                ],
+                messages: {
+                  "anyOf": "IPv4 or IPv6 allowed"
+                },
+              },
+              n32f: {
+                type: "object",
+                title:"N32f",
+                properties: {
+                  uri: {
+                    type: "string",
+                    title: "URI",
+                    //required: true,
+                  },
+                  resolve: {
+                    type: "string",
+                    title: "Resolve",
+                    anyOf: [
+                      { format: "ipv4" },
+                      { format: "ipv6" },
+                    ],
+                    messages: {
+                      "anyOf": "IPv4 or IPv6 allowed"
+                    },
+                  },
+                }
+              }
+            }
+          }
+        },
+      }
+    }
+  }
+};
+
+export const n32UiSchema = {
+  classNames: "col-xs-12",
+  "ui:title": <CustomTitle18 title="N32 Configuration" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
+  server: {
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="Server" />,
+    items: {
+      sender: {
+        classNames: "col-xs-12",
+      },
+      address: {
+        classNames: "col-xs-8",
+        //"ui:help": "IPv4/IPv6 or FQDN",
+        "ui:placeholder": "IPv4/IPv6",
+      },
+      port: {
+        classNames: "col-xs-4",
+        //"ui:disabled": false,
+        //"ui:readonly": false,
+      },
+      n32f:
+      {
+        classNames: "col-xs-12",
+        "ui:title": <CustomTitle14 title="n32f" />,
+        address: {
+          classNames: "col-xs-8",
+          //"ui:help": "IPv4/IPv6 or FQDN",
+          "ui:placeholder": "IPv4/IPv6",
+        },
+        port: {
+          classNames: "col-xs-4",
+          //"ui:disabled": false,
+          //"ui:readonly": false,
+        },
+      }
+    }
+  },
+  client: {
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="Client" />,
+    sepp: {
+      classNames: "col-xs-12",
+      "ui:title": <CustomTitle14 title="SEPP" />,
+      items: {
+        receiver: {
+          classNames: "col-xs-12",
+        },
+        uri: {
+          classNames: "col-xs-7",
+        },
+        resolve: {
+          classNames: "col-xs-5",
+        },
+        n32f:
+        {
+          classNames: "col-xs-12",
+          "ui:title": <CustomTitle14 title="n32f" />,
+          uri: {
+            classNames: "col-xs-7",
+          },
+          resolve: {
+            classNames: "col-xs-5",
+          },
+        }
+      }
+    },
   }
 };
 
@@ -1207,19 +1411,19 @@ export const nssf_sbi_UiSchema = {
       "ui:title": <CustomTitle15 title="NSI" />,
       items: {
         uri: {
-          classNames: "col-xs-5",
+          classNames: "col-xs-6",
           "ui:title": <CustomTitle14 title="URI" />,
         },
         s_nssai: {
-          classNames: "col-xs-7",
+          classNames: "col-xs-6",
           "ui:title": <CustomTitle14 title="S_NSSAI" />,
           sst: {
-            classNames: "col-xs-7",
+            classNames: "col-xs-8",
             "ui:widget": "radio",
             "ui:options": { "inline": true },
           },
           sd: {
-            classNames: "col-xs-5",
+            classNames: "col-xs-4",
             //"ui:widget": "updown"
           },
         }
@@ -3110,10 +3314,10 @@ export const freeDiameter2UiSchema = {
     "ui:title": <CustomTitle18 title="Connect" />,
     items: {
       identity: {
-        classNames: "col-xs-6"
+        classNames: "col-xs-7"
       },
       addr: {
-        classNames: "col-xs-6"
+        classNames: "col-xs-5"
       }
     }
   }

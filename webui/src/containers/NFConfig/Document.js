@@ -307,12 +307,11 @@ componentDidUpdate(prevProps) {
       for (let i = 0; i < formData[formData._nf].sbi.server.length; i++)
       {
         let address = formData[formData._nf].sbi.server[i].address;
-        //if ( !(ipToNumberV4(address) || ipToNumberV6(address)) )
         if ( !(isV4Format(address) || isV6Format(address)) )
         {
           if (formData[formData._nf].sbi.server[i].port)
           {
-            errors[formData._nf].sbi.server[i].port.addError(`Non-IP`);
+            errors[formData._nf].sbi.server[i].port.addError(`Address Non-IP`);
           }
         }
       }
@@ -686,12 +685,10 @@ function ipToNumberV4(ipAddress) {
 
   const parts = ipAddress.split('.');
   let number = 0;
-  if ( parts.length > 0 )
-  {
-    for (let i = 0; i < parts.length; i++) {
+  for (let i = 0; i < 4; i++) {
       number += parseInt(parts[i]) << (24 - (8 * i));
    }
-  }
+
   return number;
 }
 
@@ -705,7 +702,7 @@ function ipToHexV6(ipAddress) {
   const parts = ipAddress.split(':');
   let number = '';
 
-  for (let i = 0; i < parts.length; i++) {
+  for (let i = 0; i < 8; i++) {
     const segment = parts[i] || '0000'; // 处理连续零位段
     const zerosToAdd = 4 - segment.length;
     const paddedSegment = '0'.repeat(zerosToAdd) + segment;
@@ -724,15 +721,13 @@ function ipToNumberV6(ipAddress) {
 
   const parts = ipAddress.split(':');
   let number = '';
-  if ( parts.length > 0 )
-  {
-    for (let i = 0; i < parts.length; i++) {
-      const segment = parts[i] || '0000'; // 处理连续零位段
-      const zerosToAdd = 4 - segment.length;
-      const paddedSegment = '0'.repeat(zerosToAdd) + segment;
-      number += paddedSegment;
-    }
+  for (let i = 0; i < 8; i++) {
+    const segment = parts[i] || '0000'; // 处理连续零位段
+    const zerosToAdd = 4 - segment.length;
+    const paddedSegment = '0'.repeat(zerosToAdd) + segment;
+    number += paddedSegment;
   }
+
   return BigInt(`0x${number}`);
 }
 

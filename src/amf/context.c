@@ -2423,7 +2423,7 @@ void amf_ue_set_suci(amf_ue_t *amf_ue,
                             old_amf_ue->suci,
                             (long long)ran_ue->ran_ue_ngap_id,
                             (long long)ran_ue->amf_ue_ngap_id);
-                    ran_ue_remove(ran_ue);
+                    ran_ue_remove_sps(ran_ue);
                 } else {
                     ogs_error("[%s] RAN-NG Context has already been removed",
                                 old_amf_ue->suci);

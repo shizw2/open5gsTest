@@ -259,6 +259,47 @@ export const NF_SBI_Section = ({ sbi }) => (
   </div>
 );
 
+export const N32_Section = ({ n32 }) => (
+  <div>
+    {n32 && (
+      <div className="n32-section">
+        <div className="twenty-spaces">n32:</div>
+        <div className="forty-spaces">server:</div>
+        <div className="sixty-spaces">
+          {n32.server.map((item, index) => (
+            <div key={index}>
+              <div>- sender: {item.sender}</div>
+              <div>&nbsp;&nbsp;address: {item.address}</div>
+              <div>&nbsp;&nbsp;port: {item.port}</div>
+              <div>&nbsp;&nbsp;n32f:</div>
+              <div>&nbsp;&nbsp;&nbsp;&nbsp;address: {item.n32f.address}</div>
+              <div>&nbsp;&nbsp;&nbsp;&nbsp;port: {item.n32f.port}</div>
+            </div>
+          ))}
+        </div>
+        <div className="forty-spaces">client:</div>
+        {n32.client && n32.client.sepp && (
+          <div className="nrf-section">
+            <div className="sixty-spaces">sepp:</div>
+            <div className="eighty-spaces">
+              {n32.client.sepp.map((item, index) => (
+                <div key={index}>
+                  <div>- receiver: {item.receiver}</div>
+                  <div>&nbsp;&nbsp;uri: {item.uri}</div>
+                  <div>&nbsp;&nbsp;resolve: {item.resolve}</div>
+                  <div>&nbsp;&nbsp;n32f:</div>
+                  <div>&nbsp;&nbsp;&nbsp;&nbsp;uri: {item.n32f.uri}</div>
+                  <div>&nbsp;&nbsp;&nbsp;&nbsp;resolve: {item.n32f.resolve}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+);
+
 export const NSSF_SBI_Section = ({ sbi }) => (
   <div>
     {sbi && (
@@ -486,12 +527,12 @@ export const CLISection = ({ cli }) => (
         <div className="twenty-spaces">cli:</div>
         <div className="forty-spaces">server:</div>
         <div className="sixty-spaces">
-          {cli.server.map((item, index) => (
+          {cli.server && (cli.server.map((item, index) => (
             <div key={index}>
               <div>- address: {item.address}</div>
               <div>&nbsp;&nbsp;port: {item.port}</div>
             </div>
-          ))}
+          )))}
         </div>
       </div>
     )}
