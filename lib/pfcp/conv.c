@@ -267,6 +267,8 @@ int ogs_pfcp_f_teid_to_sockaddr(
     *addr = NULL;
     *addr6 = NULL;
 
+    ogs_error("test:ogs_pfcp_f_teid_to_sockaddr,f_teid->ipv4: %d f_teid->ipv6: %d",f_teid->ipv4, f_teid->ipv6);
+
     if (f_teid->ipv4 && f_teid->ipv6) {
         *addr = ogs_calloc(1, sizeof(**addr));
         if (!(*addr)) {
