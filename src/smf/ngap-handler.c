@@ -109,6 +109,7 @@ int ngap_handle_pdu_session_resource_setup_response_transfer(
 
     /* Setup FAR */
     memcpy(&sess->gnb_n3_ip, &gnb_n3_ip, sizeof(sess->gnb_n3_ip));
+    ogs_info("ngap_handle_pdu_session_resource_setup_response_transfer copy gnb_n3_ip %d %p.",sess->gnb_n3_ip.addr,sess);
     sess->gnb_n3_teid = gnb_n3_teid;
 
     associatedQosFlowList = &dLQosFlowPerTNLInformation->associatedQosFlowList;
@@ -332,6 +333,7 @@ int ngap_handle_pdu_session_resource_modify_response_transfer(
                     ogs_assert(dl_far);
 
                     dl_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
+                    ogs_info("ogs_pfcp_ip_to_outer_header_creation,sess->gnb_n3_ip:%d %p.",sess->gnb_n3_ip.addr,sess);
                     ogs_assert(OGS_OK ==
                         ogs_pfcp_ip_to_outer_header_creation(
                             &sess->gnb_n3_ip,
@@ -447,6 +449,7 @@ int ngap_handle_path_switch_request_transfer(
 
     /* Setup FAR */
     memcpy(&sess->gnb_n3_ip, &gnb_n3_ip, sizeof(sess->gnb_n3_ip));
+    ogs_info("ngap_handle_path_switch_request_transfer copy gnb_n3_ip %d,%p",sess->gnb_n3_ip.addr,sess);
     sess->gnb_n3_teid = gnb_n3_teid;
 
     qosFlowAcceptedList = &message.qosFlowAcceptedList;

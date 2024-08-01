@@ -331,7 +331,7 @@ int ogs_filter_ip_version(ogs_sockaddr_t **addr,
         int no_ipv4, int no_ipv6, int prefer_ipv4)
 {
     int rv;
-    ogs_info("ogs_filter_ip_version, no_ipv4 %d,no_ipv6 %d,prefer_ipv4 %d",no_ipv4,no_ipv6,prefer_ipv4);
+
     if (no_ipv4 == 1) {
         rv = ogs_filteraddrinfo(addr, AF_INET6);
         ogs_assert(rv == OGS_OK);
@@ -341,7 +341,7 @@ int ogs_filter_ip_version(ogs_sockaddr_t **addr,
         ogs_assert(rv == OGS_OK);
     }
 
-    if (prefer_ipv4 == 1) {        
+    if (prefer_ipv4 == 1) {
         rv = ogs_sortaddrinfo(addr, AF_INET);
         ogs_assert(rv == OGS_OK);
     } else {
