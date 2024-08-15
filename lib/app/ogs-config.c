@@ -553,7 +553,7 @@ static int local_conf_prepare(void)
     local_conf.time.nf_instance.no_heartbeat_margin = 1;
 
     /* change from 30 to 3600 seconds */
-    local_conf.time.nf_instance.validity_duration = 30;
+    local_conf.time.nf_instance.validity_duration = 3600;
 
     /* 86400 seconds = 1 day */
     local_conf.time.subscription.validity_duration = 86400;
