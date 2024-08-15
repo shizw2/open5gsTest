@@ -658,7 +658,6 @@ bool smf_nsmf_handle_update_sm_context(
 
                 memcpy(&sess->gnb_n3_ip,
                         &sess->handover.gnb_n3_ip, sizeof(sess->gnb_n3_ip));
-                ogs_info("handover copy gnb_n3_ip %d %p.",sess->gnb_n3_ip.addr,sess);        
                 sess->gnb_n3_teid = sess->handover.gnb_n3_teid;
             }
             sess->handover.prepared = false;

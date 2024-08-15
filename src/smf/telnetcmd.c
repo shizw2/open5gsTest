@@ -75,7 +75,8 @@ void showueDetail( char * supi )
     char buf2[OGS_ADDRSTRLEN];
     char buffer[20] = {};
     ue = smf_ue_find_by_supi(supi);
-    
+    char *n3ipstr = NULL,*s5cipstr = NULL;
+
     if (NULL == ue){
         printf("can't find ue by supi:%s\r\n",supi);
         return;
@@ -84,6 +85,7 @@ void showueDetail( char * supi )
     ogs_list_for_each(&ue->sess_list, sess){
         printf("The smf_sess_t Detail Info is the following: \r\n");
         //printf("  |--sbi                : %p \r\n", sess->sbi);
+        printf("  |--id                 : %u \r\n", sess->id);
         printf("  |--index              : %u \r\n", sess->index);
         printf("  |--smf_n4_seid_node   : %d \r\n", *sess->smf_n4_seid_node);
         //printf("  |--sm                : %p \r\n", sess->sm);
@@ -102,7 +104,9 @@ void showueDetail( char * supi )
         printf("  |--smpolicycontrol_features   : %lu \r\n", sess->smpolicycontrol_features);
         printf("  |--smf_n4_teid        : %u \r\n", sess->smf_n4_teid);
         printf("  |--sgw_s5c_teid       : %u \r\n", sess->sgw_s5c_teid);
-        printf("  |--sgw_s5c_ip         : %s \r\n", ogs_ipv4_to_string(sess->sgw_s5c_ip.addr));
+        s5cipstr = ogs_ipv4_to_string(sess->sgw_s5c_ip.addr);
+        ogs_free(s5cipstr);
+        printf("  |--sgw_s5c_ip         : %s \r\n", s5cipstr);        
         printf("  |--smf_n4_seid        : %lu \r\n", sess->smf_n4_seid);
         printf("  |--upf_n4_seid        : %lu \r\n", sess->upf_n4_seid);
         printf("  |--upf_n3_teid        : %u \r\n", sess->upf_n3_teid);
@@ -115,7 +119,9 @@ void showueDetail( char * supi )
             printf("  |--upf_n3_addr6       : %s \r\n", addrInfo);
         }
         printf("  |--gnb_n3_teid        : %u \r\n", sess->gnb_n3_teid);
-        printf("  |--gnb_n3_ip          : %s \r\n", ogs_ipv4_to_string(sess->gnb_n3_ip.addr));
+        n3ipstr = ogs_ipv4_to_string(sess->gnb_n3_ip.addr);
+        printf("  |--gnb_n3_ip          : %s \r\n", n3ipstr);
+        ogs_free(n3ipstr);
         printf("  |--gx_sid             : %s \r\n", sess->gx_sid);
         printf("  |--gy_sid             : %s \r\n", sess->gy_sid);
         printf("  |--s6b_sid            : %s \r\n", sess->s6b_sid);

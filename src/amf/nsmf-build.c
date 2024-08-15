@@ -212,7 +212,7 @@ ogs_sbi_request_t *amf_nsmf_pdusession_build_create_sm_context(
     else
         ogs_error("No pcf_nf_instance");
 
-    SmContextCreateData.pcf_id = pcf_nf_instance->id;
+   // SmContextCreateData.pcf_id = pcf_nf_instance->id;
 
     message.SmContextCreateData = &SmContextCreateData;
 

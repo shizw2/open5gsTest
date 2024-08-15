@@ -53,15 +53,18 @@ void showsessBriefAll( void )
     printf("+-------------+-------------+----------------+----------------+----------------------------------------+----------+\n\r");
     printf("| upf_n4_seid | smf_n4_seid |   smf_n4_ip    |     ipv4       |                 ipv6                   | apn_dnn  |\n\r");
     printf("+-------------+-------------+----------------+----------------+----------------------------------------+----------+\n\r");
-    
+    char *ipstr = NULL;
     ogs_list_for_each(&upf_self()->sess_list, sess) {
+        if(sess->smf_n4_f_seid.ip.ipv4)
+            ipstr= ogs_ipv4_to_string(sess->smf_n4_f_seid.ip.addr);
         printf("| %-11lu | %-11ld | %-14s | %-14s | %-38s | %-8s |\r\n",
                sess->upf_n4_seid,
                sess->smf_n4_f_seid.seid,
-               sess->smf_n4_f_seid.ip.ipv4 ? ogs_ipv4_to_string(sess->smf_n4_f_seid.ip.addr):"",
+               sess->smf_n4_f_seid.ip.ipv4 ?ipstr:"",
                sess->ipv4 ? OGS_INET_NTOP(&sess->ipv4->addr, buf1) : "",
                sess->ipv6 ? OGS_INET6_NTOP(&sess->ipv6->addr, buf2) : "",
                sess->apn_dnn);
+        if(ipstr)ogs_free(ipstr);
     }
     
         printf("+-------------+-------------+----------------+----------------+----------------------------------------+----------+\n\r");
@@ -84,7 +87,7 @@ void showsessDetail( uint32_t id )
     int pdr_index = 0;
     printf("\r\n");
     sess = upf_sess_find_by_upf_n4_seid(id);
-    
+    char *ipstr = NULL;
     if (sess == NULL){
         printf("can not find upf sess by upf_n4_seid:%d \r\n",id);
         return;
@@ -93,7 +96,9 @@ void showsessDetail( uint32_t id )
     printf("The upf sess(upf_n4_seid=%u) Detail Info is the following: \r\n", id);
     printf("  |--upf_n4_seid        : %lu \r\n", sess->upf_n4_seid);
     printf("  |--smf_n4_seid        : %lu \r\n", sess->smf_n4_f_seid.seid);
-    printf("  |--smf_n4_ip          : %s \r\n", ogs_ipv4_to_string(sess->smf_n4_f_seid.ip.addr));
+    ipstr=ogs_ipv4_to_string(sess->smf_n4_f_seid.ip.addr);
+    printf("  |--smf_n4_ip          : %s \r\n", ipstr);
+    ogs_free(ipstr);
     printf("  |--pfcp      : \r\n");    
     printf("      |--pdr_cnt           : %d \r\n", ogs_list_count(&sess->pfcp.pdr_list));
     ogs_list_for_each(&sess->pfcp.pdr_list, pdr){
