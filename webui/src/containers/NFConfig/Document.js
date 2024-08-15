@@ -396,6 +396,7 @@ componentDidUpdate(prevProps) {
       }
       
       let overlaps = {};
+      let IPMask = 4294967295;
 
       for (let i = 0; i < ippools.length; i++) {
         const ippool = ippools[i];
@@ -416,12 +417,13 @@ componentDidUpdate(prevProps) {
         else  //IPv4
         {
           subnetMaskBits = 32 - parseInt(subnetMask);
-          startIP = ipToNumber(address);
+          startIP = ipToNumber(address) & (IPMask << subnetMaskBits);
+          //startIP = ipToNumber(address);
           endIP = startIP + Math.pow(2, subnetMaskBits) - 1;
         }
 
         // 检查当前子网是否与其他子网有重叠
-        for (let j = i+1; j < ippools.length; j++) {
+        for (let j = 0; j < ippools.length; j++) {
           if (i === j) continue; // 跳过自身
 
           const otherIPPool = ippools[j];
@@ -441,7 +443,8 @@ componentDidUpdate(prevProps) {
           else  //IPv4
           {
             otherSubnetMaskBits = 32 - parseInt(otherSubnetMask);
-            otherStartIP = ipToNumber(otherAddress);
+            otherStartIP = ipToNumber(otherAddress) & (IPMask << otherSubnetMaskBits);
+            //otherStartIP = ipToNumber(otherAddress);
             otherEndIP = otherStartIP + Math.pow(2, otherSubnetMaskBits) - 1;
           }
 
@@ -509,6 +512,7 @@ componentDidUpdate(prevProps) {
           const addr1 = addrs[i];
 
           for (let j = i+1; j < addrs.length; j++) {
+            if (i === j) continue;
             const addr2 = addrs[j];
             
             if (addr1 === addr2)

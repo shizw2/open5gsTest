@@ -320,7 +320,7 @@ const schema = {
                 "ipv4_framed_routes": {
                   "type": "array",
                   "title": "IPv4 Framed Routes",
-                  "maxItems": 8,
+                  "maxItems": 16,
                   "messages": {
                     "maxItems": "8 routes are supported"
                   },
@@ -339,7 +339,7 @@ const schema = {
                 "ipv6_framed_routes": {
                   "type": "array",
                   "title": "IPv6 Framed Routes",
-                  "maxItems": 8,
+                  "maxItems": 16,
                   "messages": {
                     "maxItems": "8 routes are supported"
                   },
