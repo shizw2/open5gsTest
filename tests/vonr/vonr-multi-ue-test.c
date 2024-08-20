@@ -1767,6 +1767,8 @@ void muti_ue_func34(void *data)
             NGAP_ProcedureCode_id_PDUSessionResourceModify,
             test_ue[i]->ngap_procedure_code);
 
+    ogs_msleep(10);//等待建立完成
+
     /* Send PDU session resource modify response */
     qos_flow = test_qos_flow_find_by_qfi(sess, 2);
     ogs_assert(qos_flow);
