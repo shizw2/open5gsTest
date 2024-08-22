@@ -161,6 +161,11 @@ static void *copy_upf_sess(upf_sess_t *old_sess) {
         memcpy(new_sess->ipv6_framed_routes, old_sess->ipv6_framed_routes, sizeof(ogs_ipsubnet_t));
     }
     
+    new_sess->support_vxlan_flag = old_sess->support_vxlan_flag;
+    new_sess->vni = old_sess->vni;
+    new_sess->remote_vxlan_interface = old_sess->remote_vxlan_interface;
+    new_sess->local_vxlan_interface = old_sess->local_vxlan_interface;
+    
     return new_sess;
 
     // TODO: 中间过程malloc错误没有处理

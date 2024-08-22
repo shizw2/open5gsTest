@@ -172,6 +172,13 @@ typedef struct upf_sess_s {
     char            *apn_dnn;            /* APN/DNN Item */
     uint8_t          bnbr;
     uint32_t         nbraddr;
+
+    /*VXLAN begin*/
+    bool             support_vxlan_flag;
+    uint32_t         vni;
+    uint32_t         local_vxlan_interface;
+    uint32_t         remote_vxlan_interface;
+    /*VXLAN end*/
 } upf_sess_t;
 
 typedef struct upf_nbr_message_s {

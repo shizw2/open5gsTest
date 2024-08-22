@@ -249,6 +249,16 @@ upf_sess_t *upf_sess_add(ogs_pfcp_f_seid_t *cp_f_seid)
     ogs_hash_set(self.smf_n4_seid_hash, &sess->smf_n4_f_seid.seid,
             sizeof(sess->smf_n4_f_seid.seid), sess);
 
+    /*模拟,构造vxlan数据 */
+    sess->support_vxlan_flag = true;
+    sess->vni = 100;  
+    int rv;
+    rv = ogs_ipv4_from_string(&sess->remote_vxlan_interface, "100.45.0.10");
+    if (rv != OGS_OK) {
+        ogs_error("ogs_ipv4_from_string() failed");
+        return false;
+    }
+
     ogs_list_add(&self.sess_list, sess);
     upf_metrics_inst_global_inc(UPF_METR_GLOB_GAUGE_UPF_SESSIONNBR);
 

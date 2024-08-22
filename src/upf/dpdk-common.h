@@ -32,6 +32,7 @@
 #define IP_HDR_LEN 20
 #define IP6_HDR_LEN 40
 #define UDP_HDR_LEN 8
+#define VXLAN_HDR_LEN 8
 
 #define BE_ETH_P_8021Q  0x81
 #define BE_ETH_P_IP     0x8
@@ -225,6 +226,7 @@ enum {
 struct packet {
     uint8_t is_ipv4:1;
     uint8_t l2_len:7;
+    uint16_t vxlan_len;
     uint16_t l3_len;
     uint8_t l4_len;
     uint8_t tunnel_len;

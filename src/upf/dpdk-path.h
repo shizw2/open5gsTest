@@ -14,7 +14,20 @@
 #include <dpdk-common.h>
 #include <rte_ring.h>
 
+// 定义VXLAN头部结构
+struct vxlan_header {
+    uint8_t flags;    // 8位标志位，包含I和F标志以及6位保留位
+    uint8_t rsvd[3]; // 3个字节的保留位
+    uint32_t vni;    // 24位VXLAN网络标识符
+} __attribute__((__packed__));
 
+// 定义新的以太网头部结构
+struct new_eth_header {
+    struct rte_ipv4_hdr ip; 
+    struct rte_udp_hdr udp;
+    struct vxlan_header vxlan;
+    struct rte_ether_hdr ether;   
+} __attribute__((aligned(2)));
 
 uint8_t ue_addr_match(uint32_t ip);
 uint8_t ue_addr6_match(void *ip);
@@ -47,6 +60,6 @@ void fwd_flush_buffered_packet(upf_sess_t *sess);
 int fwd_handle_volume_session_report(struct rte_ring *r, ogs_pfcp_pdr_t *pdr, upf_sess_t *sess, uint8_t type_volume);
 int send_packet_to_nbr(struct lcore_conf *lconf, struct rte_mbuf *m, uint32_t nbraddr);
 int send_packet_to_nbr_ipip(struct lcore_conf *lconf, struct rte_mbuf *m, uint32_t nbraddr);
-
+int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m/*, char *ptr,struct packet *pkt */);
 #endif
 
