@@ -303,12 +303,14 @@ int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m)
     new_encap->ip.time_to_live = IPDEFTTL;
     new_encap->ip.next_proto_id = IPPROTO_UDP;
     new_encap->ip.src_addr = sess->ipv4->subnet->gw.sub[0]; // TODO 新的源IP地址
-    new_encap->ip.dst_addr = sess->ipv4->addr; // TODO 新的目的IP地址
+    new_encap->ip.dst_addr = sess->ipv4->addr[0]; // TODO 新的目的IP地址
     new_encap->ip.total_length = rte_cpu_to_be_16(m->pkt_len - pkt->l2_len + new_encap_len);
 
     // 计算IP校验和
     new_encap->ip.hdr_checksum = rte_ipv4_cksum(&new_encap->ip);
 
+    pkt->vxlan_len = new_encap_len;
+    ogs_info("add vxlanhead, len:%d, src_addr:%s,dst_addr:%s",pkt->vxlan_len,ip2str(new_encap->ip.src_addr),ip2str(new_encap->ip.dst_addr));
     return new_encap_len;
 }
 int support_vxlan = 1;
@@ -901,6 +903,8 @@ int process_dst_if_interface_core(struct lcore_conf *lconf, struct rte_mbuf *m, 
     if (ip_h->ip_v == 4) {
         is_ipv4 = 1;
         struct rte_ipv4_hdr *in_ipv4_h = (struct rte_ipv4_hdr *)ip_h;
+
+
         if (ue_addr_match(in_ipv4_h->dst_addr)) { //ue to ue, send to owner fwd;
             pkt->pkt_type = PKT_TYPE_IP_N6;
             ring = ntohl(in_ipv4_h->dst_addr) % dkuf.fwd_num;
@@ -911,6 +915,8 @@ int process_dst_if_interface_core(struct lcore_conf *lconf, struct rte_mbuf *m, 
             lconf->lstat.f2f_enqueue++;
             return 0;
         }
+
+        
 
         //route find;
         eth_h = (struct rte_ether_hdr *)((char *)ip_h - sizeof(*eth_h));

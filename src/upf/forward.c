@@ -224,7 +224,7 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
     ogs_gtp2_header_t *gtp_h = (ogs_gtp2_header_t *)((char *)eth_h + pkt->l2_len + pkt->l3_len + pkt->l4_len);
     ogs_gtp2_header_desc_t header_desc;
     
-    ogs_debug("[RECV] GPU-U Type [%d] from [%s] : TEID[0x%x]",
+    ogs_info("[RECV] GPU-U Type [%d] from [%s] : TEID[0x%x]",
             gtp_h->type, ip_printf((char *)eth_h + pkt->l2_len, 0), be32toh(gtp_h->teid));
 
     if (LIKELY(gtp_h->type == OGS_GTPU_MSGTYPE_GPDU)) {
@@ -260,7 +260,10 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
             if (eth_h->ether_type == rte_cpu_to_be_16(RTE_ETHER_TYPE_ARP)){
                 arp_h = (struct rte_arp_hdr *)(eth_h + 1);
                 if (arp_h->arp_opcode == rte_cpu_to_be_16(RTE_ARP_OP_REQUEST)){
+                    //pkt->vxlan_len = 36;//20ip+8udp+8vxlan                   
+                    handle_gpdu_prepare(m);
                     struct rte_arp_ipv4 *arp_data = &arp_h->arp_data;
+                    uint32_t ring = 0;
                     //handle_vxlan_arp(lconf,m);
                     mac_copy(&eth_h->s_addr, &eth_h->d_addr);
                     mac_copy(&dkuf.mac[m->port], &eth_h->s_addr);
@@ -271,8 +274,61 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
                     mac_copy(&dkuf.mac[m->port], &arp_data->arp_sha);
                     ogs_info("test: it is an arp request, srcip:%s, desip:%s.",ip2str(arp_data->arp_sip),ip2str(arp_data->arp_tip));
                     
+                    struct rte_ipv4_hdr *in_ipv4_h = (struct rte_ipv4_hdr *)in_l3_head;
+                    
+                    ogs_info("in src_addr:%s,in dst_addr:%d[%s],proto:%d",ip2str(in_ipv4_h->src_addr),in_ipv4_h->dst_addr,ip2str(in_ipv4_h->dst_addr),in_ipv4_h->next_proto_id);
+                    SWAP(in_ipv4_h->src_addr, in_ipv4_h->dst_addr);
+                    in_ipv4_h->hdr_checksum = 0;
+                    in_ipv4_h->hdr_checksum = rte_ipv4_cksum(in_ipv4_h);
+                    ogs_info("after swap ip in src_addr:%s,in dst_addr:%d[%s],,proto:%d",ip2str(in_ipv4_h->src_addr),in_ipv4_h->dst_addr,ip2str(in_ipv4_h->dst_addr),in_ipv4_h->next_proto_id);
+                    
+                    struct rte_udp_hdr *in_udp_h = (struct rte_udp_hdr *)((char *)in_l3_head + IP_HDR_LEN);
+                    ogs_info("in src_port:%d,dst_port:%d",in_udp_h->src_port,in_udp_h->dst_port);
+                    //SWAP(in_udp_h->src_port, in_udp_h->dst_port);
+                    in_udp_h->src_port = htons(4789);
+                    in_udp_h->dst_port = htons(4789);
+
+                    in_udp_h->dgram_cksum = 0;
+                    //如果不计算checksum或计算错误,则对端vxlan会处理错误
+                    in_udp_h->dgram_cksum = rte_ipv4_udptcp_cksum(in_ipv4_h,in_udp_h);
+                    ogs_info("after swap port in src_addr:%s,in dst_addr:%d[%s],,proto:%d",ip2str(in_ipv4_h->src_addr),in_ipv4_h->dst_addr,ip2str(in_ipv4_h->dst_addr),in_ipv4_h->next_proto_id);
+                    
+                    ogs_info("after swap port src_port:%d,dst_port:%d",in_udp_h->src_port,in_udp_h->dst_port);
+                    pdr = n6_pdr_find_by_local_sess(sess, in_l3_head);
+                    if (!pdr) {
+                        ogs_error("%s, unfound pdr by local session, ip %s\n", __func__, ip_printf(in_l3_head, 1));
+                        if (ogs_global_conf()->parameter.multicast) {
+                            return upf_gtp_handle_multicast(m);
+                        }
+                        return -1;
+                    }
+
+                    //if (sess->support_vxlan_flag){
+                    //    add_vxlan_header(sess, m);
+                    //}
+
+                    uint8_t downlink_data_report = 0;
+                    if (pfcp_up_handle_pdr(pdr, m, &downlink_data_report) < 0) {
+                        return -1;
+                    }
+
+                    if (downlink_data_report) {
+                        ogs_assert(pdr->sess);
+                        sess = UPF_SESS(pdr->sess);
+                        ogs_assert(sess);
+
+                        ogs_debug("%s, pkt first buffered, reports downlink notifications.\n", __func__);
+                        lconf->lstat.sess_report[m->port]++;
+                        fwd_handle_gtp_session_report(lconf->f2p_ring, pdr, *sess->upf_n4_seid_node);
+                    }
+
+                    return 0;
                 }
             }else{
+                //更新为实际的IP头
+                in_l3_head = (char *)gtp_h + pkt->tunnel_len + IP_HDR_LEN +UDP_HDR_LEN + VXLAN_HDR_LEN + RTE_ETHER_HDR_LEN;
+                struct rte_ipv4_hdr *in_ipv4_h = (struct rte_ipv4_hdr *)in_l3_head;
+                ogs_info("skip vxlan, ip in src_addr:%s,in dst_addr:%s,proto:%d",ip2str(in_ipv4_h->src_addr),ip2str(in_ipv4_h->dst_addr),in_ipv4_h->next_proto_id);
                 pkt->vxlan_len = 50;//20ip+8udp+8vxlan+14mac
             }
         }
