@@ -263,7 +263,7 @@ int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m)
     arp_node_t *arp = NULL;
     //查询interface的MAC
     struct lcore_conf *lconf = &dkuf.lconf[rte_lcore_id()];
-    arp = arp_find(lconf, sess->remote_vxlan_interface, 0);//TODO:ip地址
+    arp = arp_find_vxlan(lconf, sess->remote_vxlan_interface, 0);//TODO:ip地址
 
     if (arp->flag == ARP_ND_SEND) {
         if (arp->pkt_list_cnt < MAX_PKT_BURST) {
@@ -276,6 +276,9 @@ int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m)
             return -1;
         }
     }
+    
+    ogs_info("test: ip:%s, mac%s", ip2str(sess->remote_vxlan_interface), mac2str((struct rte_ether_addr *)arp->mac));    
+    
     mac_copy(arp->mac, &new_encap->ether.d_addr);
 
     new_encap->ether.ether_type = BE_ETH_P_IP; 
@@ -313,6 +316,54 @@ int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m)
     ogs_info("add vxlanhead, len:%d, src_addr:%s,dst_addr:%s",pkt->vxlan_len,ip2str(new_encap->ip.src_addr),ip2str(new_encap->ip.dst_addr));
     return new_encap_len;
 }
+
+struct rte_mbuf * make_vxlan_arp(upf_sess_t *sess)
+{
+    struct rte_mbuf *m = dkuf_alloc_arp_request(0, sess->remote_vxlan_interface);
+    
+    // 计算新的封装所需的总长度
+    uint16_t new_encap_len = sizeof(struct new_eth_header) - 14;
+
+    char *ptr = rte_pktmbuf_mtod(m, char *);
+    struct packet *pkt = (struct packet *)(m->buf_addr);
+    /*$1 = {is_ipv4 = 1 '\001', l2_len = 14 '\016', vxlan_len = 0, l3_len = 20, l4_len = 0 '\000', tunnel_len = 0 '\000', inner_l3_len = 0, inner_l4_len = 0 '\000', 
+  pkt_type = 2 '\002', next = 0x0}*/
+
+    struct new_eth_header *new_encap = (struct new_eth_header *)(ptr + pkt->l2_len - new_encap_len);
+
+    // 填充VXLAN头部
+    new_encap->vxlan.flags = 0x08; // 8位标志位，设置I和F标志为0
+    new_encap->vxlan.rsvd[0] = 0;
+    new_encap->vxlan.rsvd[1] = 0;
+    new_encap->vxlan.rsvd[2] = 0;
+    new_encap->vxlan.vni = rte_cpu_to_be_32(100 <<8);
+
+   
+    // 填充新的UDP头部
+    new_encap->udp.src_port = htons(4789); // 新的源UDP端口
+    new_encap->udp.dst_port = htons(4789); // 新的目的UDP端口
+    new_encap->udp.dgram_len = rte_cpu_to_be_16(m->pkt_len - pkt->l2_len + new_encap_len - IP_HDR_LEN);
+    new_encap->udp.dgram_cksum = 0; // VXLAN封装中UDP校验和通常为0
+
+    // 填充新的IP头部
+    new_encap->ip.version_ihl = 0x45; // IPv4版本4，IHL为5*4字节
+    new_encap->ip.type_of_service = 0;
+    new_encap->ip.packet_id = 0; // 可以设置为0或使用其他逻辑生成
+    new_encap->ip.fragment_offset = 0;
+    new_encap->ip.time_to_live = IPDEFTTL;
+    new_encap->ip.next_proto_id = IPPROTO_UDP;
+    new_encap->ip.src_addr = sess->ipv4->subnet->gw.sub[0]; // TODO 新的源IP地址
+    new_encap->ip.dst_addr = sess->ipv4->addr[0]; // TODO 新的目的IP地址
+    new_encap->ip.total_length = rte_cpu_to_be_16(m->pkt_len - pkt->l2_len + new_encap_len);
+
+    // 计算IP校验和
+    new_encap->ip.hdr_checksum = rte_ipv4_cksum(&new_encap->ip);
+
+    pkt->vxlan_len = new_encap_len;
+    ogs_info("make_vxlan_arp, l2_len:%d, len:%d, src_addr:%s,dst_addr:%s",pkt->l2_len, pkt->vxlan_len,ip2str(new_encap->ip.src_addr),ip2str(new_encap->ip.dst_addr));
+    return m;
+}
+
 int support_vxlan = 1;
 int gtp_send_user_plane(
         ogs_gtp_node_t *gnode, ogs_gtp2_header_t *gtp_hdesc,

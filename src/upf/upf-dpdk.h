@@ -242,6 +242,7 @@ int fwd_main_loop(void *arg);
 
 arp_node_t *arp_find(struct lcore_conf *lconf, uint32_t ip, uint16_t port);
 nd_node_t *nd_find(struct lcore_conf *lconf, void *ip, uint16_t port);
+arp_node_t *arp_find_vxlan(struct lcore_conf *lconf, uint32_t ip, uint16_t port);
 
 bool is_all_veth_up(void);
 void check_link_status(void);

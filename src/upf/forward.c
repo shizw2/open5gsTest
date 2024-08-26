@@ -259,10 +259,27 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
             ogs_info("test: it is a vxlan uplink pkt,ether_type:%d, arpType:%d.",eth_h->ether_type,rte_cpu_to_be_16(RTE_ETHER_TYPE_ARP));
             if (eth_h->ether_type == rte_cpu_to_be_16(RTE_ETHER_TYPE_ARP)){
                 arp_h = (struct rte_arp_hdr *)(eth_h + 1);
+                struct rte_arp_ipv4 *arp_data = &arp_h->arp_data;
+                    
+                uint32_t sip = arp_data->arp_sip ? arp_data->arp_sip : arp_data->arp_tip;
+                arp_node_t *arp = arp_hash_find(lconf->arp_tbl, sip);
+                if (!arp) {
+                    arp = arp_create(lconf->arp_tbl, sip, m->port);
+                }
+
+                ogs_info("find arp, ip:%s, mac:%s, flag %d\n", ip2str(arp_data->arp_sip), mac2str((struct rte_ether_addr *)arp->mac), arp->flag);
+                if (!mac_cmp((char *)arp->mac, (char *)&arp_h->arp_data.arp_sha)) {
+                    mac_copy(&arp_h->arp_data.arp_sha, (struct rte_ether_addr *)arp->mac);
+                    ogs_debug("update arp mac\n");
+                    //mac_print((struct rte_ether_addr *)arp->mac);
+                }
+                arp->up_sec = dkuf.sys_up_sec;
+                arp->flag = ARP_ND_OK;
+                    
                 if (arp_h->arp_opcode == rte_cpu_to_be_16(RTE_ARP_OP_REQUEST)){
                     //pkt->vxlan_len = 36;//20ip+8udp+8vxlan                   
                     handle_gpdu_prepare(m);
-                    struct rte_arp_ipv4 *arp_data = &arp_h->arp_data;
+                    
                     uint32_t ring = 0;
                     //handle_vxlan_arp(lconf,m);
                     mac_copy(&eth_h->s_addr, &eth_h->d_addr);
@@ -322,6 +339,23 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
                         fwd_handle_gtp_session_report(lconf->f2p_ring, pdr, *sess->upf_n4_seid_node);
                     }
 
+                    return 0;
+                }else if (arp_h->arp_opcode == htons(RTE_ARP_OP_REPLY)) {
+                    if (arp && arp->pkt_list) {
+                        struct rte_mbuf *fm;
+                        struct packet *next_pkt, *pkt;
+                        pkt = (struct packet *)arp->pkt_list;
+                        while (pkt) {
+                            next_pkt = pkt->next;
+                            fm = packet_meta(pkt);
+                            mac_copy(arp->mac, rte_pktmbuf_mtod(fm, char*));
+                            send_packet(lconf, arp->port, fm, 1);
+                            pkt->next = NULL;
+                            pkt = next_pkt;
+                        }
+                        arp->pkt_list_cnt = 0;
+                        arp->pkt_list = NULL;
+                    }
                     return 0;
                 }
             }else{
@@ -454,7 +488,12 @@ static int32_t handle_n6_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
     //判断如果要支持vxlan隧道,则封装vxlan头
     //NEW: IP头20字节+UDP头8+vxlan头8+内层mac地址14 
     if (sess->support_vxlan_flag){
-        add_vxlan_header(sess, m);
+        int ret;
+        ret = add_vxlan_header(sess, m);
+        
+        if (ret <= 0){
+            m = make_vxlan_arp(sess);
+        }
     }
 
     uint8_t downlink_data_report = 0;

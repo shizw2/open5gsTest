@@ -202,6 +202,26 @@ arp_node_t *arp_find(struct lcore_conf *lconf, uint32_t ip, uint16_t port)
     return arp;
 }
 
+arp_node_t *arp_find_vxlan(struct lcore_conf *lconf, uint32_t ip, uint16_t port)
+{
+    arp_node_t *arp = arp_hash_find(lconf->arp_tbl, ip);
+
+    if (!arp) {
+        arp = arp_create(lconf->arp_tbl, ip, port);
+        ogs_debug("create vxlan arp %s\n", ip2str(ip));
+    }
+    if (arp->flag == ARP_ND_INIT) {
+        //struct rte_mbuf *arp_m = dkuf_alloc_arp_request(port, ip);
+        //send_single_packet(lconf, port, arp_m);
+        arp->flag = ARP_ND_SEND;
+        //arp_timer_start(lconf->twl, arp, 2);
+    } else if (arp->flag == ARP_ND_SEND) {
+        ogs_debug("vxlan arp waiting reply, %s\n", ip2str(ip));
+    }
+
+    return arp;
+}
+
 void arp_delete(struct arp_hashtbl *arp_tbl, arp_node_t *arp)
 {
     struct packet *next_pkt, *pkt;
