@@ -321,6 +321,10 @@ struct rte_mbuf * make_vxlan_arp(upf_sess_t *sess)
 {
     struct rte_mbuf *m = dkuf_alloc_arp_request(0, sess->remote_vxlan_interface);
     
+    m->data_len += 14;
+    m->pkt_len += 14;
+    m->data_off -= 14;
+    
     // 计算新的封装所需的总长度
     uint16_t new_encap_len = sizeof(struct new_eth_header) - 14;
 
@@ -328,7 +332,7 @@ struct rte_mbuf * make_vxlan_arp(upf_sess_t *sess)
     struct packet *pkt = (struct packet *)(m->buf_addr);
     /*$1 = {is_ipv4 = 1 '\001', l2_len = 14 '\016', vxlan_len = 0, l3_len = 20, l4_len = 0 '\000', tunnel_len = 0 '\000', inner_l3_len = 0, inner_l4_len = 0 '\000', 
   pkt_type = 2 '\002', next = 0x0}*/
-
+    //pkt->l2_len = 0; //报文发送不出来
     struct new_eth_header *new_encap = (struct new_eth_header *)(ptr + pkt->l2_len - new_encap_len);
 
     // 填充VXLAN头部
