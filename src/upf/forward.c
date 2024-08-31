@@ -224,7 +224,7 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
     ogs_gtp2_header_t *gtp_h = (ogs_gtp2_header_t *)((char *)eth_h + pkt->l2_len + pkt->l3_len + pkt->l4_len);
     ogs_gtp2_header_desc_t header_desc;
     
-    ogs_info("[RECV] GPU-U Type [%d] from [%s] : TEID[0x%x]",
+    ogs_debug("[RECV] GPU-U Type [%d] from [%s] : TEID[0x%x]",
             gtp_h->type, ip_printf((char *)eth_h + pkt->l2_len, 0), be32toh(gtp_h->teid));
 
     if (LIKELY(gtp_h->type == OGS_GTPU_MSGTYPE_GPDU)) {

@@ -241,7 +241,7 @@ arp_node_t *arp_find_vxlan(struct lcore_conf *lconf, uint32_t ip, uint16_t port)
     }
     if (arp->flag == ARP_ND_INIT) {
         //struct rte_mbuf *arp_m = dkuf_alloc_arp_request(port, ip);
-        //send_single_packet(lconf, port, arp_m);
+        //send_single_packet(lconf, port, arp_m);//这里不能直接发送,需要封装vxlan头+gtp头后才能发送
         arp->flag = ARP_ND_VXLAN_SEND;
         arp_timer_start(lconf->twl, arp, 2);
     } else if (arp->flag == ARP_ND_VXLAN_SEND) {
