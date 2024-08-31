@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2024 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -207,13 +207,23 @@ void mme_s11_handle_create_session_response(
     ogs_assert(xact);
     create_action = xact->create_action;
     sess = mme_sess_find_by_id(OGS_POINTER_TO_UINT(xact->data));
-    ogs_assert(sess);
-
-    mme_ue = mme_ue_find_by_id(sess->mme_ue_id);
+    if (sess)
+        mme_ue = mme_ue_find_by_id(sess->mme_ue_id);
+    enb_ue = enb_ue_find_by_id(xact->enb_ue_id);
 
     rv = ogs_gtp_xact_commit(xact);
     if (rv != OGS_OK) {
         ogs_error("ogs_gtp_xact_commit() failed");
+        return;
+    }
+
+    if (!sess) {
+        ogs_error("Session Context has already been removed");
+        return;
+    }
+
+    if (!enb_ue) {
+        ogs_error("ENB-S1 Context has already been removed");
         return;
     }
 
@@ -223,7 +233,6 @@ void mme_s11_handle_create_session_response(
     }
     source_ue = sgw_ue_find_by_id(mme_ue->sgw_ue_id);
     ogs_assert(source_ue);
-    enb_ue = enb_ue_find_by_id(mme_ue->enb_ue_id);
 
     if (create_action == OGS_GTP_CREATE_IN_PATH_SWITCH_REQUEST) {
         target_ue = sgw_ue_find_by_id(source_ue->target_ue_id);
@@ -263,7 +272,7 @@ void mme_s11_handle_create_session_response(
             ogs_expect(r == OGS_OK);
             ogs_assert(r != OGS_ERROR);
         }
-        mme_send_delete_session_or_mme_ue_context_release(mme_ue);
+        mme_send_delete_session_or_mme_ue_context_release(enb_ue, mme_ue);
         return;
     }
 
@@ -321,7 +330,7 @@ void mme_s11_handle_create_session_response(
             ogs_expect(r == OGS_OK);
             ogs_assert(r != OGS_ERROR);
         }
-        mme_send_delete_session_or_mme_ue_context_release(mme_ue);
+        mme_send_delete_session_or_mme_ue_context_release(enb_ue, mme_ue);
         return;
     }
 
@@ -353,7 +362,7 @@ void mme_s11_handle_create_session_response(
                 ogs_expect(r == OGS_OK);
                 ogs_assert(r != OGS_ERROR);
             }
-            mme_send_delete_session_or_mme_ue_context_release(mme_ue);
+            mme_send_delete_session_or_mme_ue_context_release(enb_ue, mme_ue);
             return;
         }
     }
@@ -373,7 +382,7 @@ void mme_s11_handle_create_session_response(
             ogs_expect(r == OGS_OK);
             ogs_assert(r != OGS_ERROR);
         }
-        mme_send_delete_session_or_mme_ue_context_release(mme_ue);
+        mme_send_delete_session_or_mme_ue_context_release(enb_ue, mme_ue);
         return;
     }
 
@@ -412,7 +421,7 @@ void mme_s11_handle_create_session_response(
         bearer = mme_bearer_find_by_ue_ebi(mme_ue,
                 rsp->bearer_contexts_created[i].eps_bearer_id.u8);
         if (!bearer) {
-            mme_send_delete_session_or_mme_ue_context_release(mme_ue);
+            mme_send_delete_session_or_mme_ue_context_release(enb_ue, mme_ue);
             return;
         }
 
@@ -568,6 +577,7 @@ void mme_s11_handle_modify_bearer_response(
     int modify_action = 0;
 
     mme_ue_t *mme_ue = NULL;
+    enb_ue_t *enb_ue = NULL;
     sgw_ue_t *sgw_ue = NULL;
 
     ogs_assert(rsp);
@@ -581,6 +591,7 @@ void mme_s11_handle_modify_bearer_response(
     modify_action = xact->modify_action;
 
     mme_ue = mme_ue_find_by_id(OGS_POINTER_TO_UINT(xact->data));
+    enb_ue = enb_ue_find_by_id(xact->enb_ue_id);
 
     rv = ogs_gtp_xact_commit(xact);
     if (rv != OGS_OK) {
@@ -616,7 +627,10 @@ void mme_s11_handle_modify_bearer_response(
     }
 
     if (cause_value != OGS_GTP2_CAUSE_REQUEST_ACCEPTED) {
-        mme_send_delete_session_or_mme_ue_context_release(mme_ue);
+        if (enb_ue)
+            mme_send_delete_session_or_mme_ue_context_release(enb_ue, mme_ue);
+        else
+            ogs_error("ENB-S1 Context has already been removed");
         return;
     }
 
@@ -631,7 +645,10 @@ void mme_s11_handle_modify_bearer_response(
     }
 
     if (cause_value != OGS_GTP2_CAUSE_REQUEST_ACCEPTED) {
-        mme_send_delete_session_or_mme_ue_context_release(mme_ue);
+        if (enb_ue)
+            mme_send_delete_session_or_mme_ue_context_release(enb_ue, mme_ue);
+        else
+            ogs_error("ENB-S1 Context has already been removed");
         return;
     }
 
@@ -642,7 +659,10 @@ void mme_s11_handle_modify_bearer_response(
 
     if (session_cause != OGS_GTP2_CAUSE_REQUEST_ACCEPTED) {
         ogs_error("[%s] GTP Cause [VALUE:%d]", mme_ue->imsi_bcd, session_cause);
-        mme_send_delete_session_or_mme_ue_context_release(mme_ue);
+        if (enb_ue)
+            mme_send_delete_session_or_mme_ue_context_release(enb_ue, mme_ue);
+        else
+            ogs_error("ENB-S1 Context has already been removed");
         return;
     }
 
@@ -694,14 +714,23 @@ void mme_s11_handle_delete_session_response(
     action = xact->delete_action;
     ogs_assert(action);
     sess = mme_sess_find_by_id(OGS_POINTER_TO_UINT(xact->data));
-    ogs_assert(sess);
-
-    ogs_debug("delete_session_response - xact:%p, sess:%p", xact, sess);
-    mme_ue = mme_ue_find_by_id(sess->mme_ue_id);
+    if (sess)
+        mme_ue = mme_ue_find_by_id(sess->mme_ue_id);
+    enb_ue = enb_ue_find_by_id(xact->enb_ue_id);
 
     rv = ogs_gtp_xact_commit(xact);
     if (rv != OGS_OK) {
         ogs_error("ogs_gtp_xact_commit() failed");
+        return;
+    }
+
+    if (!sess) {
+        ogs_error("Session Context has already been removed");
+        return;
+    }
+
+    if (!enb_ue) {
+        ogs_error("ENB-S1 Context has already been removed");
         return;
     }
 
@@ -761,8 +790,6 @@ void mme_s11_handle_delete_session_response(
     ogs_assert(mme_ue);
     ogs_assert(target_ue);
     ogs_assert(source_ue);
-
-    enb_ue = enb_ue_find_by_id(mme_ue->enb_ue_id);
 
     ogs_debug("    MME_S11_TEID[%d] SGW_S11_TEID[%d]",
             mme_ue->mme_s11_teid, source_ue->sgw_s11_teid);
@@ -1387,6 +1414,7 @@ void mme_s11_handle_release_access_bearers_response(
     ogs_assert(action);
 
     mme_ue = mme_ue_find_by_id(OGS_POINTER_TO_UINT(xact->data));
+    enb_ue = enb_ue_find_by_id(xact->enb_ue_id);
 
     rv = ogs_gtp_xact_commit(xact);
     if (rv != OGS_OK) {
@@ -1436,8 +1464,8 @@ void mme_s11_handle_release_access_bearers_response(
     }
 
     if (action == OGS_GTP_RELEASE_SEND_UE_CONTEXT_RELEASE_COMMAND) {
-        enb_ue = enb_ue_find_by_id(mme_ue->enb_ue_id);
         if (enb_ue) {
+            ogs_assert(enb_ue->relcause.group);
             r = s1ap_send_ue_context_release_command(enb_ue,
                     enb_ue->relcause.group, enb_ue->relcause.cause,
                     S1AP_UE_CTX_REL_S1_REMOVE_AND_UNLINK, 0);
@@ -1464,8 +1492,6 @@ void mme_s11_handle_release_access_bearers_response(
      * for new UE-associated logical S1-connections over the S1 interface,
      * the MME shall respond with the RESET ACKNOWLEDGE message.
      */
-        enb_ue = enb_ue_find_by_id(mme_ue->enb_ue_id);
-
         enb_ue_unlink(mme_ue);
 
         if (enb_ue) {
@@ -1486,8 +1512,6 @@ void mme_s11_handle_release_access_bearers_response(
 
     } else if (action == OGS_GTP_RELEASE_S1_CONTEXT_REMOVE_BY_RESET_PARTIAL) {
         enb_ue_t *iter = NULL;
-
-        enb_ue = enb_ue_find_by_id(mme_ue->enb_ue_id);
 
         enb_ue_unlink(mme_ue);
 
@@ -1684,6 +1708,7 @@ void mme_s11_handle_create_indirect_data_forwarding_tunnel_response(
     sgw_ue_t *sgw_ue = NULL;
     mme_bearer_t *bearer = NULL;
     mme_ue_t *mme_ue = NULL;
+    enb_ue_t *enb_ue = NULL;
     enb_ue_t *source_ue = NULL;
 
     ogs_gtp2_f_teid_t *teid = NULL;
@@ -1697,6 +1722,7 @@ void mme_s11_handle_create_indirect_data_forwarding_tunnel_response(
      ********************/
     ogs_assert(xact);
     mme_ue = mme_ue_find_by_id(OGS_POINTER_TO_UINT(xact->data));
+    enb_ue = enb_ue_find_by_id(xact->enb_ue_id);
 
     rv = ogs_gtp_xact_commit(xact);
     if (rv != OGS_OK) {
@@ -1732,7 +1758,10 @@ void mme_s11_handle_create_indirect_data_forwarding_tunnel_response(
     }
 
     if (cause_value != OGS_GTP2_CAUSE_REQUEST_ACCEPTED) {
-        mme_send_delete_session_or_mme_ue_context_release(mme_ue);
+        if (enb_ue)
+            mme_send_delete_session_or_mme_ue_context_release(enb_ue, mme_ue);
+        else
+            ogs_error("ENB-S1 Context has already been removed");
         return;
     }
 
@@ -1747,7 +1776,10 @@ void mme_s11_handle_create_indirect_data_forwarding_tunnel_response(
     }
 
     if (cause_value != OGS_GTP2_CAUSE_REQUEST_ACCEPTED) {
-        mme_send_delete_session_or_mme_ue_context_release(mme_ue);
+        if (enb_ue)
+            mme_send_delete_session_or_mme_ue_context_release(enb_ue, mme_ue);
+        else
+            ogs_error("ENB-S1 Context has already been removed");
         return;
     }
 
@@ -1758,7 +1790,10 @@ void mme_s11_handle_create_indirect_data_forwarding_tunnel_response(
 
     if (session_cause != OGS_GTP2_CAUSE_REQUEST_ACCEPTED) {
         ogs_error("[%s] GTP Cause [VALUE:%d]", mme_ue->imsi_bcd, session_cause);
-        mme_send_delete_session_or_mme_ue_context_release(mme_ue);
+        if (enb_ue)
+            mme_send_delete_session_or_mme_ue_context_release(enb_ue, mme_ue);
+        else
+            ogs_error("ENB-S1 Context has already been removed");
         return;
     }
 
@@ -1819,6 +1854,7 @@ void mme_s11_handle_delete_indirect_data_forwarding_tunnel_response(
     uint8_t session_cause = OGS_GTP2_CAUSE_UNDEFINED_VALUE;
     int action = 0;
     mme_ue_t *mme_ue = NULL;
+    enb_ue_t *enb_ue = NULL;
     sgw_ue_t *sgw_ue = NULL;
 
     ogs_assert(rsp);
@@ -1832,6 +1868,7 @@ void mme_s11_handle_delete_indirect_data_forwarding_tunnel_response(
     action = xact->delete_indirect_action;
     ogs_assert(action);
     mme_ue = mme_ue_find_by_id(OGS_POINTER_TO_UINT(xact->data));
+    enb_ue = enb_ue_find_by_id(xact->enb_ue_id);
 
     rv = ogs_gtp_xact_commit(xact);
     if (rv != OGS_OK) {
@@ -1867,7 +1904,10 @@ void mme_s11_handle_delete_indirect_data_forwarding_tunnel_response(
     }
 
     if (cause_value != OGS_GTP2_CAUSE_REQUEST_ACCEPTED) {
-        mme_send_delete_session_or_mme_ue_context_release(mme_ue);
+        if (enb_ue)
+            mme_send_delete_session_or_mme_ue_context_release(enb_ue, mme_ue);
+        else
+            ogs_error("ENB-S1 Context has already been removed");
         return;
     }
 
@@ -1882,7 +1922,10 @@ void mme_s11_handle_delete_indirect_data_forwarding_tunnel_response(
     }
 
     if (cause_value != OGS_GTP2_CAUSE_REQUEST_ACCEPTED) {
-        mme_send_delete_session_or_mme_ue_context_release(mme_ue);
+        if (enb_ue)
+            mme_send_delete_session_or_mme_ue_context_release(enb_ue, mme_ue);
+        else
+            ogs_error("ENB-S1 Context has already been removed");
         return;
     }
 
@@ -1893,7 +1936,10 @@ void mme_s11_handle_delete_indirect_data_forwarding_tunnel_response(
 
     if (session_cause != OGS_GTP2_CAUSE_REQUEST_ACCEPTED) {
         ogs_error("GTP Cause [VALUE:%d]", session_cause);
-        mme_send_delete_session_or_mme_ue_context_release(mme_ue);
+        if (enb_ue)
+            mme_send_delete_session_or_mme_ue_context_release(enb_ue, mme_ue);
+        else
+            ogs_error("ENB-S1 Context has already been removed");
         return;
     }
 
@@ -1937,16 +1983,28 @@ void mme_s11_handle_bearer_resource_failure_indication(
     /********************
      * Check Transaction
      ********************/
+    ogs_assert(ind);
     ogs_assert(xact);
     bearer = mme_bearer_find_by_id(OGS_POINTER_TO_UINT(xact->data));
-    ogs_assert(ind);
-    sess = mme_sess_find_by_id(bearer->sess_id);
-    ogs_assert(sess);
-    mme_ue = mme_ue_find_by_id(sess->mme_ue_id);
+    if (bearer) {
+        sess = mme_sess_find_by_id(bearer->sess_id);
+        if (sess)
+            mme_ue = mme_ue_find_by_id(sess->mme_ue_id);
+    }
 
     rv = ogs_gtp_xact_commit(xact);
     if (rv != OGS_OK) {
         ogs_error("ogs_gtp_xact_commit() failed");
+        return;
+    }
+
+    if (!bearer) {
+        ogs_error("Bearer Context has already been removed");
+        return;
+    }
+
+    if (!sess) {
+        ogs_error("Session Context has already been removed");
         return;
     }
 

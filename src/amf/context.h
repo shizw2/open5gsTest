@@ -241,6 +241,12 @@ struct ran_ue_s {
         uint16_t    activated; /* Activated PSI Mask */
     } psimask;
 
+    /* UEContextReleaseRequest or InitialContextSetupFailure */
+    struct {
+        NGAP_Cause_PR group;
+        long cause;
+    } deactivation;
+
     char *supi;//icps使用
     uint64_t *amf_ue_ngap_id_icps;
 
@@ -541,12 +547,6 @@ struct amf_ue_s {
 
     /* UE Radio Capability */
     OCTET_STRING_t  ueRadioCapability;
-
-    /* UEContextReleaseRequest or InitialContextSetupFailure */
-    struct {
-        NGAP_Cause_PR group;
-        long cause;
-    } deactivation;
 
     /* Handover Info */
     struct {

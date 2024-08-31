@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 by Sukchan Lee <acetcom@gmail.com>
+ * Copyright (C) 2019-2024 by Sukchan Lee <acetcom@gmail.com>
  *
  * This file is part of Open5GS.
  *
@@ -347,7 +347,7 @@ void mme_state_operational(ogs_fsm_t *s, mme_event_t *e)
 
         ogs_fsm_dispatch(&mme_ue->sm, e);
         if (OGS_FSM_CHECK(&mme_ue->sm, emm_state_exception)) {
-            mme_send_delete_session_or_mme_ue_context_release(mme_ue);
+            mme_send_delete_session_or_mme_ue_context_release(enb_ue, mme_ue);
         }
 
         ogs_pkbuf_free(pkbuf);
@@ -802,10 +802,15 @@ cleanup:
                 GTP_COUNTER_INCREMENT(
                     mme_ue, GTP_COUNTER_DELETE_SESSION_BY_PATH_SWITCH);
 
-                ogs_assert(OGS_OK ==
-                    mme_gtp_send_delete_session_request(
-                        sgw_ue, sess,
-                        OGS_GTP_DELETE_IN_PATH_SWITCH_REQUEST));
+                enb_ue = enb_ue_find_by_id(mme_ue->enb_ue_id);
+                if (enb_ue) {
+                    ogs_assert(OGS_OK ==
+                        mme_gtp_send_delete_session_request(
+                            enb_ue, sgw_ue, sess,
+                            OGS_GTP_DELETE_IN_PATH_SWITCH_REQUEST));
+                } else
+                    ogs_error("ENB-S1 Context has already been removed");
+
             }
             break;
 
@@ -854,6 +859,11 @@ cleanup:
             mme_gn_handle_sgsn_context_request(xact, &gtp1_message.sgsn_context_request);
             break;
         case OGS_GTP1_SGSN_CONTEXT_RESPONSE_TYPE:
+            /* Clang scan-build SA: NULL pointer dereference: mme_ue=NULL if both gtp1_message.h.teid=0 and
+             * xact->local_teid=0. The following function mme_gn_handle_sgsn_context_response() handles the NULL
+             * but the later calls to OGS_FSM_TRAN() to change state will be a NULL pointer dereference. */
+            ogs_assert(mme_ue);
+
             /* 3GPP TS 23.401 Figure D.3.6-1 step 5 */
             rv = mme_gn_handle_sgsn_context_response(xact, mme_ue, &gtp1_message.sgsn_context_response);
             if (rv == OGS_GTP1_CAUSE_ACCEPT) {
@@ -895,10 +905,15 @@ cleanup:
             ogs_list_for_each(&mme_ue->sess_list, sess) {
                 GTP_COUNTER_INCREMENT(
                     mme_ue, GTP_COUNTER_DELETE_SESSION_BY_PATH_SWITCH);
-                ogs_assert(OGS_OK ==
-                    mme_gtp_send_delete_session_request(
-                        sgw_ue, sess,
-                        OGS_GTP_DELETE_IN_PATH_SWITCH_REQUEST));
+
+                enb_ue = enb_ue_find_by_id(mme_ue->enb_ue_id);
+                if (enb_ue) {
+                    ogs_assert(OGS_OK ==
+                        mme_gtp_send_delete_session_request(
+                            enb_ue, sgw_ue, sess,
+                            OGS_GTP_DELETE_IN_PATH_SWITCH_REQUEST));
+                } else
+                    ogs_error("ENB-S1 Context has already been removed");
             }
             break;
 

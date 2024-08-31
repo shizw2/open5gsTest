@@ -45,6 +45,11 @@ static void mme_s6a_pua_cb(void *data, struct msg **msg);
 
 static void state_cleanup(struct sess_state *sess_data, os0_t sid, void *opaque)
 {
+    if (!sess_data) {
+        ogs_error("No session state");
+        return;
+    }
+
     ogs_free(sess_data);
 }
 
@@ -141,6 +146,8 @@ static int mme_s6a_subscription_data_from_avp(struct avp *avp,
     ogs_assert(ret == 0);
     if (avpch1) {
         ret = fd_msg_avp_hdr(avpch1, &hdr);
+        /* Clang scan-build SA: Value stored is not used: add ogs_assert(). */
+        ogs_assert(ret == 0);
         ogs_ascii_to_hex(
             (char*)hdr->avp_value->os.data, (int)hdr->avp_value->os.len,
             buf, sizeof(buf));
@@ -287,6 +294,8 @@ static int mme_s6a_subscription_data_from_avp(struct avp *avp,
                 ogs_assert(ret == 0);
                 if (avpch3) {
                     ret = fd_msg_avp_hdr(avpch3, &hdr);
+                    /* Clang scan-build SA: Value stored is not used: add ogs_assert(). */
+                    ogs_assert(ret == 0);
                     session->name = ogs_strndup(
                                     (char*)hdr->avp_value->os.data,
                                     hdr->avp_value->os.len);
@@ -560,6 +569,8 @@ static int mme_s6a_subscription_data_from_avp(struct avp *avp,
                     ogs_assert(ret == 0);
                     while (avpch4) {
                         ret = fd_msg_avp_hdr(avpch4, &hdr);
+                        /* Clang scan-build SA: Value stored is not used: add ogs_assert(). */
+                        ogs_assert(ret == 0);
                         switch(hdr->avp_code) {
                         case OGS_DIAM_S6A_AVP_CODE_MIP_HOME_AGENT_ADDRESS:
                             ret = fd_msg_avp_value_interpret(avpch4,
@@ -871,9 +882,17 @@ static void mme_s6a_aia_cb(void *data, struct msg **msg)
     }
 
     mme_ue = mme_ue_find_by_id(sess_data->mme_ue_id);
-    ogs_assert(mme_ue);
+    if (!mme_ue) {
+        ogs_error("MME-UE Context has already been removed [%d]",
+                sess_data->mme_ue_id);
+        return;
+    }
     enb_ue = enb_ue_find_by_id(sess_data->enb_ue_id);
-    ogs_assert(enb_ue);
+    if (!enb_ue) {
+        ogs_error("[%s] ENB-S1 Context has already been removed [%d]",
+                mme_ue->imsi_bcd, sess_data->enb_ue_id);
+        return;
+    }
 
     /* Set Authentication-Information Command */
     s6a_message = ogs_calloc(1, sizeof(ogs_diam_s6a_message_t));
@@ -1005,8 +1024,12 @@ static void mme_s6a_aia_cb(void *data, struct msg **msg)
 
 
     ret = fd_avp_search_avp(avp_e_utran_vector, ogs_diam_s6a_rand, &avp_rand);
+    /* Clang scan-build SA: Value stored is not used: add ogs_assert(). */
+    ogs_assert(ret == 0);
     if (avp) {
         ret = fd_msg_avp_hdr(avp_rand, &hdr);
+        /* Clang scan-build SA: Value stored is not used: add ogs_assert(). */
+        ogs_assert(ret == 0);
         memcpy(e_utran_vector->rand, hdr->avp_value->os.data,
                 ogs_min(hdr->avp_value->os.len,
                     OGS_ARRAY_SIZE(e_utran_vector->rand)));
@@ -1308,9 +1331,17 @@ static void mme_s6a_ula_cb(void *data, struct msg **msg)
     }
 
     mme_ue = mme_ue_find_by_id(sess_data->mme_ue_id);
-    ogs_assert(mme_ue);
+    if (!mme_ue) {
+        ogs_error("MME-UE Context has already been removed [%d]",
+                sess_data->mme_ue_id);
+        return;
+    }
     enb_ue = enb_ue_find_by_id(sess_data->enb_ue_id);
-    ogs_assert(enb_ue);
+    if (!enb_ue) {
+        ogs_error("[%s] ENB-S1 Context has already been removed [%d]",
+                mme_ue->imsi_bcd, sess_data->enb_ue_id);
+        return;
+    }
 
     /* Set Update-Location Command */
     s6a_message = ogs_calloc(1, sizeof(ogs_diam_s6a_message_t));
@@ -1419,6 +1450,8 @@ static void mme_s6a_ula_cb(void *data, struct msg **msg)
         uint32_t subdatamask = 0;
         ret = mme_s6a_subscription_data_from_avp(avp, subscription_data, mme_ue,
             &subdatamask);
+        /* Clang scan-build SA: Value stored is not used: add ogs_assert(). */
+        ogs_assert(ret == 0);
 
         if (!(subdatamask & OGS_DIAM_S6A_SUBDATA_NAM)) {
             mme_ue->network_access_mode = 0;
@@ -1665,9 +1698,17 @@ static void mme_s6a_pua_cb(void *data, struct msg **msg)
     }
 
     mme_ue = mme_ue_find_by_id(sess_data->mme_ue_id);
-    ogs_assert(mme_ue);
+    if (!mme_ue) {
+        ogs_error("MME-UE Context has already been removed [%d]",
+                sess_data->mme_ue_id);
+        return;
+    }
     enb_ue = enb_ue_find_by_id(sess_data->enb_ue_id);
-    ogs_assert(enb_ue);
+    if (!enb_ue) {
+        ogs_error("[%s] ENB-S1 Context has already been removed [%d]",
+                mme_ue->imsi_bcd, sess_data->enb_ue_id);
+        return;
+    }
 
     /* Set Purge-UE Command */
     s6a_message = ogs_calloc(1, sizeof(ogs_diam_s6a_message_t));
@@ -1970,7 +2011,8 @@ static int mme_ogs_diam_s6a_idr_cb( struct msg **msg, struct avp *avp,
     int ret;
     char imsi_bcd[OGS_MAX_IMSI_BCD_LEN+1];
     uint32_t result_code = 0;
-    bool has_subscriber_data;
+    /* Clang scan-build SA: Branch condition evaluates to a garbage value: has_subscriber_data can be used uninitialized. */
+    bool has_subscriber_data = false;
 
     struct msg *ans, *qry;
 
@@ -2035,6 +2077,8 @@ static int mme_ogs_diam_s6a_idr_cb( struct msg **msg, struct avp *avp,
             uint32_t subdatamask = 0;
             ret = mme_s6a_subscription_data_from_avp(avp, subscription_data, 
                 mme_ue, &subdatamask);
+            /* Clang scan-build SA: Value stored is not used: add ogs_assert(). */
+            ogs_assert(ret == 0);
             idr_message->subdatamask = subdatamask;
             ogs_info("[%s] Subscription-Data Processed.", imsi_bcd);
         }

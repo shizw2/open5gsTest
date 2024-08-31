@@ -18,7 +18,6 @@ fi
 ./build/src/amf/5gc-amfd -e $level &
 ./build/src/ausf/5gc-ausfd -e $level &
 ./build/src/udm/5gc-udmd -e $level &
-./build/src/udm/5gc-udmd -e $level -c ./install/etc/5gc/udm2.yaml & 
 ./build/src/pcf/5gc-pcfd -e $level &
 ./build/src/nssf/5gc-nssfd -e $level &
 ./build/src/bsf/5gc-bsfd -e $level &
