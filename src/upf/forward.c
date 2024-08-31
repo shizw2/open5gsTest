@@ -248,7 +248,7 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
         }
         lconf->lstat.sess_match[0]++;
 
-        //由于vxlan的源IP是UE的IP,所以一定能找到sess。然后根据sess的类型，再决定是否跳过vxlan头
+        //如果sess支持vxlan,则进行vxlan报文的处理
         if (sess->support_vxlan_flag){
             struct vxlan_tunnel_header *vxlan_header;
             struct rte_ether_hdr *eth_h;
@@ -258,9 +258,15 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
             vni = rte_be_to_cpu_32(vxlan_header->vxlan.vni)>>8;
             ogs_info("vtep src_addr:%s, vtep dst_addr:%s, vni:%d",ip2str(vxlan_header->ip.src_addr), ip2str(vxlan_header->ip.dst_addr), vni);
             
+            if (vni != sess->vni){
+                ogs_error("%s, vni not match, vni in pkt:%d, vni in sess:%d\n",
+                    __func__, vni, sess->vni);
+                return -1;
+            }
+
             eth_h = rte_pktmbuf_mtod_offset(m, struct rte_ether_hdr *, pkt->l2_len + pkt->l3_len + pkt->l4_len + pkt->tunnel_len + IP_HDR_LEN +UDP_HDR_LEN + VXLAN_HDR_LEN);
             ogs_info("test: it is a vxlan uplink pkt,ether_type:%d, arpType:%d.",eth_h->ether_type,rte_cpu_to_be_16(RTE_ETHER_TYPE_ARP));
-            if (vni == sess->vni && eth_h->ether_type == rte_cpu_to_be_16(RTE_ETHER_TYPE_ARP)){
+            if (eth_h->ether_type == rte_cpu_to_be_16(RTE_ETHER_TYPE_ARP)){
                 arp_h = (struct rte_arp_hdr *)(eth_h + 1);
                 struct rte_arp_ipv4 *arp_data = &arp_h->arp_data;
                     
@@ -270,7 +276,7 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
                     arp = arp_create(lconf->arp_tbl, sip, m->port);
                 }
 
-                ogs_info("find arp, ip:%s, mac:%s, flag %d\n", ip2str(arp_data->arp_sip), mac2str((struct rte_ether_addr *)arp->mac), arp->flag);
+                ogs_info("find vxlan arp, ip:%s, mac:%s, flag %d\n", ip2str(arp_data->arp_sip), mac2str((struct rte_ether_addr *)arp->mac), arp->flag);
                 if (!mac_cmp((char *)arp->mac, (char *)&arp_h->arp_data.arp_sha)) {
                     mac_copy(&arp_h->arp_data.arp_sha, (struct rte_ether_addr *)arp->mac);
                     ogs_debug("update arp mac\n");
@@ -284,7 +290,6 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
                     handle_gpdu_prepare(m);
                     
                     uint32_t ring = 0;
-                    //handle_vxlan_arp(lconf,m);
                     mac_copy(&eth_h->s_addr, &eth_h->d_addr);
                     mac_copy(&dkuf.mac[m->port], &eth_h->s_addr);
                     arp_h->arp_opcode = rte_cpu_to_be_16(RTE_ARP_OP_REPLY);
@@ -292,27 +297,22 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
 
                     mac_copy(&arp_data->arp_sha, &arp_data->arp_tha);
                     mac_copy(&dkuf.mac[m->port], &arp_data->arp_sha);
-                    ogs_info("test: it is an arp request, srcip:%s, desip:%s.",ip2str(arp_data->arp_sip),ip2str(arp_data->arp_tip));
+                    ogs_info("test: it is an vxlan arp request, srcip:%s, desip:%s.",ip2str(arp_data->arp_sip),ip2str(arp_data->arp_tip));
                     
                     struct rte_ipv4_hdr *in_ipv4_h = (struct rte_ipv4_hdr *)in_l3_head;
                     
-                    ogs_info("in src_addr:%s,in dst_addr:%d[%s],proto:%d",ip2str(in_ipv4_h->src_addr),in_ipv4_h->dst_addr,ip2str(in_ipv4_h->dst_addr),in_ipv4_h->next_proto_id);
                     SWAP(in_ipv4_h->src_addr, in_ipv4_h->dst_addr);
                     in_ipv4_h->hdr_checksum = 0;
                     in_ipv4_h->hdr_checksum = rte_ipv4_cksum(in_ipv4_h);
-                    ogs_info("after swap ip in src_addr:%s,in dst_addr:%d[%s],,proto:%d",ip2str(in_ipv4_h->src_addr),in_ipv4_h->dst_addr,ip2str(in_ipv4_h->dst_addr),in_ipv4_h->next_proto_id);
-                    
+                     
                     struct rte_udp_hdr *in_udp_h = (struct rte_udp_hdr *)((char *)in_l3_head + IP_HDR_LEN);
-                    ogs_info("in src_port:%d,dst_port:%d",in_udp_h->src_port,in_udp_h->dst_port);
                     in_udp_h->src_port = htons(4789);
                     in_udp_h->dst_port = htons(4789);
 
                     in_udp_h->dgram_cksum = 0;
                     //如果不计算checksum或计算错误,则对端vxlan会处理错误
                     in_udp_h->dgram_cksum = rte_ipv4_udptcp_cksum(in_ipv4_h,in_udp_h);
-                    ogs_info("after swap port in src_addr:%s,in dst_addr:%d[%s],,proto:%d",ip2str(in_ipv4_h->src_addr),in_ipv4_h->dst_addr,ip2str(in_ipv4_h->dst_addr),in_ipv4_h->next_proto_id);
-                    
-                    ogs_info("after swap port src_port:%d,dst_port:%d",in_udp_h->src_port,in_udp_h->dst_port);
+                     
                     pdr = n6_pdr_find_by_local_sess(sess, in_l3_head);
                     if (!pdr) {
                         ogs_error("%s, unfound pdr by local session, ip %s\n", __func__, ip_printf(in_l3_head, 1));
@@ -360,7 +360,7 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
                 //更新为实际的IP头
                 in_l3_head = (char *)gtp_h + pkt->tunnel_len + IP_HDR_LEN +UDP_HDR_LEN + VXLAN_HDR_LEN + RTE_ETHER_HDR_LEN;
                 struct rte_ipv4_hdr *in_ipv4_h = (struct rte_ipv4_hdr *)in_l3_head;
-                ogs_info("skip vxlan, ip in src_addr:%s,in dst_addr:%s,proto:%d",ip2str(in_ipv4_h->src_addr),ip2str(in_ipv4_h->dst_addr),in_ipv4_h->next_proto_id);
+                ogs_info("test:skip vxlan, ip in src_addr:%s,in dst_addr:%s,proto:%d",ip2str(in_ipv4_h->src_addr),ip2str(in_ipv4_h->dst_addr),in_ipv4_h->next_proto_id);
                 pkt->vxlan_len = IP_HDR_LEN +UDP_HDR_LEN + VXLAN_HDR_LEN + RTE_ETHER_HDR_LEN;
             }
         }
@@ -507,67 +507,6 @@ static int32_t handle_n6_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
         ogs_debug("%s, pkt first buffered, reports downlink notifications.\n", __func__);
         lconf->lstat.sess_report[m->port]++;
         fwd_handle_gtp_session_report(lconf->f2p_ring, pdr, *sess->upf_n4_seid_node);
-    }
-
-    return 0;
-}
-
-int32_t handle_vxlan_arp(struct lcore_conf *lconf, struct rte_mbuf *m);
-int32_t handle_vxlan_arp(struct lcore_conf *lconf, struct rte_mbuf *m)
-{
-    struct rte_ether_hdr *eth_h;
-    struct rte_arp_hdr *arp_h;
-
-    eth_h = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
-    arp_h = (struct rte_arp_hdr *)(eth_h + 1);
-    ogs_debug("arp %s --> %s\n", ip2str(arp_h->arp_data.arp_sip), ip2str2(arp_h->arp_data.arp_tip));
-
-    struct rte_arp_ipv4 *arp_data = &arp_h->arp_data;
-    uint32_t sip = arp_data->arp_sip ? arp_data->arp_sip : arp_data->arp_tip;
-    arp_node_t *arp = arp_hash_find(lconf->arp_tbl, sip);
-    if (!arp) {
-        arp = arp_create(lconf->arp_tbl, sip, m->port);
-    }
-
-    ogs_debug("find arp, ip:%s, mac:%s, flag %d\n", ip2str(arp_data->arp_sip), mac2str((struct rte_ether_addr *)arp->mac), arp->flag);
-    if (!mac_cmp((char *)arp->mac, (char *)&arp_h->arp_data.arp_sha)) {
-        mac_copy(&arp_h->arp_data.arp_sha, (struct rte_ether_addr *)arp->mac);
-        ogs_debug("update arp mac\n");
-        //mac_print((struct rte_ether_addr *)arp->mac);
-    }
-    arp->up_sec = dkuf.sys_up_sec;
-    arp->flag = ARP_ND_OK;
-
-    if (arp_h->arp_opcode == htons(RTE_ARP_OP_REQUEST)) {
-        ogs_debug("got arp request for port %d\n", m->port);
-        mac_copy(&eth_h->s_addr, &eth_h->d_addr);
-        mac_copy(&dkuf.mac[m->port], &eth_h->s_addr);
-        arp_h->arp_opcode = rte_cpu_to_be_16(RTE_ARP_OP_REPLY);
-        SWAP(arp_data->arp_sip, arp_data->arp_tip);
-
-        mac_copy(&arp_data->arp_sha, &arp_data->arp_tha);
-        mac_copy(&dkuf.mac[m->port], &arp_data->arp_sha);
-
-        mac_print(&dkuf.arp_req[m->port].eth_hdr.s_addr);
-        send_single_packet(lconf, m->port, m);
-    } else if (arp_h->arp_opcode == htons(RTE_ARP_OP_REPLY)) {
-        if (arp && arp->pkt_list) {
-            struct rte_mbuf *fm;
-            struct packet *next_pkt, *pkt;
-            pkt = (struct packet *)arp->pkt_list;
-            while (pkt) {
-                next_pkt = pkt->next;
-                fm = packet_meta(pkt);
-                mac_copy(arp->mac, rte_pktmbuf_mtod(fm, char*));
-                send_packet(lconf, arp->port, fm, 1);
-                pkt->next = NULL;
-                pkt = next_pkt;
-            }
-            arp->pkt_list_cnt = 0;
-            arp->pkt_list = NULL;
-        }
-        ogs_debug("got arp reply for port %d\n", m->port);
-        return -1;
     }
 
     return 0;
