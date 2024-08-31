@@ -21,8 +21,8 @@ struct vxlan_header {
     uint32_t vni;    // 24位VXLAN网络标识符
 } __attribute__((__packed__));
 
-// 定义新的以太网头部结构
-struct new_eth_header {
+// 定义vxlan_tunnel结构
+struct vxlan_tunnel_header {
     struct rte_ipv4_hdr ip; 
     struct rte_udp_hdr udp;
     struct vxlan_header vxlan;
@@ -61,6 +61,6 @@ int fwd_handle_volume_session_report(struct rte_ring *r, ogs_pfcp_pdr_t *pdr, up
 int send_packet_to_nbr(struct lcore_conf *lconf, struct rte_mbuf *m, uint32_t nbraddr);
 int send_packet_to_nbr_ipip(struct lcore_conf *lconf, struct rte_mbuf *m, uint32_t nbraddr);
 int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m/*, char *ptr,struct packet *pkt */);
-struct rte_mbuf * make_vxlan_arp(upf_sess_t *sess);
+struct rte_mbuf * make_vxlan_arp_request(upf_sess_t *sess);
 #endif
 

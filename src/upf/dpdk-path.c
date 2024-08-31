@@ -242,7 +242,7 @@ upf_sess_t *local_sess_find_by_ue_ip(struct lcore_conf *lconf, char *l3_head, ui
 int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m)
 {
     // 计算新的封装所需的总长度
-    uint16_t new_encap_len = sizeof(struct new_eth_header);
+    uint16_t new_encap_len = sizeof(struct vxlan_tunnel_header);
 
     char *ptr = rte_pktmbuf_mtod(m, char *);
     struct packet *pkt = (struct packet *)(m->buf_addr);
@@ -255,7 +255,7 @@ int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m)
     // }
 
     // 填充新的以太网头部
-    struct new_eth_header *new_encap = (struct new_eth_header *)(ptr + pkt->l2_len - new_encap_len);
+    struct vxlan_tunnel_header *new_encap = (struct vxlan_tunnel_header *)(ptr + pkt->l2_len - new_encap_len);
 
     // 填充新的以太网MAC头部
     mac_copy((struct rte_ether_addr *)&dkuf.mac[0], &new_encap->ether.s_addr);
@@ -310,14 +310,15 @@ int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m)
     new_encap->ip.total_length = rte_cpu_to_be_16(m->pkt_len - pkt->l2_len + new_encap_len);
 
     // 计算IP校验和
-    new_encap->ip.hdr_checksum = rte_ipv4_cksum(&new_encap->ip);
+    new_encap->ip.hdr_checksum = 0;
+    new_encap->ip.hdr_checksum = rte_ipv4_cksum(&new_encap->ip);//如果计算不正确，则不通
 
     pkt->vxlan_len = new_encap_len;
-    ogs_info("add vxlanhead, len:%d, src_addr:%s,dst_addr:%s",pkt->vxlan_len,ip2str(new_encap->ip.src_addr),ip2str(new_encap->ip.dst_addr));
+    ogs_info("add vxlanhead, len:%d, src_addr:%s,dst_addr:%s,hdr_checksum:%d",pkt->vxlan_len,ip2str(new_encap->ip.src_addr),ip2str(new_encap->ip.dst_addr),new_encap->ip.hdr_checksum);
     return new_encap_len;
 }
 
-struct rte_mbuf * make_vxlan_arp(upf_sess_t *sess)
+struct rte_mbuf * make_vxlan_arp_request(upf_sess_t *sess)
 {
     struct rte_mbuf *m = dkuf_alloc_arp_request(0, sess->remote_vxlan_interface);
     
@@ -326,14 +327,14 @@ struct rte_mbuf * make_vxlan_arp(upf_sess_t *sess)
     m->data_off -= 14;
     
     // 计算新的封装所需的总长度
-    uint16_t new_encap_len = sizeof(struct new_eth_header) - 14;
+    uint16_t new_encap_len = sizeof(struct vxlan_tunnel_header) - 14;
 
     char *ptr = rte_pktmbuf_mtod(m, char *);
     struct packet *pkt = (struct packet *)(m->buf_addr);
     /*$1 = {is_ipv4 = 1 '\001', l2_len = 14 '\016', vxlan_len = 0, l3_len = 20, l4_len = 0 '\000', tunnel_len = 0 '\000', inner_l3_len = 0, inner_l4_len = 0 '\000', 
   pkt_type = 2 '\002', next = 0x0}*/
     //pkt->l2_len = 0; //报文发送不出来
-    struct new_eth_header *new_encap = (struct new_eth_header *)(ptr + pkt->l2_len - new_encap_len);
+    struct vxlan_tunnel_header *new_encap = (struct vxlan_tunnel_header *)(ptr + pkt->l2_len - new_encap_len);
 
     // 填充VXLAN头部
     new_encap->vxlan.flags = 0x08; // 8位标志位，设置I和F标志为0

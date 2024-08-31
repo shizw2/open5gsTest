@@ -251,13 +251,18 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
         lconf->lstat.sess_match[0]++;
 
         //由于vxlan的源IP是UE的IP,所以一定能找到sess。然后根据sess的类型，再决定是否跳过vxlan头
-        if (sess->support_vxlan_flag){ 
+        if (sess->support_vxlan_flag){
+            struct vxlan_tunnel_header *vxlan_header;
             struct rte_ether_hdr *eth_h;
             struct rte_arp_hdr *arp_h;
+            uint32_t vni;
+            vxlan_header = rte_pktmbuf_mtod_offset(m, struct vxlan_tunnel_header *, pkt->l2_len + pkt->l3_len + pkt->l4_len + pkt->tunnel_len);
+            vni = rte_be_to_cpu_32(vxlan_header->vxlan.vni)>>8;
+            ogs_info("vtep src_addr:%s, vtep dst_addr:%s, vni:%d",ip2str(vxlan_header->ip.src_addr), ip2str(vxlan_header->ip.dst_addr), vni);
             
             eth_h = rte_pktmbuf_mtod_offset(m, struct rte_ether_hdr *, pkt->l2_len + pkt->l3_len + pkt->l4_len + pkt->tunnel_len + IP_HDR_LEN +UDP_HDR_LEN + VXLAN_HDR_LEN);
             ogs_info("test: it is a vxlan uplink pkt,ether_type:%d, arpType:%d.",eth_h->ether_type,rte_cpu_to_be_16(RTE_ETHER_TYPE_ARP));
-            if (eth_h->ether_type == rte_cpu_to_be_16(RTE_ETHER_TYPE_ARP)){
+            if (vni == sess->vni && eth_h->ether_type == rte_cpu_to_be_16(RTE_ETHER_TYPE_ARP)){
                 arp_h = (struct rte_arp_hdr *)(eth_h + 1);
                 struct rte_arp_ipv4 *arp_data = &arp_h->arp_data;
                     
@@ -492,7 +497,7 @@ static int32_t handle_n6_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
         ret = add_vxlan_header(sess, m);
         
         if (ret <= 0){
-            m = make_vxlan_arp(sess);
+            m = make_vxlan_arp_request(sess);
         }
     }
 
