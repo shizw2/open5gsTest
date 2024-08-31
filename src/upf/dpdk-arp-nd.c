@@ -52,6 +52,35 @@ dkuf_alloc_arp_request(uint16_t portid, uint32_t dip)
 }
 
 struct rte_mbuf *
+dkuf_alloc_vxlan_arp_request(uint16_t portid, uint32_t sip,uint32_t dip)
+{
+    struct rte_mempool *mp = dkuf.mpool;
+
+    struct rte_mbuf *m;
+    uint16_t pkt_len = sizeof(struct rte_ether_hdr) + sizeof(struct rte_arp_hdr);
+
+    m = rte_pktmbuf_alloc(mp);
+    if (!m) {
+        return 0;
+    }
+
+    memcpy((char *)m->buf_addr + m->data_off, &dkuf.arp_req[portid], pkt_len);
+    struct rte_ether_hdr *eth_h;
+    struct rte_arp_hdr *arp_h;
+     
+    eth_h = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
+    arp_h = (struct rte_arp_hdr *)(eth_h + 1);
+    arp_h->arp_data.arp_sip = sip;
+    arp_h->arp_data.arp_tip = dip;
+    //printf("%d,%d,set arp sip %s target ip %s\n",sip,dip,ip2str(sip), ip2str(dip));
+
+    m->pkt_len = pkt_len;
+    m->data_len = m->pkt_len;
+
+    return m;
+}
+
+struct rte_mbuf *
 dkuf_alloc_ns(uint16_t portid, void *dip);
 struct rte_mbuf *
 dkuf_alloc_ns(uint16_t portid, void *dip)
@@ -213,9 +242,9 @@ arp_node_t *arp_find_vxlan(struct lcore_conf *lconf, uint32_t ip, uint16_t port)
     if (arp->flag == ARP_ND_INIT) {
         //struct rte_mbuf *arp_m = dkuf_alloc_arp_request(port, ip);
         //send_single_packet(lconf, port, arp_m);
-        arp->flag = ARP_ND_SEND;
-        //arp_timer_start(lconf->twl, arp, 2);
-    } else if (arp->flag == ARP_ND_SEND) {
+        arp->flag = ARP_ND_VXLAN_SEND;
+        arp_timer_start(lconf->twl, arp, 2);
+    } else if (arp->flag == ARP_ND_VXLAN_SEND) {
         ogs_debug("vxlan arp waiting reply, %s\n", ip2str(ip));
     }
 
@@ -276,6 +305,9 @@ void arp_timeout(void *arg)
         return ;
 
     case ARP_ND_TIMEOUT2:
+        arp_delete(lconf->arp_tbl, arp);
+        return ;
+    case ARP_ND_VXLAN_SEND:
         arp_delete(lconf->arp_tbl, arp);
         return ;
     }

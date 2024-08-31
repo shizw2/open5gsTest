@@ -265,16 +265,8 @@ int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m)
     struct lcore_conf *lconf = &dkuf.lconf[rte_lcore_id()];
     arp = arp_find_vxlan(lconf, sess->remote_vxlan_interface, 0);//TODO:ip地址
 
-    if (arp->flag == ARP_ND_SEND) {
-        if (arp->pkt_list_cnt < MAX_PKT_BURST) {
-            pkt->next = arp->pkt_list;
-            arp->pkt_list = pkt;
-            arp->pkt_list_cnt++;
-            return 0;
-        } else {
-            lconf->lstat.tx_dropped[0]++;
-            return -1;
-        }
+    if (arp->flag == ARP_ND_VXLAN_SEND) {//TODO: 缓存暂时不做   
+        return 0;      
     }
     
     ogs_info("test: ip:%s, mac%s", ip2str(sess->remote_vxlan_interface), mac2str((struct rte_ether_addr *)arp->mac));    
@@ -296,7 +288,7 @@ int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m)
     new_encap->udp.src_port = htons(4789); // 新的源UDP端口
     new_encap->udp.dst_port = htons(4789); // 新的目的UDP端口
     new_encap->udp.dgram_len = rte_cpu_to_be_16(m->pkt_len - pkt->l2_len + new_encap_len - IP_HDR_LEN);
-    new_encap->udp.dgram_cksum = 0; // VXLAN封装中UDP校验和通常为0
+    new_encap->udp.dgram_cksum = 0; // 这里可以不算checksum
 
     // 填充新的IP头部
     new_encap->ip.version_ihl = 0x45; // IPv4版本4，IHL为5*4字节
@@ -320,7 +312,7 @@ int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m)
 
 struct rte_mbuf * make_vxlan_arp_request(upf_sess_t *sess)
 {
-    struct rte_mbuf *m = dkuf_alloc_arp_request(0, sess->remote_vxlan_interface);
+    struct rte_mbuf *m = dkuf_alloc_vxlan_arp_request(0, sess->local_vxlan_interface, sess->remote_vxlan_interface);
     
     m->data_len += 14;
     m->pkt_len += 14;
@@ -379,7 +371,6 @@ int gtp_send_user_plane(
     uint8_t flags;
     uint8_t gtp_hlen = 0;
     int i = 0;
-
 
     flags = gtp_hdesc->flags;
     flags |= OGS_GTPU_FLAGS_V | OGS_GTPU_FLAGS_PT;
@@ -959,8 +950,6 @@ int process_dst_if_interface_core(struct lcore_conf *lconf, struct rte_mbuf *m, 
     if (ip_h->ip_v == 4) {
         is_ipv4 = 1;
         struct rte_ipv4_hdr *in_ipv4_h = (struct rte_ipv4_hdr *)ip_h;
-
-
         if (ue_addr_match(in_ipv4_h->dst_addr)) { //ue to ue, send to owner fwd;
             pkt->pkt_type = PKT_TYPE_IP_N6;
             ring = ntohl(in_ipv4_h->dst_addr) % dkuf.fwd_num;
@@ -971,8 +960,6 @@ int process_dst_if_interface_core(struct lcore_conf *lconf, struct rte_mbuf *m, 
             lconf->lstat.f2f_enqueue++;
             return 0;
         }
-
-        
 
         //route find;
         eth_h = (struct rte_ether_hdr *)((char *)ip_h - sizeof(*eth_h));

@@ -21,6 +21,7 @@ enum {
     ARP_ND_OK,
     ARP_ND_TIMEOUT1,
     ARP_ND_TIMEOUT2,
+    ARP_ND_VXLAN_SEND,
 };
 
 #define ARP_ND_SEND_TIMEOUT 2
@@ -72,6 +73,7 @@ struct nd_hashtbl {
 };
 
 struct rte_mbuf *dkuf_alloc_arp_request(uint16_t portid, uint32_t dip);
+struct rte_mbuf *dkuf_alloc_vxlan_arp_request(uint16_t portid, uint32_t sip,uint32_t dip);
 struct arp_hashtbl *arp_hash_create(uint32_t size);
 arp_node_t *arp_create(struct arp_hashtbl *arp_tbl, uint32_t ip, uint16_t port);
 void arp_delete(struct arp_hashtbl *arp_tbl, arp_node_t *arp);

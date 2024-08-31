@@ -14,7 +14,7 @@
 #include <dpdk-common.h>
 #include <rte_ring.h>
 
-// 定义VXLAN头部结构
+// 定义vxlan头部结构
 struct vxlan_header {
     uint8_t flags;    // 8位标志位，包含I和F标志以及6位保留位
     uint8_t rsvd[3]; // 3个字节的保留位

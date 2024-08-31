@@ -236,8 +236,6 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
             lconf->lstat.sess_unmatch[0]++;
             return -1;
         }
-        
-
         ogs_pfcp_pdr_t *pdr = NULL;
         ogs_pfcp_far_t *far = NULL;
 
@@ -306,7 +304,6 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
                     
                     struct rte_udp_hdr *in_udp_h = (struct rte_udp_hdr *)((char *)in_l3_head + IP_HDR_LEN);
                     ogs_info("in src_port:%d,dst_port:%d",in_udp_h->src_port,in_udp_h->dst_port);
-                    //SWAP(in_udp_h->src_port, in_udp_h->dst_port);
                     in_udp_h->src_port = htons(4789);
                     in_udp_h->dst_port = htons(4789);
 
@@ -324,10 +321,6 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
                         }
                         return -1;
                     }
-
-                    //if (sess->support_vxlan_flag){
-                    //    add_vxlan_header(sess, m);
-                    //}
 
                     uint8_t downlink_data_report = 0;
                     if (pfcp_up_handle_pdr(pdr, m, &downlink_data_report) < 0) {
@@ -368,7 +361,7 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
                 in_l3_head = (char *)gtp_h + pkt->tunnel_len + IP_HDR_LEN +UDP_HDR_LEN + VXLAN_HDR_LEN + RTE_ETHER_HDR_LEN;
                 struct rte_ipv4_hdr *in_ipv4_h = (struct rte_ipv4_hdr *)in_l3_head;
                 ogs_info("skip vxlan, ip in src_addr:%s,in dst_addr:%s,proto:%d",ip2str(in_ipv4_h->src_addr),ip2str(in_ipv4_h->dst_addr),in_ipv4_h->next_proto_id);
-                pkt->vxlan_len = 50;//20ip+8udp+8vxlan+14mac
+                pkt->vxlan_len = IP_HDR_LEN +UDP_HDR_LEN + VXLAN_HDR_LEN + RTE_ETHER_HDR_LEN;
             }
         }
 

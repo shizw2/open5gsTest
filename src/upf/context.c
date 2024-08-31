@@ -259,6 +259,12 @@ upf_sess_t *upf_sess_add(ogs_pfcp_f_seid_t *cp_f_seid)
         return false;
     }
 
+    rv = ogs_ipv4_from_string(&sess->local_vxlan_interface, "100.45.0.1");
+    if (rv != OGS_OK) {
+        ogs_error("ogs_ipv4_from_string() failed");
+        return false;
+    }
+
     ogs_list_add(&self.sess_list, sess);
     upf_metrics_inst_global_inc(UPF_METR_GLOB_GAUGE_UPF_SESSIONNBR);
 
