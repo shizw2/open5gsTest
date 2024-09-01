@@ -79,6 +79,8 @@ typedef struct upf_context_s {
 
     int             nbr_rawsocket;
     ogs_poll_t      *nbr_rawpoll;
+
+    ogs_hash_t      *vxlan_info_hash;
 } upf_context_t;
 
 /* trie mapping from IP framed routes to session. */
@@ -187,6 +189,14 @@ typedef struct upf_nbr_message_s {
 	uint16_t        uenum;
 	uint32_t        addr[200];
 } upf_nbr_message_t;
+
+typedef struct upf_vxlan_info_s {
+	uint32_t        ueaddr;
+	uint32_t        vxlan_local_;
+	uint32_t        ueaddr;
+	uint32_t        ueaddr;
+} upf_vxlan_info_t;
+
 void upf_context_init(void);
 void upf_context_final(void);
 upf_context_t *upf_self(void);
