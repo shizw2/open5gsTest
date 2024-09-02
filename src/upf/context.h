@@ -48,6 +48,13 @@ extern int __upf_log_domain;
 
 struct upf_route_trie_node;
 
+typedef struct upf_vxlan_info_s {
+	uint32_t        remote_tunnel_address;
+	uint32_t        remote_interface_address;
+	uint32_t        local_interface_address;
+	uint32_t        vni;
+} upf_vxlan_info_t;
+
 typedef struct upf_context_s {
     ogs_hash_t *upf_n4_seid_hash;   /* hash table (UPF-N4-SEID) */
     ogs_hash_t *smf_n4_seid_hash;   /* hash table (SMF-N4-SEID) */
@@ -79,6 +86,10 @@ typedef struct upf_context_s {
 
     int             nbr_rawsocket;
     ogs_poll_t      *nbr_rawpoll;
+
+#define MAX_VXLAN_NUM 100
+    upf_vxlan_info_t vxlan_infos[MAX_VXLAN_NUM];
+    int num_of_vxlan;
 
     ogs_hash_t      *vxlan_info_hash;
 } upf_context_t;
@@ -190,12 +201,7 @@ typedef struct upf_nbr_message_s {
 	uint32_t        addr[200];
 } upf_nbr_message_t;
 
-typedef struct upf_vxlan_info_s {
-	uint32_t        remote_tunnel_address;
-	uint32_t        remote_interface_address;
-	uint32_t        local_interface_address;
-	uint32_t        vni;
-} upf_vxlan_info_t;
+
 
 void upf_context_init(void);
 void upf_context_final(void);

@@ -153,6 +153,7 @@ upf_context_t *upf_self(void)
 
 static int upf_context_prepare(void)
 {
+    self.num_of_vxlan = 0;
     return OGS_OK;
 }
 
@@ -209,66 +210,83 @@ int upf_context_parse_config(void)
                     /* handle config in nbr function */
                 } else if (!strcmp(upf_key, "nbrremoteserver")) {
                     /* handle config in nbr function */
-                } else if (!strcmp(fd_key, "connect")) {
-                    ogs_yaml_iter_t conn_array, conn_iter;
-                    ogs_yaml_iter_recurse(&fd_iter, &conn_array);
+                } else if (!strcmp(upf_key, "vxlan")) {
+                    ogs_yaml_iter_t vxlan_array, vxlan_iter;
+                    ogs_yaml_iter_recurse(&upf_iter, &vxlan_array);
                     do {
                         const char *remote_tunnel_address = NULL;/*ue address*/
                         const char *remote_interface_address = NULL;
                         const char *local_interface_address = NULL;                        
                         uint32_t vni = 0;
 
-                        if (ogs_yaml_iter_type(&conn_array) ==
+                        if (ogs_yaml_iter_type(&vxlan_array) ==
                             YAML_MAPPING_NODE) {
-                            memcpy(&conn_iter, &conn_array,
+                            memcpy(&vxlan_iter, &vxlan_array,
                                     sizeof(ogs_yaml_iter_t));
-                        } else if (ogs_yaml_iter_type(&conn_array)
+                        } else if (ogs_yaml_iter_type(&vxlan_array)
                                 == YAML_SEQUENCE_NODE) {
-                            if (!ogs_yaml_iter_next(&conn_array))
+                            if (!ogs_yaml_iter_next(&vxlan_array))
                                 break;
                             ogs_yaml_iter_recurse(
-                                    &conn_array, &conn_iter);
-                        } else if (ogs_yaml_iter_type(&conn_array)
+                                    &vxlan_array, &vxlan_iter);
+                        } else if (ogs_yaml_iter_type(&vxlan_array)
                                 == YAML_SCALAR_NODE) {
                             break;
                         } else
                             ogs_assert_if_reached();
 
-                        while (ogs_yaml_iter_next(&conn_iter)) {
+                        while (ogs_yaml_iter_next(&vxlan_iter)) {
                             const char *conn_key =
-                                ogs_yaml_iter_key(&conn_iter);
+                                ogs_yaml_iter_key(&vxlan_iter);
                             ogs_assert(conn_key);
                             if (!strcmp(conn_key, "remote_interface_address")) {
                                 remote_interface_address = ogs_yaml_iter_value(
-                                        &conn_iter);
+                                        &vxlan_iter);
                             } else if (!strcmp(conn_key, "remote_tunnel_address")) {
                                 remote_tunnel_address = ogs_yaml_iter_value(
-                                        &conn_iter);
+                                        &vxlan_iter);
                             } else if (!strcmp(conn_key, "local_interface_address")) {
                                 local_interface_address = ogs_yaml_iter_value(
-                                        &conn_iter);
+                                        &vxlan_iter);
                             } else if (!strcmp(conn_key, "vni")) {
                                 const char *v =
-                                    ogs_yaml_iter_value(&conn_iter);
+                                    ogs_yaml_iter_value(&vxlan_iter);
                                 if (v) vni = atoi(v);
                             } else
                                 ogs_warn("unknown key `%s`",
                                         conn_key);
                         }
 
-                        if (remote_interface_address && remote_tunnel_address && local_interface_address) {
-                            self.diam_config->
-                                conn[self.diam_config->num_of_conn].
-                                    remote_interface_address = remote_interface_address;
-                            self.diam_config->
-                                conn[self.diam_config->num_of_conn].
-                                    remote_tunnel_address = remote_tunnel_address;
-                            self.diam_config->
-                                conn[self.diam_config->num_of_conn].
-                                    port = port;
-                            self.diam_config->num_of_conn++;
+                        if (remote_tunnel_address && remote_interface_address && local_interface_address) {
+                            int rv;
+                            
+                            rv = ogs_ipv4_from_string(&self.vxlan_infos[self.num_of_vxlan].remote_tunnel_address, remote_tunnel_address);
+                            if (rv != OGS_OK) {
+                                ogs_error("ogs_ipv4_from_string() failed");
+                                return false;
+                            }
+
+                            rv = ogs_ipv4_from_string(&self.vxlan_infos[self.num_of_vxlan].remote_interface_address, remote_interface_address);
+                            if (rv != OGS_OK) {
+                                ogs_error("ogs_ipv4_from_string() failed");
+                                return false;
+                            }
+
+                            rv = ogs_ipv4_from_string(&self.vxlan_infos[self.num_of_vxlan].local_interface_address, local_interface_address);
+                            if (rv != OGS_OK) {
+                                ogs_error("ogs_ipv4_from_string() failed");
+                                return false;
+                            }
+
+                            self.vxlan_infos[self.num_of_vxlan].vni = vni;
+
+                            ogs_hash_set(self.vxlan_info_hash, 
+                              self.vxlan_infos[self.num_of_vxlan].remote_tunnel_address,sizeof(uint32_t), &self.vxlan_infos[self.num_of_vxlan]);
+                      
+                            self.num_of_vxlan++;
+
                         }
-                    } while (ogs_yaml_iter_type(&conn_array) ==
+                    } while (ogs_yaml_iter_type(&vxlan_array) ==
                             YAML_SEQUENCE_NODE);
                 } else
                     ogs_warn("unknown key `%s`", upf_key);
@@ -285,6 +303,9 @@ int upf_context_parse_config(void)
 upf_sess_t *upf_sess_add(ogs_pfcp_f_seid_t *cp_f_seid)
 {
     upf_sess_t *sess = NULL;
+    upf_vxlan_info_t *vxlan_info = NULL;
+    char buf1[OGS_ADDRSTRLEN];
+    char buf2[OGS_ADDRSTRLEN];
 
     ogs_assert(cp_f_seid);
 
@@ -315,19 +336,14 @@ upf_sess_t *upf_sess_add(ogs_pfcp_f_seid_t *cp_f_seid)
             sizeof(sess->smf_n4_f_seid.seid), sess);
 
     /*模拟,构造vxlan数据 */
-    sess->support_vxlan_flag = true;
-    sess->vni = 100;  
-    int rv;
-    rv = ogs_ipv4_from_string(&sess->remote_vxlan_interface, "100.45.0.10");
-    if (rv != OGS_OK) {
-        ogs_error("ogs_ipv4_from_string() failed");
-        return false;
-    }
-
-    rv = ogs_ipv4_from_string(&sess->local_vxlan_interface, "100.45.0.1");
-    if (rv != OGS_OK) {
-        ogs_error("ogs_ipv4_from_string() failed");
-        return false;
+    vxlan_info = ogs_hash_get(self.vxlan_info_hash, sess->ipv4->addr[0], sizeof(uint32_t));
+    if (NULL != vxlan_info){
+        ogs_info("sess support vxlan, vni:%d, remote_interface_address:%x,local_interface_address:%x",
+            vxlan_info->vni, vxlan_info->remote_interface_address, vxlan_info->local_interface_address);
+        sess->support_vxlan_flag = true;
+        sess->remote_vxlan_interface = vxlan_info->remote_interface_address;
+        sess->local_vxlan_interface = vxlan_info->local_interface_address;
+        sess->vni = vxlan_info->vni;
     }
 
     ogs_list_add(&self.sess_list, sess);
