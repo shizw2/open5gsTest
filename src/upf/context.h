@@ -191,10 +191,10 @@ typedef struct upf_nbr_message_s {
 } upf_nbr_message_t;
 
 typedef struct upf_vxlan_info_s {
-	uint32_t        ueaddr;
-	uint32_t        vxlan_local_;
-	uint32_t        ueaddr;
-	uint32_t        ueaddr;
+	uint32_t        remote_tunnel_address;
+	uint32_t        remote_interface_address;
+	uint32_t        local_interface_address;
+	uint32_t        vni;
 } upf_vxlan_info_t;
 
 void upf_context_init(void);
