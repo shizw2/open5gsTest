@@ -288,9 +288,13 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
                     
                 if (arp_h->arp_opcode == rte_cpu_to_be_16(RTE_ARP_OP_REQUEST)){
                     //pkt->vxlan_len = 36;//20ip+8udp+8vxlan
-                    ogs_info("test3:ether_type:%d",eth_h->ether_type);                      
-                    handle_gpdu_prepare(m);
-                    ogs_info("test: it is a vxlan uplink pkt,ether_type:%d, s_addr:%s, d_addr:%s",eth_h->ether_type,mac2str(&eth_h->s_addr),mac2str(&eth_h->d_addr));
+                    ogs_info("test3:ether_type:%d,vxlan_len:%d",eth_h->ether_type,pkt->vxlan_len);                      
+                    handle_gpdu_prepare(m);                    
+                    
+                    if (eth_h->ether_type != rte_cpu_to_be_16(RTE_ETHER_TYPE_ARP)){
+                        ogs_error("test: it is a vxlan uplink arp pkt, but ether_type changed .ether_type:%d, s_addr:%s, d_addr:%s",eth_h->ether_type,mac2str(&eth_h->s_addr),mac2str(&eth_h->d_addr));
+                    }
+                    eth_h->ether_type = rte_cpu_to_be_16(RTE_ETHER_TYPE_ARP);
                     uint32_t ring = 0;
                     mac_copy(&eth_h->s_addr, &eth_h->d_addr);
                     mac_copy(&dkuf.mac[m->port], &eth_h->s_addr);
