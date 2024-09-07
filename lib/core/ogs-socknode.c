@@ -43,6 +43,8 @@ ogs_socknode_t *ogs_socknode_new(ogs_sockaddr_t *addr)
         ogs_error("ogs_calloc() failed");
         return NULL;
     }
+    char buf[20];
+    ogs_info("node:%p, addr:%s",node,OGS_ADDR(addr, buf));
 
     node->addr = addr;
 

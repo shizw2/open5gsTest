@@ -458,6 +458,9 @@ static void clear_fwd_tbl(void)
         nd_hash_destroy(lconf->nd_tbl);
 
         tw_timer_free(lconf->twl);
+
+        free_upf_route_trie_node(lconf->ipv4_framed_routes);
+        free_upf_route_trie_node(lconf->ipv6_framed_routes);
     }
 }
 
