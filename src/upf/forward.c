@@ -19,6 +19,7 @@
 #include <rte_tcp.h>
 #include <rte_icmp.h>
 
+static int32_t handle_n6_pkt(struct lcore_conf *lconf, struct rte_mbuf *m);
 
 int32_t handle_arp(struct lcore_conf *lconf, struct rte_mbuf *m);
 int32_t handle_arp(struct lcore_conf *lconf, struct rte_mbuf *m)
@@ -346,9 +347,11 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
                         pkt = (struct packet *)arp->pkt_list;
                         while (pkt) {
                             next_pkt = pkt->next;
+                            ogs_info("test:handle buffred n6 pkt.");
                             fm = packet_meta(pkt);
-                            mac_copy(arp->mac, rte_pktmbuf_mtod(fm, char*));
-                            send_packet(lconf, arp->port, fm, 1);
+                            handle_n6_pkt(lconf, fm);                            
+                            //mac_copy(arp->mac, rte_pktmbuf_mtod(fm, char*));
+                            //send_packet(lconf, arp->port, fm, 1);
                             pkt->next = NULL;
                             pkt = next_pkt;
                         }

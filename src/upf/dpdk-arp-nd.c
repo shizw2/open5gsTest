@@ -237,7 +237,7 @@ arp_node_t *arp_find_vxlan(struct lcore_conf *lconf, uint32_t ip, uint16_t port)
 
     if (!arp) {
         arp = arp_create(lconf->arp_tbl, ip, port);
-        ogs_debug("create vxlan arp %s\n", ip2str(ip));
+        ogs_info("create vxlan arp %s\n", ip2str(ip));
     }
     if (arp->flag == ARP_ND_INIT) {
         //struct rte_mbuf *arp_m = dkuf_alloc_arp_request(port, ip);
@@ -245,7 +245,7 @@ arp_node_t *arp_find_vxlan(struct lcore_conf *lconf, uint32_t ip, uint16_t port)
         arp->flag = ARP_ND_VXLAN_SEND;
         arp_timer_start(lconf->twl, arp, 2);
     } else if (arp->flag == ARP_ND_VXLAN_SEND) {
-        ogs_debug("vxlan arp waiting reply, %s\n", ip2str(ip));
+        ogs_info("vxlan arp waiting reply, %s\n", ip2str(ip));
     }
 
     return arp;
@@ -287,10 +287,11 @@ void arp_timeout(void *arg)
         
     case ARP_ND_OK:
         if ((dkuf.sys_up_sec - arp->up_sec) < (ARP_ND_AGEOUT - 2)) {
-            ogs_debug("arp %s isn't timeout\n", ip2str(arp->ip));
+            ogs_info("arp %s isn't timeout\n", ip2str(arp->ip));
             arp_timer_start(lconf->twl, arp, ARP_ND_AGEOUT);
             return ;
         }
+        ogs_info("arp %s timeout\n", ip2str(arp->ip));
         arp_m = dkuf_alloc_arp_request(arp->port, arp->ip);
         send_single_packet(lconf, arp->port, arp_m);
         arp_timer_start(lconf->twl, arp, ARP_ND_SEND_TIMEOUT1);
@@ -308,6 +309,7 @@ void arp_timeout(void *arg)
         arp_delete(lconf->arp_tbl, arp);
         return ;
     case ARP_ND_VXLAN_SEND:
+        ogs_info("delete vxlan arp,%s",ip2str(arp->ip));
         arp_delete(lconf->arp_tbl, arp);
         return ;
     }

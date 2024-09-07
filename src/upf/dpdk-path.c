@@ -265,8 +265,16 @@ int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m)
     struct lcore_conf *lconf = &dkuf.lconf[rte_lcore_id()];
     arp = arp_find_vxlan(lconf, sess->remote_interface_address, 0);
 
-    if (arp->flag == ARP_ND_VXLAN_SEND) {//TODO: 缓存暂时不做   
-        return 0;      
+    if (arp->flag == ARP_ND_VXLAN_SEND) {
+        if (arp->pkt_list_cnt < MAX_PKT_BURST) {
+            pkt->next = arp->pkt_list;
+            arp->pkt_list = pkt;
+            arp->pkt_list_cnt++;
+            return 0;
+        } else {
+            lconf->lstat.tx_dropped[0]++;
+            return -1;
+        }     
     }
     
     ogs_info("test: ip:%s, mac%s", ip2str(sess->remote_interface_address), mac2str((struct rte_ether_addr *)arp->mac));    

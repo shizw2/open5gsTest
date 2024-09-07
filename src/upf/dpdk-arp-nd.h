@@ -22,6 +22,7 @@ enum {
     ARP_ND_TIMEOUT1,
     ARP_ND_TIMEOUT2,
     ARP_ND_VXLAN_SEND,
+    ARP_ND_VXLAN_OK,
 };
 
 #define ARP_ND_SEND_TIMEOUT 2
