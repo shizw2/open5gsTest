@@ -276,8 +276,8 @@ int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m)
             return -1;
         }     
     }
-    
-    ogs_info("test: ip:%s, mac%s", ip2str(sess->remote_interface_address), mac2str((struct rte_ether_addr *)arp->mac));    
+
+    //ogs_info("test: ip:%s, mac%s", ip2str(sess->remote_interface_address), mac2str((struct rte_ether_addr *)arp->mac));    
     
     mac_copy(arp->mac, &new_encap->ether.d_addr);
 
@@ -314,8 +314,30 @@ int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m)
     new_encap->ip.hdr_checksum = rte_ipv4_cksum(&new_encap->ip);//如果计算不正确，则不通
 
     pkt->vxlan_len = new_encap_len;
-    ogs_info("add vxlanhead, len:%d, src_addr:%s,dst_addr:%s,hdr_checksum:%d",pkt->vxlan_len,ip2str(new_encap->ip.src_addr),ip2str(new_encap->ip.dst_addr),new_encap->ip.hdr_checksum);
+    ogs_info("add vxlanhead, src_addr:%s,dst_addr:%s,src_mac:%s,dst_mac:%s",ip2str(new_encap->ip.src_addr),ip2str(new_encap->ip.dst_addr),mac2str(&new_encap->ether.s_addr),mac2str(&new_encap->ether.d_addr));
     return new_encap_len;
+}
+
+int send_vxlan_arp_request(struct lcore_conf *lconf, upf_sess_t *sess, ogs_pfcp_pdr_t *pdr){
+    struct rte_mbuf *m = NULL;
+    m = make_vxlan_arp_request(sess);
+
+    uint8_t downlink_data_report = 0;
+    if (pfcp_up_handle_pdr(pdr, m, &downlink_data_report) < 0) {
+        return -1;
+    }
+
+    if (downlink_data_report) {
+        ogs_assert(pdr->sess);
+        sess = UPF_SESS(pdr->sess);
+        ogs_assert(sess);
+
+        ogs_debug("%s, pkt first buffered, reports downlink notifications.\n", __func__);
+        lconf->lstat.sess_report[m->port]++;
+        fwd_handle_gtp_session_report(lconf->f2p_ring, pdr, *sess->upf_n4_seid_node);
+    }
+
+    return 0;
 }
 
 struct rte_mbuf * make_vxlan_arp_request(upf_sess_t *sess)
