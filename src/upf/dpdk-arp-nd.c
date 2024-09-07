@@ -297,7 +297,9 @@ void arp_timeout(void *arg)
         arp_timer_start(lconf->twl, arp, ARP_ND_SEND_TIMEOUT1);
         arp->flag = ARP_ND_TIMEOUT1;
         return ;
-
+    case ARP_ND_VXLAN_OK:
+        //vxlan mac暂不进行超时重发处理。mac数不多。另外,如果mac变化,对方会主动发送arp。问题不大。
+        return ;
     case ARP_ND_TIMEOUT1:
         arp_m = dkuf_alloc_arp_request(arp->port, arp->ip);
         send_single_packet(lconf, arp->port, arp_m);

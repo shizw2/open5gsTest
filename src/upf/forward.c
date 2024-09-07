@@ -495,7 +495,7 @@ static int32_t handle_n6_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
         ret = add_vxlan_header(sess, m);
         
         if (ret <= 0){
-            return send_vxlan_arp_request(lconf, sess, pdr);
+            m = make_vxlan_arp_request(sess);
         }
     }
 
