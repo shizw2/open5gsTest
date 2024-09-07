@@ -941,7 +941,7 @@ export const nf_sbi_Schema = {
         nrf: {
           type: "array",
           title:"NRF",
-          "maxItems": 16,
+          "maxItems": 1,
           items: {
             type: "object",
             properties: {
@@ -1282,7 +1282,7 @@ export const nssf_sbi_Schema = {
         nrf: {
           type: "array",
           title:"NRF",
-          "maxItems": 16,
+          "maxItems": 1,
           items: {
             type: "object",
             properties: {

@@ -263,13 +263,13 @@ int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m)
     arp_node_t *arp = NULL;
     //查询interface的MAC
     struct lcore_conf *lconf = &dkuf.lconf[rte_lcore_id()];
-    arp = arp_find_vxlan(lconf, sess->remote_vxlan_interface, 0);//TODO:ip地址
+    arp = arp_find_vxlan(lconf, sess->remote_interface_address, 0);
 
     if (arp->flag == ARP_ND_VXLAN_SEND) {//TODO: 缓存暂时不做   
         return 0;      
     }
     
-    ogs_info("test: ip:%s, mac%s", ip2str(sess->remote_vxlan_interface), mac2str((struct rte_ether_addr *)arp->mac));    
+    ogs_info("test: ip:%s, mac%s", ip2str(sess->remote_interface_address), mac2str((struct rte_ether_addr *)arp->mac));    
     
     mac_copy(arp->mac, &new_encap->ether.d_addr);
 
@@ -312,7 +312,7 @@ int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m)
 
 struct rte_mbuf * make_vxlan_arp_request(upf_sess_t *sess)
 {
-    struct rte_mbuf *m = dkuf_alloc_vxlan_arp_request(0, sess->local_vxlan_interface, sess->remote_vxlan_interface);
+    struct rte_mbuf *m = dkuf_alloc_vxlan_arp_request(0, sess->local_interface_address, sess->remote_interface_address);
     
     m->data_len += 14;
     m->pkt_len += 14;

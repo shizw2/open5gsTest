@@ -135,6 +135,9 @@ void upf_context_final(void)
     ogs_assert(self.remoteserver_addr_hash);
     ogs_hash_destroy(self.remoteserver_addr_hash);
 
+    ogs_assert(self.vxlan_info_hash);
+    ogs_hash_destroy(self.vxlan_info_hash);
+
     free_upf_route_trie_node(self.ipv4_framed_routes);
     free_upf_route_trie_node(self.ipv6_framed_routes);
 
@@ -335,19 +338,23 @@ upf_sess_t *upf_sess_add(ogs_pfcp_f_seid_t *cp_f_seid)
     ogs_hash_set(self.smf_n4_seid_hash, &sess->smf_n4_f_seid.seid,
             sizeof(sess->smf_n4_f_seid.seid), sess);
 
+#if 0
     /*模拟,构造vxlan数据 */
-    if (sess->ipv4){
-        ogs_info("test:get a vxlan info.remote_tunnel_address:%d.",sess->ipv4->addr[0]);
-        vxlan_info = ogs_hash_get(self.vxlan_info_hash, &(sess->ipv4->addr[0]), sizeof(uint32_t));
-        if (NULL != vxlan_info){
-            ogs_info("sess support vxlan, vni:%d, remote_interface_address:%x,local_interface_address:%x",
-                vxlan_info->vni, vxlan_info->remote_interface_address, vxlan_info->local_interface_address);
-            sess->support_vxlan_flag = true;
-            sess->remote_vxlan_interface = vxlan_info->remote_interface_address;
-            sess->local_vxlan_interface = vxlan_info->local_interface_address;
-            sess->vni = vxlan_info->vni;
-        }
+    sess->support_vxlan_flag = true;
+    sess->vni = 100;  
+    int rv;
+    rv = ogs_ipv4_from_string(&sess->remote_vxlan_interface, "100.45.0.10");
+    if (rv != OGS_OK) {
+        ogs_error("ogs_ipv4_from_string() failed");
+        return false;
     }
+
+    rv = ogs_ipv4_from_string(&sess->local_vxlan_interface, "100.45.0.1");
+    if (rv != OGS_OK) {
+        ogs_error("ogs_ipv4_from_string() failed");
+        return false;
+    }
+#endif
 
     ogs_list_add(&self.sess_list, sess);
     upf_metrics_inst_global_inc(UPF_METR_GLOB_GAUGE_UPF_SESSIONNBR);
@@ -640,14 +647,13 @@ uint8_t upf_sess_set_ue_ip(upf_sess_t *sess,
     }
 
     if (sess->ipv4){
-        ogs_info("test:get a vxlan info.remote_tunnel_address:%d.",sess->ipv4->addr[0]);
         vxlan_info = ogs_hash_get(self.vxlan_info_hash, &(sess->ipv4->addr[0]), sizeof(uint32_t));
         if (NULL != vxlan_info){
             ogs_info("sess support vxlan, vni:%d, remote_interface_address:%x,local_interface_address:%x",
                 vxlan_info->vni, vxlan_info->remote_interface_address, vxlan_info->local_interface_address);
             sess->support_vxlan_flag = true;
-            sess->remote_vxlan_interface = vxlan_info->remote_interface_address;
-            sess->local_vxlan_interface = vxlan_info->local_interface_address;
+            sess->remote_interface_address = vxlan_info->remote_interface_address;
+            sess->local_interface_address = vxlan_info->local_interface_address;
             sess->vni = vxlan_info->vni;
         }
     }

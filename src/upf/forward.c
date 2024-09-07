@@ -269,7 +269,7 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
             if (eth_h->ether_type == rte_cpu_to_be_16(RTE_ETHER_TYPE_ARP)){
                 arp_h = (struct rte_arp_hdr *)(eth_h + 1);
                 struct rte_arp_ipv4 *arp_data = &arp_h->arp_data;
-                ogs_info("test1:ether_type:%d",eth_h->ether_type);    
+                    
                 uint32_t sip = arp_data->arp_sip ? arp_data->arp_sip : arp_data->arp_tip;
                 arp_node_t *arp = arp_hash_find(lconf->arp_tbl, sip);
                 if (!arp) {
@@ -282,18 +282,13 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
                     ogs_debug("update arp mac\n");
                     //mac_print((struct rte_ether_addr *)arp->mac);
                 }
-                ogs_info("test2:ether_type:%d",eth_h->ether_type);  
                 arp->up_sec = dkuf.sys_up_sec;
                 arp->flag = ARP_ND_OK;
                     
                 if (arp_h->arp_opcode == rte_cpu_to_be_16(RTE_ARP_OP_REQUEST)){
-                    //pkt->vxlan_len = 36;//20ip+8udp+8vxlan
-                    ogs_info("test3:ether_type:%d,vxlan_len:%d",eth_h->ether_type,pkt->vxlan_len);                      
-                    handle_gpdu_prepare(m);                    
+                    //pkt->vxlan_len = 36;//20ip+8udp+8vxlan                   
+                    handle_gpdu_prepare(m);
                     
-                    if (eth_h->ether_type != rte_cpu_to_be_16(RTE_ETHER_TYPE_ARP)){
-                        ogs_error("test: it is a vxlan uplink arp pkt, but ether_type changed .ether_type:%d, s_addr:%s, d_addr:%s",eth_h->ether_type,mac2str(&eth_h->s_addr),mac2str(&eth_h->d_addr));
-                    }
                     eth_h->ether_type = rte_cpu_to_be_16(RTE_ETHER_TYPE_ARP);
                     uint32_t ring = 0;
                     mac_copy(&eth_h->s_addr, &eth_h->d_addr);
@@ -318,7 +313,7 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
                     in_udp_h->dgram_cksum = 0;
                     //如果不计算checksum或计算错误,则对端vxlan会处理错误
                     in_udp_h->dgram_cksum = rte_ipv4_udptcp_cksum(in_ipv4_h,in_udp_h);
-                    ogs_info("test: it is a vxlan uplink pkt,befor n6_pdr_find_by_local_sess ether_type:%d, s_addr:%s, d_addr:%s",eth_h->ether_type,mac2str(&eth_h->s_addr),mac2str(&eth_h->d_addr));
+                     
                     pdr = n6_pdr_find_by_local_sess(sess, in_l3_head);
                     if (!pdr) {
                         ogs_error("%s, unfound pdr by local session, ip %s\n", __func__, ip_printf(in_l3_head, 1));

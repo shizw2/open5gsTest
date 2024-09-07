@@ -189,8 +189,8 @@ typedef struct upf_sess_s {
     /*VXLAN begin*/
     bool             support_vxlan_flag;
     uint32_t         vni;
-    uint32_t         local_vxlan_interface;
-    uint32_t         remote_vxlan_interface;
+    uint32_t         local_interface_address;
+    uint32_t         remote_interface_address;
     /*VXLAN end*/
 } upf_sess_t;
 
@@ -200,9 +200,6 @@ typedef struct upf_nbr_message_s {
 	uint16_t        uenum;
 	uint32_t        addr[200];
 } upf_nbr_message_t;
-
-
-
 void upf_context_init(void);
 void upf_context_final(void);
 upf_context_t *upf_self(void);

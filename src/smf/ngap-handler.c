@@ -49,7 +49,7 @@ int ngap_handle_pdu_session_resource_setup_response_transfer(
     smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
     ogs_assert(smf_ue);
 
-    ogs_debug("PDUSessionResourceSetupResponseTransfer");
+    ogs_debug("PDUSessionResourceSetupResponseTransfer supi:%s",smf_ue->supi);
 
     rv = ogs_asn_decode(
             &asn_DEF_NGAP_PDUSessionResourceSetupResponseTransfer,

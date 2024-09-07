@@ -3,26 +3,26 @@
 SYSTEM=`uname`;
 
 if [ "$SYSTEM" = "Linux" ]; then
-    if ! grep "ogstun" /proc/net/dev > /dev/null; then
-        ip tuntap add name ogstun mode tun
+    if ! grep "5gctun" /proc/net/dev > /dev/null; then
+        ip tuntap add name 5gctun mode tun
     fi
-    if test "x`sysctl -n net.ipv6.conf.ogstun.disable_ipv6`" = x1; then
-        echo "net.ipv6.conf.ogstun.disable_ipv6=0" > /etc/sysctl.d/30-open5gs.conf
-        sysctl -p /etc/sysctl.d/30-open5gs.conf
+    if test "x`sysctl -n net.ipv6.conf.5gctun.disable_ipv6`" = x1; then
+        echo "net.ipv6.conf.5gctun.disable_ipv6=0" > /etc/sysctl.d/30-5gc.conf
+        sysctl -p /etc/sysctl.d/30-5gc.conf
     fi
-    ip addr del 10.45.0.1/16 dev ogstun 2> /dev/null
-    ip addr add 10.45.0.1/16 dev ogstun
-    ip addr del 2001:db8:cafe::1/48 dev ogstun 2> /dev/null
-    ip addr add 2001:db8:cafe::1/48 dev ogstun
-    ip addr del 10.46.0.1/16 dev ogstun2 2> /dev/null
-    ip addr add 10.46.0.1/16 dev ogstun2
-    ip addr del 2001:db8:babe::1/48 dev ogstun2 2> /dev/null
-    ip addr add 2001:db8:babe::1/48 dev ogstun2
-    ip addr del 10.47.0.1/16 dev ogstun3 2> /dev/null
-    ip addr add 10.47.0.1/16 dev ogstun3
-    ip addr del 2001:db8:face::1/48 dev ogstun3 2> /dev/null
-    ip addr add 2001:db8:face::1/48 dev ogstun3
-    ip link set ogstun up
+    ip addr del 10.45.0.1/16 dev 5gctun 2> /dev/null
+    ip addr add 10.45.0.1/16 dev 5gctun
+    ip addr del 2001:db8:cafe::1/48 dev 5gctun 2> /dev/null
+    ip addr add 2001:db8:cafe::1/48 dev 5gctun
+    ip addr del 10.46.0.1/16 dev 5gctun2 2> /dev/null
+    ip addr add 10.46.0.1/16 dev 5gctun2
+    ip addr del 2001:db8:babe::1/48 dev 5gctun2 2> /dev/null
+    ip addr add 2001:db8:babe::1/48 dev 5gctun2
+    ip addr del 10.47.0.1/16 dev 5gctun3 2> /dev/null
+    ip addr add 10.47.0.1/16 dev 5gctun3
+    ip addr del 2001:db8:face::1/48 dev 5gctun3 2> /dev/null
+    ip addr add 2001:db8:face::1/48 dev 5gctun3
+    ip link set 5gctun up
 else
     sysctl -w net.inet.ip.forwarding=1
     sysctl -w net.inet6.ip6.forwarding=1
