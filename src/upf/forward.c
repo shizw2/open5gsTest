@@ -273,10 +273,10 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
                 uint32_t sip = arp_data->arp_sip ? arp_data->arp_sip : arp_data->arp_tip;
                 arp_node_t *arp = arp_hash_find(lconf->arp_tbl, sip);
                 if (!arp) {
+                    ogs_info("not find vxlan arp, create a new one, ip:%s, mac:%s, flag %d, ether_type:%d\n", ip2str(arp_data->arp_sip), mac2str((struct rte_ether_addr *)arp->mac), arp->flag,eth_h->ether_type);
                     arp = arp_create(lconf->arp_tbl, sip, m->port);
                 }
  
-                ogs_info("find vxlan arp, ip:%s, mac:%s, flag %d, ether_type:%d\n", ip2str(arp_data->arp_sip), mac2str((struct rte_ether_addr *)arp->mac), arp->flag,eth_h->ether_type);
                 if (!mac_cmp((char *)arp->mac, (char *)&arp_h->arp_data.arp_sha)) {
                     mac_copy(&arp_h->arp_data.arp_sha, (struct rte_ether_addr *)arp->mac);
                     ogs_debug("update arp mac\n");
@@ -298,7 +298,7 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
 
                     mac_copy(&arp_data->arp_sha, &arp_data->arp_tha);
                     mac_copy(&dkuf.mac[m->port], &arp_data->arp_sha);
-                    //ogs_info("test: it is an vxlan arp request, srcip:%s, desip:%s,s_addr:%s, d_addr:%s",ip2str(arp_data->arp_sip),ip2str(arp_data->arp_tip),mac2str(&eth_h->s_addr),mac2str(&eth_h->d_addr));
+                    ogs_info("test: it is an vxlan arp request, srcip:%s, desip:%s,s_addr:%s, d_addr:%s",ip2str(arp_data->arp_sip),ip2str(arp_data->arp_tip),mac2str(&eth_h->s_addr),mac2str(&eth_h->d_addr));
                     
                     struct rte_ipv4_hdr *in_ipv4_h = (struct rte_ipv4_hdr *)in_l3_head;
                     
@@ -340,6 +340,8 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
 
                     return 0;
                 }else if (arp_h->arp_opcode == htons(RTE_ARP_OP_REPLY)) {
+                    ogs_info("test: it is an vxlan arp reply, srcip:%s, desip:%s,s_addr:%s, d_addr:%s",ip2str(arp_data->arp_sip),ip2str(arp_data->arp_tip),mac2str(&eth_h->s_addr),mac2str(&eth_h->d_addr));
+                   
                     if (arp && arp->pkt_list) {
                         struct rte_mbuf *fm;
                         struct packet *next_pkt, *pkt;
