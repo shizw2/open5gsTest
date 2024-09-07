@@ -96,7 +96,7 @@ void upf_context_init(void)
     context_initialized = 1;
 }
 
-static void free_upf_route_trie_node(struct upf_route_trie_node *node)
+void free_upf_route_trie_node(struct upf_route_trie_node *node)
 {
     if (!node)
         return;

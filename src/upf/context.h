@@ -252,6 +252,7 @@ void upf_send_alllocalueip_to_newnbrclient(upf_remoteclient_t *remoteclient);
 void upf_handle_remoteserver_lost(uint32_t nbrserveraddr);
 int ipv4_hash_remove_nbrservaddr(struct ipv4_hashtbl *h, uint32_t ip);
 void ipv4_hash_destroy_include_sess(struct ipv4_hashtbl *h);
+void free_upf_route_trie_node(struct upf_route_trie_node *node);
 #ifdef __cplusplus
 }
 #endif
