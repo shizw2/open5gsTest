@@ -208,7 +208,7 @@ upf_sess_t *local_sess_find_by_ue_ip(struct lcore_conf *lconf, char *l3_head, ui
                     break;
                 if (trie->sess){
                     sess = trie->sess;
-                    ogs_info("framed_routes find sess, ip:%s", ip2str(addr));   
+                    ogs_debug("framed_routes find sess, ip:%s", ip2str(addr));   
                 }
                 if (i == nbits)
                     break;
