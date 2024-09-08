@@ -220,6 +220,7 @@ enum {
     PKT_TYPE_PING6,
     PKT_TYPE_ARP,
     PKT_TYPE_ND,
+    PKT_TYPE_ARP_VXLAN,
     PKT_TYPE_MAX
 };
 

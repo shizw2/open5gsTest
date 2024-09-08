@@ -19,7 +19,7 @@
 #include <upf-dpdk.h>
 #include <netinet/icmp6.h>
 #include <ogs-gtp.h>
-
+#include "dpdk-path.h"
 
 struct rte_mbuf *
 dkuf_alloc_arp_request(uint16_t portid, uint32_t dip)
@@ -274,6 +274,7 @@ void arp_timeout(void *arg)
     arp_node_t *arp = (arp_node_t *)arg;
     struct rte_mbuf *arp_m;
     struct lcore_conf *lconf = &dkuf.lconf[rte_lcore_id()];
+    struct packet *pkt = NULL;
     ogs_debug("arp %p flag %d\n", arp, arp->flag);
 
     switch (arp->flag) {
@@ -299,6 +300,23 @@ void arp_timeout(void *arg)
         return ;
     case ARP_ND_VXLAN_OK:
         //vxlan mac暂不进行超时重发处理。mac数不多。另外,如果mac变化,对方会主动发送arp。问题不大。
+        if ((dkuf.sys_up_sec - arp->up_sec) < (10/*ARP_ND_AGEOUT*/ - 2)) {
+            ogs_info("vxlan arp %s isn't timeout\n", ip2str(arp->ip));
+            arp_timer_start(lconf->twl, arp, 10/*ARP_ND_AGEOUT*/);
+            return ;
+        }
+        ogs_info("vxlan arp %s timeout\n", ip2str(arp->ip));
+        arp_m = make_vxlan_arp_request(arp->ip,arp->remote_interface_ip,arp->local_tunnel_ip,arp->remote_tunnel_ip);
+        
+        pkt = (struct packet *)(arp_m->buf_addr);
+        pkt->pkt_type = PKT_TYPE_ARP_VXLAN;
+        if (-ENOBUFS == rte_ring_sp_enqueue(dkuf.lconf[dkuf.fwd_lcore[0]].f2f_ring, arp_m)) {
+            ogs_error("%s, to %s enqueue f2fring failed\n", __func__, ip2str(arp->ip));
+            return ;
+        }
+        
+        arp_timer_start(lconf->twl, arp, ARP_ND_SEND_TIMEOUT1);
+        arp->flag = ARP_ND_VXLAN_TIMEOUT1;
         return ;
     case ARP_ND_TIMEOUT1:
         arp_m = dkuf_alloc_arp_request(arp->port, arp->ip);
@@ -312,6 +330,22 @@ void arp_timeout(void *arg)
         return ;
     case ARP_ND_VXLAN_SEND:
         ogs_info("delete vxlan arp,%s",ip2str(arp->ip));
+        arp_delete(lconf->arp_tbl, arp);
+        return ;
+    case ARP_ND_VXLAN_TIMEOUT1:
+        arp_m = make_vxlan_arp_request(arp->ip,arp->remote_interface_ip,arp->local_tunnel_ip,arp->remote_tunnel_ip);
+        
+        pkt = (struct packet *)(arp_m->buf_addr);
+        pkt->pkt_type = PKT_TYPE_ARP_VXLAN;
+        if (-ENOBUFS == rte_ring_sp_enqueue(dkuf.lconf[dkuf.fwd_lcore[0]].f2f_ring, arp_m)) {
+            ogs_error("%s, to %s enqueue f2fring failed\n", __func__, ip2str(arp->ip));
+            return ;
+        }
+        arp_timer_start(lconf->twl, arp, ARP_ND_SEND_TIMEOUT2);
+        arp->flag = ARP_ND_VXLAN_TIMEOUT2;
+        return ;
+
+    case ARP_ND_VXLAN_TIMEOUT2:
         arp_delete(lconf->arp_tbl, arp);
         return ;
     }

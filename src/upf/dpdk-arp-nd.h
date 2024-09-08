@@ -23,6 +23,8 @@ enum {
     ARP_ND_TIMEOUT2,
     ARP_ND_VXLAN_SEND,
     ARP_ND_VXLAN_OK,
+    ARP_ND_VXLAN_TIMEOUT1,
+    ARP_ND_VXLAN_TIMEOUT2,
 };
 
 #define ARP_ND_SEND_TIMEOUT 2
@@ -40,6 +42,9 @@ struct arp_node_s {
     void *pkt_list;
     struct arp_node_s *prev;
     struct arp_node_s *next;
+    uint32_t remote_tunnel_ip;
+    uint32_t local_tunnel_ip;
+    uint32_t remote_interface_ip;
 } __attribute__ ((aligned(CACHE_LINE_SIZE)));
 
 typedef struct arp_node_s arp_node_t;

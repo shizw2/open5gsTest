@@ -61,7 +61,7 @@ int fwd_handle_volume_session_report(struct rte_ring *r, ogs_pfcp_pdr_t *pdr, up
 int send_packet_to_nbr(struct lcore_conf *lconf, struct rte_mbuf *m, uint32_t nbraddr);
 int send_packet_to_nbr_ipip(struct lcore_conf *lconf, struct rte_mbuf *m, uint32_t nbraddr);
 int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m/*, char *ptr,struct packet *pkt */);
-struct rte_mbuf * make_vxlan_arp_request(upf_sess_t *sess);
+struct rte_mbuf * make_vxlan_arp_request(uint32_t local_interface_address, uint32_t remote_interface_address, uint32_t local_tunnle_address,uint32_t remote_tunnle_address);
 int send_vxlan_arp_request(struct lcore_conf *lconf, upf_sess_t *sess, ogs_pfcp_pdr_t *pdr);
 #endif
 

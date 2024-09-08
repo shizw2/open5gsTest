@@ -318,31 +318,31 @@ int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m)
     return new_encap_len;
 }
 
-int send_vxlan_arp_request(struct lcore_conf *lconf, upf_sess_t *sess, ogs_pfcp_pdr_t *pdr){
-    struct rte_mbuf *m = NULL;
-    m = make_vxlan_arp_request(sess);
+// int send_vxlan_arp_request(struct lcore_conf *lconf, upf_sess_t *sess, ogs_pfcp_pdr_t *pdr){
+//     struct rte_mbuf *m = NULL;
+//     m = make_vxlan_arp_request(sess);
 
-    uint8_t downlink_data_report = 0;
-    if (pfcp_up_handle_pdr(pdr, m, &downlink_data_report) < 0) {
-        return -1;
-    }
+//     uint8_t downlink_data_report = 0;
+//     if (pfcp_up_handle_pdr(pdr, m, &downlink_data_report) < 0) {
+//         return -1;
+//     }
 
-    if (downlink_data_report) {
-        ogs_assert(pdr->sess);
-        sess = UPF_SESS(pdr->sess);
-        ogs_assert(sess);
+//     if (downlink_data_report) {
+//         ogs_assert(pdr->sess);
+//         sess = UPF_SESS(pdr->sess);
+//         ogs_assert(sess);
 
-        ogs_debug("%s, pkt first buffered, reports downlink notifications.\n", __func__);
-        lconf->lstat.sess_report[m->port]++;
-        fwd_handle_gtp_session_report(lconf->f2p_ring, pdr, *sess->upf_n4_seid_node);
-    }
+//         ogs_debug("%s, pkt first buffered, reports downlink notifications.\n", __func__);
+//         lconf->lstat.sess_report[m->port]++;
+//         fwd_handle_gtp_session_report(lconf->f2p_ring, pdr, *sess->upf_n4_seid_node);
+//     }
 
-    return 0;
-}
+//     return 0;
+// }
 
-struct rte_mbuf * make_vxlan_arp_request(upf_sess_t *sess)
+struct rte_mbuf * make_vxlan_arp_request(uint32_t local_interface_address, uint32_t remote_interface_address, uint32_t local_tunnle_address,uint32_t remote_tunnle_address)
 {
-    struct rte_mbuf *m = dkuf_alloc_vxlan_arp_request(0, sess->local_interface_address, sess->remote_interface_address);
+    struct rte_mbuf *m = dkuf_alloc_vxlan_arp_request(0, local_interface_address, remote_interface_address);
     
     m->data_len += 14;
     m->pkt_len += 14;
@@ -379,8 +379,8 @@ struct rte_mbuf * make_vxlan_arp_request(upf_sess_t *sess)
     new_encap->ip.fragment_offset = 0;
     new_encap->ip.time_to_live = IPDEFTTL;
     new_encap->ip.next_proto_id = IPPROTO_UDP;
-    new_encap->ip.src_addr = sess->ipv4->subnet->gw.sub[0]; // TODO 新的源IP地址
-    new_encap->ip.dst_addr = sess->ipv4->addr[0]; // TODO 新的目的IP地址
+    new_encap->ip.src_addr = local_tunnle_address;  //sess->ipv4->subnet->gw.sub[0]; 
+    new_encap->ip.dst_addr = remote_tunnle_address; //sess->ipv4->addr[0];
     new_encap->ip.total_length = rte_cpu_to_be_16(m->pkt_len - pkt->l2_len + new_encap_len);
 
     // 计算IP校验和

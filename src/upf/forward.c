@@ -495,9 +495,52 @@ static int32_t handle_n6_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
         ret = add_vxlan_header(sess, m);
         
         if (ret <= 0){
-            m = make_vxlan_arp_request(sess);
+            m = make_vxlan_arp_request(sess->local_interface_address,sess->remote_interface_address,sess->ipv4->subnet->gw.sub[0],sess->ipv4->addr[0]);
         }
     }
+
+    uint8_t downlink_data_report = 0;
+    if (pfcp_up_handle_pdr(pdr, m, &downlink_data_report) < 0) {
+        return -1;
+    }
+
+    if (downlink_data_report) {
+        ogs_assert(pdr->sess);
+        sess = UPF_SESS(pdr->sess);
+        ogs_assert(sess);
+
+        ogs_debug("%s, pkt first buffered, reports downlink notifications.\n", __func__);
+        lconf->lstat.sess_report[m->port]++;
+        fwd_handle_gtp_session_report(lconf->f2p_ring, pdr, *sess->upf_n4_seid_node);
+    }
+
+    return 0;
+}
+
+static int32_t handle_arp_vxlan(struct lcore_conf *lconf, struct rte_mbuf *m)
+{
+    struct packet *pkt = (struct packet *)(m->buf_addr);
+    char *l3_head = rte_pktmbuf_mtod_offset(m, char *, pkt->l2_len);
+
+    upf_sess_t *sess = NULL;
+    ogs_pfcp_pdr_t *pdr = NULL;
+
+    sess = local_sess_find_by_ue_ip(lconf, l3_head, 1);
+    if (!sess) {
+        ogs_debug("%s, unmatch session by ip %s\n", __func__, ip_printf(l3_head, 1));
+        lconf->lstat.sess_unmatch[1]++;
+        return -1;
+    }
+
+    pdr = n6_pdr_find_by_local_sess(sess, l3_head);
+    if (!pdr) {
+        ogs_error("%s, unfound pdr by local session, ip %s\n", __func__, ip_printf(l3_head, 1));
+        if (ogs_global_conf()->parameter.multicast) {
+            return upf_gtp_handle_multicast(m);
+        }
+        return -1;
+    }
+    lconf->lstat.sess_match[1]++;
 
     uint8_t downlink_data_report = 0;
     if (pfcp_up_handle_pdr(pdr, m, &downlink_data_report) < 0) {
@@ -543,7 +586,9 @@ static int handle_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
         case PKT_TYPE_IP_N6:
             ret = handle_n6_pkt(lconf, m);
             break;
-
+        case PKT_TYPE_ARP_VXLAN:
+            ret = handle_arp_vxlan(lconf, m);
+            break;
         default:
             return -1;
     }
