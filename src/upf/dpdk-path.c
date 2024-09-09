@@ -193,6 +193,7 @@ upf_sess_t *local_sess_find_by_ue_ip(struct lcore_conf *lconf, char *l3_head, ui
     struct ip *ip_h = NULL;
 
     ip_h = (struct ip *)l3_head;
+    ogs_info("ip_h->ip_src:%s ,ip_h->ip_dst:%s.", ip2str(ip_h->ip_src.s_addr),ip2str(ip_h->ip_dst.s_addr));
     if (ip_h->ip_v == 4) {
         off = dst ? 16 : 12;
         sess = ipv4_sess_find(lconf->ipv4_hash, *(uint32_t *)(l3_head + off));
@@ -266,6 +267,9 @@ int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m)
     arp = arp_find_vxlan(lconf, sess->remote_interface_address, 0);
 
     if (arp->flag == ARP_ND_VXLAN_SEND) {
+        arp->remote_interface_ip = sess->remote_interface_address;
+        arp->local_tunnel_ip = sess->ipv4->subnet->gw.sub[0];
+        arp->remote_tunnel_ip = sess->ipv4->addr[0];
         if (arp->pkt_list_cnt < MAX_PKT_BURST) {
             pkt->next = arp->pkt_list;
             arp->pkt_list = pkt;
@@ -387,6 +391,10 @@ struct rte_mbuf * make_vxlan_arp_request(uint32_t local_interface_address, uint3
     new_encap->ip.hdr_checksum = rte_ipv4_cksum(&new_encap->ip);
 
     pkt->vxlan_len = new_encap_len;
+
+    m->data_len += new_encap_len;
+    m->pkt_len += new_encap_len;
+    m->data_off -= new_encap_len;
     ogs_info("make_vxlan_arp, l2_len:%d, len:%d, src_addr:%s,dst_addr:%s",pkt->l2_len, pkt->vxlan_len,ip2str(new_encap->ip.src_addr),ip2str(new_encap->ip.dst_addr));
     return m;
 }
@@ -426,13 +434,13 @@ int gtp_send_user_plane(
     char *ptr = rte_pktmbuf_mtod(m, char *);
     struct packet *pkt = (struct packet *)(m->buf_addr);
 
-    gtp_h = (ogs_gtp2_header_t *)(ptr + pkt->l2_len - gtp_hlen - pkt->vxlan_len);
+    gtp_h = (ogs_gtp2_header_t *)(ptr + pkt->l2_len - gtp_hlen);
     memset(gtp_h, 0, gtp_hlen);
 
     gtp_h->flags = flags;
     gtp_h->type = gtp_hdesc->type;
     gtp_h->teid = htobe32(gtp_hdesc->teid);
-    gtp_h->length = htobe16(m->pkt_len - pkt->l2_len + gtp_hlen - OGS_GTPV1U_HEADER_LEN + pkt->vxlan_len);
+    gtp_h->length = htobe16(m->pkt_len - pkt->l2_len + gtp_hlen - OGS_GTPV1U_HEADER_LEN);
 
     /*if (gtp_h->flags & OGS_GTPU_FLAGS_E) {
         ext_h = (ogs_gtp2_extension_header_t *)((char *)gtp_h + OGS_GTPV1U_HEADER_LEN);
@@ -475,7 +483,7 @@ int gtp_send_user_plane(
 
     udp_h->src_port = htons(OGS_GTPV1_U_UDP_PORT);
     udp_h->dst_port = htons(OGS_GTPV1_U_UDP_PORT);
-    int l4_len = m->pkt_len - pkt->l2_len + gtp_hlen + UDP_HDR_LEN + pkt->vxlan_len;
+    int l4_len = m->pkt_len - pkt->l2_len + gtp_hlen + UDP_HDR_LEN;
 
     udp_h->dgram_len = rte_cpu_to_be_16(l4_len);
     udp_h->dgram_cksum = 0;
@@ -528,7 +536,7 @@ int gtp_send_user_plane(
 
     mac_copy((struct rte_ether_addr *)&dkuf.mac[0], &eth_h->s_addr);
 
-    int increase = pkt->l3_len + UDP_HDR_LEN + gtp_hlen + pkt->vxlan_len;
+    int increase = pkt->l3_len + UDP_HDR_LEN + gtp_hlen;
     m->data_len += increase;
     m->pkt_len += increase;
     m->data_off -= increase;

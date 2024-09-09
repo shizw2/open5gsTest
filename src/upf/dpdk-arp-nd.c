@@ -310,6 +310,8 @@ void arp_timeout(void *arg)
         
         pkt = (struct packet *)(arp_m->buf_addr);
         pkt->pkt_type = PKT_TYPE_ARP_VXLAN;
+        ogs_info("make_vxlan_arp_request, pkt->l2_len:%d",pkt->l2_len);
+        pkt->l2_len = 14;
         if (-ENOBUFS == rte_ring_sp_enqueue(dkuf.lconf[dkuf.fwd_lcore[0]].f2f_ring, arp_m)) {
             ogs_error("%s, to %s enqueue f2fring failed\n", __func__, ip2str(arp->ip));
             return ;

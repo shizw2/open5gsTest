@@ -273,8 +273,8 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
                 uint32_t sip = arp_data->arp_sip ? arp_data->arp_sip : arp_data->arp_tip;
                 arp_node_t *arp = arp_hash_find(lconf->arp_tbl, sip);
                 if (!arp) {
-                    ogs_info("not find vxlan arp, create a new one, ip:%s, mac:%s, flag %d, ether_type:%d\n", ip2str(arp_data->arp_sip), mac2str((struct rte_ether_addr *)arp->mac), arp->flag,eth_h->ether_type);
                     arp = arp_create(lconf->arp_tbl, sip, m->port);
+                    ogs_info("not find vxlan arp, create a new one, ip:%s.\n", ip2str(sip));                    
                 }
  
                 if (!mac_cmp((char *)arp->mac, (char *)&arp_h->arp_data.arp_sha)) {
@@ -524,8 +524,8 @@ static int32_t handle_arp_vxlan(struct lcore_conf *lconf, struct rte_mbuf *m)
 
     upf_sess_t *sess = NULL;
     ogs_pfcp_pdr_t *pdr = NULL;
-
-    sess = local_sess_find_by_ue_ip(lconf, l3_head, 1);
+    ogs_info("handle_arp_vxlan, pkt->l2_len:%d",pkt->l2_len);
+    sess = local_sess_find_by_ue_ip(lconf, l3_head, 0);
     if (!sess) {
         ogs_debug("%s, unmatch session by ip %s\n", __func__, ip_printf(l3_head, 1));
         lconf->lstat.sess_unmatch[1]++;
