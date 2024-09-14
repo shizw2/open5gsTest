@@ -193,7 +193,6 @@ upf_sess_t *local_sess_find_by_ue_ip(struct lcore_conf *lconf, char *l3_head, ui
     struct ip *ip_h = NULL;
 
     ip_h = (struct ip *)l3_head;
-    ogs_info("ip_h->ip_src:%s ,ip_h->ip_dst:%s.", ip2str(ip_h->ip_src.s_addr),ip2str(ip_h->ip_dst.s_addr));
     if (ip_h->ip_v == 4) {
         off = dst ? 16 : 12;
         sess = ipv4_sess_find(lconf->ipv4_hash, *(uint32_t *)(l3_head + off));
@@ -318,7 +317,11 @@ int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m)
     new_encap->ip.hdr_checksum = rte_ipv4_cksum(&new_encap->ip);//如果计算不正确，则不通
 
     pkt->vxlan_len = new_encap_len;
-    ogs_info("add vxlanhead, src_addr:%s,dst_addr:%s,src_mac:%s,dst_mac:%s",ip2str(new_encap->ip.src_addr),ip2str(new_encap->ip.dst_addr),mac2str(&new_encap->ether.s_addr),mac2str(&new_encap->ether.d_addr));
+    
+    m->data_len += new_encap_len;
+    m->pkt_len += new_encap_len;
+    m->data_off -= new_encap_len;
+    ogs_debug("add vxlanhead, src_addr:%s,dst_addr:%s,src_mac:%s,dst_mac:%s",ip2str(new_encap->ip.src_addr),ip2str(new_encap->ip.dst_addr),mac2str(&new_encap->ether.s_addr),mac2str(&new_encap->ether.d_addr));
     return new_encap_len;
 }
 

@@ -286,6 +286,7 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
                 arp->flag = ARP_ND_VXLAN_OK;
                     
                 if (arp_h->arp_opcode == rte_cpu_to_be_16(RTE_ARP_OP_REQUEST)){
+                    ogs_info("test: it is an vxlan arp request, srcip:%s, desip:%s,s_addr:%s, d_addr:%s,pkt->vxlan_len:%d",ip2str(arp_data->arp_sip),ip2str(arp_data->arp_tip),mac2str(&eth_h->s_addr),mac2str(&eth_h->d_addr),pkt->vxlan_len);
                     //pkt->vxlan_len = 36;//20ip+8udp+8vxlan                   
                     handle_gpdu_prepare(m);
                     
@@ -298,7 +299,7 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
 
                     mac_copy(&arp_data->arp_sha, &arp_data->arp_tha);
                     mac_copy(&dkuf.mac[m->port], &arp_data->arp_sha);
-                    ogs_info("test: it is an vxlan arp request, srcip:%s, desip:%s,s_addr:%s, d_addr:%s",ip2str(arp_data->arp_sip),ip2str(arp_data->arp_tip),mac2str(&eth_h->s_addr),mac2str(&eth_h->d_addr));
+             
                     
                     struct rte_ipv4_hdr *in_ipv4_h = (struct rte_ipv4_hdr *)in_l3_head;
                     

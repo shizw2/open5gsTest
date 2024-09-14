@@ -11,6 +11,16 @@
             if systemctl --quiet is-active @project_name@-$i; then
                  systemctl reload @project_name@-$i
             fi
+            # 检查进程是否通过服务方式启动
+            if systemctl is-active --quiet @project_name@-$i; then
+                # 如果是服务方式启动，则通过reload发送HUP消息
+                systemctl reload @project_name@-$i
+            else
+                # 如果不是服务方式启动，则直接通过pkill发送HUP消息
+                pkill -SIGHUP @project_name@-$i
+            fi
         done
+        #简单做,pkill支持模糊匹配,给所有sps发送HUP消息
+        pkill -SIGHUP 5gc-amf-spsd
     endscript
 }
