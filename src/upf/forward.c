@@ -287,7 +287,7 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
                     
                 if (arp_h->arp_opcode == rte_cpu_to_be_16(RTE_ARP_OP_REQUEST)){
                     ogs_info("test: it is an vxlan arp request, srcip:%s, desip:%s,s_addr:%s, d_addr:%s,pkt->vxlan_len:%d",ip2str(arp_data->arp_sip),ip2str(arp_data->arp_tip),mac2str(&eth_h->s_addr),mac2str(&eth_h->d_addr),pkt->vxlan_len);
-                    //pkt->vxlan_len = 36;//20ip+8udp+8vxlan                   
+                    pkt->vxlan_len = 0;            
                     handle_gpdu_prepare(m);
                     
                     eth_h->ether_type = rte_cpu_to_be_16(RTE_ETHER_TYPE_ARP);
@@ -367,7 +367,7 @@ static int32_t handle_n3_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
                 in_l3_head = (char *)gtp_h + pkt->tunnel_len + IP_HDR_LEN +UDP_HDR_LEN + VXLAN_HDR_LEN + RTE_ETHER_HDR_LEN;
                 struct rte_ipv4_hdr *in_ipv4_h = (struct rte_ipv4_hdr *)in_l3_head;
                 ogs_debug("test:skip vxlan, ip in src_addr:%s,in dst_addr:%s,proto:%d",ip2str(in_ipv4_h->src_addr),ip2str(in_ipv4_h->dst_addr),in_ipv4_h->next_proto_id);
-                pkt->vxlan_len = IP_HDR_LEN +UDP_HDR_LEN + VXLAN_HDR_LEN + RTE_ETHER_HDR_LEN;
+                pkt->vxlan_len = IP_HDR_LEN +UDP_HDR_LEN + VXLAN_HDR_LEN + RTE_ETHER_HDR_LEN;                
             }
         }
 
