@@ -2599,7 +2599,7 @@ export const sessionSchema = {
   "maxItems": 32,
   "messages": {
     "minItems": "At least 1 subnet is required",
-    "maxItems": "16 subnets are supported"
+    "maxItems": "32 subnets are supported"
   },
   items: {
     type: "object",
@@ -2849,6 +2849,238 @@ export const dpdkUiSchema = {
   n6_default_gw6: {
     classNames: "col-xs-6",
   },
+};
+
+export const vxlanSchema = {
+  type: "array",
+  title: "VXLAN Configuration",
+  //"minItems": 1,
+  "maxItems": 256,
+  "messages": {
+    "minItems": "At least 1 subnet is required",
+    "maxItems": "256 subnets are supported"
+  },
+  items: {
+    type: "object",
+    properties: {
+      remote_tunnel_address: {
+        type: "string",
+        title: "Remote Tunnel Address",
+        anyOf: [
+          { format: "ipv4" },
+          { format: "ipv6" }
+        ],
+        messages: {
+          "anyOf": "IPv4 or IPv6 allowed"
+        },
+        //default: "127.0.0.5"
+        required: true,
+      },
+      vni: {
+        type: "number",
+        title: "VNI",
+        minimum: 1,
+        maximum: 16777215,
+        required: true,
+      },
+      remote_interface_address: {
+        type: "string",
+        title: "Remote Interface Address",
+        anyOf: [
+          { format: "ipv4" },
+          { format: "ipv6" }
+        ],
+        messages: {
+          "anyOf": "IPv4 or IPv6 allowed"
+        },
+        //default: "127.0.0.5"
+        required: true,
+      },
+      local_interface_address: {
+        type: "string",
+        title: "Local Interface Address",
+        anyOf: [
+          { format: "ipv4" },
+          { format: "ipv6" }
+        ],
+        messages: {
+          "anyOf": "IPv4 or IPv6 allowed"
+        },
+        //default: "127.0.0.5"
+        required: true,
+      },
+    }
+  }
+};
+
+export const vxlanUiSchema = {
+  classNames: "col-xs-12",
+  "ui:title": <CustomTitle18 title="VXLAN Configuration" />,
+  //"ui:description": <Customhelp14 title={promptRestart} />,
+  items: {
+    remote_tunnel_address: {
+      classNames: "col-xs-6",
+      "ui:placeholder": "ipv4/v6 address",
+    },
+    vni: {
+      classNames: "col-xs-6",
+    },
+    remote_interface_address: {
+      classNames: "col-xs-6",
+      "ui:placeholder": "ipv4/v6 address",
+    },
+    local_interface_address: {
+      classNames: "col-xs-6",
+      "ui:placeholder": "ipv4/v6 address",
+    }
+  }
+};
+
+export const nbrlocalserverSchema = {
+  type: "array",
+  title:"Neighbor Local Server",
+  //"minItems": 1,
+  "maxItems": 32,
+  "messages": {
+    "minItems": "At least 1 subnet is required",
+    "maxItems": "32 subnets are supported"
+  },
+  items: {
+    type: "object",
+    properties: {
+      addr: {
+        type: "string",
+        title: "IP Address",
+        anyOf: [
+          { format: "ipv4" },
+          { format: "ipv6" }
+        ],
+        messages: {
+          "anyOf": "IPv4 or IPv6 allowed"
+        },
+        //default: "127.0.0.5"
+      },
+      port: {
+        type: "number",
+        title: "Port",
+        minimum: 1,
+        maximum: 65535,
+        //default: 9090
+      }
+    }
+  }
+};
+
+export const nbrlocalserverUiSchema = {
+  classNames: "col-xs-12",
+  "ui:title": <CustomTitle18 title="Neighbor Local Server" />,
+  //"ui:description": <Customhelp14 title={promptRestart} />,
+  items:{
+    addr: {
+      classNames: "col-xs-8",
+    },
+    port: {
+      classNames: "col-xs-4",
+    },
+  }
+};
+
+export const nbrlocalclientSchema = {
+  type: "array",
+  title:"Neighbor Local Client",
+  //"minItems": 1,
+  "maxItems": 32,
+  "messages": {
+    "minItems": "At least 1 subnet is required",
+    "maxItems": "32 subnets are supported"
+  },
+  items: {
+    type: "object",
+    properties: {
+      addr: {
+        type: "string",
+        title: "IP Address",
+        anyOf: [
+          { format: "ipv4" },
+          { format: "ipv6" }
+        ],
+        messages: {
+          "anyOf": "IPv4 or IPv6 allowed"
+        },
+        //default: "127.0.0.5"
+      },
+      port: {
+        type: "number",
+        title: "Port",
+        minimum: 1,
+        maximum: 65535,
+        //default: 9090
+      }
+    }
+  }
+};
+
+export const nbrlocalclientUiSchema = {
+  classNames: "col-xs-12",
+  "ui:title": <CustomTitle18 title="Neighbor Local Client" />,
+  //"ui:description": <Customhelp14 title={promptRestart} />,
+  items: {
+    addr: {
+      classNames: "col-xs-8",
+    },
+    port: {
+      classNames: "col-xs-4",
+    },
+  }
+};
+
+export const nbrremoteserverSchema = {
+  type: "array",
+  title:"Neighbor Remote Server",
+  //"minItems": 1,
+  "maxItems": 32,
+  "messages": {
+    "minItems": "At least 1 subnet is required",
+    "maxItems": "32 subnets are supported"
+  },
+  items: {
+    type: "object",
+    properties: {
+      addr: {
+        type: "string",
+        title: "IP Address",
+        anyOf: [
+          { format: "ipv4" },
+          { format: "ipv6" }
+        ],
+        messages: {
+          "anyOf": "IPv4 or IPv6 allowed"
+        },
+        //default: "127.0.0.5"
+      },
+      port: {
+        type: "number",
+        title: "Port",
+        minimum: 1,
+        maximum: 65535,
+        //default: 9090
+      }
+    }
+  }
+};
+
+export const nbrremoteserverUiSchema = {
+  classNames: "col-xs-12",
+  "ui:title": <CustomTitle18 title="Neighbor Remote Server" />,
+  //"ui:description": <Customhelp14 title={promptRestart} />,
+  items: {
+    addr: {
+      classNames: "col-xs-8",
+    },
+    port: {
+      classNames: "col-xs-4",
+    },
+  }
 };
 
 export const dnsSchema = {

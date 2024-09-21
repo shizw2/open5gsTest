@@ -874,6 +874,26 @@ export const DPDKSection = ({ dpdk }) => (
   </div>
 );
 
+export const VXLANSection = ({ vxlan }) => {
+  return (
+    <div>
+      {vxlan && (
+        <div className="vxlan-section">
+          <div className="twenty-spaces">vxlan:</div>
+          {vxlan.map((item, index) => (
+            <div key={index} className="twenty-spaces">
+              <div className="twenty-spaces">- remote_tunnel_address: {item.remote_tunnel_address}</div>
+              {item.vni && <div className="twenty-spaces">&nbsp;&nbsp;vni: {item.vni}</div>}
+              {item.remote_interface_address && <div className="twenty-spaces">&nbsp;&nbsp;remote_interface_address: {item.remote_interface_address}</div>}
+              {item.local_interface_address && <div className="twenty-spaces">&nbsp;&nbsp;local_interface_address: {item.local_interface_address}</div>}            
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const DnsSection = ({ dns }) => {
   return (
     <div>

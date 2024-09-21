@@ -17,6 +17,7 @@ import {
   InfoSection,
   SessionSection,
   DPDKSection,
+  VXLANSection,
   CLISection
 } from './ViewCfgSection';
 
@@ -40,6 +41,7 @@ export const ViewUPF = ({ nfconfig }) => {
           <GtpuSection gtpu={upf.gtpu} />
           <SessionSection session={upf.session} />
           <DPDKSection dpdk={upf.dpdk} />
+          <VXLANSection vxlan={upf.vxlan} />
           <MetricsSection metrics={upf.metrics} />
         </div>
       )}

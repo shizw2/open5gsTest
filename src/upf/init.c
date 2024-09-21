@@ -98,6 +98,9 @@ int upf_initialize(void)
 
     rv = upf_context_parse_nbr_config();
     if (rv != OGS_OK) return rv;
+
+    rv = upf_context_parse_vxlan_config();
+    if (rv != OGS_OK) return rv;
 #if defined(USE_DPDK)
     rv = upf_dpdk_context_parse_config();
     if (rv != OGS_OK) return rv;

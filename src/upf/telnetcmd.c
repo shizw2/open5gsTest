@@ -341,11 +341,12 @@ void show_arp_hash(struct arp_hashtbl *h){
 void show_vxlan_config(void){
     ogs_hash_index_t *hi;
     int count = 0;
-    int i;
+    /*int i;
+    printf("upf_self()->num_of_vxlan:%d\r\n",upf_self()->num_of_vxlan);
     for (i = 0; i < upf_self()->num_of_vxlan; i++) {   
         upf_vxlan_info_t *info = &upf_self()->vxlan_infos[i];
-        printf("|--[%d]remote_tunnel:%s,remote_interface:%s,local_interface:%s, vni:%d.\r\n",count,ip2str(info->remote_tunnel_address),ip2str(info->remote_interface_address),ip2str(info->local_interface_address),info->vni);
-    }
+        printf("|--remote_tunnel:%s,remote_interface:%s,local_interface:%s, vni:%d.\r\n",ip2str(info->remote_tunnel_address),ip2str(info->remote_interface_address),ip2str(info->local_interface_address),info->vni);
+    }*/
     if (upf_self()->vxlan_info_hash) {
         for (hi = ogs_hash_first(upf_self()->vxlan_info_hash); hi; hi = ogs_hash_next(hi)) {   
             upf_vxlan_info_t *info = ogs_hash_this_val(hi);

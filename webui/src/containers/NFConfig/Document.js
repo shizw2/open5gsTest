@@ -533,6 +533,37 @@ componentDidUpdate(prevProps) {
       }
     }
 
+    if ( formData.upf && formData.upf.vxlan)
+    {
+      let addrs = formData.upf.vxlan.map(item => {
+          return item.remote_tunnel_address;
+      });
+
+      let duplicates = {};
+
+      for (let i = 0; i < addrs.length; i++) {
+        const addr1 = addrs[i];
+
+        for (let j = i+1; j < addrs.length; j++) {
+          if (i === j) continue;
+          const addr2 = addrs[j];
+          
+          if (addr1 === addr2)
+          {
+            // 存在重叠，记录重叠的 addr 值和索引
+            if (!duplicates[addr1]) {
+              duplicates[addr1] = [i];
+            }
+            duplicates[addr1].push(j);
+          }
+        }
+      }
+
+      for (let key in duplicates) {
+        duplicates[key].forEach(index => 
+          errors.upf.vxlan[index].remote_tunnel_address.addError(`${key} is duplicated`));
+      }
+    }
 
 /*
     if (formData.msisdn) {

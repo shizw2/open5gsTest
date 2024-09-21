@@ -518,7 +518,7 @@ static int32_t handle_n6_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
     return 0;
 }
 
-static int32_t handle_arp_vxlan(struct lcore_conf *lconf, struct rte_mbuf *m)
+static int32_t handle_vxlan_arp(struct lcore_conf *lconf, struct rte_mbuf *m)
 {
     struct packet *pkt = (struct packet *)(m->buf_addr);
     char *l3_head = rte_pktmbuf_mtod_offset(m, char *, pkt->l2_len);
@@ -587,8 +587,8 @@ static int handle_pkt(struct lcore_conf *lconf, struct rte_mbuf *m)
         case PKT_TYPE_IP_N6:
             ret = handle_n6_pkt(lconf, m);
             break;
-        case PKT_TYPE_ARP_VXLAN:
-            ret = handle_arp_vxlan(lconf, m);
+        case PKT_TYPE_VXLAN_ARP:
+            ret = handle_vxlan_arp(lconf, m);
             break;
         default:
             return -1;

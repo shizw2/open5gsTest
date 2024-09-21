@@ -232,6 +232,7 @@ void upf_sess_urr_acc_snapshot(upf_sess_t *sess, ogs_pfcp_urr_t *urr);
 void upf_sess_urr_acc_timers_setup(upf_sess_t *sess, ogs_pfcp_urr_t *urr);
 
 int upf_context_parse_nbr_config(void);
+int upf_context_parse_vxlan_config(void);
 upf_remoteclient_t *upf_remoteclient_find_by_addr(ogs_sockaddr_t *addr);
 upf_remoteclient_t *upf_remoteclient_add(ogs_sock_t *sock, ogs_sockaddr_t *addr);
 

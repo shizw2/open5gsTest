@@ -307,7 +307,7 @@ void arp_timeout(void *arg)
         arp_m = make_vxlan_arp_request(arp->local_interface_ip,arp->ip,arp->local_tunnel_ip,arp->remote_tunnel_ip);
         
         pkt = (struct packet *)(arp_m->buf_addr);
-        pkt->pkt_type = PKT_TYPE_ARP_VXLAN;
+        pkt->pkt_type = PKT_TYPE_VXLAN_ARP;
         pkt->l2_len = 14;
         if (-ENOBUFS == rte_ring_sp_enqueue(dkuf.lconf[dkuf.fwd_lcore[0]].f2f_ring, arp_m)) {
             ogs_error("%s, to %s enqueue f2fring failed\n", __func__, ip2str(arp->ip));
@@ -335,7 +335,7 @@ void arp_timeout(void *arg)
         arp_m = make_vxlan_arp_request(arp->local_interface_ip,arp->ip,arp->local_tunnel_ip,arp->remote_tunnel_ip);
         
         pkt = (struct packet *)(arp_m->buf_addr);
-        pkt->pkt_type = PKT_TYPE_ARP_VXLAN;
+        pkt->pkt_type = PKT_TYPE_VXLAN_ARP;
         if (-ENOBUFS == rte_ring_sp_enqueue(dkuf.lconf[dkuf.fwd_lcore[0]].f2f_ring, arp_m)) {
             ogs_error("%s, to %s enqueue f2fring failed\n", __func__, ip2str(arp->ip));
             return ;
