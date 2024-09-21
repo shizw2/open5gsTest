@@ -298,16 +298,16 @@ void arp_timeout(void *arg)
         arp->flag = ARP_ND_TIMEOUT1;
         return ;
     case ARP_ND_VXLAN_OK:
-        if ((dkuf.sys_up_sec - arp->up_sec) < (10/*ARP_ND_AGEOUT*/ - 2)) {
+        if ((dkuf.sys_up_sec - arp->up_sec) < (ARP_ND_AGEOUT - 2)) {
             ogs_debug("vxlan arp %s isn't timeout\n", ip2str(arp->ip));
-            arp_timer_start(lconf->twl, arp, 10/*ARP_ND_AGEOUT*/);
+            arp_timer_start(lconf->twl, arp, ARP_ND_AGEOUT);
             return ;
         }
-        ogs_info("vxlan arp %s timeout\n", ip2str(arp->ip));
+        ogs_debug("vxlan arp %s timeout\n", ip2str(arp->ip));
         arp_m = make_vxlan_arp_request(arp->local_interface_ip,arp->ip,arp->local_tunnel_ip,arp->remote_tunnel_ip);
         
         pkt = (struct packet *)(arp_m->buf_addr);
-        pkt->pkt_type = PKT_TYPE_ARP_VXLAN;        
+        pkt->pkt_type = PKT_TYPE_ARP_VXLAN;
         pkt->l2_len = 14;
         if (-ENOBUFS == rte_ring_sp_enqueue(dkuf.lconf[dkuf.fwd_lcore[0]].f2f_ring, arp_m)) {
             ogs_error("%s, to %s enqueue f2fring failed\n", __func__, ip2str(arp->ip));

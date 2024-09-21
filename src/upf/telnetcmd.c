@@ -8,6 +8,7 @@
 void show_port_info(void);
 void show_lcore_info(void);
 void show_arp_hash(struct arp_hashtbl *h);
+void show_vxlan_config(void);
 #endif
 
 char                g_chCmdName[128] = {0};
@@ -26,6 +27,7 @@ telnet_command_t g_commands[] = {
     {"upf",           (GenericFunc)upf,              0, {}},
     {"set_pkt_metric",(GenericFunc)set_pkt_metric,   1, {INTEGER}},
     #if defined(USE_DPDK)
+    {"show_vxlan_config",(GenericFunc)show_vxlan_config,  0, {}},    
     {"show_port_info",(GenericFunc)show_port_info,   0, {}},
     {"show_lcore_info",(GenericFunc)show_lcore_info, 0, {}},    
     {"print_stat",     (GenericFunc)print_stat,      0, {}},
@@ -252,8 +254,8 @@ void set_pkt_metric(uint32_t id){
         printf("packet metrics is turned on, it will reduce data plane performance.\r\n");
     }
 }
-#if defined(USE_DPDK)
 
+#if defined(USE_DPDK)
 void show_port_info(void){
     int i;
     printf("|--pfcp_lcore   :%d \r\n",dkuf.pfcp_lcore);
@@ -300,6 +302,20 @@ void show_lcore_info(void){
             show_arp_hash(arp_tbl);
         }
     }
+
+    for (i = 0 ; i < dkuf.dpt_num; i++){   
+        lconf = &dkuf.lconf[dkuf.dpt_lcore[i]];   
+        printf("|--lcore       :%d \r\n",lconf->lcore);
+        printf("|--rx_queue    :%d \r\n",lconf->rx_queue);
+        printf("|--tx_queue    :%d \r\n",lconf->tx_queue);
+        printf("|--id          :%d \r\n",lconf->id);
+        printf("|--flag        :%d \r\n",lconf->flag);
+        arp_tbl = lconf->arp_tbl;
+        if (NULL != arp_tbl){
+            printf("|--lcore:%d mac info:\r\n",lconf->lcore);        
+            show_arp_hash(arp_tbl);
+        }
+    }
 }
 
 void show_arp_hash(struct arp_hashtbl *h){
@@ -311,13 +327,30 @@ void show_arp_hash(struct arp_hashtbl *h){
     for (uint32_t i = 0; i < h->size; i++) { // 使用 size 来遍历哈希表
         cur = h->htable[i];
         while (cur) {
-            printf("  |--port:%d,mac:%s,ip:%-16s,", cur->port, mac2str((struct rte_ether_addr *)cur->mac),ip2str(cur->ip));
+            printf("  |--port:%d,mac:%s,ip:%-16s", cur->port, mac2str((struct rte_ether_addr *)cur->mac),ip2str(cur->ip));
             if (cur->flag >=ARP_ND_VXLAN_SEND){
                 printf(", local_interface_ip:%-16s,remote_tunnel_ip:%-16s, local_tunnel_ip:%-16s.\r\n", ip2str(cur->local_interface_ip),ip2str(cur->remote_tunnel_ip), ip2str(cur->local_tunnel_ip));
             }else{
                 printf("\r\n");
             }
             cur = cur->next; // 移动到链表中的下一个节点
+        }
+    }
+}
+
+void show_vxlan_config(void){
+    ogs_hash_index_t *hi;
+    int count = 0;
+    int i;
+    for (i = 0; i < upf_self()->num_of_vxlan; i++) {   
+        upf_vxlan_info_t *info = &upf_self()->vxlan_infos[i];
+        printf("|--[%d]remote_tunnel:%s,remote_interface:%s,local_interface:%s, vni:%d.\r\n",count,ip2str(info->remote_tunnel_address),ip2str(info->remote_interface_address),ip2str(info->local_interface_address),info->vni);
+    }
+    if (upf_self()->vxlan_info_hash) {
+        for (hi = ogs_hash_first(upf_self()->vxlan_info_hash); hi; hi = ogs_hash_next(hi)) {   
+            upf_vxlan_info_t *info = ogs_hash_this_val(hi);
+            printf("|--[%d]remote_tunnel:%s,remote_interface:%s,local_interface:%s, vni:%d.\r\n",count,ip2str(info->remote_tunnel_address),ip2str(info->remote_interface_address),ip2str(info->local_interface_address),info->vni);
+            count++;
         }
     }
 }

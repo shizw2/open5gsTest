@@ -45,15 +45,20 @@ upf:
     n6_default_gw: 192.168.6.1
     n6_addr6: 2001::10/48       
     n6_default_gw6: 2001::1
+#  vxlan: 
+#    - remote_tunnel_address: 10.45.0.2
+#      vni: 102
+#      remote_interface_address: 100.45.0.2
+#      local_interface_address: 100.45.0.1
   nbrlocalserver:
-    #addr: 127.0.0.7
-    port: 38413
+    #- addr: 127.0.0.7
+      #port: 38413
   nbrlocalclient:
-    #addr: 127.0.0.7
-    port: 38414
+    #- addr: 127.0.0.7
+      #port: 38414
   nbrremoteserver:
-    #addr: 127.0.0.17
-    port: 38413
+    #- addr: 127.0.0.17
+      #port: 38413
 _nf: upf
 ################################################################################
 # PFCP Server
