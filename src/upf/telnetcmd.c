@@ -266,7 +266,7 @@ void show_dpdk_info(void){
     for (i = 0; i < RTE_MAX_LCORE; i++){
         arp_tbl = dkuf.lconf[i].arp_tbl;
         if (NULL != arp_tbl){
-            printf("|--locre:%d mac info:\r\n",i);        
+            printf("|--lcore:%d mac info:\r\n",i);        
             show_arp_hash(arp_tbl);
         }
     }
@@ -281,9 +281,9 @@ void show_arp_hash(struct arp_hashtbl *h){
     for (uint32_t i = 0; i < h->size; i++) { // 使用 size 来遍历哈希表
         cur = h->htable[i];
         while (cur) {
-            printf("  |--ip:%s, mac:%s, port:%d",ip2str(&cur->ip), mac2str((struct rte_ether_addr *)cur->mac),cur->port);
+            printf("  |--ip:%s, mac:%s, port:%d",ip2str(cur->ip), mac2str((struct rte_ether_addr *)cur->mac),cur->port);
             if (cur->flag >=ARP_ND_VXLAN_SEND){
-                printf("remote_tunnel_ip:%s, local_tunnel_ip:%s, remote_interface_ip:%s.\r\n",ip2str(&cur->remote_tunnel_ip), ip2str(&cur->local_tunnel_ip), ip2str(&cur->remote_interface_ip));
+                printf(",remote_tunnel_ip:%s, local_tunnel_ip:%s, remote_interface_ip:%s.\r\n",ip2str(cur->remote_tunnel_ip), ip2str(cur->local_tunnel_ip), ip2str(cur->remote_interface_ip));
             }else{
                 printf("\r\n");
             }
