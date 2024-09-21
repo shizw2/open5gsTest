@@ -376,7 +376,7 @@ struct rte_mbuf * make_vxlan_arp_request(uint32_t local_interface_address, uint3
     m->data_len += new_encap_len;
     m->pkt_len += new_encap_len;
     m->data_off -= new_encap_len;
-    ogs_info("make_vxlan_arp_request, l2_len:%d, len:%d, src_addr:%s,dst_addr:%s",pkt->l2_len, pkt->vxlan_len,ip2str(new_encap->ip.src_addr),ip2str(new_encap->ip.dst_addr));
+    ogs_info("make_vxlan_arp_request, local_interface:%s,remote_interface:%s,local_tunnel:%s,remote_tunnel:%s",ip2str(local_interface_address),ip2str(remote_interface_address),ip2str(new_encap->ip.src_addr),ip2str(new_encap->ip.dst_addr));
     return m;
 }
 
