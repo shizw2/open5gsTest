@@ -105,6 +105,8 @@
         "ogs-gtp.h": "c",
         "test-common.h": "c",
         "ctrl-path.h": "c",
-        "numbers": "c"
+        "numbers": "c",
+        "resource.h": "c",
+        "stdbool.h": "c"
     }
 }

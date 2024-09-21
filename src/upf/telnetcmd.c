@@ -1,5 +1,14 @@
 #include "telnet.h"
 #include "context.h"
+
+#if defined(USE_DPDK)
+#include "upf-dpdk.h"
+#include "ctrl-path.h"
+
+void show_dpdk_info(void);
+void show_arp_hash(struct arp_hashtbl *h);
+#endif
+
 char                g_chCmdName[128] = {0};
 T_pttCmdParas       g_tCmdPara[128];
 int                 pkt_metric_flag = 0;
@@ -15,6 +24,9 @@ telnet_command_t g_commands[] = {
     {"showsess",      (GenericFunc)showsess,         1, {INTEGER}},
     {"upf",           (GenericFunc)upf,              0, {}},
     {"set_pkt_metric",(GenericFunc)set_pkt_metric,   1, {INTEGER}},
+    #if defined(USE_DPDK)
+    {"show_dpdk_info",(GenericFunc)show_dpdk_info,   0, {}},
+    #endif
 };
 int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);
 
@@ -237,3 +249,46 @@ void set_pkt_metric(uint32_t id){
         printf("packet metrics is turned on, it will reduce data plane performance.\r\n");
     }
 }
+#if defined(USE_DPDK)
+
+
+void show_dpdk_info(void){
+    int i;
+    printf("|--n3_addr      :%s \r\n",ip2str(dkuf.n3_addr.ipv4));
+    printf("|--n3_gw        :%s \r\n",ip2str(dkuf.n3_addr.gw));
+    printf("|--n3_mac       :%s \r\n",mac2str(&dkuf.mac[0]));
+
+    printf("|--n6_add       :%s \r\n",ip2str(dkuf.n6_addr.ipv4));
+    printf("|--n6_gw        :%s \r\n",ip2str(dkuf.n6_addr.gw));
+    printf("|--n6_mac       :%s \r\n",mac2str(&dkuf.mac[1]));
+
+    struct arp_hashtbl *arp_tbl;
+    for (i = 0; i < RTE_MAX_LCORE; i++){
+        arp_tbl = dkuf.lconf[i].arp_tbl;
+        if (NULL != arp_tbl){
+            printf("|--locre:%d mac info:\r\n",i);        
+            show_arp_hash(arp_tbl);
+        }
+    }
+}
+
+void show_arp_hash(struct arp_hashtbl *h){
+    if (NULL == h|| NULL == h->htable){
+        return;
+    }
+    arp_node_t *cur;
+
+    for (uint32_t i = 0; i < h->size; i++) { // 使用 size 来遍历哈希表
+        cur = h->htable[i];
+        while (cur) {
+            printf("  |--ip:%s, mac:%s, port:%d",ip2str(&cur->ip), mac2str((struct rte_ether_addr *)cur->mac),cur->port);
+            if (cur->flag >=ARP_ND_VXLAN_SEND){
+                printf("remote_tunnel_ip:%s, local_tunnel_ip:%s, remote_interface_ip:%s.\r\n",ip2str(&cur->remote_tunnel_ip), ip2str(&cur->local_tunnel_ip), ip2str(&cur->remote_interface_ip));
+            }else{
+                printf("\r\n");
+            }
+            cur = cur->next; // 移动到链表中的下一个节点
+        }
+    }
+}
+#endif
