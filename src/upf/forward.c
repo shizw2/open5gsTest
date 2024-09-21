@@ -525,8 +525,8 @@ static int32_t handle_arp_vxlan(struct lcore_conf *lconf, struct rte_mbuf *m)
 
     upf_sess_t *sess = NULL;
     ogs_pfcp_pdr_t *pdr = NULL;
-    ogs_info("handle_arp_vxlan, pkt->l2_len:%d",pkt->l2_len);
-    sess = local_sess_find_by_ue_ip(lconf, l3_head, 0);
+    
+    sess = local_sess_find_by_ue_ip(lconf, l3_head, 1);
     if (!sess) {
         ogs_debug("%s, unmatch session by ip %s\n", __func__, ip_printf(l3_head, 1));
         lconf->lstat.sess_unmatch[1]++;
