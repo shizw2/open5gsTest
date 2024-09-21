@@ -304,7 +304,7 @@ void arp_timeout(void *arg)
             return ;
         }
         ogs_info("vxlan arp %s timeout\n", ip2str(arp->ip));
-        arp_m = make_vxlan_arp_request(arp->ip,arp->remote_interface_ip,arp->local_tunnel_ip,arp->remote_tunnel_ip);
+        arp_m = make_vxlan_arp_request(arp->local_interface_ip,arp->ip,arp->local_tunnel_ip,arp->remote_tunnel_ip);
         
         pkt = (struct packet *)(arp_m->buf_addr);
         pkt->pkt_type = PKT_TYPE_ARP_VXLAN;        
@@ -332,7 +332,7 @@ void arp_timeout(void *arg)
         arp_delete(lconf->arp_tbl, arp);
         return ;
     case ARP_ND_VXLAN_TIMEOUT1:
-        arp_m = make_vxlan_arp_request(arp->ip,arp->remote_interface_ip,arp->local_tunnel_ip,arp->remote_tunnel_ip);
+        arp_m = make_vxlan_arp_request(arp->local_interface_ip,arp->ip,arp->local_tunnel_ip,arp->remote_tunnel_ip);
         
         pkt = (struct packet *)(arp_m->buf_addr);
         pkt->pkt_type = PKT_TYPE_ARP_VXLAN;

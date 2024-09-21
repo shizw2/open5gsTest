@@ -5,7 +5,8 @@
 #include "upf-dpdk.h"
 #include "ctrl-path.h"
 
-void show_dpdk_info(void);
+void show_port_info(void);
+void show_lcore_info(void);
 void show_arp_hash(struct arp_hashtbl *h);
 #endif
 
@@ -25,7 +26,9 @@ telnet_command_t g_commands[] = {
     {"upf",           (GenericFunc)upf,              0, {}},
     {"set_pkt_metric",(GenericFunc)set_pkt_metric,   1, {INTEGER}},
     #if defined(USE_DPDK)
-    {"show_dpdk_info",(GenericFunc)show_dpdk_info,   0, {}},
+    {"show_port_info",(GenericFunc)show_port_info,   0, {}},
+    {"show_lcore_info",(GenericFunc)show_lcore_info, 0, {}},    
+    {"print_stat",     (GenericFunc)print_stat,      0, {}},
     #endif
 };
 int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);
@@ -251,22 +254,49 @@ void set_pkt_metric(uint32_t id){
 }
 #if defined(USE_DPDK)
 
-
-void show_dpdk_info(void){
+void show_port_info(void){
     int i;
+    printf("|--pfcp_lcore   :%d \r\n",dkuf.pfcp_lcore);
+    printf("|--dpt_num      :%d \r\n",dkuf.dpt_num);
+    printf("|--dpt_lcore    :");
+    for (i = 0 ; i < dkuf.dpt_num; i++){
+        printf("%d ", dkuf.dpt_lcore[i]);
+    }
+    printf("\r\n");
+    printf("|--fwd_num      :%d \r\n",dkuf.fwd_num);
+    printf("|--fwd_lcore    :");
+    for (i = 0 ; i < dkuf.fwd_num; i++){
+        printf("%d ", dkuf.fwd_lcore[i]);
+    }
+    printf("\r\n");
     printf("|--n3_addr      :%s \r\n",ip2str(dkuf.n3_addr.ipv4));
     printf("|--n3_gw        :%s \r\n",ip2str(dkuf.n3_addr.gw));
+    printf("|--n3_addr6     :%s \r\n",ip62str(dkuf.n3_addr.ipv6));
+    printf("|--n3_gw6       :%s \r\n",ip62str(dkuf.n3_addr.gw6));
     printf("|--n3_mac       :%s \r\n",mac2str(&dkuf.mac[0]));
 
     printf("|--n6_add       :%s \r\n",ip2str(dkuf.n6_addr.ipv4));
     printf("|--n6_gw        :%s \r\n",ip2str(dkuf.n6_addr.gw));
+    printf("|--n6_addr6     :%s \r\n",ip62str(dkuf.n6_addr.ipv6));
+    printf("|--n6_gw6       :%s \r\n",ip62str(dkuf.n6_addr.gw6));
     printf("|--n6_mac       :%s \r\n",mac2str(&dkuf.mac[1]));
+}
+
+void show_lcore_info(void){
+    int i;
+    struct lcore_conf *lconf;
 
     struct arp_hashtbl *arp_tbl;
-    for (i = 0; i < RTE_MAX_LCORE; i++){
-        arp_tbl = dkuf.lconf[i].arp_tbl;
+    for (i = 0 ; i < dkuf.fwd_num; i++){   
+        lconf = &dkuf.lconf[dkuf.fwd_lcore[i]];   
+        printf("|--lcore       :%d \r\n",lconf->lcore);
+        printf("|--rx_queue    :%d \r\n",lconf->rx_queue);
+        printf("|--tx_queue    :%d \r\n",lconf->tx_queue);
+        printf("|--id          :%d \r\n",lconf->id);
+        printf("|--flag        :%d \r\n",lconf->flag);
+        arp_tbl = lconf->arp_tbl;
         if (NULL != arp_tbl){
-            printf("|--lcore:%d mac info:\r\n",i);        
+            printf("|--lcore:%d mac info:\r\n",lconf->lcore);        
             show_arp_hash(arp_tbl);
         }
     }
@@ -281,9 +311,9 @@ void show_arp_hash(struct arp_hashtbl *h){
     for (uint32_t i = 0; i < h->size; i++) { // 使用 size 来遍历哈希表
         cur = h->htable[i];
         while (cur) {
-            printf("  |--ip:%16s, mac:%s, port:%d",ip2str(cur->ip), mac2str((struct rte_ether_addr *)cur->mac),cur->port);
+            printf("  |--port:%d,mac:%s,ip:%-16s,", cur->port, mac2str((struct rte_ether_addr *)cur->mac),ip2str(cur->ip));
             if (cur->flag >=ARP_ND_VXLAN_SEND){
-                printf(",remote_tunnel_ip:%16s, local_tunnel_ip:%16s, remote_interface_ip:%16s.\r\n",ip2str(cur->remote_tunnel_ip), ip2str(cur->local_tunnel_ip), ip2str(cur->remote_interface_ip));
+                printf(", local_interface_ip:%-16s,remote_tunnel_ip:%-16s, local_tunnel_ip:%-16s.\r\n", ip2str(cur->local_interface_ip),ip2str(cur->remote_tunnel_ip), ip2str(cur->local_tunnel_ip));
             }else{
                 printf("\r\n");
             }

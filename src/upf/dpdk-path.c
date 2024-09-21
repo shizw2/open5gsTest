@@ -266,7 +266,7 @@ int add_vxlan_header(upf_sess_t *sess, struct rte_mbuf *m)
     arp = arp_find_vxlan(lconf, sess->remote_interface_address, 0);
 
     if (arp->flag == ARP_ND_VXLAN_SEND) {
-        arp->remote_interface_ip = sess->remote_interface_address;
+        arp->local_interface_ip = sess->local_interface_address;
         arp->local_tunnel_ip = sess->ipv4->subnet->gw.sub[0];
         arp->remote_tunnel_ip = sess->ipv4->addr[0];
         if (arp->pkt_list_cnt < MAX_PKT_BURST) {

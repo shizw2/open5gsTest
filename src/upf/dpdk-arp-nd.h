@@ -44,7 +44,7 @@ struct arp_node_s {
     struct arp_node_s *next;
     uint32_t remote_tunnel_ip;
     uint32_t local_tunnel_ip;
-    uint32_t remote_interface_ip;
+    uint32_t local_interface_ip;
 } __attribute__ ((aligned(CACHE_LINE_SIZE)));
 
 typedef struct arp_node_s arp_node_t;
