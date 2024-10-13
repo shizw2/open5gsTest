@@ -296,6 +296,10 @@ extern "C" {
     OGS_SBI_CUSTOM_DISCOVERY_COMMON OGS_SBI_PARAM_SNSSAIS
 #define OGS_SBI_CUSTOM_DISCOVERY_DNN  \
     OGS_SBI_CUSTOM_DISCOVERY_COMMON OGS_SBI_PARAM_DNN
+#define OGS_SBI_CUSTOM_DISCOVERY_SUPI  \
+        OGS_SBI_CUSTOM_DISCOVERY_COMMON OGS_SBI_PARAM_SUPI
+#define OGS_SBI_CUSTOM_DISCOVERY_ROUTE  \
+        OGS_SBI_CUSTOM_DISCOVERY_COMMON OGS_SBI_PARAM_ROUTE
 #define OGS_SBI_CUSTOM_DISCOVERY_TAI  \
     OGS_SBI_CUSTOM_DISCOVERY_COMMON OGS_SBI_PARAM_TAI
 #define OGS_SBI_CUSTOM_DISCOVERY_TARGET_PLMN_LIST  \
@@ -350,6 +354,7 @@ extern "C" {
 #define OGS_SBI_PARAM_IPV6PREFIX                    "ipv6Prefix"
 #define OGS_SBI_PARAM_PEI                           "pei"
 #define OGS_SBI_PARAM_SUPI                          "supi"
+#define OGS_SBI_PARAM_ROUTE                          "route"
 
 
 #define OGS_SBI_CONTENT_JSON_TYPE                   \
@@ -520,6 +525,9 @@ typedef struct ogs_sbi_discovery_option_s {
     ogs_plmn_id_t requester_plmn_list[OGS_MAX_NUM_OF_PLMN];
 
     uint64_t requester_features;
+    
+    char *supi_id;//add for scp 
+    char *routingIndicator;//add for scp 
 } ogs_sbi_discovery_option_t;
 
 typedef struct ogs_sbi_message_s {
@@ -715,6 +723,10 @@ void ogs_sbi_discovery_option_set_requester_nf_instance_id(
         char *requester_nf_instance_id);
 void ogs_sbi_discovery_option_set_dnn(
         ogs_sbi_discovery_option_t *discovery_option, char *dnn);
+void ogs_sbi_discovery_option_set_supi_id(
+        ogs_sbi_discovery_option_t *discovery_option, char *supi_id);
+void ogs_sbi_discovery_option_set_routingIndicator(
+        ogs_sbi_discovery_option_t *discovery_option, char *routingIndicator);
 
 void ogs_sbi_discovery_option_add_service_names(
         ogs_sbi_discovery_option_t *discovery_option,

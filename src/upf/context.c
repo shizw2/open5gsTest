@@ -212,6 +212,8 @@ int upf_context_parse_config(void)
                     /* handle config in nbr function */
                 } else if (!strcmp(upf_key, "nbrremoteserver")) {
                     /* handle config in nbr function */
+                } else if (!strcmp(upf_key, "vxlan")) {
+                    /* handle config in vxlan function */
                 } else
                     ogs_warn("unknown key `%s`", upf_key);
             }

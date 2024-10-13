@@ -273,6 +273,10 @@ int ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
     ogs_assert(request);
 
     discovery_option = xact->discovery_option;
+    if(xact->supi_id)
+        ogs_sbi_discovery_option_set_supi_id(discovery_option,xact->supi_id);
+    if(xact->routingIndicator)
+        ogs_sbi_discovery_option_set_routingIndicator(discovery_option,xact->routingIndicator);
 
     /* SCP Availability */
     if (ogs_sbi_self()->discovery_config.delegated ==
@@ -420,6 +424,16 @@ int ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
                 ogs_debug("dnn [%s]", discovery_option->dnn);
                 ogs_sbi_header_set(request->http.headers,
                         OGS_SBI_CUSTOM_DISCOVERY_DNN, discovery_option->dnn);
+            }
+            if (discovery_option && discovery_option->supi_id) {
+                ogs_debug("supi_id [%s]", discovery_option->supi_id);
+                ogs_sbi_header_set(request->http.headers,
+                        OGS_SBI_CUSTOM_DISCOVERY_SUPI, discovery_option->supi_id);
+            }
+            if (discovery_option && discovery_option->routingIndicator) {
+                ogs_debug("routingIndicator [%s]", discovery_option->routingIndicator);
+                ogs_sbi_header_set(request->http.headers,
+                        OGS_SBI_CUSTOM_DISCOVERY_ROUTE, discovery_option->routingIndicator);
             }
 
             if (discovery_option && discovery_option->tai_presence) {

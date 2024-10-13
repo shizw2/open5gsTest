@@ -2721,7 +2721,7 @@ void amf_sbi_select_nf(
         }
         
         char *routing_indicator = NULL;
-        if (ue->suci != NULL && target_nf_type == OpenAPI_nf_type_AUSF){
+        if (ue->suci != NULL && (target_nf_type == OpenAPI_nf_type_AUSF || target_nf_type == OpenAPI_nf_type_UDM)){
             routing_indicator = ogs_routing_indicator_from_suci(ue->suci);
         }
         

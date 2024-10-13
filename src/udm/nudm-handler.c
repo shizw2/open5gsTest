@@ -699,9 +699,28 @@ bool udm_nudm_sdm_handle_subscription_create(
                 recvmsg, "No monitoredResourceUris", udm_ue->supi, NULL));
         return false;
     }
-
+    //begin 判断异常，怕影响性能，先不处理
+    #if 0
+    udm_sdm_subscription_t *sdm_subscription1 = NULL;
+    int  count=0;
+    ogs_list_for_each(&udm_ue->sdm_subscription_list, sdm_subscription1)
+        count++;
+    if(count>5)udm_sdm_subscription_remove_all(udm_ue);
+    //end 判断异常
+    #endif
     sdm_subscription = udm_sdm_subscription_add(udm_ue);
-    ogs_assert(sdm_subscription);
+    //ogs_assert(sdm_subscription);
+    //如果直接退出影响在线用户，可以不让接入但不能影响新用户    
+    if(!sdm_subscription){
+        ogs_error("udm_sdm_subscription_add fail ");
+        udm_sdm_subscription_remove_all(udm_ue);//如果存在本用户的清除,防止单个用户反复异常离线
+        ogs_assert(true ==
+            ogs_sbi_server_send_error(
+                stream, OGS_SBI_HTTP_STATUS_NOT_FOUND,
+                recvmsg, "Subscription Not found", recvmsg->h.method,
+                NULL));
+        return false;
+    }//如果直接退出影响在线用户，可以不让接入但不能影响新用户
 
     sdm_subscription->data_change_callback_uri =
         ogs_strdup(SDMSubscription->callback_reference);

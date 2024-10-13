@@ -20,7 +20,7 @@
                 pkill -SIGHUP @project_name@-$i
             fi
         done
-        #简单做,pkill支持模糊匹配,给所有sps发送HUP消息
+        #pkill支持模糊匹配,给所有sps发送HUP消息
         pkill -SIGHUP 5gc-amf-spsd
     endscript
 }

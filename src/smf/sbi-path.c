@@ -217,7 +217,11 @@ int smf_sbi_discover_and_send(
         ogs_assert(xact->assoc_stream_id >= OGS_MIN_POOL_ID &&
                 xact->assoc_stream_id <= OGS_MAX_POOL_ID);
     }
-
+    //根据号段选择UDM
+    if (smf_ue->supi != NULL){
+        xact->supi_id = ogs_id_get_value(smf_ue->supi);
+    }
+    ////根据号段选择UDM end
     r = ogs_sbi_discover_and_send(xact);
     if (r != OGS_OK) {
         ogs_error("smf_sbi_discover_and_send() failed");

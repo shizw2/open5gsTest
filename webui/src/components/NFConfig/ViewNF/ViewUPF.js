@@ -18,6 +18,9 @@ import {
   SessionSection,
   DPDKSection,
   VXLANSection,
+  NbrlocalserverSection,
+  NbrlocalclientSection,
+  NbrremoteserverSection,
   CLISection
 } from './ViewCfgSection';
 
@@ -42,6 +45,9 @@ export const ViewUPF = ({ nfconfig }) => {
           <SessionSection session={upf.session} />
           <DPDKSection dpdk={upf.dpdk} />
           <VXLANSection vxlan={upf.vxlan} />
+          <NbrlocalserverSection nbrcfg={upf.nbrlocalserver} />
+          <NbrlocalclientSection nbrcfg={upf.nbrlocalclient} />
+          <NbrremoteserverSection nbrcfg={upf.nbrremoteserver} />
           <MetricsSection metrics={upf.metrics} />
         </div>
       )}

@@ -464,6 +464,14 @@ ogs_sbi_request_t *ogs_sbi_build_request(ogs_sbi_message_t *message)
             ogs_sbi_header_set(request->http.params,
                     OGS_SBI_PARAM_DNN, discovery_option->dnn);
         }
+        if (discovery_option->supi_id) {
+            ogs_sbi_header_set(request->http.params,
+                    OGS_SBI_PARAM_SUPI, discovery_option->supi_id);
+        }
+        if (discovery_option->routingIndicator) {
+            ogs_sbi_header_set(request->http.params,
+                    OGS_SBI_PARAM_DNN, discovery_option->routingIndicator);
+        }
         if (discovery_option->tai_presence) {
             char *v = ogs_sbi_discovery_option_build_tai(discovery_option);
             if (v) {
@@ -885,7 +893,19 @@ int ogs_sbi_parse_request(
                 ogs_sbi_discovery_option_set_dnn(discovery_option, v);
                 discovery_option_presence = true;
             }
-        } else if (!strcmp(ogs_hash_this_key(hi), OGS_SBI_PARAM_TAI)) {
+        } else if (!strcmp(ogs_hash_this_key(hi), OGS_SBI_PARAM_SUPI)) {
+            char *v = ogs_hash_this_val(hi);
+            if (v) {
+                ogs_sbi_discovery_option_set_supi_id(discovery_option, v);
+                discovery_option_presence = true;
+            }
+        }else if (!strcmp(ogs_hash_this_key(hi), OGS_SBI_PARAM_ROUTE)) {
+            char *v = ogs_hash_this_val(hi);
+            if (v) {
+                ogs_sbi_discovery_option_set_routingIndicator(discovery_option, v);
+                discovery_option_presence = true;
+            }
+        }else if (!strcmp(ogs_hash_this_key(hi), OGS_SBI_PARAM_TAI)) {
             char *v = ogs_hash_this_val(hi);
             if (v) {
                 ogs_sbi_discovery_option_parse_tai(discovery_option, v);
@@ -3057,7 +3077,10 @@ void ogs_sbi_discovery_option_free(
         ogs_free(discovery_option->requester_nf_instance_id);
     if (discovery_option->dnn)
         ogs_free(discovery_option->dnn);
-
+    if (discovery_option->supi_id)
+        ogs_free(discovery_option->supi_id);
+    if (discovery_option->routingIndicator)
+        ogs_free(discovery_option->routingIndicator);
     for (i = 0; i < discovery_option->num_of_service_names; i++)
         ogs_free(discovery_option->service_names[i]);
 
@@ -3097,7 +3120,26 @@ void ogs_sbi_discovery_option_set_dnn(
     discovery_option->dnn = ogs_strdup(dnn);
     ogs_assert(discovery_option->dnn);
 }
+void ogs_sbi_discovery_option_set_supi_id(
+        ogs_sbi_discovery_option_t *discovery_option, char *supi_id)
+{
+    ogs_assert(discovery_option);
+    ogs_assert(supi_id);
 
+    ogs_assert(!discovery_option->supi_id);
+    discovery_option->supi_id = ogs_strdup(supi_id);
+    ogs_assert(discovery_option->supi_id);
+}
+ void ogs_sbi_discovery_option_set_routingIndicator(
+        ogs_sbi_discovery_option_t *discovery_option, char *routingIndicator)
+{
+    ogs_assert(discovery_option);
+    ogs_assert(routingIndicator);
+
+    ogs_assert(!discovery_option->routingIndicator);
+    discovery_option->routingIndicator = ogs_strdup(routingIndicator);
+    ogs_assert(discovery_option->routingIndicator);
+}
 void ogs_sbi_discovery_option_add_service_names(
         ogs_sbi_discovery_option_t *discovery_option,
         char *service_name)

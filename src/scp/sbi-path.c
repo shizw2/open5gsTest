@@ -240,6 +240,10 @@ static int request_handler(ogs_sbi_request_t *request, void *data)
                 ogs_sbi_discovery_option_parse_guami(discovery_option, val);
         } else if (!strcasecmp(key, OGS_SBI_CUSTOM_DISCOVERY_DNN)) {
             ogs_sbi_discovery_option_set_dnn(discovery_option, val);
+        } else if (!strcasecmp(key, OGS_SBI_CUSTOM_DISCOVERY_SUPI)) {
+            ogs_sbi_discovery_option_set_supi_id(discovery_option, val);
+        } else if (!strcasecmp(key, OGS_SBI_CUSTOM_DISCOVERY_ROUTE)) {
+            ogs_sbi_discovery_option_set_routingIndicator(discovery_option, val);
         } else if (!strcasecmp(key, OGS_SBI_CUSTOM_DISCOVERY_TAI)) {
             if (val)
                 ogs_sbi_discovery_option_parse_tai(discovery_option, val);
@@ -759,8 +763,10 @@ static int nf_discover_handler(
 
     ogs_nnrf_disc_handle_nf_discover_search_result(message.SearchResult);
 
-    nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
-            target_nf_type, requester_nf_type, discovery_option);
+    /*nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
+            target_nf_type, requester_nf_type, discovery_option);*/
+    ogs_debug("discovery_option->supi_id=%s,discovery_option->routingIndicator=%s",discovery_option->supi_id,discovery_option->routingIndicator);
+    nf_instance = ogs_sbi_nf_instance_find_by_conditions(target_nf_type, requester_nf_type, discovery_option,discovery_option->supi_id, discovery_option->routingIndicator);
     if (!nf_instance) {
         strerror = ogs_msprintf("(NF discover) No NF-Instance [%s:%s]",
                     ogs_sbi_service_type_to_name(service_type),

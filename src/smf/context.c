@@ -1421,7 +1421,7 @@ smf_sess_t *smf_sess_add_by_gtp1_message(ogs_gtp1_message_t *message)
     if (sess) {
         ogs_warn("OLD Session Will Release [IMSI:%s,APN:%s]",
                 smf_ue->imsi_bcd, sess->session.name);
-        smf_sess_remove(sess);
+        smf_sess_remove(sess);//没有通知UDM删除SDM，UDM SDM只能等用户隐式去注册才能删除，其他周边网元估计也存在相关上下文。
     }
 
     sess = smf_sess_add_by_apn(smf_ue, apn, req->rat_type.u8);
@@ -1489,7 +1489,7 @@ smf_sess_t *smf_sess_add_by_gtp2_message(ogs_gtp2_message_t *message)
     if (sess) {
         ogs_info("OLD Session Will Release [IMSI:%s,APN:%s]",
                 smf_ue->imsi_bcd, sess->session.name);
-        smf_sess_remove(sess);
+        smf_sess_remove(sess);//没有通知UDM删除SDM，UDM SDM只能等用户隐式去注册才能删除，，其他周边网元估计也存在相关上下文。
     }
 
     sess = smf_sess_add_by_apn(smf_ue, apn, req->rat_type.u8);
@@ -1605,8 +1605,8 @@ smf_sess_t *smf_sess_add_by_sbi_message(ogs_sbi_message_t *message)
         ogs_warn("OLD Session Will Release [SUPI:%s,PDU Session identity:%d]",
                 SmContextCreateData->supi, SmContextCreateData->pdu_session_id);
         smf_metrics_inst_by_slice_add(&sess->serving_plmn_id, &sess->s_nssai,
-                SMF_METR_GAUGE_SM_SESSIONNBR, -1);
-        smf_sess_remove(sess);
+                SMF_METR_GAUGE_SM_SESSIONNBR, -1);      
+        smf_sess_remove(sess);//没有通知UDM删除SDM，UDM SDM只能等用户隐式去注册才能删除，其他周边网元估计也存在相关上下文。
     }
 
     sess = smf_sess_add_by_psi(smf_ue, SmContextCreateData->pdu_session_id);

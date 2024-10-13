@@ -894,6 +894,60 @@ export const VXLANSection = ({ vxlan }) => {
   );
 };
 
+export const NbrlocalserverSection = ({ nbrcfg }) => {
+  return (
+    <div>
+      {nbrcfg && (
+        <div className="subnet-section">
+          <div className="twenty-spaces">nbrlocalserver:</div>
+          {nbrcfg.map((item, index) => (
+            <div key={index} className="twenty-spaces">
+              {item.addr && <div className="twenty-spaces">- addr: {item.addr}</div>}
+              {item.port && <div className="twenty-spaces">&nbsp;&nbsp;port: {item.port}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const NbrremoteserverSection = ({ nbrcfg }) => {
+  return (
+    <div>
+      {nbrcfg && (
+        <div className="subnet-section">
+          <div className="twenty-spaces">nbrremoteserver:</div>
+          {nbrcfg.map((item, index) => (
+            <div key={index} className="twenty-spaces">
+              {item.addr && <div className="twenty-spaces">- addr: {item.addr}</div>}
+              {item.port && <div className="twenty-spaces">&nbsp;&nbsp;port: {item.port}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const NbrlocalclientSection = ({ nbrcfg }) => {
+  return (
+    <div>
+      {nbrcfg && (
+        <div className="subnet-section">
+          <div className="twenty-spaces">nbrlocalclient:</div>
+          {nbrcfg.map((item, index) => (
+            <div key={index} className="twenty-spaces">
+              {item.addr && <div className="twenty-spaces">- addr: {item.addr}</div>}
+              {item.port && <div className="twenty-spaces">&nbsp;&nbsp;port: {item.port}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const DnsSection = ({ dns }) => {
   return (
     <div>

@@ -6,10 +6,13 @@ void showue(char *id);
 void showueBriefAll( void );
 void showueDetail( char * id );
 void setCommands(void);
+void showsdm( void );
+
 
 telnet_command_t g_commands[] = {
     {"shownf",      (GenericFunc)shownf,         1, {STRING}},
     {"showue",      (GenericFunc)showue,         1, {STRING}},
+    {"showsdm",     (GenericFunc)showsdm,         1, {STRING}},
 };
 int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);
 
@@ -37,9 +40,9 @@ void showueBriefAll( void )
     struct tm tm;
 	
     printf("\nsmf ue Brief All(current %u ue count):\r\n", ogs_list_count(&udm_self()->udm_ue_list));
-    printf("+--------+----------------------+----------------------+-------------+-------------------------------------+\n\r");
-    printf("| ctx_id |         supi         |        plmn          |    amf_id   |            srv_network_name         |\n\r");
-    printf("+--------+----------------------+----------------------+-------------+-------------------------------------+\n\r");
+    printf("+--------+----------------------+-----------------+-------------+-------------------------------------+\n\r");
+    printf("| ctx_id |         supi         |        plmn     |    amf_id   |            srv_network_name         |\n\r");
+    printf("+--------+----------------------+-----------------+-------------+-------------------------------------+\n\r");
     
     ogs_list_for_each(&udm_self()->udm_ue_list, ue) {
         ogs_plmn_id_to_string(&ue->guami.plmn_id, buffer);
@@ -52,9 +55,32 @@ void showueBriefAll( void )
            );        
     }
     
-    printf("+--------+----------------------+----------------------+-------------+-------------------------------------+\n\r");
+    printf("+--------+----------------------+-----------------+-------------+-------------------------------------+\n\r");
     printf("\r\n");
     
+    return ;
+}
+void showsdm( void )
+{    
+    udm_sdm_subscription_t *sdm_subscription = NULL;
+    udm_ue_t *ue = NULL;
+	int i=0;
+    printf("+--------------------------------------+----------------------+\n\r");
+    printf("|     id                               |         supi         |\n\r");
+    printf("+--------------------------------------+----------------------+\n\r"); 
+    ogs_list_for_each(&udm_self()->udm_ue_list, ue) {
+        ogs_list_for_each(&ue->sdm_subscription_list, sdm_subscription){            
+            printf("| %-36s | %-15s |\r\n",
+                  sdm_subscription->id,
+                  ue->supi
+                  ); 
+            i++;
+            }
+        }
+    printf("+--------------------------------------+----------------------+\n\r");
+    printf("\r\n");
+    printf("\nsdm_subscription(current %u sdm_subscription count):\r\n", i);
+
     return ;
 }
 
