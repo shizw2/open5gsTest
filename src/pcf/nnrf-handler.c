@@ -81,14 +81,9 @@ void pcf_nnrf_handle_nf_discover(
 
     ogs_nnrf_disc_handle_nf_discover_search_result(SearchResult);
 
-    ogs_info("test:pcf_nnrf_handle_nf_discover sbi_object->type:%d, supi_id:%s.",sbi_object->type, xact->supi_id);    
-    char *supi_id = ogs_id_get_value(pcf_ue->supi);
-    nf_instance = ogs_sbi_nf_instance_find_by_conditions(target_nf_type, requester_nf_type, discovery_option,supi_id, NULL);
-    
-    if (supi_id != NULL){
-        ogs_free(supi_id);
-    }
-    
+    ogs_info("test:pcf_nnrf_handle_nf_discover sbi_object->type:%d, supi_id:%s.",sbi_object->type, discovery_option->supi_id);    
+    nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(target_nf_type, requester_nf_type, discovery_option);
+  
     if (!nf_instance) {
         ogs_error("[%s:%d] (NF discover) No [%s:%s]",
                     pcf_ue ? pcf_ue->supi : "Unknown",

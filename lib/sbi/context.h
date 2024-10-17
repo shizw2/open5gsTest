@@ -523,7 +523,7 @@ void ogs_sbi_nf_instances_find_by_discovery_param(ogs_sbi_nf_instance_t *matched
 void ogs_sbi_nf_instances_find_by_supi(ogs_sbi_nf_instance_t *matched_nf_instances[], int *matched_nf_count,
         OpenAPI_nf_type_e target_nf_type,
         OpenAPI_nf_type_e requester_nf_type,
-        ogs_sbi_discovery_option_t *discovery_option, char *supi_id);
+        char *supi_id);
 void ogs_sbi_nf_instances_find_by_routing_indicator(ogs_sbi_nf_instance_t *matched_nf_instances[], int *matched_nf_count, char * desired_routing_indicator);
 
 void ogs_sbi_client_associate(ogs_sbi_nf_instance_t *nf_instance);
@@ -640,9 +640,7 @@ void ogs_sbi_subscription_data_build_default(
         OpenAPI_nf_type_e nf_type, const char *service_name);
 
 ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_capacity(ogs_sbi_nf_instance_t *matched_nf_instances[], int matched_nf_count);
-ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_conditions(OpenAPI_nf_type_e target_nf_type,
-        OpenAPI_nf_type_e requester_nf_type,
-        ogs_sbi_discovery_option_t *discovery_option, char * supi_id, char * routing_indicator);
+
 
 bool ogs_sbi_supi_in_vplmn(char *supi);
 bool ogs_sbi_plmn_id_in_vplmn(ogs_plmn_id_t *plmn_id);

@@ -1432,6 +1432,25 @@ int gmm_handle_ul_nas_transport(ran_ue_t *ran_ue, amf_ue_t *amf_ue,
                 ogs_sbi_discovery_option_set_tai(
                         discovery_option, &amf_ue->nr_tai);
 
+                char *supi_id = NULL;
+                if (amf_ue->supi != NULL){
+                    supi_id = ogs_id_get_value(amf_ue->supi);
+                    ogs_sbi_discovery_option_set_supi_id(discovery_option, supi_id);
+                }
+                
+                char *routing_indicator = NULL;
+                if (amf_ue->suci != NULL){
+                    routing_indicator = ogs_routing_indicator_from_suci(amf_ue->suci);
+                    ogs_sbi_discovery_option_set_routingIndicator(discovery_option, routing_indicator);
+                }
+                if (supi_id != NULL){
+                    ogs_free(supi_id);
+                }
+                
+                if (routing_indicator != NULL){
+                    ogs_free(routing_indicator);
+                }
+
                 nf_instance = OGS_SBI_GET_NF_INSTANCE(
                         sess->sbi.service_type_array[service_type]);
                 if (!nf_instance) {

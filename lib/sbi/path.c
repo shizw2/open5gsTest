@@ -273,9 +273,9 @@ int ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
     ogs_assert(request);
 
     discovery_option = xact->discovery_option;
-    if(xact->supi_id)
+    if(xact->supi_id && !discovery_option->supi_id)
         ogs_sbi_discovery_option_set_supi_id(discovery_option,xact->supi_id);
-    if(xact->routingIndicator)
+    if(xact->routingIndicator && !discovery_option->routingIndicator)
         ogs_sbi_discovery_option_set_routingIndicator(discovery_option,xact->routingIndicator);
 
     /* SCP Availability */
@@ -288,7 +288,7 @@ int ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
         ogs_assert(scp_client);
     }
 
-    ogs_debug("test:ogs_sbi_discover_and_send sbi_object->type:%d,service_type:%s,supi_id:%s, routingIndicator:%s.",sbi_object->type,ogs_sbi_service_type_to_name(service_type), xact->supi_id, xact->routingIndicator); 
+    ogs_debug("test:ogs_sbi_discover_and_send sbi_object->type:%d,service_type:%s,supi_id:%s, routingIndicator:%s,service.name:%s.",sbi_object->type,ogs_sbi_service_type_to_name(service_type), xact->supi_id, xact->routingIndicator,request->h.service.name); 
 
     /* Target NF-Instance */
     nf_instance = OGS_SBI_GET_NF_INSTANCE(
@@ -296,13 +296,9 @@ int ogs_sbi_discover_and_send(ogs_sbi_xact_t *xact)
     ogs_debug("OGS_SBI_GET_NF_INSTANCE [nf_instance:%p,service_name:%s]",
             nf_instance, ogs_sbi_service_type_to_name(service_type));
     if (!nf_instance) {
-        /*nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
-                            target_nf_type, requester_nf_type, discovery_option);*/
-        
-        nf_instance = ogs_sbi_nf_instance_find_by_conditions(target_nf_type, requester_nf_type, discovery_option,xact->supi_id, xact->routingIndicator);
-        ogs_debug("ogs_sbi_nf_instance_find_by_conditions() "
-                "[nf_instance:%p,service_name:%s]",
-                nf_instance, ogs_sbi_service_type_to_name(service_type));
+        nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
+                            target_nf_type, requester_nf_type, discovery_option);
+
         if (nf_instance)
             OGS_SBI_SETUP_NF_INSTANCE(
                     sbi_object->service_type_array[service_type], nf_instance);

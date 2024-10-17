@@ -2705,40 +2705,13 @@ void amf_sbi_select_nf(
     ogs_info("amf_sbi_select_nf,sbi obj type:%d.", sbi_object->type);
 
     switch(sbi_object->type) {
-    case OGS_SBI_OBJ_UE_TYPE:        
-        /*nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
+    case OGS_SBI_OBJ_UE_TYPE:
+        nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
                     target_nf_type, requester_nf_type, discovery_option); 
 
         if (nf_instance)
             OGS_SBI_SETUP_NF_INSTANCE(
-                    sbi_object->service_type_array[service_type], nf_instance);*/
-                    
-        ue = (amf_ue_t *)sbi_object;
-        ogs_assert(ue);
-        char *supi_id = NULL;
-        if (ue->supi != NULL){
-            supi_id = ogs_id_get_value(ue->supi);
-        }
-        
-        char *routing_indicator = NULL;
-        if (ue->suci != NULL && (target_nf_type == OpenAPI_nf_type_AUSF || target_nf_type == OpenAPI_nf_type_UDM)){
-            routing_indicator = ogs_routing_indicator_from_suci(ue->suci);
-        }
-        
-        nf_instance = ogs_sbi_nf_instance_find_by_conditions(target_nf_type, requester_nf_type, discovery_option,supi_id, routing_indicator);
-
-        if (nf_instance)
-            OGS_SBI_SETUP_NF_INSTANCE(
                     sbi_object->service_type_array[service_type], nf_instance);
-        
-        if (supi_id != NULL){
-            ogs_free(supi_id);
-        }
-        
-        if (routing_indicator != NULL){
-            ogs_free(routing_indicator);
-        }
-        
         break;
     case OGS_SBI_OBJ_SESS_TYPE:
         sess = (amf_sess_t *)sbi_object;
