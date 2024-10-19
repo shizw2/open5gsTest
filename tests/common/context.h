@@ -555,7 +555,8 @@ void test_context_final_ex(void);
 test_bearer_t *test_bearer_add_ex(test_sess_t *sess, uint8_t ebi);
 test_bearer_t *test_qos_flow_add_ex(test_sess_t *sess);
 void test_bearer_remove_ex(test_bearer_t *bearer);
-
+test_sess_t *test_sess_add_by_dnn_and_psi_and_st(
+        test_ue_t *test_ue, char *dnn, uint8_t psi, uint8_t pdu_session_type);
 #ifdef __cplusplus
 }
 #endif

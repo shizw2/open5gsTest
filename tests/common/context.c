@@ -1356,6 +1356,38 @@ test_sess_t *test_sess_add_by_dnn_and_psi(
     return sess;
 }
 
+test_sess_t *test_sess_add_by_dnn_and_psi_and_st(
+        test_ue_t *test_ue, char *dnn, uint8_t psi, uint8_t pdu_session_type)
+{
+    test_sess_t *sess = NULL;
+
+    ogs_assert(test_ue);
+    ogs_assert(dnn);
+
+    ogs_pool_alloc(&test_sess_pool, &sess);
+    ogs_assert(sess);
+    memset(sess, 0, sizeof *sess);
+
+    sess->index = ogs_pool_index(&test_sess_pool, sess);
+
+    sess->dnn = ogs_strdup(dnn);
+    ogs_assert(sess->dnn);
+    sess->psi = psi;
+    sess->pti = 1; /* Default PTI : 1 */
+
+    sess->gnb_n3_addr = test_self()->gnb1_addr;
+    sess->gnb_n3_addr6 = test_self()->gnb1_addr6;
+    sess->gnb_n3_teid = sess->index;
+
+    sess->pdu_session_type = pdu_session_type;
+
+    sess->test_ue = test_ue;
+
+    ogs_list_add(&test_ue->sess_list, sess);
+
+    return sess;
+}
+
 void test_sess_remove(test_sess_t *sess)
 {
     test_ue_t *test_ue = NULL;
