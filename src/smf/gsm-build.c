@@ -148,9 +148,11 @@ ogs_pkbuf_t *gsm_build_pdu_session_establishment_accept(smf_sess_t *sess)
     ogs_nas_bitrate_from_uint64(
             &session_ambr->uplink, sess->session.ambr.uplink);
 
-    /* PDU Address */
-    pdu_session_establishment_accept->presencemask |=
-        OGS_NAS_5GS_PDU_SESSION_ESTABLISHMENT_ACCEPT_PDU_ADDRESS_PRESENT;
+    if (sess->session.session_type != OGS_PDU_SESSION_TYPE_ETHERNET){
+        /* PDU Address */
+        pdu_session_establishment_accept->presencemask |=
+            OGS_NAS_5GS_PDU_SESSION_ESTABLISHMENT_ACCEPT_PDU_ADDRESS_PRESENT;
+    }
     pdu_address->pdn_type = sess->session.session_type;
 
     if (pdu_address->pdn_type == OGS_PDU_SESSION_TYPE_IPV4) {
@@ -165,6 +167,9 @@ ogs_pkbuf_t *gsm_build_pdu_session_establishment_accept(smf_sess_t *sess)
         memcpy(pdu_address->both.addr6,
             sess->paa.both.addr6+(OGS_IPV6_LEN>>1), OGS_IPV6_LEN>>1);
         pdu_address->length = OGS_NAS_PDU_ADDRESS_IPV4V6_LEN;
+    } else if (pdu_address->pdn_type == OGS_PDU_SESSION_TYPE_ETHERNET) {
+        //DO NONTHING
+        ogs_info("pdn_type:%d.",pdu_address->pdn_type);
     } else {
         ogs_error("Unexpected PDN Type %u", pdu_address->pdn_type);
         goto cleanup;

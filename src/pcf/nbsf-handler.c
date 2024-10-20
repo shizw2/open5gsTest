@@ -83,80 +83,86 @@ bool pcf_nbsf_management_handle_register(
     ogs_assert(pcf_ue->supi);
     ogs_assert(sess->dnn);
 
-    if (!recvmsg->http.location) {
-        strerror = ogs_msprintf("[%s:%d] No http.location",
-                pcf_ue->supi, sess->psi);
-        status = OGS_SBI_HTTP_STATUS_BAD_REQUEST;
-        goto cleanup;
-    }
+    if (sess->pdu_session_type != OGS_PDU_SESSION_TYPE_ETHERNET){
 
-    if (!recvmsg->PcfBinding) {
-        strerror = ogs_msprintf("[%s:%d] No PcfBinding",
-                pcf_ue->supi, sess->psi);
-        status = OGS_SBI_HTTP_STATUS_BAD_REQUEST;
-        goto cleanup;
-    }
-
-    PcfBinding = recvmsg->PcfBinding;
-    if (PcfBinding->supp_feat) {
-        uint64_t supported_features =
-            ogs_uint64_from_string(PcfBinding->supp_feat);
-        sess->management_features &= supported_features;
-    }
-
-    memset(&header, 0, sizeof(header));
-    header.uri = recvmsg->http.location;
-
-    rv = ogs_sbi_parse_header(&message, &header);
-    if (rv != OGS_OK) {
-        strerror = ogs_msprintf("[%s:%d] Cannot parse http.location [%s]",
-                pcf_ue->supi, sess->psi, recvmsg->http.location);
-        goto cleanup;
-    }
-
-    if (!message.h.resource.component[1]) {
-        strerror = ogs_msprintf("[%s:%d] No Binding ID [%s]",
-                pcf_ue->supi, sess->psi, recvmsg->http.location);
-
-        ogs_sbi_header_free(&header);
-        goto cleanup;
-    }
-
-    rc = ogs_sbi_getaddr_from_uri(
-            &scheme, &fqdn, &fqdn_port, &addr, &addr6, header.uri);
-    if (rc == false || scheme == OpenAPI_uri_scheme_NULL) {
-        strerror = ogs_msprintf("[%s:%d] Invalid URI [%s]",
-                pcf_ue->supi, sess->psi, header.uri);
-        ogs_sbi_header_free(&header);
-        goto cleanup;
-    }
-
-    client = ogs_sbi_client_find(scheme, fqdn, fqdn_port, addr, addr6);
-    if (!client) {
-        ogs_debug("[%s:%d] ogs_sbi_client_add()", pcf_ue->supi, sess->psi);
-        client = ogs_sbi_client_add(scheme, fqdn, fqdn_port, addr, addr6);
-        if (!client) {
-            strerror = ogs_msprintf("[%s:%d] ogs_sbi_client_add() failed",
+        if (!recvmsg->http.location) {
+            strerror = ogs_msprintf("[%s:%d] No http.location",
                     pcf_ue->supi, sess->psi);
-
-            ogs_sbi_header_free(&header);
-            ogs_free(fqdn);
-            ogs_freeaddrinfo(addr);
-            ogs_freeaddrinfo(addr6);
-
+            status = OGS_SBI_HTTP_STATUS_BAD_REQUEST;
             goto cleanup;
         }
+
+        if (!recvmsg->PcfBinding) {
+            strerror = ogs_msprintf("[%s:%d] No PcfBinding",
+                    pcf_ue->supi, sess->psi);
+            status = OGS_SBI_HTTP_STATUS_BAD_REQUEST;
+            goto cleanup;
+        }
+
+        PcfBinding = recvmsg->PcfBinding;
+        if (PcfBinding->supp_feat) {
+            uint64_t supported_features =
+                ogs_uint64_from_string(PcfBinding->supp_feat);
+            sess->management_features &= supported_features;
+        }
+
+        memset(&header, 0, sizeof(header));
+        header.uri = recvmsg->http.location;
+
+        rv = ogs_sbi_parse_header(&message, &header);
+        if (rv != OGS_OK) {
+            strerror = ogs_msprintf("[%s:%d] Cannot parse http.location [%s]",
+                    pcf_ue->supi, sess->psi, recvmsg->http.location);
+            goto cleanup;
+        }
+
+        if (!message.h.resource.component[1]) {
+            strerror = ogs_msprintf("[%s:%d] No Binding ID [%s]",
+                    pcf_ue->supi, sess->psi, recvmsg->http.location);
+
+            ogs_sbi_header_free(&header);
+            goto cleanup;
+        }
+
+        rc = ogs_sbi_getaddr_from_uri(
+                &scheme, &fqdn, &fqdn_port, &addr, &addr6, header.uri);
+        if (rc == false || scheme == OpenAPI_uri_scheme_NULL) {
+            strerror = ogs_msprintf("[%s:%d] Invalid URI [%s]",
+                    pcf_ue->supi, sess->psi, header.uri);
+            ogs_sbi_header_free(&header);
+            goto cleanup;
+        }
+
+        client = ogs_sbi_client_find(scheme, fqdn, fqdn_port, addr, addr6);
+        if (!client) {
+            ogs_debug("[%s:%d] ogs_sbi_client_add()", pcf_ue->supi, sess->psi);
+            client = ogs_sbi_client_add(scheme, fqdn, fqdn_port, addr, addr6);
+            if (!client) {
+                strerror = ogs_msprintf("[%s:%d] ogs_sbi_client_add() failed",
+                        pcf_ue->supi, sess->psi);
+
+                ogs_sbi_header_free(&header);
+                ogs_free(fqdn);
+                ogs_freeaddrinfo(addr);
+                ogs_freeaddrinfo(addr6);
+
+                goto cleanup;
+            }
+        }
+
+        OGS_SBI_SETUP_CLIENT(&sess->binding, client);
+
+        ogs_free(fqdn);
+        ogs_freeaddrinfo(addr);
+        ogs_freeaddrinfo(addr6);
+
+        PCF_BINDING_STORE(sess, header.uri, message.h.resource.component[1]);
+
+        ogs_sbi_header_free(&header);
+
+    }else{
+        ogs_info("ethernet pdu session does not need to check binding result.");
     }
-
-    OGS_SBI_SETUP_CLIENT(&sess->binding, client);
-
-    ogs_free(fqdn);
-    ogs_freeaddrinfo(addr);
-    ogs_freeaddrinfo(addr6);
-
-    PCF_BINDING_STORE(sess, header.uri, message.h.resource.component[1]);
-
-    ogs_sbi_header_free(&header);
 
     rv = pcf_db_qos_data(
             pcf_ue->supi,

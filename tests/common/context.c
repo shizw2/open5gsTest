@@ -1747,7 +1747,7 @@ bson_t *test_db_new_simple(test_ue_t *test_ue)
                 "default_indicator", BCON_BOOL(true),
                 "session", "[", "{",
                     "name", BCON_UTF8("internet"),
-                    "type", BCON_INT32(3),
+                    "type", BCON_INT32(5),
                     "ambr", "{",
                         "downlink", "{",
                             "value", BCON_INT32(1),

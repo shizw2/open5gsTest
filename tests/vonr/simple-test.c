@@ -193,6 +193,7 @@ static void test1_func(abts_case *tc, void *data)
 
     /* Send PDU session establishment request */
     sess = test_sess_add_by_dnn_and_psi(test_ue, "internet", 5);
+    
     ogs_assert(sess);
 
     sess->ul_nas_transport_param.request_type =

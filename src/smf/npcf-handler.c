@@ -515,15 +515,17 @@ bool smf_npcf_smpolicycontrol_handle_create(
     up2cp_far = sess->up2cp_far;
     ogs_assert(up2cp_far);
 
-    /* Set UE IP Address to the Default DL PDR */
-    ogs_assert(OGS_OK ==
-        ogs_pfcp_paa_to_ue_ip_addr(&sess->paa,
-            &dl_pdr->ue_ip_addr, &dl_pdr->ue_ip_addr_len));
-    dl_pdr->ue_ip_addr.sd = OGS_PFCP_UE_IP_DST;
+    if (sess->paa.session_type != OGS_PDU_SESSION_TYPE_ETHERNET){
+        /* Set UE IP Address to the Default DL PDR */
+        ogs_assert(OGS_OK ==
+            ogs_pfcp_paa_to_ue_ip_addr(&sess->paa,
+                &dl_pdr->ue_ip_addr, &dl_pdr->ue_ip_addr_len));
+        dl_pdr->ue_ip_addr.sd = OGS_PFCP_UE_IP_DST;
 
-    ogs_assert(OGS_OK ==
-        ogs_pfcp_paa_to_ue_ip_addr(&sess->paa,
-            &ul_pdr->ue_ip_addr, &ul_pdr->ue_ip_addr_len));
+        ogs_assert(OGS_OK ==
+            ogs_pfcp_paa_to_ue_ip_addr(&sess->paa,
+                &ul_pdr->ue_ip_addr, &ul_pdr->ue_ip_addr_len));
+    }
 
     if (sess->session.ipv4_framed_routes &&
         sess->pfcp_node->up_function_features.frrt) {

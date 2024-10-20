@@ -803,6 +803,10 @@ bool udr_nudr_dr_handle_subscription_provisioned(
                 OpenAPI_list_add(pduSessionTypeList->allowed_session_types,
                         (void *)OpenAPI_pdu_session_type_IPV4V6);
                 break;
+            case OpenAPI_pdu_session_type_ETHERNET:
+                OpenAPI_list_add(pduSessionTypeList->allowed_session_types,
+                        (void *)OpenAPI_pdu_session_type_ETHERNET);
+                break;
             default:
                 ogs_fatal("Unsupported PDN_TYPE[%d]",
                         pduSessionTypeList->default_session_type);

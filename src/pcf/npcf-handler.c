@@ -281,16 +281,19 @@ bool pcf_npcf_smpolicycontrol_handle_create(pcf_sess_t *sess,
         goto cleanup;
     }
 
-    if (!SmPolicyContextData->ipv4_address &&
-        !SmPolicyContextData->ipv6_address_prefix) {
-        strerror = ogs_msprintf(
-                "[%s:%d] No IPv4 address[%p] or IPv6 prefix[%p]",
-                pcf_ue->supi, sess->psi,
-                SmPolicyContextData->ipv4_address,
-                SmPolicyContextData->ipv6_address_prefix);
-        status = OGS_SBI_HTTP_STATUS_BAD_REQUEST;
-        goto cleanup;
+    if (SmPolicyContextData->pdu_session_type != OGS_PDU_SESSION_TYPE_ETHERNET){
+        if (!SmPolicyContextData->ipv4_address &&
+            !SmPolicyContextData->ipv6_address_prefix) {
+            strerror = ogs_msprintf(
+                    "[%s:%d] No IPv4 address[%p] or IPv6 prefix[%p]",
+                    pcf_ue->supi, sess->psi,
+                    SmPolicyContextData->ipv4_address,
+                    SmPolicyContextData->ipv6_address_prefix);
+            status = OGS_SBI_HTTP_STATUS_BAD_REQUEST;
+            goto cleanup;
+        }
     }
+    
 
     sliceInfo = SmPolicyContextData->slice_info;
     if (!sliceInfo) {
@@ -617,11 +620,13 @@ bool pcf_npcf_smpolicycontrol_handle_delete(pcf_sess_t *sess,
         ogs_assert(response);
         ogs_assert(true == ogs_sbi_server_send_response(stream, response));
     } else {
-        r = pcf_sess_sbi_discover_and_send(
-                OGS_SBI_SERVICE_TYPE_NBSF_MANAGEMENT, NULL,
-                pcf_nbsf_management_build_de_register, sess, stream, NULL);
-        ogs_expect(r == OGS_OK);
-        ogs_assert(r != OGS_ERROR);
+        if (sess->pdu_session_type != OGS_PDU_SESSION_TYPE_ETHERNET){//TODO:eth类型暂时不向bsf去注册
+            r = pcf_sess_sbi_discover_and_send(
+                    OGS_SBI_SERVICE_TYPE_NBSF_MANAGEMENT, NULL,
+                    pcf_nbsf_management_build_de_register, sess, stream, NULL);
+            ogs_expect(r == OGS_OK);
+            ogs_assert(r != OGS_ERROR);
+        }
     }
 
     return true;
