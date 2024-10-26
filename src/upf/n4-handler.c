@@ -80,6 +80,8 @@ void upf_n4_handle_session_establishment_request(
         return;
     }
 
+    sess->session_type = req->pdn_type.u8;
+
     memset(&sereq_flags, 0, sizeof(sereq_flags));
     if (req->pfcpsereq_flags.presence == 1)
         sereq_flags.value = req->pfcpsereq_flags.u8;
@@ -196,6 +198,13 @@ void upf_n4_handle_session_establishment_request(
         if (pdr->f_teid_len)
             ogs_pfcp_object_teid_hash_set(
                     OGS_PFCP_OBJ_SESS_TYPE, pdr, restoration_indication);
+    }
+
+    if (sess->session_type == OGS_PDU_SESSION_TYPE_ETHERNET){
+        if (pdr->dnn)
+            sess->eth_subnet = ogs_pfcp_find_subnet_by_dnn(AF_INET, pdr->dnn);
+        else
+            sess->eth_subnet = ogs_pfcp_find_subnet(AF_INET);
     }
 
 #if defined(USE_DPDK)

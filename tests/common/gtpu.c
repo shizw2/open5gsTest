@@ -91,7 +91,7 @@ void test_gtpu_close(ogs_socknode_t *node)
 #if HAVE_NETINET_IP_H
 #include <netinet/ip.h>
 #endif
-
+#include <linux/if_ether.h>
 #if HAVE_NETINET_IP6_H
 #include <netinet/ip6.h>
 #endif
@@ -249,13 +249,25 @@ int test_gtpu_send_ping(
     ogs_pkbuf_put(pkbuf, 200-OGS_GTPV1U_5GC_HEADER_LEN);
     memset(pkbuf->data, 0, pkbuf->len);
 
+    int eth_len = 0;
+    if (sess->pdu_session_type == OGS_PDU_SESSION_TYPE_ETHERNET){
+        // Add Ethernet header
+        struct  ethhdr  *eth_h = NULL;
+        eth_h = (struct ethhdr  *)pkbuf->data;
+        memcpy(eth_h->h_dest, "\x00\x11\x22\x33\x44\x55", ETH_ALEN); // 目的MAC地址
+        memcpy(eth_h->h_source, "\x66\x77\x88\x99\xAA\xBB", ETH_ALEN); // 源MAC地址
+        eth_h->h_proto = htons(ETH_P_IP); // 设置以太网协议类型为IPv4
+
+        eth_len = ETH_HLEN;
+    }
+
     if (dst_ipsub.family == AF_INET) {
         struct ip *ip_h = NULL;
         struct icmp *icmp_h = NULL;
 
-        ogs_pkbuf_trim(pkbuf, sizeof *ip_h + ICMP_MINLEN);
+        ogs_pkbuf_trim(pkbuf, sizeof *ip_h + ICMP_MINLEN + eth_len);
 
-        ip_h = (struct ip *)pkbuf->data;
+        ip_h = (struct ip *)(pkbuf->data + eth_len);
         icmp_h = (struct icmp *)((uint8_t *)ip_h + sizeof *ip_h);
 
         ip_h->ip_v = 4;
@@ -282,9 +294,9 @@ int test_gtpu_send_ping(
         uint8_t nxt = 0;
         uint8_t *p = NULL;
 
-        ogs_pkbuf_trim(pkbuf, sizeof *ip6_h + sizeof *icmp6_h);
+        ogs_pkbuf_trim(pkbuf, sizeof *ip6_h + sizeof *icmp6_h + eth_len);
 
-        p = (uint8_t *)pkbuf->data;
+        p = (uint8_t *)(pkbuf->data + eth_len);
         plen =  htobe16(sizeof *icmp6_h);
         nxt = IPPROTO_ICMPV6;
 

@@ -107,6 +107,12 @@
         "ctrl-path.h": "c",
         "numbers": "c",
         "resource.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "ipfw2.h": "c",
+        "ogs-diameter-common.h": "c",
+        "ogs-nas-eps.h": "c",
+        "ogs-ipfw.h": "c",
+        "ip.h": "c",
+        "if_ether.h": "c"
     }
 }

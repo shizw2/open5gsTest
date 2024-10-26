@@ -538,6 +538,12 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
         far = pdr->far;
         ogs_assert(far);
 
+        if (sess->session_type == OGS_PDU_SESSION_TYPE_ETHERNET){
+            ogs_info("receive ethernet pkt, skip eth head.");
+            ip_h = (struct ip *)(pkbuf->data + ETHER_HDR_LEN);
+            ogs_assert(ip_h);
+            subnet = sess->eth_subnet;
+        }else{
         if (ip_h->ip_v == 4 && sess->ipv4) {
             src_addr = (void *)&ip_h->ip_src.s_addr;
             ogs_assert(src_addr);
@@ -660,6 +666,9 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             goto cleanup;
         }
 
+        }//new add for no ethpacket
+
+
         if (far->dst_if == OGS_PFCP_INTERFACE_CORE) {
 
             if (!subnet) {
@@ -735,7 +744,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
                 ogs_pkbuf_push(pkbuf, ETHER_ADDR_LEN);
                 memcpy(pkbuf->data, dev->mac_addr, ETHER_ADDR_LEN);
             }
-
+            ogs_info("ogs_tun_write() len:%d", pkbuf->len);
             /* TODO: if destined to another UE, hairpin back out. */
             if (ogs_tun_write(dev->fd, pkbuf) != OGS_OK)
                 ogs_warn("ogs_tun_write() failed");

@@ -174,6 +174,8 @@ typedef struct upf_sess_s {
     ogs_pfcp_ue_ip_t *ipv4;
     ogs_pfcp_ue_ip_t *ipv6;
 
+    ogs_pfcp_subnet_t    *eth_subnet;
+
     ogs_ipsubnet_t   *ipv4_framed_routes;
     ogs_ipsubnet_t   *ipv6_framed_routes;
 
@@ -192,6 +194,8 @@ typedef struct upf_sess_s {
     uint32_t         local_interface_address;
     uint32_t         remote_interface_address;
     /*VXLAN end*/
+
+    uint8_t session_type;
 } upf_sess_t;
 
 typedef struct upf_nbr_message_s {

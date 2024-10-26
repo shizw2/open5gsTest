@@ -436,6 +436,7 @@ typedef struct smf_sess_s {
 
     struct {
         ogs_nas_extended_protocol_configuration_options_t ue_epco;
+        ogs_nas_ds_tt_ethernet_port_mac_address_t  ethernet_port_mac_address;
     } nas; /* Saved from NAS-5GS */
 
     struct {

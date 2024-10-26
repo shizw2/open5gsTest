@@ -32,7 +32,7 @@ ogs_pkbuf_t *testgsm_build_pdu_session_establishment_request(
     ogs_nas_ssc_mode_t *ssc_mode = NULL;
     ogs_nas_extended_protocol_configuration_options_t
         *extended_protocol_configuration_options = NULL;
-
+    ogs_nas_ds_tt_ethernet_port_mac_address_t  *ethernet_port_mac_address = NULL;
     /*
      * Challenge Handshake Authentication Protocol(0xc223)
      * Code : Challenge (1)
@@ -95,6 +95,15 @@ ogs_pkbuf_t *testgsm_build_pdu_session_establishment_request(
             OGS_NAS_5GS_PDU_SESSION_ESTABLISHMENT_REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
         extended_protocol_configuration_options->length = sizeof(ue_pco);
         extended_protocol_configuration_options->buffer = ue_pco;
+    }
+
+    uint8_t mac_address[] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
+    if (test_sess->pdu_session_type == OGS_PDU_SESSION_TYPE_ETHERNET) {
+        pdu_session_establishment_request->presencemask |=
+            OGS_NAS_5GS_PDU_SESSION_ESTABLISHMENT_REQUEST_DS_TT_ETHERNET_PORT_MAC_ADDRESS_PRESENT;
+        ethernet_port_mac_address = &pdu_session_establishment_request->ds_tt_ethernet_port_mac_address;
+        ethernet_port_mac_address->length = 6;
+        memcpy(ethernet_port_mac_address->buffer, mac_address, ethernet_port_mac_address->length);
     }
 
     return ogs_nas_5gs_plain_encode(&message);
