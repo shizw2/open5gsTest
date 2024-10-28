@@ -293,7 +293,6 @@ bool pcf_npcf_smpolicycontrol_handle_create(pcf_sess_t *sess,
             goto cleanup;
         }
     }
-    
 
     sliceInfo = SmPolicyContextData->slice_info;
     if (!sliceInfo) {
@@ -620,12 +619,26 @@ bool pcf_npcf_smpolicycontrol_handle_delete(pcf_sess_t *sess,
         ogs_assert(response);
         ogs_assert(true == ogs_sbi_server_send_response(stream, response));
     } else {
-        if (sess->pdu_session_type != OGS_PDU_SESSION_TYPE_ETHERNET){//TODO:eth类型暂时不向bsf去注册
+        if (sess->pdu_session_type != OGS_PDU_SESSION_TYPE_ETHERNET){
             r = pcf_sess_sbi_discover_and_send(
                     OGS_SBI_SERVICE_TYPE_NBSF_MANAGEMENT, NULL,
                     pcf_nbsf_management_build_de_register, sess, stream, NULL);
             ogs_expect(r == OGS_OK);
             ogs_assert(r != OGS_ERROR);
+        }else{//TODO:eth类型暂时不向bsf去注册
+            ogs_info("pcf_npcf_smpolicycontrol_handle_delete, for eth pdu, no need to bsf de_register.");
+            ogs_sbi_message_t sendmsg;
+            ogs_sbi_response_t *response = NULL;
+
+            ogs_assert(sess);
+            ogs_assert(stream);
+
+            memset(&sendmsg, 0, sizeof(sendmsg));
+
+            response = ogs_sbi_build_response(
+                    &sendmsg, OGS_SBI_HTTP_STATUS_NO_CONTENT);
+            ogs_assert(response);
+            ogs_assert(true == ogs_sbi_server_send_response(stream, response));
         }
     }
 

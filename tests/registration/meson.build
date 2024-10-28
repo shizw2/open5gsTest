@@ -33,6 +33,7 @@ test5gc_registration_sources = files('''
     multi-ue-multi-test.c
     multi-ue-multi-test2.c
     crash-test.c
+    ethpdu-test.c
 '''.split())
 
 test5gc_registration_exe = executable('registration',

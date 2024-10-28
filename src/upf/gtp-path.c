@@ -160,6 +160,14 @@ static void _gtpv1_tun_recv_common_cb(
             }
         } else if (eth_type == ETHERTYPE_IPV6 &&
                     is_nd_req(recvbuf->data, recvbuf->len)) {
+             uint8_t addr6[OGS_IPV6_LEN];
+            nd_parse_target_addr(recvbuf->data, recvbuf->len, addr6);
+            
+            if (!upf_sess_find_by_ipv6((uint32_t *)addr6)){
+                ogs_info("can not find sess by ipv6:%s",ogs_ipv6addr_to_string(addr6));
+                goto cleanup;
+            }
+
             replybuf = ogs_pkbuf_alloc(packet_pool, OGS_MAX_PKT_LEN);
             ogs_assert(replybuf);
             ogs_pkbuf_reserve(replybuf, OGS_TUN_MAX_HEADROOM);
@@ -540,8 +548,15 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
         if (sess->session_type == OGS_PDU_SESSION_TYPE_ETHERNET){
             ogs_info("receive ethernet pkt, skip eth head.");
-            ip_h = (struct ip *)(pkbuf->data + ETHER_HDR_LEN);
-            ogs_assert(ip_h);
+            struct ethhdr *eth = (struct ethhdr *)pkbuf->data;
+            ogs_info("src mac: %02x:%02x:%02x:%02x:%02x:%02x,dst mac: %02x:%02x:%02x:%02x:%02x:%02x",
+                            eth->h_source[0],eth->h_source[1],eth->h_source[2],
+                            eth->h_source[3],eth->h_source[4],eth->h_source[5],
+                            eth->h_dest[0],eth->h_dest[1],eth->h_dest[2],
+                            eth->h_dest[3],eth->h_dest[4],eth->h_dest[5]);
+
+            //ip_h = (struct ip *)(pkbuf->data + ETHER_HDR_LEN);
+            //ogs_assert(ip_h);
             subnet = sess->eth_subnet;
         }else{
         if (ip_h->ip_v == 4 && sess->ipv4) {
@@ -734,7 +749,8 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             for (i = 0; i < pdr->num_of_urr; i++)
                 upf_sess_urr_acc_add(sess, pdr->urr[i], pkbuf->len, true);
 
-            if (dev->is_tap) {
+            //eth pdu已经带有mac,不需要再添加mac头
+            if (dev->is_tap && sess->session_type != OGS_PDU_SESSION_TYPE_ETHERNET) {
                 ogs_assert(eth_type);
                 eth_type = htobe16(eth_type);
                 ogs_pkbuf_push(pkbuf, sizeof(eth_type));

@@ -84,7 +84,6 @@ bool pcf_nbsf_management_handle_register(
     ogs_assert(sess->dnn);
 
     if (sess->pdu_session_type != OGS_PDU_SESSION_TYPE_ETHERNET){
-
         if (!recvmsg->http.location) {
             strerror = ogs_msprintf("[%s:%d] No http.location",
                     pcf_ue->supi, sess->psi);

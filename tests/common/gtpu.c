@@ -254,8 +254,8 @@ int test_gtpu_send_ping(
         // Add Ethernet header
         struct  ethhdr  *eth_h = NULL;
         eth_h = (struct ethhdr  *)pkbuf->data;
-        memcpy(eth_h->h_dest, "\x00\x11\x22\x33\x44\x55", ETH_ALEN); // 目的MAC地址
-        memcpy(eth_h->h_source, "\x66\x77\x88\x99\xAA\xBB", ETH_ALEN); // 源MAC地址
+        memcpy(eth_h->h_source, "\x00\x11\x22\x33\x44\x55", ETH_ALEN); // 目的MAC地址
+        memcpy(eth_h->h_dest, "\x7e\x99\x8f\x21\x2f\xf7", ETH_ALEN); // 源MAC地址
         eth_h->h_proto = htons(ETH_P_IP); // 设置以太网协议类型为IPv4
 
         eth_len = ETH_HLEN;
@@ -278,7 +278,11 @@ int test_gtpu_send_ping(
         ip_h->ip_ttl = 255;
         ip_h->ip_p = IPPROTO_ICMP;
         ip_h->ip_len = htobe16(sizeof *ip_h + ICMP_MINLEN);
-        ip_h->ip_src.s_addr = sess->ue_ip.addr;
+        if (sess->pdu_session_type == OGS_PDU_SESSION_TYPE_ETHERNET){
+            ip_h->ip_src.s_addr = 0x02002d0a;//模拟10.45.0.2
+        }else{
+            ip_h->ip_src.s_addr = sess->ue_ip.addr;
+        }
         ip_h->ip_dst.s_addr = dst_ipsub.sub[0];
         ip_h->ip_sum = ogs_in_cksum((uint16_t *)ip_h, sizeof *ip_h);
 

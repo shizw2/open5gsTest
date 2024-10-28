@@ -129,7 +129,6 @@ bool smf_nudm_sdm_handle_get(smf_sess_t *sess, ogs_sbi_stream_t *stream,
                     pduSessionTypeList->allowed_session_types, node2) {
                     if (node2->data) {
                         uint8_t allowed_session_type = (uintptr_t)node2->data;
-                        ogs_info("ue_session_type:%d,allowed_session_type:%d",sess->ue_session_type,allowed_session_type);
                         if (sess->ue_session_type == allowed_session_type) {
                             sess->session.session_type =
                                 sess->ue_session_type;
@@ -143,8 +142,6 @@ bool smf_nudm_sdm_handle_get(smf_sess_t *sess, ogs_sbi_stream_t *stream,
                 sess->session.session_type =
                     pduSessionTypeList->default_session_type;
 
-            ogs_info("session.session_type:%d, default_session_type:%d",sess->session.session_type, pduSessionTypeList->default_session_type);
-                
             if (sess->ue_ssc_mode) {
                 OpenAPI_list_for_each(sscModeList->allowed_ssc_modes, node2) {
                     if (node2->data) {

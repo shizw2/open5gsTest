@@ -1347,39 +1347,11 @@ test_sess_t *test_sess_add_by_dnn_and_psi(
     sess->gnb_n3_addr6 = test_self()->gnb1_addr6;
     sess->gnb_n3_teid = sess->index;
 
-    sess->pdu_session_type = OGS_PDU_SESSION_TYPE_IPV4V6;
-
-    sess->test_ue = test_ue;
-
-    ogs_list_add(&test_ue->sess_list, sess);
-
-    return sess;
-}
-
-test_sess_t *test_sess_add_by_dnn_and_psi_and_st(
-        test_ue_t *test_ue, char *dnn, uint8_t psi, uint8_t pdu_session_type)
-{
-    test_sess_t *sess = NULL;
-
-    ogs_assert(test_ue);
-    ogs_assert(dnn);
-
-    ogs_pool_alloc(&test_sess_pool, &sess);
-    ogs_assert(sess);
-    memset(sess, 0, sizeof *sess);
-
-    sess->index = ogs_pool_index(&test_sess_pool, sess);
-
-    sess->dnn = ogs_strdup(dnn);
-    ogs_assert(sess->dnn);
-    sess->psi = psi;
-    sess->pti = 1; /* Default PTI : 1 */
-
-    sess->gnb_n3_addr = test_self()->gnb1_addr;
-    sess->gnb_n3_addr6 = test_self()->gnb1_addr6;
-    sess->gnb_n3_teid = sess->index;
-
-    sess->pdu_session_type = pdu_session_type;
+    if (test_ue->pdu_session_type == OGS_PDU_SESSION_TYPE_ETHERNET){
+        sess->pdu_session_type = test_ue->pdu_session_type;
+    }else{
+        sess->pdu_session_type = OGS_PDU_SESSION_TYPE_IPV4V6;
+    }
 
     sess->test_ue = test_ue;
 
@@ -1726,6 +1698,12 @@ bson_t *test_db_new_simple(test_ue_t *test_ue)
 
     ogs_assert(test_ue);
 
+    uint16_t pdu_session_type = 3;//default
+
+    if (test_ue->pdu_session_type){
+        pdu_session_type = test_ue->pdu_session_type;
+    }
+
     doc = BCON_NEW(
             "imsi", BCON_UTF8(test_ue->imsi),
             "msisdn", "[",
@@ -1747,7 +1725,7 @@ bson_t *test_db_new_simple(test_ue_t *test_ue)
                 "default_indicator", BCON_BOOL(true),
                 "session", "[", "{",
                     "name", BCON_UTF8("internet"),
-                    "type", BCON_INT32(5),
+                    "type", BCON_INT32(pdu_session_type),
                     "ambr", "{",
                         "downlink", "{",
                             "value", BCON_INT32(1),

@@ -35,7 +35,6 @@ int gsm_handle_pdu_session_establishment_request(
         integrity_protection_maximum_data_rate =
             &pdu_session_establishment_request->
                 integrity_protection_maximum_data_rate;
-
     ogs_nas_pdu_session_type_t *pdu_session_type = NULL;
     ogs_nas_ssc_mode_t *ssc_mode = NULL;
     int r;
@@ -71,6 +70,13 @@ int gsm_handle_pdu_session_establishment_request(
     if (pdu_session_establishment_request->presencemask &
         OGS_NAS_5GS_PDU_SESSION_ESTABLISHMENT_REQUEST_DS_TT_ETHERNET_PORT_MAC_ADDRESS_PRESENT) {
         sess->nas.ethernet_port_mac_address = pdu_session_establishment_request->ds_tt_ethernet_port_mac_address;
+        
+        ogs_info("gsm_handle_pdu_session_establishment_request, ue mac:%02x:%02x:%02x:%02x:%02x:%02x.",sess->nas.ethernet_port_mac_address.buffer[0]
+            ,sess->nas.ethernet_port_mac_address.buffer[1]
+            ,sess->nas.ethernet_port_mac_address.buffer[2]
+            ,sess->nas.ethernet_port_mac_address.buffer[3]
+            ,sess->nas.ethernet_port_mac_address.buffer[4]
+            ,sess->nas.ethernet_port_mac_address.buffer[5]);
     }
 
     r = smf_sbi_discover_and_send(OGS_SBI_SERVICE_TYPE_NUDM_SDM, NULL,

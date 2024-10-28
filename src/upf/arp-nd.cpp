@@ -24,7 +24,7 @@
 #include <tins/hw_address.h>
 #include <tins/icmpv6.h>
 #include <tins/exceptions.h>
-
+#include <tins/ipv6.h>
 #include "arp-nd.h"
 
 using namespace::Tins;
@@ -109,13 +109,39 @@ uint8_t nd_reply(uint8_t *reply_data, uint8_t *request_data, uint len,
     EthernetII pdu(request_data, len);
     if (_parse_nd(pdu)) {
         HWAddress<ETHER_ADDR_LEN> source_mac(mac);
+        const IPv6& ipv6 = pdu.rfind_pdu<IPv6>();
         const ICMPv6& icmp6 = pdu.rfind_pdu<ICMPv6>();
-        EthernetII reply(pdu.src_addr(), pdu.dst_addr());
+        EthernetII reply(pdu.src_addr(), source_mac);
+
+        // 构造IPv6头部
+        IPv6 ipv6_header(ipv6.src_addr(), icmp6.target_addr());
+        ipv6_header.next_header(58);
+        ipv6_header.hop_limit(255); // 设置跳数限制
+
         ICMPv6 nd_reply(ICMPv6::NEIGHBOUR_ADVERT);
         nd_reply.target_link_layer_addr(source_mac);
         nd_reply.target_addr(icmp6.target_addr());
+
+        // 将IPv6头部和ICMPv6消息附加到以太网帧上
+        reply /= ipv6_header;
         reply /= nd_reply;
         return _serialize_reply(reply_data, reply);
     }
     return 0;
+}
+
+
+int nd_parse_target_addr(uint8_t *data, uint len, uint8_t *addr)
+{
+    EthernetII pdu(data, len);
+    if (_parse_nd(pdu)) {
+        const ICMPv6& icmp6 = pdu.rfind_pdu<ICMPv6>();
+
+        IPv6Address dst_addr = icmp6.target_addr(); // 获取目的地址
+       
+        std::copy(dst_addr.begin(), dst_addr.end(), addr);
+
+        return 0;
+    }
+    return -1;
 }

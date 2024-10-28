@@ -113,6 +113,7 @@
         "ogs-nas-eps.h": "c",
         "ogs-ipfw.h": "c",
         "ip.h": "c",
-        "if_ether.h": "c"
+        "if_ether.h": "c",
+        "nudm-build.h": "c"
     }
 }

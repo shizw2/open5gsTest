@@ -169,7 +169,6 @@ ogs_pkbuf_t *gsm_build_pdu_session_establishment_accept(smf_sess_t *sess)
         pdu_address->length = OGS_NAS_PDU_ADDRESS_IPV4V6_LEN;
     } else if (pdu_address->pdn_type == OGS_PDU_SESSION_TYPE_ETHERNET) {
         //DO NONTHING
-        ogs_info("pdn_type:%d.",pdu_address->pdn_type);
     } else {
         ogs_error("Unexpected PDN Type %u", pdu_address->pdn_type);
         goto cleanup;

@@ -167,7 +167,7 @@ static void test1_func(abts_case *tc, void *data)
     testngap_recv(test_ue, recvbuf);
 
     /* Send PDU session establishment request */
-    sess = test_sess_add_by_dnn_and_psi_and_st(test_ue, "internet", 5, 5);
+    sess = test_sess_add_by_dnn_and_psi(test_ue, "internet", 5);
     ogs_assert(sess);
 
     sess->ul_nas_transport_param.request_type =
@@ -175,7 +175,7 @@ static void test1_func(abts_case *tc, void *data)
     sess->ul_nas_transport_param.dnn = 1;
     sess->ul_nas_transport_param.s_nssai = 1;
 
-    sess->pdu_session_establishment_param.ssc_mode = 10;
+    sess->pdu_session_establishment_param.ssc_mode = 1;
     sess->pdu_session_establishment_param.epco = 1;
 
     gsmbuf = testgsm_build_pdu_session_establishment_request(sess);

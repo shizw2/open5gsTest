@@ -205,6 +205,8 @@ void upf_n4_handle_session_establishment_request(
             sess->eth_subnet = ogs_pfcp_find_subnet_by_dnn(AF_INET, pdr->dnn);
         else
             sess->eth_subnet = ogs_pfcp_find_subnet(AF_INET);
+
+        ogs_info("dnn:%s,eth dev name:%s", pdr->dnn,sess->eth_subnet->dev->ifname);
     }
 
 #if defined(USE_DPDK)

@@ -36,12 +36,13 @@ abts_suite *test_multi_ue_multi_test(abts_suite *suite);
 abts_suite *test_multi_ue_multi_test2(abts_suite *suite);
 
 abts_suite *test_crash(abts_suite *suite);
-
+abts_suite *test_ethpdu(abts_suite *suite);
 const struct testlist {
     abts_suite *(*func)(abts_suite *suite);
 } alltests[] = {
-    {test_simple},
-    //{test_dereg},
+    //{test_simple},
+    //{test_ethpdu},
+    {test_paging},
 #if 0
     {test_guti},
     {test_auth},
