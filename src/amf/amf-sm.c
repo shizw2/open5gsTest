@@ -32,6 +32,7 @@
 #include "license.h"
 #include <unistd.h>
 #include <signal.h>
+#include "sacc.h"
 extern int g_sps_id;
 extern pkt_fwd_tbl_t *g_pt_pkt_fwd_tbl;
 extern int send_heart_cnt;
@@ -354,7 +355,9 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                         sbi_message.h.resource.component[1], NULL));
             END
             break;
-
+        CASE(OGS_SBI_SERVICE_NAME_ACC)
+            sacc_handle_handshake_req(stream, &sbi_message);    
+            break;
         DEFAULT
             ogs_error("Invalid API name [%s]", sbi_message.h.service.name);
             ogs_assert(true ==
@@ -717,6 +720,10 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             amf_nnssf_nsselection_handle_get(sess, &sbi_message);
             break;
 
+        CASE(OGS_SBI_SERVICE_NAME_ACC)
+            ogs_info("test:");
+            sacc_handle_handshake_resp(&sbi_message);      
+            break;
         DEFAULT
             ogs_error("Invalid service name [%s]", sbi_message.h.service.name);
             ogs_assert_if_reached();
@@ -912,7 +919,10 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
         case OGS_TIMER_YAML_CONFIG_CHECK:
             yaml_check_proc();
-            ogs_yaml_check_restart(); 
+            ogs_yaml_check_restart();
+
+            //test
+            sacc_scan();
             break;
 
         default:
