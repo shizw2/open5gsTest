@@ -254,8 +254,8 @@ int test_gtpu_send_ping(
         // Add Ethernet header
         struct  ethhdr  *eth_h = NULL;
         eth_h = (struct ethhdr  *)pkbuf->data;
-        memcpy(eth_h->h_source, "\x00\x11\x22\x33\x44\x55", ETH_ALEN); // 目的MAC地址
-        memcpy(eth_h->h_dest, "\x7e\x99\x8f\x21\x2f\xf7", ETH_ALEN); // 源MAC地址
+        memcpy(eth_h->h_source, "\x00\x11\x22\x33\x44\x55", ETH_ALEN); 
+        memcpy(eth_h->h_dest, "\x7e\x99\x8f\x21\x2f\xf7", ETH_ALEN); 
         eth_h->h_proto = htons(ETH_P_IP); // 设置以太网协议类型为IPv4
 
         eth_len = ETH_HLEN;

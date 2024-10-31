@@ -399,7 +399,7 @@ typedef struct test_ue_s {
 
     uint16_t pdu_session_status;
     uint16_t pdu_session_reactivation_result;
-    uint16_t pdu_session_type;//仅用于构造数据
+    uint16_t pdu_session_type;
 
     test_attach_request_param_t attach_request_param;
     test_tau_request_param_t tau_request_param;
@@ -556,6 +556,7 @@ void test_context_final_ex(void);
 test_bearer_t *test_bearer_add_ex(test_sess_t *sess, uint8_t ebi);
 test_bearer_t *test_qos_flow_add_ex(test_sess_t *sess);
 void test_bearer_remove_ex(test_bearer_t *bearer);
+
 #ifdef __cplusplus
 }
 #endif
