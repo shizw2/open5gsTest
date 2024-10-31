@@ -559,129 +559,129 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             //ogs_assert(ip_h);
             subnet = sess->eth_subnet;
         }else{
-        if (ip_h->ip_v == 4 && sess->ipv4) {
-            src_addr = (void *)&ip_h->ip_src.s_addr;
-            ogs_assert(src_addr);
+            if (ip_h->ip_v == 4 && sess->ipv4) {
+                src_addr = (void *)&ip_h->ip_src.s_addr;
+                ogs_assert(src_addr);
 
-            /*
-             * From Issue #1354
-             *
-             * Do not check Indirect Tunnel
-             *    pdr->dst_if = OGS_PFCP_INTERFACE_ACCESS;
-             *    far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
-             */
-            if (far->dst_if != OGS_PFCP_INTERFACE_ACCESS) {
+                /*
+                * From Issue #1354
+                *
+                * Do not check Indirect Tunnel
+                *    pdr->dst_if = OGS_PFCP_INTERFACE_ACCESS;
+                *    far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
+                */
+                if (far->dst_if != OGS_PFCP_INTERFACE_ACCESS) {
 
-                if (src_addr[0] == sess->ipv4->addr[0]) {
-                    /* Source IP address should be matched in uplink */
-                } else if (check_framed_routes(sess, AF_INET, src_addr)) {
-                    /* Or source IP address should match a framed route */
-                } else {
-                    ogs_error("[DROP] Source IP-%d Spoofing APN:%s SrcIf:%d DstIf:%d TEID:0x%x",
-                                ip_h->ip_v, pdr->dnn, pdr->src_if, far->dst_if, header_desc.teid);
-                    ogs_error("       SRC:%08X, UE:%08X",
-                        be32toh(src_addr[0]), be32toh(sess->ipv4->addr[0]));
-                    ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
+                    if (src_addr[0] == sess->ipv4->addr[0]) {
+                        /* Source IP address should be matched in uplink */
+                    } else if (check_framed_routes(sess, AF_INET, src_addr)) {
+                        /* Or source IP address should match a framed route */
+                    } else {
+                        ogs_error("[DROP] Source IP-%d Spoofing APN:%s SrcIf:%d DstIf:%d TEID:0x%x",
+                                    ip_h->ip_v, pdr->dnn, pdr->src_if, far->dst_if, header_desc.teid);
+                        ogs_error("       SRC:%08X, UE:%08X",
+                            be32toh(src_addr[0]), be32toh(sess->ipv4->addr[0]));
+                        ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
 
-                    goto cleanup;
+                        goto cleanup;
+                    }
                 }
+
+                subnet = sess->ipv4->subnet;
+                eth_type = ETHERTYPE_IP;
+
+            } else if (ip_h->ip_v == 6 && sess->ipv6) {
+                struct ip6_hdr *ip6_h = (struct ip6_hdr *)pkbuf->data;
+                ogs_assert(ip6_h);
+                src_addr = (void *)ip6_h->ip6_src.s6_addr;
+                ogs_assert(src_addr);
+
+                /*
+                * From Issue #1354
+                *
+                * Do not check Router Advertisement
+                *    pdr->src_if = OGS_PFCP_INTERFACE_CP_FUNCTION;
+                *    far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
+                *
+                * Do not check Indirect Tunnel
+                *    pdr->dst_if = OGS_PFCP_INTERFACE_ACCESS;
+                *    far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
+                */
+                if (far->dst_if != OGS_PFCP_INTERFACE_ACCESS) {
+
+    /*
+    * Discussion #1776 was raised,
+    * but we decided not to allow unspecified addresses
+    * because Open5GS has already sent interface identifiers
+    * in the registgration/attach process.
+    *
+    *
+    * RFC4861
+    * 4.  Message Formats
+    * 4.1.  Router Solicitation Message Format
+    * IP Fields:
+    *    Source Address
+    *                  An IP address assigned to the sending interface, or
+    *                  the unspecified address if no address is assigned
+    *                  to the sending interface.
+    *
+    * 6.1.  Message Validation
+    * 6.1.1.  Validation of Router Solicitation Messages
+    *  Hosts MUST silently discard any received Router Solicitation
+    *  Messages.
+    *
+    *  A router MUST silently discard any received Router Solicitation
+    *  messages that do not satisfy all of the following validity checks:
+    *
+    *  ..
+    *  ..
+    *
+    *  - If the IP source address is the unspecified address, there is no
+    *    source link-layer address option in the message.
+    */
+                    if (IN6_IS_ADDR_LINKLOCAL((struct in6_addr *)src_addr) &&
+                        src_addr[2] == sess->ipv6->addr[2] &&
+                        src_addr[3] == sess->ipv6->addr[3]) {
+                        /*
+                        * if Link-local address,
+                        * Interface Identifier should be matched
+                        */
+                    } else if (src_addr[0] == sess->ipv6->addr[0] &&
+                                src_addr[1] == sess->ipv6->addr[1]) {
+                        /*
+                        * If Global address
+                        * 64 bit prefix should be matched
+                        */
+                    } else if (check_framed_routes(sess, AF_INET6, src_addr)) {
+                        /* Or source IP address should match a framed route */
+                    } else {
+                        ogs_error("[DROP] Source IP-%d Spoofing APN:%s SrcIf:%d DstIf:%d TEID:0x%x",
+                                    ip_h->ip_v, pdr->dnn, pdr->src_if, far->dst_if, header_desc.teid);
+                        ogs_error("SRC:%08x %08x %08x %08x",
+                                be32toh(src_addr[0]), be32toh(src_addr[1]),
+                                be32toh(src_addr[2]), be32toh(src_addr[3]));
+                        ogs_error("UE:%08x %08x %08x %08x",
+                                be32toh(sess->ipv6->addr[0]),
+                                be32toh(sess->ipv6->addr[1]),
+                                be32toh(sess->ipv6->addr[2]),
+                                be32toh(sess->ipv6->addr[3]));
+                        ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
+
+                        goto cleanup;
+                    }
+                }
+
+                subnet = sess->ipv6->subnet;
+                eth_type = ETHERTYPE_IPV6;
+
+            } else {
+                ogs_error("Invalid packet [IP version:%d, Packet Length:%d]",
+                        ip_h->ip_v, pkbuf->len);
+                ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
+                goto cleanup;
             }
 
-            subnet = sess->ipv4->subnet;
-            eth_type = ETHERTYPE_IP;
-
-        } else if (ip_h->ip_v == 6 && sess->ipv6) {
-            struct ip6_hdr *ip6_h = (struct ip6_hdr *)pkbuf->data;
-            ogs_assert(ip6_h);
-            src_addr = (void *)ip6_h->ip6_src.s6_addr;
-            ogs_assert(src_addr);
-
-            /*
-             * From Issue #1354
-             *
-             * Do not check Router Advertisement
-             *    pdr->src_if = OGS_PFCP_INTERFACE_CP_FUNCTION;
-             *    far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
-             *
-             * Do not check Indirect Tunnel
-             *    pdr->dst_if = OGS_PFCP_INTERFACE_ACCESS;
-             *    far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
-             */
-            if (far->dst_if != OGS_PFCP_INTERFACE_ACCESS) {
-
-/*
- * Discussion #1776 was raised,
- * but we decided not to allow unspecified addresses
- * because Open5GS has already sent interface identifiers
- * in the registgration/attach process.
- *
- *
- * RFC4861
- * 4.  Message Formats
- * 4.1.  Router Solicitation Message Format
- * IP Fields:
- *    Source Address
- *                  An IP address assigned to the sending interface, or
- *                  the unspecified address if no address is assigned
- *                  to the sending interface.
- *
- * 6.1.  Message Validation
- * 6.1.1.  Validation of Router Solicitation Messages
- *  Hosts MUST silently discard any received Router Solicitation
- *  Messages.
- *
- *  A router MUST silently discard any received Router Solicitation
- *  messages that do not satisfy all of the following validity checks:
- *
- *  ..
- *  ..
- *
- *  - If the IP source address is the unspecified address, there is no
- *    source link-layer address option in the message.
- */
-                if (IN6_IS_ADDR_LINKLOCAL((struct in6_addr *)src_addr) &&
-                    src_addr[2] == sess->ipv6->addr[2] &&
-                    src_addr[3] == sess->ipv6->addr[3]) {
-                    /*
-                     * if Link-local address,
-                     * Interface Identifier should be matched
-                     */
-                } else if (src_addr[0] == sess->ipv6->addr[0] &&
-                            src_addr[1] == sess->ipv6->addr[1]) {
-                    /*
-                     * If Global address
-                     * 64 bit prefix should be matched
-                     */
-                } else if (check_framed_routes(sess, AF_INET6, src_addr)) {
-                    /* Or source IP address should match a framed route */
-                } else {
-                    ogs_error("[DROP] Source IP-%d Spoofing APN:%s SrcIf:%d DstIf:%d TEID:0x%x",
-                                ip_h->ip_v, pdr->dnn, pdr->src_if, far->dst_if, header_desc.teid);
-                    ogs_error("SRC:%08x %08x %08x %08x",
-                            be32toh(src_addr[0]), be32toh(src_addr[1]),
-                            be32toh(src_addr[2]), be32toh(src_addr[3]));
-                    ogs_error("UE:%08x %08x %08x %08x",
-                            be32toh(sess->ipv6->addr[0]),
-                            be32toh(sess->ipv6->addr[1]),
-                            be32toh(sess->ipv6->addr[2]),
-                            be32toh(sess->ipv6->addr[3]));
-                    ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
-
-                    goto cleanup;
-                }
-            }
-
-            subnet = sess->ipv6->subnet;
-            eth_type = ETHERTYPE_IPV6;
-
-        } else {
-            ogs_error("Invalid packet [IP version:%d, Packet Length:%d]",
-                    ip_h->ip_v, pkbuf->len);
-            ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
-            goto cleanup;
         }
-
-        }//new add for no ethpacket
 
 
         if (far->dst_if == OGS_PFCP_INTERFACE_CORE) {
@@ -760,7 +760,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
                 ogs_pkbuf_push(pkbuf, ETHER_ADDR_LEN);
                 memcpy(pkbuf->data, dev->mac_addr, ETHER_ADDR_LEN);
             }
-            ogs_info("ogs_tun_write() len:%d", pkbuf->len);
+
             /* TODO: if destined to another UE, hairpin back out. */
             if (ogs_tun_write(dev->fd, pkbuf) != OGS_OK)
                 ogs_warn("ogs_tun_write() failed");

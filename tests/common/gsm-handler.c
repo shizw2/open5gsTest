@@ -29,7 +29,7 @@ void testgsm_handle_pdu_session_establishment_accept(test_sess_t *sess,
     ogs_assert(pdu_session_establishment_accept);
 
     pdu_address = &pdu_session_establishment_accept->pdu_address;
-    ogs_info("pdu_address->pdn_type:%d",pdu_address->pdn_type);
+
     if (pdu_session_establishment_accept->presencemask &
             OGS_NAS_5GS_PDU_SESSION_ESTABLISHMENT_ACCEPT_PDU_ADDRESS_PRESENT) {
         switch (pdu_address->pdn_type) {
