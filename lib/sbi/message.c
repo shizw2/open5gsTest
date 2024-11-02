@@ -1480,9 +1480,9 @@ static char *build_json(ogs_sbi_message_t *message)
         item = OpenAPI_eir_response_data_convertToJSON(
             message->eir_response);
         ogs_assert(item);
-    } else if (message->sacc_handshakeReqData) {//自己编码,不用OpenAPI生成
-        item = OpenAPI_sacc_handshake_data_convertToJSON(
-            message->sacc_handshakeReqData);
+    } else if (message->sacc_msg_Data) {//自己编码,不用OpenAPI生成
+        item = OpenAPI_sacc_msg_data_convertToJSON(
+            message->sacc_msg_Data);
         ogs_assert(item);
     }
 
@@ -2634,27 +2634,26 @@ static int parse_json(ogs_sbi_message_t *message,
             END
             break;
         CASE(OGS_SBI_SERVICE_NAME_ACC)
-            ogs_info("resource name 0[%s]1[%s]2[%s]",
-                        message->h.resource.component[0],message->h.resource.component[1],message->h.resource.component[2]);
             SWITCH(message->h.resource.component[0])
             CASE(OGS_SBI_RESOURCE_NAME_HANDSHAKE)
+            CASE(OGS_SBI_RESOURCE_NAME_HEARTBEAT)
                 SWITCH(message->h.method)
                 CASE(OGS_SBI_HTTP_METHOD_POST)
                     if (message->res_status == 0) {
-                        message->sacc_handshakeReqData =
-                            OpenAPI_sacc_handshake_data_parseFromJSON(item);
-                        if (!message->sacc_handshakeReqData) {
+                        message->sacc_msg_Data =
+                            OpenAPI_sacc_msg_data_parseFromJSON(item);
+                        if (!message->sacc_msg_Data) {
                             rv = OGS_ERROR;
                             ogs_error("JSON parse error");
                         }
-                         ogs_info("sbi receive sacc handshake request, %s %s %s %s",message->sacc_handshakeReqData->deviceId,message->sacc_handshakeReqData->group,message->sacc_handshakeReqData->node,message->sacc_handshakeReqData->serviceIp);
+                        //ogs_info("sbi receive sacc handshake request, %s %s %s %s",message->sacc_msg_Data->deviceId,message->sacc_msg_Data->group,message->sacc_msg_Data->node,message->sacc_msg_Data->serviceIp);
                     } else if (message->res_status == OGS_SBI_HTTP_STATUS_OK) {
-                        // message->SecNegotiateRspData =
-                        //     OpenAPI_sec_negotiate_rsp_data_parseFromJSON(item);
-                        // if (!message->SecNegotiateRspData) {
-                        //     rv = OGS_ERROR;
-                        //     ogs_error("JSON parse error");
-                        // }
+                        message->sacc_msg_Data =
+                            OpenAPI_sacc_msg_data_parseFromJSON(item);
+                        if (!message->sacc_msg_Data) {
+                            rv = OGS_ERROR;
+                            ogs_error("JSON parse error");
+                        }
                     }
                     break;
                 DEFAULT
@@ -3680,38 +3679,40 @@ void ogs_print_sbi_udp_header(ogs_sbi_udp_header_t *udp_header, bool is_request)
 }
 
 
-sacc_handshake_t *OpenAPI_sacc_handshake_data_create(
-    char *deviceId, char *group, char *node, char *serviceIp
+sacc_msg_data_t *OpenAPI_sacc_msg_data_create(
+    char *deviceId, char *group, char *node, char *serviceIp, char *result
 )
 {
-    sacc_handshake_t *sacc_handshake_data_local_var = ogs_malloc(sizeof(sacc_handshake_t));
-    ogs_assert(sacc_handshake_data_local_var);
+    sacc_msg_data_t *sacc_msg_data_local_var = ogs_malloc(sizeof(sacc_msg_data_t));
+    ogs_assert(sacc_msg_data_local_var);
 
-    strncpy(sacc_handshake_data_local_var->deviceId, deviceId, sizeof(sacc_handshake_data_local_var->deviceId));
-    strncpy(sacc_handshake_data_local_var->group, group, sizeof(sacc_handshake_data_local_var->group));
-    strncpy(sacc_handshake_data_local_var->node, node, sizeof(sacc_handshake_data_local_var->node));
-    strncpy(sacc_handshake_data_local_var->serviceIp, serviceIp, sizeof(sacc_handshake_data_local_var->serviceIp));
-
-    return sacc_handshake_data_local_var;
+    strncpy(sacc_msg_data_local_var->deviceId, deviceId, sizeof(sacc_msg_data_local_var->deviceId));
+    strncpy(sacc_msg_data_local_var->group, group, sizeof(sacc_msg_data_local_var->group));
+    strncpy(sacc_msg_data_local_var->node, node, sizeof(sacc_msg_data_local_var->node));
+    strncpy(sacc_msg_data_local_var->serviceIp, serviceIp, sizeof(sacc_msg_data_local_var->serviceIp));
+    if (result != NULL){
+        strncpy(sacc_msg_data_local_var->result, result, sizeof(sacc_msg_data_local_var->result));
+    }
+    return sacc_msg_data_local_var;
 }
 
-void OpenAPI_sacc_handshake_data_free(sacc_handshake_t *sacc_handshake_data)
+void OpenAPI_sacc_msg_data_free(sacc_msg_data_t *sacc_msg_data)
 {
     OpenAPI_lnode_t *node = NULL;
 
-    if (NULL == sacc_handshake_data) {
+    if (NULL == sacc_msg_data) {
         return;
     }
-    ogs_free(sacc_handshake_data);
+    ogs_free(sacc_msg_data);
 }
 
-cJSON *OpenAPI_sacc_handshake_data_convertToJSON(sacc_handshake_t *handshake)
+cJSON *OpenAPI_sacc_msg_data_convertToJSON(sacc_msg_data_t *handshake)
 {
     cJSON *item = NULL;
     OpenAPI_lnode_t *node = NULL;
 
     if (handshake == NULL) {
-        ogs_error("OpenAPI_sacc_handshake_data_convertToJSON() failed [handshake]");
+        ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [handshake]");
         return NULL;
     }
 
@@ -3719,82 +3720,102 @@ cJSON *OpenAPI_sacc_handshake_data_convertToJSON(sacc_handshake_t *handshake)
 
 
     if (cJSON_AddStringToObject(item, "deviceId", handshake->deviceId) == NULL) {
-        ogs_error("OpenAPI_sacc_handshake_data_convertToJSON() failed [status]");
+        ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [status]");
         goto end;
     }
 
     if (cJSON_AddStringToObject(item, "group", handshake->group) == NULL) {
-        ogs_error("OpenAPI_sacc_handshake_data_convertToJSON() failed [status]");
+        ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [status]");
         goto end;
     }
 
     if (cJSON_AddStringToObject(item, "node", handshake->node) == NULL) {
-        ogs_error("OpenAPI_sacc_handshake_data_convertToJSON() failed [status]");
+        ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [status]");
         goto end;
     }
 
     if (cJSON_AddStringToObject(item, "serviceIp", handshake->serviceIp) == NULL) {
-        ogs_error("OpenAPI_sacc_handshake_data_convertToJSON() failed [status]");
+        ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [status]");
         goto end;
     }
+
+    if (handshake->result != NULL){//可选
+        if (cJSON_AddStringToObject(item, "result", handshake->result) == NULL) {
+            ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [result]");
+            goto end;
+        }
+    }
+
 end:
     return item;
 }
 
-sacc_handshake_t *OpenAPI_sacc_handshake_data_parseFromJSON(cJSON *handshake_dataJSON)
+sacc_msg_data_t *OpenAPI_sacc_msg_data_parseFromJSON(cJSON *msg_dataJSON)
 {
-    sacc_handshake_t *sacc_handshake_data_local_var = NULL;
+    sacc_msg_data_t *sacc_msg_data_local_var = NULL;
    
     cJSON *deviceId = NULL;
     cJSON *group = NULL;
     cJSON *node = NULL;
     cJSON *serviceIp = NULL;
+    cJSON *result = NULL;
+    char *result_value = NULL;
     OpenAPI_equipment_status_e statusVariable = 0;
-    deviceId = cJSON_GetObjectItemCaseSensitive(handshake_dataJSON, "deviceId");
+    deviceId = cJSON_GetObjectItemCaseSensitive(msg_dataJSON, "deviceId");
     if (!deviceId) {
-        ogs_error("OpenAPI_sacc_handshake_data_parseFromJSON() failed [deviceId]");
+        ogs_error("OpenAPI_sacc_msg_data_parseFromJSON() failed [deviceId]");
         goto end;
     }
     if (!cJSON_IsString(deviceId)) {
-        ogs_error("OpenAPI_sacc_handshake_data_parseFromJSON() failed [deviceId]");
+        ogs_error("OpenAPI_sacc_msg_data_parseFromJSON() failed [deviceId]");
         goto end;
     }
 
-    group = cJSON_GetObjectItemCaseSensitive(handshake_dataJSON, "group");
+    group = cJSON_GetObjectItemCaseSensitive(msg_dataJSON, "group");
     if (!group) {
-        ogs_error("OpenAPI_sacc_handshake_data_parseFromJSON() failed [group]");
+        ogs_error("OpenAPI_sacc_msg_data_parseFromJSON() failed [group]");
         goto end;
     }
     if (!cJSON_IsString(group)) {
-        ogs_error("OpenAPI_sacc_handshake_data_parseFromJSON() failed [group]");
+        ogs_error("OpenAPI_sacc_msg_data_parseFromJSON() failed [group]");
         goto end;
     }
 
-    node = cJSON_GetObjectItemCaseSensitive(handshake_dataJSON, "node");
+    node = cJSON_GetObjectItemCaseSensitive(msg_dataJSON, "node");
     if (!node) {
-        ogs_error("OpenAPI_sacc_handshake_data_parseFromJSON() failed [node]");
+        ogs_error("OpenAPI_sacc_msg_data_parseFromJSON() failed [node]");
         goto end;
     }
     if (!cJSON_IsString(node)) {
-        ogs_error("OpenAPI_sacc_handshake_data_parseFromJSON() failed [node]");
+        ogs_error("OpenAPI_sacc_msg_data_parseFromJSON() failed [node]");
         goto end;
     }
 
-    serviceIp = cJSON_GetObjectItemCaseSensitive(handshake_dataJSON, "serviceIp");
+    serviceIp = cJSON_GetObjectItemCaseSensitive(msg_dataJSON, "serviceIp");
     if (!serviceIp) {
-        ogs_error("OpenAPI_sacc_handshake_data_parseFromJSON() failed [serviceIp]");
+        ogs_error("OpenAPI_sacc_msg_data_parseFromJSON() failed [serviceIp]");
         goto end;
     }
     if (!cJSON_IsString(serviceIp)) {
-        ogs_error("OpenAPI_sacc_handshake_data_parseFromJSON() failed [serviceIp]");
+        ogs_error("OpenAPI_sacc_msg_data_parseFromJSON() failed [serviceIp]");
         goto end;
     }
 
-    sacc_handshake_data_local_var = OpenAPI_sacc_handshake_data_create (
-        deviceId->valuestring,group->valuestring,node->valuestring,serviceIp->valuestring
+    result = cJSON_GetObjectItemCaseSensitive(msg_dataJSON, "result");
+    if (result) {//请求消息不携带result
+        if (!cJSON_IsString(result)) {
+            ogs_error("OpenAPI_sacc_msg_data_parseFromJSON() failed [result]");        
+            goto end;
+        }
+
+        result_value = result->valuestring;
+    }
+
+    sacc_msg_data_local_var = OpenAPI_sacc_msg_data_create (
+        deviceId->valuestring,group->valuestring,node->valuestring,serviceIp->valuestring,result_value
     );
 
-    return sacc_handshake_data_local_var;
+    return sacc_msg_data_local_var;
 end:
     return NULL;
 }

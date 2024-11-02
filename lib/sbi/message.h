@@ -533,12 +533,13 @@ typedef struct ogs_sbi_discovery_option_s {
     char *routingIndicator;//add for scp 
 } ogs_sbi_discovery_option_t;
 
-typedef struct sacc_handshake_s {
+typedef struct sacc_msg_data_s {
     char deviceId[64];  // 本端设备序列号
     char group[16];    // 本端设备组号
     char node[16];     // 本端设备节点号
     char serviceIp[16];// 本端业务地址
-} sacc_handshake_t;
+    char result[16];   // 应答独有
+} sacc_msg_data_t;
 
 typedef struct ogs_sbi_message_s {
     ogs_sbi_header_t h;
@@ -651,7 +652,7 @@ typedef struct ogs_sbi_message_s {
     OpenAPI_ue_context_transfer_req_data_t *UeContextTransferReqData;
     OpenAPI_ue_context_transfer_rsp_data_t *UeContextTransferRspData;
 
-    sacc_handshake_t *sacc_handshakeReqData;// 不使用OpenAPI, 单独编解码
+    sacc_msg_data_t *sacc_msg_Data;// 不使用OpenAPI, 请求应答共用
 
     ogs_sbi_links_t *links;
 
@@ -788,11 +789,11 @@ int ogs_sbi_parse_udp_request(
 ogs_sbi_response_t *ogs_sbi_update_response(
         ogs_sbi_udp_header_t *udp_header, ogs_sbi_response_t *response);
 
-cJSON *OpenAPI_sacc_handshake_data_convertToJSON(sacc_handshake_t *handshake);
-sacc_handshake_t *OpenAPI_sacc_handshake_data_parseFromJSON(cJSON *handshake_dataJSON);
-void OpenAPI_sacc_handshake_data_free(sacc_handshake_t *sacc_handshake_data);
-sacc_handshake_t *OpenAPI_sacc_handshake_data_create(
-    char *deviceId, char *group, char *node, char *serviceIp
+cJSON *OpenAPI_sacc_msg_data_convertToJSON(sacc_msg_data_t *handshake);
+sacc_msg_data_t *OpenAPI_sacc_msg_data_parseFromJSON(cJSON *handshake_dataJSON);
+void OpenAPI_sacc_msg_data_free(sacc_msg_data_t *sacc_handshake_data);
+sacc_msg_data_t *OpenAPI_sacc_msg_data_create(
+    char *deviceId, char *group, char *node, char *serviceIp, char * result
 );
 #ifdef __cplusplus
 }
