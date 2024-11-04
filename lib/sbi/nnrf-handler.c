@@ -52,7 +52,7 @@ void ogs_nnrf_nfm_handle_nf_register(
         ogs_error("No NFProfile");
         return;
     }
-
+    ogs_info("test:NFProfile->is_heart_beat_timer:%d,heart_beat_timer:%d.",NFProfile->is_heart_beat_timer,NFProfile->heart_beat_timer);
     /* TIME : Update heartbeat from NRF */
     if (NFProfile->is_heart_beat_timer == true)
         nf_instance->time.heartbeat_interval = NFProfile->heart_beat_timer;

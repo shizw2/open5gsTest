@@ -44,6 +44,16 @@ extern "C" {
 #define SACC_NODE_ROLE_T1 "T1"
 #define SACC_NODE_ROLE_T2 "T2"
 
+#define OGS_SBI_AMF_INSTANCE_ID                     "31dfb810-bec4-41ec-81a7-0787f5a98001"
+#define OGS_SBI_SMF_INSTANCE_ID                     "31dfb810-bec4-41ec-81a7-0787f5a98002"
+#define OGS_SBI_UDM_INSTANCE_ID                     "31dfb810-bec4-41ec-81a7-0787f5a98003"
+#define OGS_SBI_AUSF_INSTANCE_ID                    "31dfb810-bec4-41ec-81a7-0787f5a98004"
+#define OGS_SBI_BSF_INSTANCE_ID                     "31dfb810-bec4-41ec-81a7-0787f5a98005"
+#define OGS_SBI_NRF_INSTANCE_ID                     "31dfb810-bec4-41ec-81a7-0787f5a98006"
+#define OGS_SBI_NSSF_INSTANCE_ID                    "31dfb810-bec4-41ec-81a7-0787f5a98007"
+#define OGS_SBI_PCF_INSTANCE_ID                     "31dfb810-bec4-41ec-81a7-0787f5a98008"
+#define OGS_SBI_UDR_INSTANCE_ID                     "31dfb810-bec4-41ec-81a7-0787f5a98009"
+
 typedef struct sacc_config_s {
     int enable;             //可开启和关闭随遇接入功能
     int port;               //随遇接入端口
@@ -90,6 +100,11 @@ ogs_sbi_request_t *sacc_build_handshake_request(sacc_peer_t *peer, void *data);
 ogs_sbi_request_t *sacc_build_heartbeat_request(sacc_peer_t *peer, void *data);
 bool sacc_handle_handshake_req(ogs_sbi_stream_t *stream, ogs_sbi_message_t *recvmsg);
 bool sacc_handle_handshake_resp(ogs_sbi_message_t *recvmsg);*/
+
+bool sacc_nnrf_nfm_send_nf_register(ogs_sbi_nf_instance_t *nf_instance);
+ogs_sbi_request_t *sacc_nnrf_nfm_build_register(ogs_sbi_nf_instance_t *nf_instance);
+void sacc_sbi_construct_nrfinstance_for_udm(void);
+
 #ifdef __cplusplus
 }
 #endif

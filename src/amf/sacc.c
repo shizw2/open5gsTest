@@ -269,7 +269,7 @@ bool sacc_handle_request(int msg_type, ogs_sbi_stream_t *stream, ogs_sbi_message
         return false;
     }
 
-    g_sacc_nodes[node].state = SACC_PEER_STATE_ONLINE;
+    //g_sacc_nodes[node].state = SACC_PEER_STATE_ONLINE; //收到对端请求,并不需要修改状态
     g_sacc_nodes[node].heartbeatLost = 0;//重置心跳丢失计数
 
     snprintf(msg_data.deviceId, sizeof(msg_data.deviceId), "%s", g_sacc_nodes[g_local_node_config.node].deviceId);
@@ -319,7 +319,236 @@ bool sacc_handle_response(int msg_type, ogs_sbi_message_t *recvmsg)
         return false;
     }
 
+    if (msg_type == SACC_MSG_TYPE_HANDSHAKE){
+        if (amf_self()->icps_port == 9777){//TODO:测试，待删除
+            ogs_info("try register UDM to nrf.");
+            sacc_sbi_construct_nrfinstance_for_udm();
+        }
+    }
+
     g_sacc_nodes[node].state = SACC_PEER_STATE_ONLINE;
     g_sacc_nodes[node].heartbeatLost = 0;//重置心跳丢失计数
     return true;
+}
+
+//ogs_nnrf_nfm_send_nf_register
+bool sacc_nnrf_nfm_send_nf_register(ogs_sbi_nf_instance_t *nf_instance)
+{
+    bool rc;
+    ogs_sbi_request_t *request = NULL;
+
+    ogs_assert(nf_instance);
+
+    ogs_info("sacc_nnrf_nfm_send_nf_register, nf-type:%s.", OpenAPI_nf_type_ToString(nf_instance->nf_type));
+
+    request = sacc_nnrf_nfm_build_register(nf_instance);
+    if (!request) {
+        ogs_error("No Request");
+        return false;
+    }
+
+    rc = ogs_sbi_send_notification_request(
+            OGS_SBI_SERVICE_TYPE_NNRF_NFM, NULL, request, nf_instance);
+    ogs_expect(rc == true);
+
+    ogs_sbi_request_free(request);
+
+    return rc;
+}
+
+ogs_sbi_request_t *sacc_nnrf_nfm_build_register(
+        ogs_sbi_nf_instance_t *nf_instance)
+{
+    ogs_sbi_message_t message;
+    ogs_sbi_request_t *request = NULL;
+
+    OpenAPI_nf_profile_t *NFProfile = NULL;
+
+    //nf_instance = ogs_sbi_self()->nf_instance;
+    ogs_assert(nf_instance);
+    ogs_assert(nf_instance->id);
+
+    memset(&message, 0, sizeof(message));
+    message.h.method = (char *)OGS_SBI_HTTP_METHOD_PUT;
+    message.h.service.name = (char *)OGS_SBI_SERVICE_NAME_NNRF_NFM;
+    message.h.api.version = (char *)OGS_SBI_API_V1;
+    message.h.resource.component[0] =
+        (char *)OGS_SBI_RESOURCE_NAME_NF_INSTANCES;
+    message.h.resource.component[1] = nf_instance->id;
+
+    message.http.content_encoding = (char*)ogs_sbi_self()->content_encoding;
+
+    NFProfile = ogs_nnrf_nfm_build_nf_profile(
+                    nf_instance, NULL, NULL, true);
+    if (!NFProfile) {
+        ogs_error("No NFProfile");
+        goto end;
+    }
+
+    message.NFProfile = NFProfile;
+
+    request = ogs_sbi_build_request(&message);
+    ogs_expect(request);
+
+end:
+
+    if (NFProfile)
+        ogs_nnrf_nfm_free_nf_profile(NFProfile);
+
+    return request;
+}
+
+void sacc_sbi_construct_nrfinstance_for_udm(void)
+{
+    ogs_sbi_nf_instance_t *nf_instance = NULL;
+	ogs_sbi_nf_service_t *nf_service = NULL;
+	int i = 0;
+	bool handled;
+	
+	nf_instance = ogs_sbi_nf_instance_find((char*)OGS_SBI_UDM_INSTANCE_ID);
+    if (!nf_instance) {
+        nf_instance = ogs_sbi_nf_instance_add();
+        ogs_assert(nf_instance);        
+
+        ogs_sbi_nf_instance_set_id(
+                nf_instance, (char*)OGS_SBI_UDM_INSTANCE_ID);
+        ogs_sbi_nf_fsm_init(nf_instance);//TODO:待修改
+        //ogs_info("UDM[%s] (Construct) NF registered", nf_instance->id);
+
+    } else {
+        //OGS_FSM_TRAN(&nf_instance->sm, amf_nf_state_registered);//TODO:待修改
+        // ogs_fsm_dispatch(&nf_instance->sm, NULL);
+
+        // ogs_warn("UDM[%s] (NRF-Construct) NF has already been added",
+        //         (char*)OGS_SBI_UDM_INSTANCE_ID);
+
+    }
+
+	nf_instance->nf_type = OpenAPI_nf_type_UDM;
+	nf_instance->nf_status = OpenAPI_nf_status_REGISTERED;
+
+	nf_instance->priority = 0;
+	nf_instance->capacity = 100;
+	nf_instance->load = 0;
+
+	
+	//ogs_sbi_context_get_nf_addr(nf_instance, "udm"); //TODO:测试，要从T2文件中获取地址
+    ogs_sbi_nf_instance_build_default(nf_instance); //TODO:先默认设置一个
+    nf_instance->time.heartbeat_interval = 0;//不搞心跳,否则NRF会超时释放掉. amf对这些网元搞心跳也麻烦
+
+	// nf_service = ogs_sbi_nf_service_add(nf_instance, (char*)OGS_SBI_UDM_INSTANCE_ID,
+    //             (char*)OGS_SBI_SERVICE_NAME_NUDM_UEAU, OpenAPI_uri_scheme_http);
+    // ogs_assert(nf_service);
+
+	// ogs_sbi_nf_service_add_version(nf_service, (char*)OGS_SBI_API_V1,
+    //             (char*)OGS_SBI_API_V1_0_0, NULL);
+    // ogs_sbi_nf_service_add_allowed_nf_type(nf_service, OpenAPI_nf_type_AUSF);
+    
+	// for(i = 0; i < nf_instance->num_of_ipv4; i++ )
+	// {
+	//     nf_service->addr[nf_service->num_of_addr].ipv4 = nf_instance->ipv4[i];
+	// 	nf_service->addr[nf_service->num_of_addr].port = 7777;
+	// 	nf_service->num_of_addr++;
+	// }
+	
+	// nf_service->priority = 0;
+	// nf_service->capacity = 100;
+	// nf_service->load = 0;
+
+	// nf_service = ogs_sbi_nf_service_add(nf_instance, (char*)OGS_SBI_UDM_INSTANCE_ID,
+    //             (char*)OGS_SBI_SERVICE_NAME_NUDM_UECM, OpenAPI_uri_scheme_http);
+    // ogs_assert(nf_service);
+
+	// ogs_sbi_nf_service_add_version(nf_service, (char*)OGS_SBI_API_V1,
+    //             (char*)OGS_SBI_API_V1_0_0, NULL);
+    // ogs_sbi_nf_service_add_allowed_nf_type(nf_service, OpenAPI_nf_type_AMF);
+    
+	// for(i = 0; i < nf_instance->num_of_ipv4; i++ )
+	// {
+	//     nf_service->addr[nf_service->num_of_addr].ipv4 = nf_instance->ipv4[i];
+	// 	nf_service->addr[nf_service->num_of_addr].port = 7777;
+	// 	nf_service->num_of_addr++;
+	// }
+	
+	// nf_service->priority = 0;
+	// nf_service->capacity = 100;
+	// nf_service->load = 0;
+
+	// nf_service = ogs_sbi_nf_service_add(nf_instance, (char*)OGS_SBI_UDM_INSTANCE_ID,
+    //             (char*)OGS_SBI_SERVICE_NAME_NUDM_SDM, OpenAPI_uri_scheme_http);
+    // ogs_assert(nf_service);
+
+	// ogs_sbi_nf_service_add_version(nf_service, (char*)OGS_SBI_API_V2,
+    //             (char*)OGS_SBI_API_V2_0_0, NULL);
+    // ogs_sbi_nf_service_add_allowed_nf_type(nf_service, OpenAPI_nf_type_AMF);
+	// ogs_sbi_nf_service_add_allowed_nf_type(nf_service, OpenAPI_nf_type_SMF);
+    
+	// for(i = 0; i < nf_instance->num_of_ipv4; i++ )
+	// {
+	//     nf_service->addr[nf_service->num_of_addr].ipv4 = nf_instance->ipv4[i];
+	// 	nf_service->addr[nf_service->num_of_addr].port = 7777;
+	// 	nf_service->num_of_addr++;
+	// }
+
+	// nf_service->priority = 0;
+	// nf_service->capacity = 100;
+	// nf_service->load = 0;
+
+    ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_SCP);
+    ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_AMF);
+    ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_SMF);
+    ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_AUSF);
+
+    ogs_sbi_nf_service_t *service = NULL;
+    /* Build NF service information. It will be transmitted to NRF. */
+    //if (ogs_sbi_nf_service_is_available(OGS_SBI_SERVICE_NAME_NUDM_UEAU)) {
+        service = ogs_sbi_nf_service_build_default(
+                    nf_instance, OGS_SBI_SERVICE_NAME_NUDM_UEAU);
+        ogs_assert(service);
+        ogs_sbi_nf_service_add_version(
+                    service, OGS_SBI_API_V1, OGS_SBI_API_V1_0_0, NULL);
+        ogs_sbi_nf_service_add_allowed_nf_type(service, OpenAPI_nf_type_AUSF);
+    //}
+
+    //if (ogs_sbi_nf_service_is_available(OGS_SBI_SERVICE_NAME_NUDM_UECM)) {
+        service = ogs_sbi_nf_service_build_default(
+                    nf_instance, OGS_SBI_SERVICE_NAME_NUDM_UECM);
+        ogs_assert(service);
+        ogs_sbi_nf_service_add_version(
+                    service, OGS_SBI_API_V1, OGS_SBI_API_V1_0_0, NULL);
+        ogs_sbi_nf_service_add_allowed_nf_type(service, OpenAPI_nf_type_AMF);
+        ogs_sbi_nf_service_add_allowed_nf_type(service, OpenAPI_nf_type_SMF);
+    //}
+
+    //if (ogs_sbi_nf_service_is_available(OGS_SBI_SERVICE_NAME_NUDM_SDM)) {
+        service = ogs_sbi_nf_service_build_default(
+                    nf_instance, OGS_SBI_SERVICE_NAME_NUDM_SDM);
+        ogs_assert(service);
+        ogs_sbi_nf_service_add_version(
+                    service, OGS_SBI_API_V2, OGS_SBI_API_V2_0_0, NULL);
+        ogs_sbi_nf_service_add_allowed_nf_type(service, OpenAPI_nf_type_AMF);
+        ogs_sbi_nf_service_add_allowed_nf_type(service, OpenAPI_nf_type_SMF);
+    //}
+
+	
+
+	ogs_warn("[%s] Try registration with NRF",
+                    NF_INSTANCE_ID(ogs_sbi_self()->nf_instance));
+
+    sacc_nnrf_nfm_send_nf_register(nf_instance);
+
+    // handled = ogs_sbi_client_associate(nf_instance);
+
+	// if (!handled)
+	// {
+    //     ogs_error("[%s] Cannot associate NF EndPoint", nf_instance->id);
+    //     AMF_NF_INSTANCE_CLEAR("NRF-notify", nf_instance);
+    //     return;
+    // }
+    // else
+    // {
+    //     ogs_error("[%s] UDM associate NF EndPoint", nf_instance->id);
+    // }
+	return;
+	
 }
