@@ -1241,8 +1241,8 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_add(void)
     ogs_assert(nf_instance);
     memset(nf_instance, 0, sizeof(ogs_sbi_nf_instance_t));
 
-    nf_instance->time.heartbeat_interval =
-            ogs_local_conf()->time.nf_instance.heartbeat_interval;
+    //nf_instance->time.heartbeat_interval =
+    //        ogs_local_conf()->time.nf_instance.heartbeat_interval;
 
     nf_instance->priority = OGS_SBI_DEFAULT_PRIORITY;
     nf_instance->capacity = ogs_global_conf()->parameter.capacity;//capacity支持为0的配置
