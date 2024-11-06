@@ -54,6 +54,9 @@ extern "C" {
 #define OGS_SBI_PCF_INSTANCE_ID                     "31dfb810-bec4-41ec-81a7-0787f5a98008"
 #define OGS_SBI_UDR_INSTANCE_ID                     "31dfb810-bec4-41ec-81a7-0787f5a98009"
 
+
+#define OGS_SBI_PREFIX_INSTANCE_ID                  "31dfb810-bec4-41ec-81a7-"
+
 typedef struct sacc_config_s {
     int enable;             //可开启和关闭随遇接入功能
     int port;               //随遇接入端口
@@ -81,6 +84,7 @@ typedef struct sacc_node_s {
 } sacc_node_t;
 
 char* sacc_msg_ToString(int msg_type);
+char * sacc_node_state_ToString(int state);
 int sacc_initialize(const sacc_config_t *config);
 void sacc_scan(void);
 void sacc_heartbeat(void);
@@ -103,8 +107,10 @@ bool sacc_handle_handshake_resp(ogs_sbi_message_t *recvmsg);*/
 
 bool sacc_nnrf_nfm_send_nf_register(ogs_sbi_nf_instance_t *nf_instance);
 ogs_sbi_request_t *sacc_nnrf_nfm_build_register(ogs_sbi_nf_instance_t *nf_instance);
-void sacc_sbi_construct_nrfinstance_for_udm(void);
-
+void sacc_sbi_construct_nrfinstance_for_udm(sacc_node_t *peer);
+void sacc_sbi_construct_nrfinstance_for_ausf(sacc_node_t *peer);
+void sacc_sbi_construct_nrfinstance_for_smf(sacc_node_t *peer);
+void showsaccnodes(void);
 #ifdef __cplusplus
 }
 #endif
