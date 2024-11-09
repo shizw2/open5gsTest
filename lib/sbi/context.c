@@ -3188,6 +3188,7 @@ bool ogs_sbi_fqdn_in_vplmn(char *fqdn)
     return false;
 }
 
+
 void print_ogs_sbi_nf_info(ogs_sbi_nf_info_t *nf_info);
 void print_supiRanges(ogs_supi_range_t *supiRanges);
 void print_ogs_sbi_nf_service(ogs_sbi_nf_service_t *nf_service);

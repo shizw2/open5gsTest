@@ -81,6 +81,10 @@ typedef struct sacc_node_s {
     char *uri;
     char *heartbeat_uri;
     ogs_sbi_client_t *client;
+
+    ogs_sbi_nf_instance_t *smf_nf_instance;
+    ogs_sbi_nf_instance_t *udm_nf_instance;
+    ogs_sbi_nf_instance_t *ausf_nf_instance;
 } sacc_node_t;
 
 char* sacc_msg_ToString(int msg_type);
@@ -107,6 +111,9 @@ bool sacc_handle_handshake_resp(ogs_sbi_message_t *recvmsg);*/
 
 bool sacc_nnrf_nfm_send_nf_register(ogs_sbi_nf_instance_t *nf_instance);
 ogs_sbi_request_t *sacc_nnrf_nfm_build_register(ogs_sbi_nf_instance_t *nf_instance);
+bool sacc_nnrf_nfm_send_nf_de_register(ogs_sbi_nf_instance_t *nf_instance);
+ogs_sbi_request_t *sacc_nnrf_nfm_build_de_register(ogs_sbi_nf_instance_t *nf_instance);
+
 void sacc_sbi_construct_nrfinstance_for_udm(sacc_node_t *peer);
 void sacc_sbi_construct_nrfinstance_for_ausf(sacc_node_t *peer);
 void sacc_sbi_construct_nrfinstance_for_smf(sacc_node_t *peer);

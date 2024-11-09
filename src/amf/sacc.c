@@ -18,6 +18,7 @@
  */
 
 #include "sacc.h"
+#include "sacc_context.h"
 #include "sbi-path.h"
 
 
@@ -30,7 +31,7 @@ sacc_config_t g_local_node_config = {
     .role = "T2",
     .group = 1,
     .node = 1,
-    .nodeNum = 4
+    .nodeNum = 3
 };
 
 sacc_node_t g_sacc_nodes[MAX_PEER_NUM+1];
@@ -165,6 +166,8 @@ void sacc_scan(void) {
 
 void sacc_heartbeat(void) {
     int n;
+    ogs_sbi_nf_instance_t *nf_instance;
+    
     if (!g_local_node_config.enable) {
         ogs_info("sacc heartbeat is disabled.");
         return;
@@ -187,6 +190,29 @@ void sacc_heartbeat(void) {
             if ( g_sacc_nodes[n].state != SACC_PEER_STATE_OFFLINE){
                 ogs_info("node %d is offline",n);
                 g_sacc_nodes[n].state = SACC_PEER_STATE_OFFLINE;
+                if (g_sacc_nodes[n].smf_nf_instance){
+                    ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].smf_nf_instance->nf_type),g_sacc_nodes[n].smf_nf_instance->id);
+                    sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].smf_nf_instance);
+                }
+
+                if (g_sacc_nodes[n].ausf_nf_instance){
+                    ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].ausf_nf_instance->nf_type),g_sacc_nodes[n].ausf_nf_instance->id);
+                    sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].ausf_nf_instance);
+                }
+
+                if (g_sacc_nodes[n].udm_nf_instance){
+                    ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].udm_nf_instance->nf_type),g_sacc_nodes[n].udm_nf_instance->id);
+                    sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].udm_nf_instance);
+                }
+                /*ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance){
+                    if (nf_instance->nf_type == OpenAPI_nf_type_UDM
+                    ||nf_instance->nf_type == OpenAPI_nf_type_AUSF
+                    ||nf_instance->nf_type == OpenAPI_nf_type_SMF){
+                        //ogs_sbi_nf_fsm_fini(nf_instance);
+                        ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(nf_instance->nf_type),nf_instance->id);
+                        sacc_nnrf_nfm_send_nf_de_register(nf_instance);
+                    }
+                }*/
             }
         }
         sacc_send_request(SACC_MSG_TYPE_HEARDBEAT , &g_sacc_nodes[n]); 
@@ -336,10 +362,10 @@ bool sacc_handle_response(int msg_type, ogs_sbi_message_t *recvmsg)
 
     if (msg_type == SACC_MSG_TYPE_HANDSHAKE){
         if (amf_self()->icps_port == 9777){//TODO:测试，待删除
-            ogs_info("try register UDM to nrf.");
-            sacc_sbi_construct_nrfinstance_for_udm(&g_sacc_nodes[node]);
+            //ogs_info("try register UDM to nrf.");
+            //sacc_sbi_construct_nrfinstance_for_udm(&g_sacc_nodes[node]);
             sacc_sbi_construct_nrfinstance_for_ausf(&g_sacc_nodes[node]);
-            sacc_sbi_construct_nrfinstance_for_smf(&g_sacc_nodes[node]);
+            //sacc_sbi_construct_nrfinstance_for_smf(&g_sacc_nodes[node]);
         }
     }
 
@@ -371,6 +397,51 @@ bool sacc_nnrf_nfm_send_nf_register(ogs_sbi_nf_instance_t *nf_instance)
     ogs_sbi_request_free(request);
 
     return rc;
+}
+
+bool sacc_nnrf_nfm_send_nf_de_register(ogs_sbi_nf_instance_t *nf_instance)
+{
+    bool rc;
+    ogs_sbi_request_t *request = NULL;
+
+    ogs_assert(nf_instance);
+
+    request = sacc_nnrf_nfm_build_de_register(nf_instance);
+    if (!request) {
+        ogs_error("No Request");
+        return false;
+    }
+
+    rc = ogs_sbi_send_notification_request(
+            OGS_SBI_SERVICE_TYPE_NNRF_NFM, NULL, request, nf_instance);
+    ogs_expect(rc == true);
+
+    ogs_sbi_request_free(request);
+
+    return rc;
+}
+
+
+ogs_sbi_request_t *sacc_nnrf_nfm_build_de_register(ogs_sbi_nf_instance_t *nf_instance)
+{
+    ogs_sbi_message_t message;
+    ogs_sbi_request_t *request = NULL;
+
+    ogs_assert(nf_instance);
+    ogs_assert(nf_instance->id);
+
+    memset(&message, 0, sizeof(message));
+    message.h.method = (char *)OGS_SBI_HTTP_METHOD_DELETE;
+    message.h.service.name = (char *)OGS_SBI_SERVICE_NAME_NNRF_NFM;
+    message.h.api.version = (char *)OGS_SBI_API_V1;
+    message.h.resource.component[0] =
+        (char *)OGS_SBI_RESOURCE_NAME_NF_INSTANCES;
+    message.h.resource.component[1] = nf_instance->id;
+
+    request = ogs_sbi_build_request(&message);
+    ogs_expect(request);
+
+    return request;
 }
 
 ogs_sbi_request_t *sacc_nnrf_nfm_build_register(
@@ -442,7 +513,7 @@ void sacc_sbi_construct_nrfinstance_for_udm(sacc_node_t *peer)
         //         (char*)OGS_SBI_UDM_INSTANCE_ID);
 
     }
-
+    peer->udm_nf_instance = nf_instance; 
 	nf_instance->nf_type = OpenAPI_nf_type_UDM;
 	nf_instance->nf_status = OpenAPI_nf_status_REGISTERED;
 
@@ -576,10 +647,10 @@ void sacc_sbi_construct_nrfinstance_for_udm(sacc_node_t *peer)
 void sacc_sbi_construct_nrfinstance_for_ausf(sacc_node_t *peer){
     ogs_sbi_nf_instance_t *nf_instance = NULL;
 	ogs_sbi_nf_service_t *nf_service = NULL;
-    ogs_sbi_nf_service_t *service = NULL;
 	
 	char nf_instance_id[OGS_UUID_FORMATTED_LENGTH + 1];
-    
+    char nf_name[10];
+    int i;
 
     snprintf(nf_instance_id, sizeof(nf_instance_id), "%s%02d%04d%06d",OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_AUSF,peer->group,peer->node);
 	nf_instance = ogs_sbi_nf_instance_find((char*)nf_instance_id);
@@ -590,25 +661,54 @@ void sacc_sbi_construct_nrfinstance_for_ausf(sacc_node_t *peer){
         ogs_sbi_nf_instance_set_id(
                 nf_instance, (char*)nf_instance_id);
     }
-
+    peer->ausf_nf_instance = nf_instance;
     ogs_sbi_nf_instance_set_type(nf_instance, OpenAPI_nf_type_AUSF);
     ogs_sbi_nf_fsm_init(nf_instance);  
 
     /* Build NF instance information. It will be transmitted to NRF. */
-    ogs_sbi_nf_instance_build_default(nf_instance);
+    //ogs_sbi_nf_instance_build_default(nf_instance);
+    ogs_sbi_nf_instance_set_status(nf_instance, OpenAPI_nf_status_REGISTERED);
+    snprintf(nf_name, sizeof(nf_name), "ausf_%d_%d",peer->group,peer->node);
+    sacc_sbi_context_get_nf_info(nf_name, "nrf", "scp",nf_instance);
+    ogs_info("nf_name:%s,nf_instance->num_of_ipv4:%d",nf_name,nf_instance->num_of_ipv4);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_SCP);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_AMF);
 
     /* Build NF service information. It will be transmitted to NRF. */
     //if (ogs_sbi_nf_service_is_available(OGS_SBI_SERVICE_NAME_NAUSF_AUTH)) {
-        service = ogs_sbi_nf_service_build_default(
+#if 0
+        nf_service = ogs_sbi_nf_service_build_default(
                     nf_instance, OGS_SBI_SERVICE_NAME_NAUSF_AUTH);
-        ogs_assert(service);
+        ogs_assert(nf_service);
         ogs_sbi_nf_service_add_version(
-                    service, OGS_SBI_API_V1, OGS_SBI_API_V1_0_0, NULL);
-        ogs_sbi_nf_service_add_allowed_nf_type(service, OpenAPI_nf_type_AMF);
+                    nf_service, OGS_SBI_API_V1, OGS_SBI_API_V1_0_0, NULL);
+        ogs_sbi_nf_service_add_allowed_nf_type(nf_service, OpenAPI_nf_type_AMF);
+#endif 
     //}
 
+	nf_service = ogs_sbi_nf_service_add(nf_instance, (char*)nf_instance_id,
+                (char*)OGS_SBI_SERVICE_NAME_NAUSF_AUTH, OpenAPI_uri_scheme_http);
+    ogs_assert(nf_service);
+    ogs_sbi_nf_service_add_version(
+                    nf_service, OGS_SBI_API_V1, OGS_SBI_API_V1_0_0, NULL);
+
+    ogs_sbi_nf_service_add_allowed_nf_type(nf_service, OpenAPI_nf_type_AMF);
+
+    char buf[OGS_ADDRSTRLEN];
+	for(i = 0; i < nf_instance->num_of_ipv4; i++ )
+	{
+        ogs_info("nf_instance addr:%s ,port:%d",OGS_ADDR(nf_instance->ipv4[i],buf),OGS_PORT(nf_instance->ipv4[i]));
+        ogs_sockaddr_t *addr = NULL;
+        ogs_copyaddrinfo(&addr, nf_instance->ipv4[i]);
+	    nf_service->addr[nf_service->num_of_addr].ipv4 = addr;
+        nf_service->addr[nf_service->num_of_addr].is_port = true;
+		nf_service->addr[nf_service->num_of_addr].port = OGS_PORT(addr);
+		nf_service->num_of_addr++;
+	}
+	
+	nf_service->priority = 0;
+	nf_service->capacity = 100;
+	nf_service->load = 0;
 
     /* Setup Subscription-Data */ //TODO:得修改
     ogs_sbi_subscription_spec_add(OpenAPI_nf_type_SEPP, NULL);
@@ -627,7 +727,7 @@ void sacc_sbi_construct_nrfinstance_for_smf(sacc_node_t *peer){
     ogs_sbi_nf_service_t *service = NULL;
 
 	char nf_instance_id[OGS_UUID_FORMATTED_LENGTH + 1];
-   
+    char nf_name[10];
     snprintf(nf_instance_id, sizeof(nf_instance_id), "%s%02d%04d%06d",OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_SMF,peer->group,peer->node);
 	nf_instance = ogs_sbi_nf_instance_find((char*)nf_instance_id);
     if (!nf_instance) {
@@ -637,11 +737,15 @@ void sacc_sbi_construct_nrfinstance_for_smf(sacc_node_t *peer){
         ogs_sbi_nf_instance_set_id(
                 nf_instance, (char*)nf_instance_id);
     } 
+    peer->smf_nf_instance = nf_instance;
     ogs_sbi_nf_instance_set_type(nf_instance, OpenAPI_nf_type_SMF);
     ogs_sbi_nf_fsm_init(nf_instance);
 
     /* Build NF instance information. It will be transmitted to NRF. */
-    ogs_sbi_nf_instance_build_default(nf_instance);
+    //ogs_sbi_nf_instance_build_default(nf_instance);
+    ogs_sbi_nf_instance_set_status(nf_instance, OpenAPI_nf_status_REGISTERED);
+    snprintf(nf_name, sizeof(nf_name), "smf_%d_%d",peer->group,peer->node);
+    sacc_sbi_context_get_nf_info(nf_name, "nrf", "scp",nf_instance);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_SCP);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_AMF);
 
