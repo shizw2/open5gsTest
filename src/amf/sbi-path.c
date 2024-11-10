@@ -147,7 +147,13 @@ int amf_ue_sbi_discover_and_send(
     xact->routingIndicator = ogs_routing_indicator_from_suci(amf_ue->suci);
     if (amf_ue->supi){
         xact->supi_id = ogs_id_get_value(amf_ue->supi); 
-    }
+    }/*else if (amf_ue->suci){
+        char *supi = ogs_supi_from_suci(amf_ue->suci);
+        xact->supi_id = ogs_id_get_value(supi);
+        ogs_info("amf_ue_sbi_discover_and_send0 supi_id: %s, supi:%s", xact->supi_id,supi);    
+    }*/
+
+    ogs_info("test1:amf_ue_sbi_discover_and_send,supi_id: %s", xact->supi_id);
 
     rv = ogs_sbi_discover_and_send(xact);
     if (rv != OGS_OK) {

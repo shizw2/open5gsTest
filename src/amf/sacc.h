@@ -114,9 +114,12 @@ ogs_sbi_request_t *sacc_nnrf_nfm_build_register(ogs_sbi_nf_instance_t *nf_instan
 bool sacc_nnrf_nfm_send_nf_de_register(ogs_sbi_nf_instance_t *nf_instance);
 ogs_sbi_request_t *sacc_nnrf_nfm_build_de_register(ogs_sbi_nf_instance_t *nf_instance);
 
-void sacc_sbi_construct_nrfinstance_for_udm(sacc_node_t *peer);
-void sacc_sbi_construct_nrfinstance_for_ausf(sacc_node_t *peer);
-void sacc_sbi_construct_nrfinstance_for_smf(sacc_node_t *peer);
+void sacc_sbi_register_nrfinstance_for_udm(sacc_node_t *peer);
+void sacc_sbi_register_nrfinstance_for_ausf(sacc_node_t *peer);
+void sacc_sbi_register_nrfinstance_for_smf(sacc_node_t *peer);
+ogs_sbi_nf_service_t *sacc_sbi_nf_service_build_default(
+        ogs_sbi_nf_instance_t *nf_instance, const char *name);
+
 void showsaccnodes(void);
 #ifdef __cplusplus
 }

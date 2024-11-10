@@ -193,7 +193,8 @@ void ogs_sbi_message_free(ogs_sbi_message_t *message)
         OpenAPI_ue_context_transfer_req_data_free(message->UeContextTransferReqData);
     if (message->UeContextTransferRspData)
         OpenAPI_ue_context_transfer_rsp_data_free(message->UeContextTransferRspData);
-
+    if (message->sacc_msg_Data)
+        OpenAPI_sacc_msg_data_free(message->sacc_msg_Data);
     /* HTTP Part */
     for (i = 0; i < message->num_of_part; i++) {
         if (message->part[i].pkbuf)

@@ -1315,6 +1315,9 @@ bool ogs_sbi_nf_instance_is_allowed_nf_type(
 
     ogs_assert(nf_instance);
     ogs_assert(allowed_nf_type);
+    ogs_info("test:allowed nf-type[%s] , nf-instance nf_type[%s]",
+            OpenAPI_nf_type_ToString(allowed_nf_type),
+            OpenAPI_nf_type_ToString(nf_instance->nf_type));
 
     if (!nf_instance->num_of_allowed_nf_type) {
         return true;
@@ -1568,7 +1571,7 @@ void ogs_sbi_nf_instances_find_by_supi(ogs_sbi_nf_instance_t *matched_nf_instanc
     for (i = 0; i < *matched_nf_count; i++) {
         nf_instance = matched_nf_instances[i];
 
-        ogs_debug("ogs_sbi_nf_instances_find_by_supi, nf_instance->nf_type:%s, supi:%s.", OpenAPI_nf_type_ToString(nf_instance->nf_type), supi_id);
+        ogs_info("ogs_sbi_nf_instances_find_by_supi, nf_instance->nf_type:%s, supi:%s.", OpenAPI_nf_type_ToString(nf_instance->nf_type), supi_id);
 
         switch (nf_instance->nf_type) {
             case OpenAPI_nf_type_UDM:

@@ -1024,7 +1024,9 @@ ogs_nas_5gmm_cause_t gmm_handle_identity_response(amf_ue_t *amf_ue,
         }
 
         amf_ue_set_suci(amf_ue, mobile_identity);
-        ogs_info("[%s]    SUCI", amf_ue->suci);
+        amf_ue->supi = ogs_supi_from_suci(amf_ue->suci);//尝试先预解析出supi
+        ogs_info("[%s]    SUCI,[%s]    SUPI", amf_ue->suci, amf_ue->supi);
+        
     } else {
         ogs_error("Not supported Identity type[%d]",
                 mobile_identity_header->type);
@@ -1437,7 +1439,14 @@ int gmm_handle_ul_nas_transport(ran_ue_t *ran_ue, amf_ue_t *amf_ue,
                     supi_id = ogs_id_get_value(amf_ue->supi);
                     ogs_sbi_discovery_option_set_supi_id(discovery_option, supi_id);
                 }
-                
+
+                /*if (amf_ue->suci != NULL){
+                    char *supi = ogs_supi_from_suci(amf_ue->suci);
+                    supi_id = ogs_id_get_value(supi);
+                    ogs_info("ogs_sbi_discovery_option_set_supi_id:[%s]", supi_id);
+                    ogs_sbi_discovery_option_set_supi_id(discovery_option, supi_id);
+                }*/
+
                 char *routing_indicator = NULL;
                 if (amf_ue->suci != NULL){
                     routing_indicator = ogs_routing_indicator_from_suci(amf_ue->suci);

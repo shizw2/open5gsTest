@@ -95,7 +95,7 @@ bool ogs_nnrf_nfm_send_nf_status_subscribe(
     bool rc;
     ogs_sbi_request_t *request = NULL;
     ogs_sbi_subscription_data_t *subscription_data = NULL;
-
+    ogs_info("test:ogs_nnrf_nfm_send_nf_status_subscribe.req_nf_type:%d, req_nf_instance_id:%s, subscr_cond_nf_type:%d, subscr_cond_service_name:%s.", req_nf_type, req_nf_instance_id, subscr_cond_nf_type, subscr_cond_service_name);
     /* Issue #2630 : The format of subscrCond is invalid. Must be 'oneOf'. */
     ogs_assert(!subscr_cond_nf_type || !subscr_cond_service_name);
 
