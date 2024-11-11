@@ -35,6 +35,8 @@ typedef struct ogs_sbi_client_s ogs_sbi_client_t;
 typedef struct ogs_sbi_smf_info_s ogs_sbi_smf_info_t;
 typedef struct ogs_sbi_nf_instance_s ogs_sbi_nf_instance_t;
 
+#define OGS_SBI_PREFIX_INSTANCE_ID                  "31dfb810-bec4-41ec-"
+
 typedef enum {
     OGS_SBI_DISCOVERY_DELEGATED_AUTO = 0,
     OGS_SBI_DISCOVERY_DELEGATED_YES,

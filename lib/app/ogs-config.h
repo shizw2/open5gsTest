@@ -65,6 +65,8 @@ typedef struct ogs_global_conf_s {
         int no_time_zone_information;
 
         int capacity;
+        int group;
+        int node;
     } parameter;
 
     struct {

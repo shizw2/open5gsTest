@@ -72,6 +72,8 @@ void ogs_sbi_context_init(OpenAPI_nf_type_e nf_type)
 
     ogs_uuid_get(&self.uuid);
     ogs_uuid_format(nf_instance_id, &self.uuid);
+    snprintf(nf_instance_id, OGS_UUID_FORMATTED_LENGTH + 1, "%s%s-000000%02d%02d%02d",
+            OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_ToString(nf_type), nf_type,ogs_global_conf()->parameter.group,ogs_global_conf()->parameter.node);
     ogs_sbi_nf_instance_set_id(self.nf_instance, nf_instance_id);
     ogs_sbi_nf_instance_set_type(self.nf_instance, nf_type);
 

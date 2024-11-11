@@ -44,18 +44,7 @@ extern "C" {
 #define SACC_NODE_ROLE_T1 "T1"
 #define SACC_NODE_ROLE_T2 "T2"
 
-#define OGS_SBI_AMF_INSTANCE_ID                     "31dfb810-bec4-41ec-81a7-0787f5a98001"
-#define OGS_SBI_SMF_INSTANCE_ID                     "31dfb810-bec4-41ec-81a7-0787f5a98002"
-#define OGS_SBI_UDM_INSTANCE_ID                     "31dfb810-bec4-41ec-81a7-0787f5a98003"
-#define OGS_SBI_AUSF_INSTANCE_ID                    "31dfb810-bec4-41ec-81a7-0787f5a98004"
-#define OGS_SBI_BSF_INSTANCE_ID                     "31dfb810-bec4-41ec-81a7-0787f5a98005"
-#define OGS_SBI_NRF_INSTANCE_ID                     "31dfb810-bec4-41ec-81a7-0787f5a98006"
-#define OGS_SBI_NSSF_INSTANCE_ID                    "31dfb810-bec4-41ec-81a7-0787f5a98007"
-#define OGS_SBI_PCF_INSTANCE_ID                     "31dfb810-bec4-41ec-81a7-0787f5a98008"
-#define OGS_SBI_UDR_INSTANCE_ID                     "31dfb810-bec4-41ec-81a7-0787f5a98009"
 
-
-#define OGS_SBI_PREFIX_INSTANCE_ID                  "31dfb810-bec4-41ec-81a7-"
 
 typedef struct sacc_config_s {
     int enable;             //可开启和关闭随遇接入功能
@@ -82,6 +71,7 @@ typedef struct sacc_node_s {
     char *heartbeat_uri;
     ogs_sbi_client_t *client;
 
+    ogs_sbi_nf_instance_t *amf_nf_instance;
     ogs_sbi_nf_instance_t *smf_nf_instance;
     ogs_sbi_nf_instance_t *udm_nf_instance;
     ogs_sbi_nf_instance_t *ausf_nf_instance;
@@ -117,6 +107,7 @@ ogs_sbi_request_t *sacc_nnrf_nfm_build_de_register(ogs_sbi_nf_instance_t *nf_ins
 void sacc_sbi_register_nrfinstance_for_udm(sacc_node_t *peer);
 void sacc_sbi_register_nrfinstance_for_ausf(sacc_node_t *peer);
 void sacc_sbi_register_nrfinstance_for_smf(sacc_node_t *peer);
+void sacc_sbi_register_nrfinstance_for_amf(sacc_node_t *peer);
 ogs_sbi_nf_service_t *sacc_sbi_nf_service_build_default(
         ogs_sbi_nf_instance_t *nf_instance, const char *name);
 
