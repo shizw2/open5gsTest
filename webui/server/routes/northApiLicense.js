@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const net = require('net');
-const fetchDataFromTelnet = require('../models/fetchdataFromTelnet'); 
+const fetchDataFromTelnet = require('../models/fetchDataFromTelnet'); 
 
 // 收到info请求，从telnet服务器获取信息
 router.get('/info1', (req, res) => {
@@ -92,7 +92,7 @@ router.get('/info', async (req, res) => {
     console.error('Error fetching data from Telnet:', err);
     res.status(500).json({ result: "ERROR", message: err.message });
   }
-  
+
   function parseLicenseInfo(data) {
     const lines = data.split('\n');
     let parsedData = {};
