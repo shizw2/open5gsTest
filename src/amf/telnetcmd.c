@@ -1,5 +1,7 @@
 #include "telnet.h"
 #include "context.h"
+#include "license.h"
+
 char                g_chCmdName[128] = {0};
 T_pttCmdParas       g_tCmdPara[128];
 void setCommands(void);
@@ -14,6 +16,7 @@ void showue(char* id);
 void showueAll(void);
 void showueDetail(char * id);
 void showsaccnodes(void);
+void showLicenseInfo(void);
 void amf(void)
 {
     printf("this is amf system. \r\n");
@@ -25,6 +28,8 @@ telnet_command_t g_commands[] = {
     {"showranue",   (GenericFunc)showranue,      0, {}},
     {"showicpsue",   (GenericFunc)showicpsue,      0, {}},
     {"showsaccnodes", (GenericFunc)showsaccnodes,      0, {}},
+    {"showLicenseInfo", (GenericFunc)showLicenseInfo,      0, {}},
+    
 };
 int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);
 
@@ -312,3 +317,17 @@ void showueDetail( char * supi )
     return ;
 }
 
+void showLicenseInfo(void){
+    char errorMsg[100];
+    size_t errorMsgSize = sizeof(errorMsg);
+    bool result = dsCheckLicense(errorMsg, errorMsgSize);
+    if (!result) {        
+        printf("error: %s\n", errorMsg);
+        return ;
+    }
+
+    printf("RunTime:%lus, DurationTime:%lus, ExpireTime:%s,UeNum:%d\r\n", getLicenseRunTime(),
+                        getLicenseDurationTime(),
+                        timestampToString(getLicenseExpireTime()),
+                        getLicenseUeNum());
+}

@@ -28,7 +28,9 @@ const csrf = require('lusca').csrf();
 const secret = process.env.SECRET_KEY || 'change-me';
 
 const api = require('./routes');
-
+const northApi = require('./routes/northApi'); // 引入北向接口的路由处理器
+const fetchAlerts = require('./models/fetchalerts.js');
+const fetchNfStatus = require('./models/fetchnfstatus.js');
 const Account = require('./models/account.js');
 const path = require('path');
 const logDirectory = path.join(__dirname, 'logs');
@@ -83,8 +85,8 @@ co(function* () {
   //}
 
   const server = express();
-  server.disable('DELETE');
-  server.disable('PUT');
+  //server.disable('DELETE');
+  //server.disable('PUT');
   server.disable('HEAD');
   server.disable('OPTIONS');
   server.use(bodyParser.json());
@@ -93,6 +95,11 @@ co(function* () {
   server.use(morgan('combined', {stream: accessLogStream })); 
   checkLogFileSize();
   setInterval(checkLogFileSize, intervalInMilliseconds); 
+  // 定时执行 fetchAlerts 函数
+  setInterval(() => {
+    fetchNfStatus();
+    fetchAlerts(); // 调用 fetchAlerts 函数
+  }, 3000); // 每 3000 毫秒（3 秒）执行一次
   server.use(session({
     secret: secret,
     store: MongoStore.create({
@@ -109,7 +116,7 @@ co(function* () {
   }));
   server.disable('x-powered-by');
   server.use((req, res, next) => {
-    if (req.method === 'PUT' || req.method === 'HEAD' || req.method === 'OPTIONS') {
+    if ( req.method === 'HEAD' || req.method === 'OPTIONS') {
       res.status(405).send('Method Not Allowed');
     } else {
       req.db = db;
@@ -118,9 +125,18 @@ co(function* () {
     //req.db = db; /*将 db 对象赋值给了 req.db。这样，在后续的请求处理中，您可以通过 req.db 访问到数据库实例。*/
     //next();
   })
+  const csrfIgnore = (req, res, next) => {
+    //console.log('req.path====',req.path);
+    if (req.path.startsWith('/coreNetwork/')) {
+      //console.log('eeeeeeeeee',req.path);
+        return next();
+    }
+    return csrf(req, res, next);
+  };
+  server.use(csrfIgnore);
+  //server.use(csrf);/*CSRF（Cross-Site Request Forgery）防护中间件将在每个请求中自动检查 CSRF 令牌的有效性。如果请求中缺少或无效的令牌，它将阻止请求，并返回错误或采取适当的防护措施*/
 
-  server.use(csrf);/*CSRF（Cross-Site Request Forgery）防护中间件将在每个请求中自动检查 CSRF 令牌的有效性。如果请求中缺少或无效的令牌，它将阻止请求，并返回错误或采取适当的防护措施*/
-
+ 
   server.use(passport.initialize());
   server.use(passport.session());
 
@@ -129,6 +145,7 @@ co(function* () {
   passport.deserializeUser(Account.deserializeUser());
 
   server.use('/api', api);
+  server.use('/coreNetwork', northApi);
   server.use(express.static('static'));//必须要放到server.get('*', (req, res)前
   
   server.get('*', (req, res) => {
