@@ -1,0 +1,35 @@
+udms:
+  - node: udm_1_1
+    sbi:
+      server:
+        - address: 127.0.0.12
+          port: 7777
+      client:
+        nrf:
+          - uri: http://127.0.0.10:7777
+    info:
+      supi:
+        - range: 46001-46002
+  - node: udm_1_2
+    sbi:
+      server:
+        - address: 127.0.0.12
+          port: 7777
+      client:
+        nrf:
+          - uri: http://127.0.0.10:7777
+    info:
+      supi:
+        - range: 46001-46002        
+       
+  - node: udm_1_3
+    sbi:
+      server:
+        - address: 127.0.0.52
+          port: 7777
+      client:
+        nrf:
+          - uri: http://127.0.0.20:7777
+    info:
+      supi:
+        - range: 46005-46006

@@ -522,6 +522,8 @@ void sacc_sbi_register_nrfinstance_for_udm(sacc_node_t *peer)
 
     snprintf(nf_name, sizeof(nf_name), "udm_%d_%d",peer->group,peer->node);
     sacc_sbi_context_get_nf_info(nf_name, "nrf", "scp",nf_instance);
+
+   //sacc_sbi_context_get_nf_info2("udms", "nrf", "scp",nf_instance);
     
     nf_instance->time.heartbeat_interval = 0;//不搞心跳,否则NRF会超时释放掉. amf对这些网元搞心跳也麻烦
 
