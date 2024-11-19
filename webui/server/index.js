@@ -96,10 +96,10 @@ co(function* () {
   checkLogFileSize();
   setInterval(checkLogFileSize, intervalInMilliseconds); 
   // 定时执行 fetchAlerts 函数
-  setInterval(() => {
-    fetchNfStatus();
-    fetchAlerts(); // 调用 fetchAlerts 函数
-  }, 3000); // 每 3000 毫秒（3 秒）执行一次
+  // setInterval(() => {
+  //   fetchNfStatus();
+  //   fetchAlerts(); // 调用 fetchAlerts 函数
+  // }, 3000); // 每 3000 毫秒（3 秒）执行一次
   server.use(session({
     secret: secret,
     store: MongoStore.create({
