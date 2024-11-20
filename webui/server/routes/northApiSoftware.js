@@ -2,8 +2,78 @@ const express = require('express');
 const router = express.Router();
 const globledata = require('../models/globle.js'); 
 const { exec } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+const yaml = require('js-yaml');
+
+//4.01
+// 配置文件路径
+router.get('/info', (req, res) => {
+  const configPath = path.join(__dirname, '../../../install/etc/5gc/amf.yaml');//TODO:确定最终文件
+
+  try {    
+    // 读取并解析 YAML 配置文件
+    const fileContents = fs.readFileSync(configPath, 'utf8');
+    
+    const config = yaml.load(fileContents);
+    // 检查必需的字段是否存在
+    const requiredFields = ['deviceType', 'deviceName', 'deviceSeq', 'version'];
+    for (const field of requiredFields) {
+      if (!config.global || !config.global[field]) {
+        return res.status(500).json({
+          "result": "FAIL",
+          "message": `Missing required field: ${field}`
+        });
+      }
+    }
+    let response = {
+        "result": "OK",
+        "result_set": {
+            "deviceType": config.global.deviceType,
+            "deviceName": config.global.deviceName,
+            "deviceSeq": config.global.deviceSeq,
+            "version": config.global.version
+        }
+    };
+
+    res.json(response);
+  } catch (error) {
+    res.status(500).json({ "result": "FAIL", "message": error.message });
+  }
+});
+
+//4.02
+router.put('/info', (req, res) => {
+  const configPath = path.join(__dirname, '../../../install/etc/5gc/amf.yaml');
+  const newDeviceName = req.body.deviceName;
+
+  if (!newDeviceName) {
+    return res.status(400).json({ "result": "FAIL", "message": "deviceName is required" });
+  }
+
+  try {
+    // 读取并解析 YAML 配置文件
+    const fileContents = fs.readFileSync(configPath, 'utf8');
+    let config = yaml.load(fileContents);
+
+    // 更新 deviceName
+    config.global.deviceName = newDeviceName;
+
+    // 将更新后的配置写回 YAML 文件
+    const updatedContents = yaml.dump(config);
+    fs.writeFileSync(configPath, updatedContents, 'utf8');
+
+    res.json({
+      "result": "OK",
+      "result_set": null
+    });
+  } catch (error) {
+    res.status(500).json({ "result": "FAIL", "message": error.message });
+  }
+});
 
 
+//4.03
 const nfStatus = globledata.nfStatus;
 
 router.get('/device', (req, res) => {
@@ -86,6 +156,48 @@ router.get('/device', (req, res) => {
     res.send(deviceStatus);
     
   });
+
+//4.07
+// 日志文件目录
+const logDir = path.join(__dirname, '../../../install/var/log/5gc/');
+
+router.get('/debug/file', (req, res) => {
+    // 读取日志文件目录
+    fs.readdir(logDir, (err, files) => {
+      if (err) {
+          // 如果读取失败，返回错误信息
+          res.status(500).send({
+              "result": "ERROR",
+              "message": "Failed to read log files."
+          });
+      } else {
+          // // 根据 history 参数的值过滤日志文件
+          // let logFiles;
+          // if (req.query.history === 'true') {
+          //     logFiles = files.filter(file => file.endsWith('.gz'));
+          // } else {
+          //     logFiles = files.filter(file => file.endsWith('.log'));
+          // }
+          // 根据 history 参数的值过滤日志文件
+          let logFiles = files.filter(file => {
+            if (req.query.history === 'true') {
+                return file.endsWith('.gz');
+            } else {
+                return file.endsWith('.log');
+            }
+          }).map(file => {
+              // 返回文件的全路径
+              return path.join(logDir, file);
+          });
+
+          // 如果读取成功，返回日志文件列表
+          res.json({
+              "result": "OK",
+              "result_set": logFiles
+          });
+      }
+  });
+});
 
 //4.08
 // 定义执行系统命令的函数

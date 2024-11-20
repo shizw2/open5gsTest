@@ -325,9 +325,30 @@ void showLicenseInfo(void){
         printf("error: %s\n", errorMsg);
         return ;
     }
-
-    printf("RunTime:%lus, DurationTime:%lus, ExpireTime:%s,UeNum:%d\r\n", getLicenseRunTime(),
-                        getLicenseDurationTime(),
-                        timestampToString(getLicenseExpireTime()),
+/*      "licBaseStart": "2024-09-19",
+        "licBaseExpire": "2025-09-19",
+        "licBaseDays": "366",
+        "licBaseValid": "valid",
+        "licBaseCreate": "2024-09-19 14:51:17",
+        "licBaseType": "debug",
+        "licBaseToday": "2024-09-29",
+        "licBaseCustomer": "XXX",
+        "licBaseSerialno": "20240919T145117cf230762ac7b85270434b461b5e3b5",
+        "maximumRanNodes": 3,
+        "maximumSubscriptions": 10000,
+        "maximumRegistrations": 8*/
+    printf("licBaseStart:%s,licBaseExpire:%s,licBaseDays:%lu,licBaseValid:%s,licBaseCreate:%s,licBaseType:%s,\
+licBaseToday:%s,licBaseCustomer:%s,licBaseSerialno:%s,maximumRanNodes:%d,maximumSubscriptions:%d,maximumRegistrations:%d\r\n", 
+                        timestampToStringDate(getLicenseCreateTime()),
+                        timestampToStringDate(getLicenseExpireTime()),
+                        getLicenseDurationTime()/86400,
+                        result?"valid":"invalid", 
+                        timestampToString(getLicenseCreateTime()), 
+                        "debug",                 
+                        timestampToString(getLicenseCreateTime()), 
+                        getLicenseCustomer(),
+                        getLicenseSerialno(),
+                        getLicenseRanNodes(),
+                        getLicenseSubscriptions(),
                         getLicenseUeNum());
 }

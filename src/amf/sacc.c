@@ -84,10 +84,53 @@ int sacc_initialize(const sacc_config_t *config) {
 
         g_sacc_nodes[n].group = g_local_node_config.group;
         g_sacc_nodes[n].node = n;
-        g_sacc_nodes[n].state = SACC_PEER_STATE_INIT;           
+        g_sacc_nodes[n].state = SACC_PEER_STATE_INIT;      
 
+        ogs_info("sacc node %d addr:%s",n, OGS_ADDR(g_sacc_nodes[n].addr,buf));
+        sacc_associate_peer_client(&g_sacc_nodes[n]);
+
+        snprintf(uri, sizeof(uri), "http://%s:%d/acc/v1/nfinfo", ip,g_local_node_config.port);
+        g_sacc_nodes[n].uri = ogs_strdup(uri);
+        snprintf(uri, sizeof(uri), "http://%s:%d/acc/v1/heartbeat", ip,g_local_node_config.port);
+        g_sacc_nodes[n].heartbeat_uri = ogs_strdup(uri);
+        ogs_info("node handshake uri:%s,heartbeat uri:%s", g_sacc_nodes[n].uri,g_sacc_nodes[n].heartbeat_uri);
+        
+    }
+
+    return OGS_OK;
+}
+
+int sacc_initialize2(const sacc_config_t *config) {
+    int rv,n;
+    char buf[OGS_ADDRSTRLEN];
+
+    ogs_info("SACC initialized with configuration: enable=%d, port=%d, scanInterval=%d, heartbeatInterval=%d, heartbeatLost=%d, role=%s, group=%d, node=%d, nodeNum=%d",
+                 g_local_node_config.enable, g_local_node_config.port, g_local_node_config.scanInterval, g_local_node_config.heartbeatInterval, g_local_node_config.heartbeatLost,
+                 g_local_node_config.role, g_local_node_config.group, g_local_node_config.node, g_local_node_config.nodeNum);
+
+    char ip[16];
+
+    memset(g_sacc_nodes, 0, sizeof(sacc_node_t)*MAX_PEER_NUM);
+
+    //TODO:为了测试,node跟amf的端口号一致
+    g_local_node_config.node = amf_self()->icps_port + 1 - 9777;
+
+    for (n = 1; n <= g_local_node_config.nodeNum && n < MAX_PEER_NUM; n++){
+        char ip[16];
+        char uri[256] = {};
+        int base = 100 + g_local_node_config.group;
+        int offset = n * 2 + 1; // Calculate the last octet as N*2-1
+        //snprintf(ip, sizeof(ip), "192.168.%d.%d", base, offset);
+        //构造测试地址
+        snprintf(ip, sizeof(ip), "127.0.0.%d", 5+ (n-1)*20);//5,25,45,65...   
+       
         rv = ogs_addaddrinfo(&g_sacc_nodes[n].addr,AF_INET, ip, g_local_node_config.port, 0);
         ogs_assert(rv == OGS_OK);
+
+        g_sacc_nodes[n].group = g_local_node_config.group;
+        g_sacc_nodes[n].node = n;
+        g_sacc_nodes[n].state = SACC_PEER_STATE_INIT;      
+
         ogs_info("sacc node %d addr:%s",n, OGS_ADDR(g_sacc_nodes[n].addr,buf));
         sacc_associate_peer_client(&g_sacc_nodes[n]);
 
@@ -342,7 +385,7 @@ bool sacc_handle_response(int msg_type, ogs_sbi_message_t *recvmsg)
     node = atoi(recv_msg_Data->node);
     group = atoi(recv_msg_Data->group);
 
-    ogs_debug("node %d receive sacc %s response, peer node info: deviceId:%s group:%s node:%s serviceIp:%s result:%s",g_local_node_config.node, sacc_msg_ToString(msg_type),recv_msg_Data->deviceId,recv_msg_Data->group,recv_msg_Data->node,recv_msg_Data->serviceIp, recv_msg_Data->result);
+    ogs_info("node %d receive sacc %s response, peer node info: deviceId:%s group:%s node:%s serviceIp:%s result:%s",g_local_node_config.node, sacc_msg_ToString(msg_type),recv_msg_Data->deviceId,recv_msg_Data->group,recv_msg_Data->node,recv_msg_Data->serviceIp, recv_msg_Data->result);
 
     if (node > g_local_node_config.nodeNum || node < 1){
         ogs_info("incomming node %d is out of range, ignore it.",node);
@@ -521,9 +564,9 @@ void sacc_sbi_register_nrfinstance_for_udm(sacc_node_t *peer)
     ogs_sbi_nf_fsm_init(nf_instance);  
 
     snprintf(nf_name, sizeof(nf_name), "udm_%d_%d",peer->group,peer->node);
-    sacc_sbi_context_get_nf_info(nf_name, "nrf", "scp",nf_instance);
+    //sacc_sbi_context_get_nf_info(nf_name, "nrf", "scp",nf_instance);
 
-   //sacc_sbi_context_get_nf_info2("udms", "nrf", "scp",nf_instance);
+    sacc_sbi_context_get_nf_info2("udms", nf_name, "nrf", "scp", peer);
     
     nf_instance->time.heartbeat_interval = 0;//不搞心跳,否则NRF会超时释放掉. amf对这些网元搞心跳也麻烦
 
@@ -580,7 +623,7 @@ void sacc_sbi_register_nrfinstance_for_ausf(sacc_node_t *peer){
     char nf_name[10];
     int i;
 
-    snprintf(nf_instance_id, OGS_UUID_FORMATTED_LENGTH + 1, "%s%s-000000%02d%02d%02d",OGS_SBI_PREFIX_INSTANCE_ID, OpenAPI_nf_type_ToString(OpenAPI_nf_type_UDM),OpenAPI_nf_type_AUSF,peer->group,peer->node);
+    snprintf(nf_instance_id, OGS_UUID_FORMATTED_LENGTH + 1, "%s%s-000000%02d%02d%02d",OGS_SBI_PREFIX_INSTANCE_ID, OpenAPI_nf_type_ToString(OpenAPI_nf_type_AUSF),OpenAPI_nf_type_AUSF,peer->group,peer->node);
 	nf_instance = ogs_sbi_nf_instance_find((char*)nf_instance_id);
     if (!nf_instance) {
         nf_instance = ogs_sbi_nf_instance_add();
@@ -767,6 +810,22 @@ ogs_sbi_nf_service_t *sacc_sbi_nf_service_build_default(
 }
 
 void showsaccnodes(void) {
+    printf("\nsacc nodes information:\n");
+    printf("+--------+--------+---------+----------------+--------+----------------+\n");
+    printf("| node   | group  |  state  |   deviceID     | role   |    addr        |\n");
+    printf("+--------+--------+---------+----------------+--------+----------------+\n");
+    char buf[OGS_ADDRSTRLEN];
+    for (int i = 1; i <= g_local_node_config.nodeNum && i <=MAX_PEER_NUM; i++) {
+        sacc_node_t *node = &g_sacc_nodes[i];
+        printf("| %6d | %6d | %7s | %-14s | %-6s | %-14s |\n",
+               node->node, node->group, sacc_node_state_ToString(node->state),
+               node->deviceId, node->role, OGS_ADDR(node->addr, buf));
+    }
+
+    printf("+--------+--------+---------+----------------+--------+----------------+\n");
+}
+
+void getnetworkStatus(void) {
     printf("\nsacc nodes information:\n");
     printf("+--------+--------+---------+----------------+--------+----------------+\n");
     printf("| node   | group  |  state  |   deviceID     | role   |    addr        |\n");

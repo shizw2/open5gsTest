@@ -2,7 +2,7 @@
 #include <errno.h>
 int getProgramDirectory(char* programPath, size_t bufferSize);
 
-static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimestamp)
+static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimestamp, int numSubscriptions, int numRanNodes, char *Customer, char *Serialno )
 {
     char  m_szPrivateKey[32] = "5gc_Security_2023-11-11";  /*存放私有密钥*/
     UINT   iFileLength;    
@@ -45,7 +45,9 @@ static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimes
     fclose(LicenseInputFile);
 
     license_info.maxUserNum = (int)encrypt_long(numUsers);
-
+    license_info.maxSubscriptions = (int)encrypt_long(numSubscriptions);
+    license_info.maxRanNodes = (int)encrypt_long(numRanNodes);
+    strncpy(license_info.Customer,Customer,MAX_STR_LEN);
  
     if (durationTimestamp == 0){
         if (expireTimestamp > (long)currentTime){
@@ -100,6 +102,11 @@ static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimes
 int main(void)
 {
     int numUsers;
+    int numSubscriptions;
+    int numRanNodes;
+    char Customer[100] = {0};
+    int licenseType;
+    char Serialno[100] = {0};
     int timeChoice;
     long duration = 0;
     int year, month, day;
@@ -107,8 +114,28 @@ int main(void)
     struct tm *localTime;
     time_t timestamp;
     
-    printf("输入在线用户数: ");
+    printf("输入注册用户数: ");
     scanf("%d", &numUsers);
+
+    printf("输入签约用户数: ");
+    scanf("%d", &numSubscriptions);
+
+    printf("输入基站签约数: ");
+    scanf("%d", &numRanNodes);
+
+    // 清空输入缓冲区中的换行符
+    while (getchar() != '\n');
+
+    printf("输入客户名称: ");
+    scanf("%99s", Customer); // 限制输入长度为99个字符，防止溢出
+
+    // 清空输入缓冲区中的换行符
+    while (getchar() != '\n');
+
+    printf("输入序列号(可不填): ");
+    scanf("%99s", Serialno); // 限制输入长度为99个字符，防止溢出
+
+
 
     printf("请选择许可证类型:\n");
     printf("1. 有效时长\n");
@@ -180,7 +207,7 @@ int main(void)
     }
 
 
-    dsMakeLicense(numUsers, (long)timestamp, duration*86400); // 如果输入的有效时间为00000000，则设置为永久有效
+    dsMakeLicense(numUsers, (long)timestamp, duration*86400, numSubscriptions, numRanNodes, Customer, Serialno); // 如果输入的有效时间为00000000，则设置为永久有效
     printf("验证license.\r\n");
     
     char errorMsg[100];
@@ -192,13 +219,16 @@ int main(void)
     }
 
     int ret = checkLicenseAfterRuntime(0,30);
-    printf("license状态:%s,系统已运行:%lu秒, 有效时长:%lu秒, 截止时间:%s,创建时间:%s,在线用户数:%d\r\n",
+    printf("license状态:%s,系统已运行:%lu秒, 有效时长:%lu秒, 截止时间:%s,创建时间:%s,注册用户数:%d,签约用户数:%d,基站签约数:%d,客户:%s\r\n",
                     get_license_state_name(ret), 
                     getLicenseRunTime(),
                     getLicenseDurationTime(),
                     timestampToString(getLicenseExpireTime()),
                     timestampToString(getLicenseCreateTime()),
-                    getLicenseUeNum());  
+                    getLicenseUeNum(),
+                    getLicenseSubscriptions(),
+                    getLicenseRanNodes(),
+                    getLicenseCustomer());  
     if (ret == LICENSE_STATE_SOON_TO_EXPIRE) {        
         return 1;
     }else if (ret == LICENSE_STATE_EXPIRED) {

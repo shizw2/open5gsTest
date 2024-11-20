@@ -57,8 +57,8 @@ typedef struct sacc_config_s {
 } sacc_config_t;
 
 typedef struct sacc_node_s {
-    int node;
     int group;
+    int node;    
     int state;//是否激活
     char deviceId[64];
     char role[16];
@@ -81,7 +81,7 @@ int get_T2_config(void);
 void ogs_sbi_context_get_nf_addr(ogs_sbi_nf_instance_t *nf_instance, const char *local);
 int sacc_sbi_context_get_nf_info(const char *local, const char *nrf, const char *scp,ogs_sbi_nf_instance_t *nf_instance);
 int sacc_sbi_context_get_nf_info2(
-        const char *local, const char *nrf, const char *scp, sacc_node_t *sacc_nodes);
+        const char *local, const char * nf_name, const char *nrf, const char *scp, sacc_node_t *sacc_nodes);
 #ifdef __cplusplus
 }
 #endif

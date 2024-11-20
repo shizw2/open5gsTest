@@ -33,6 +33,21 @@ char* timestampToString(time_t timestamp) {
     return buffer[index]; 
 }
 
+char* timestampToStringDate(time_t timestamp) {  
+    static char buffer[4][20]; 
+    static int index = 0; 
+    index++;
+    index = index%4;
+    if (timestamp == 0) {  
+        strcpy(buffer[index], "NA");         
+    } else {  
+        struct tm *timeInfo = localtime(&timestamp);  
+        strftime(buffer[index], sizeof(buffer[0]), "%Y-%m-%d", timeInfo);         
+    }  
+
+    return buffer[index]; 
+}
+
 char* convertSecondsToString(time_t timestamp) {
     static char buffer[4][50]; 
     static int index = 0; 
@@ -289,6 +304,26 @@ int getLicenseUeNum(void)
     return g_license_info.maxUserNum;
 }
 
+int getLicenseSubscriptions(void)
+{
+    return g_license_info.maxSubscriptions;
+}
+
+int getLicenseRanNodes(void)
+{
+    return g_license_info.maxRanNodes;
+}
+
+char* getLicenseCustomer(void)
+{
+    return g_license_info.Customer;
+}
+
+char* getLicenseSerialno(void)
+{
+    return g_license_info.szSystemInfoFromFile;
+}
+
 long getLicenseRunTime(void)
 {
     return g_runtime_info.totalRunningTime;
@@ -357,6 +392,10 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
     g_license_info.licenseDuration = decrypt_long(license_info.licenseDuration);
    
     g_license_info.licenseCreateTime = decrypt_long(license_info.licenseCreateTime); 
+
+    g_license_info.maxSubscriptions = (int)decrypt_long(license_info.maxSubscriptions);
+    g_license_info.maxRanNodes = (int)decrypt_long(license_info.maxRanNodes);
+    strncpy(g_license_info.Customer, license_info.Customer, MAX_STR_LEN);
   
     /*拷贝系统信息到临时变量中*/
     dsGetSerialNumber(szSystemInfo, &iSystemInfoLen);

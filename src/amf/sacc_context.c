@@ -541,7 +541,7 @@ int sacc_sbi_context_get_nf_info(
 
 
 int sacc_sbi_context_get_nf_info2(
-        const char *local, const char *nrf, const char *scp, sacc_node_t *sacc_nodes)
+        const char *local, const char * nf_name, const char *nrf, const char *scp, sacc_node_t *sacc_nodes)
 {
     int rv;
     yaml_document_t *document = NULL;
@@ -582,13 +582,13 @@ int sacc_sbi_context_get_nf_info2(
                 ogs_sbi_nf_instance_t *nf_instance = NULL;
       
                 if (!strcmp(local, "amfs")){
-                    nf_instance = sacc_nodes[i].amf_nf_instance;
+                    nf_instance = sacc_nodes->amf_nf_instance;
                 }else if (!strcmp(local, "smfs")){
-                    nf_instance = sacc_nodes[i].smf_nf_instance;
+                    nf_instance = sacc_nodes->smf_nf_instance;
                 }else if (!strcmp(local, "udms")){
-                    nf_instance = sacc_nodes[i].udm_nf_instance;
+                    nf_instance = sacc_nodes->udm_nf_instance;
                 }else if (!strcmp(local, "ausfs")){
-                    nf_instance = sacc_nodes[i].ausf_nf_instance;
+                    nf_instance = sacc_nodes->ausf_nf_instance;
                 }else{
                     ogs_error("unknown local node type:%s", local);
                     return OGS_ERROR;
@@ -597,9 +597,17 @@ int sacc_sbi_context_get_nf_info2(
                 i++;
 
                 while (ogs_yaml_iter_next(&node_iter)) {
+                    const char *node = NULL;
                     const char *node_key = ogs_yaml_iter_key(&node_iter);
                     ogs_assert(node_key);
-                    if (!strcmp(node_key, "sbi")) {
+                    if (!strcmp(node_key, "node")) {
+                        node = ogs_yaml_iter_value(&node_iter);                        
+                        if (strcmp(node, nf_name)){//不同的节点跳过
+                            ogs_info("node:%s not equal with nf_name:%s, break.",node,nf_name);
+                            break;
+                        }
+                    }else if (!strcmp(node_key, "sbi")) {
+                        ogs_info("node test sbi.");
                         ogs_yaml_iter_t sbi_iter;
                         ogs_yaml_iter_recurse(&node_iter, &sbi_iter);
                         while (ogs_yaml_iter_next(&sbi_iter)) {

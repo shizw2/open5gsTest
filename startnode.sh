@@ -36,6 +36,7 @@ sleep 1
 ./build/src/nssf/5gc-nssfd -e $level -c ./install/etc/5gc/nssf${node:+${node}}.yaml   &
 ./build/src/bsf/5gc-bsfd -e $level -c ./install/etc/5gc/bsf${node:+${node}}.yaml   &
 ./build/src/udr/5gc-udrd -e $level -c ./install/etc/5gc/udr${node:+${node}}.yaml   &
+
 ./build/src/upf/5gc-upfd -e $level -c ./install/etc/5gc/upf${node:+${node}}.yaml  &
 ./build/src/smf/5gc-smfd -e $level -c ./install/etc/5gc/smf${node:+${node}}.yaml   &
 for ((i=1; i<=$spsno; i++))

@@ -34,6 +34,7 @@ extern "C" {
 char* sacc_msg_ToString(int msg_type);
 char * sacc_node_state_ToString(int state);
 int sacc_initialize(const sacc_config_t *config);
+int sacc_initialize2(const sacc_config_t *config);
 void sacc_scan(void);
 void sacc_heartbeat(void);
 

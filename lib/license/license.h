@@ -11,14 +11,18 @@
 #define true 1
 #define false 0
 #define MAX_SYS_INFO_LENGTH 4096
-
+#define MAX_STR_LEN 100
 typedef struct license_info_s{
     BYTE   szSystemInfoFromFile[MAX_SYS_INFO_LENGTH];
     int  maxUserNum;
     long licenseExpireTime;
     long licenseDuration;
     long licenseCreateTime;
+    int  maxSubscriptions;
+    int  maxRanNodes;
+    unsigned char   Customer[MAX_STR_LEN];
     unsigned char   szDigestFromFile[16];
+
 }PACK_1 license_info_t;
 
 typedef struct runtime_info_s{    
@@ -30,6 +34,7 @@ long encrypt_long(long num);
 long decrypt_long(long num);
 
 char* timestampToString(time_t timestamp);
+char* timestampToStringDate(time_t timestamp);
 char* convertSecondsToString(time_t timestamp);
 
 /*生成硬件特征码*/
@@ -67,6 +72,12 @@ long getLicenseCreateTime(void);
 
 /*获取许可证的剩余时长*/
 long getLicenseRemainingTime(void);
+
+int getLicenseSubscriptions(void);
+int getLicenseRanNodes(void);
+char* getLicenseCustomer(void);
+
+char* getLicenseSerialno(void);
 
 #endif /* End of _LICENSE_INCLUDE_H_ */
 
