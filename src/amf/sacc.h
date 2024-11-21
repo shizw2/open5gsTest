@@ -67,6 +67,7 @@ ogs_sbi_nf_service_t *sacc_sbi_nf_service_build_default(
         ogs_sbi_nf_instance_t *nf_instance, const char *name);
 
 void showsaccnodes(void);
+void getnetworkStatus(void);
 #ifdef __cplusplus
 }
 #endif
