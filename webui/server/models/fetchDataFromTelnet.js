@@ -50,11 +50,7 @@ async function fetchDataFromTelnet(port, host, password, command) {
           console.log('Sending command:',command);
           client.write(command + '\n');
           cmdSent = true;
-        } else if (dataStr.includes('aaa>')) {
-            // 清理数据
-            //const cleanedData = dataStr.replace(/[^\x20-\x7E]+/g, ''); // 移除所有非打印字符
-            //console.log('cleaned data:', cleanedData);
-
+        } else if (dataStr.includes('aaa>')) { 
             const index = dataStr.indexOf('>aaa>');
             console.log('slice index:', index);
             console.log('slice data:', dataStr.slice(0, index));
