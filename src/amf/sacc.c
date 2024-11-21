@@ -48,7 +48,7 @@ char* sacc_msg_ToString(int msg_type)
 }
 
 char * sacc_node_state_ToString(int state){
-    const char *stateArray[] =  { "init", "online", "offline"};
+    const char *stateArray[] =  {"stop", "start"};
     size_t sizeofArray = sizeof(stateArray) / sizeof(stateArray[0]);
     if (state < sizeofArray)
         return (char *)stateArray[state];
@@ -84,7 +84,7 @@ int sacc_initialize(const sacc_config_t *config) {
 
         g_sacc_nodes[n].group = g_local_node_config.group;
         g_sacc_nodes[n].node = n;
-        g_sacc_nodes[n].state = SACC_PEER_STATE_INIT;      
+        g_sacc_nodes[n].state = SACC_PEER_STATE_OFFLINE;      
 
         ogs_info("sacc node %d addr:%s",n, OGS_ADDR(g_sacc_nodes[n].addr,buf));
         sacc_associate_peer_client(&g_sacc_nodes[n]);
@@ -99,52 +99,6 @@ int sacc_initialize(const sacc_config_t *config) {
 
     return OGS_OK;
 }
-
-int sacc_initialize2(const sacc_config_t *config) {
-    int rv,n;
-    char buf[OGS_ADDRSTRLEN];
-
-    ogs_info("SACC initialized with configuration: enable=%d, port=%d, scanInterval=%d, heartbeatInterval=%d, heartbeatLost=%d, role=%s, group=%d, node=%d, nodeNum=%d",
-                 g_local_node_config.enable, g_local_node_config.port, g_local_node_config.scanInterval, g_local_node_config.heartbeatInterval, g_local_node_config.heartbeatLost,
-                 g_local_node_config.role, g_local_node_config.group, g_local_node_config.node, g_local_node_config.nodeNum);
-
-    char ip[16];
-
-    memset(g_sacc_nodes, 0, sizeof(sacc_node_t)*MAX_PEER_NUM);
-
-    //TODO:为了测试,node跟amf的端口号一致
-    g_local_node_config.node = amf_self()->icps_port + 1 - 9777;
-
-    for (n = 1; n <= g_local_node_config.nodeNum && n < MAX_PEER_NUM; n++){
-        char ip[16];
-        char uri[256] = {};
-        int base = 100 + g_local_node_config.group;
-        int offset = n * 2 + 1; // Calculate the last octet as N*2-1
-        //snprintf(ip, sizeof(ip), "192.168.%d.%d", base, offset);
-        //构造测试地址
-        snprintf(ip, sizeof(ip), "127.0.0.%d", 5+ (n-1)*20);//5,25,45,65...   
-       
-        rv = ogs_addaddrinfo(&g_sacc_nodes[n].addr,AF_INET, ip, g_local_node_config.port, 0);
-        ogs_assert(rv == OGS_OK);
-
-        g_sacc_nodes[n].group = g_local_node_config.group;
-        g_sacc_nodes[n].node = n;
-        g_sacc_nodes[n].state = SACC_PEER_STATE_INIT;      
-
-        ogs_info("sacc node %d addr:%s",n, OGS_ADDR(g_sacc_nodes[n].addr,buf));
-        sacc_associate_peer_client(&g_sacc_nodes[n]);
-
-        snprintf(uri, sizeof(uri), "http://%s:%d/acc/v1/nfinfo", ip,g_local_node_config.port);
-        g_sacc_nodes[n].uri = ogs_strdup(uri);
-        snprintf(uri, sizeof(uri), "http://%s:%d/acc/v1/heartbeat", ip,g_local_node_config.port);
-        g_sacc_nodes[n].heartbeat_uri = ogs_strdup(uri);
-        ogs_info("node handshake uri:%s,heartbeat uri:%s", g_sacc_nodes[n].uri,g_sacc_nodes[n].heartbeat_uri);
-        
-    }
-
-    return OGS_OK;
-}
-
 
 void sacc_associate_peer_client(sacc_node_t *peer)
 {
@@ -826,17 +780,41 @@ void showsaccnodes(void) {
 }
 
 void getnetworkStatus(void) {
-    printf("\nsacc nodes information:\n");
-    printf("+--------+--------+---------+----------------+--------+----------------+\n");
-    printf("| node   | group  |  state  |   deviceID     | role   |    addr        |\n");
-    printf("+--------+--------+---------+----------------+--------+----------------+\n");
-    char buf[OGS_ADDRSTRLEN];
+    cJSON *root = cJSON_CreateObject();
+    cJSON *nodeInfo = cJSON_CreateArray();
+
+    int maxNum = g_local_node_config.nodeNum;
+    int currNum = 0;
+
     for (int i = 1; i <= g_local_node_config.nodeNum && i <=MAX_PEER_NUM; i++) {
         sacc_node_t *node = &g_sacc_nodes[i];
-        printf("| %6d | %6d | %7s | %-14s | %-6s | %-14s |\n",
-               node->node, node->group, sacc_node_state_ToString(node->state),
-               node->deviceId, node->role, OGS_ADDR(node->addr, buf));
+        cJSON *json_object = cJSON_CreateObject();
+
+        const char *object_type = (node->group == g_local_node_config.group && node->node == g_local_node_config.node) ? "local/peer" : "peer";
+        cJSON_AddStringToObject(json_object, "object", object_type);
+        cJSON_AddStringToObject(json_object, "group", sacc_node_state_ToString(node->group));
+        cJSON_AddStringToObject(json_object, "node", sacc_node_state_ToString(node->state));
+        if (node->state == SACC_PEER_STATE_ONLINE){
+            currNum++;
+        }
+        char buf[OGS_ADDRSTRLEN];
+        if (node->addr != NULL) {
+            cJSON_AddStringToObject(json_object, "ip", ogs_inet_ntop(node->addr, buf, sizeof(buf)));
+        }
+        cJSON_AddStringToObject(json_object, "deviceSeq", node->deviceId);
+        cJSON_AddStringToObject(json_object, "status", sacc_node_state_ToString(node->state));
+
+        cJSON_AddItemToArray(nodeInfo, json_object);
     }
 
-    printf("+--------+--------+---------+----------------+--------+----------------+\n");
+    cJSON_AddNumberToObject(root, "maxNum", maxNum);
+    cJSON_AddNumberToObject(root, "currNum", currNum);
+    cJSON_AddItemToObject(root, "nodeInfo", nodeInfo);
+
+    char *json_string = cJSON_Print(root);
+    printf("%s\n", json_string);
+
+    // 释放 cJSON 对象
+    cJSON_Delete(root);
+    ogs_free(json_string);
 }

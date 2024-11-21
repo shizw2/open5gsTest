@@ -5,6 +5,7 @@ const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
+const fetchDataFromTelnet = require('../models/fetchDataFromTelnet'); 
 
 //4.01
 // 配置文件路径
@@ -156,6 +157,23 @@ router.get('/device', (req, res) => {
     res.send(deviceStatus);
     
   });
+
+//4.04
+router.get('/networkStatus', async (req, res) => {
+  try {
+    const dataString = await fetchDataFromTelnet(2300, '127.0.0.5', '5gc', 'getnetworkStatus()');
+    // 解析 JSON 字符串为对象
+    const data = JSON.parse(dataString);
+    const result = Object.keys(data).length === 0 ? "FAIL" : "OK";
+    const result_set = Object.keys(data).length === 0 ? {} : data;
+
+    // 构建响应对象
+    res.json({ result, result_set });
+  } catch (err) {
+    console.error('Error fetching data from Telnet:', err);
+    res.status(500).json({ result: "ERROR", message: err.message });
+  }
+});
 
 //4.07
 // 日志文件目录

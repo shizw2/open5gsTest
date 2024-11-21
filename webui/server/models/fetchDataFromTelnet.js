@@ -38,8 +38,10 @@ async function fetchDataFromTelnet(port, host, password, command) {
     return new Promise((resolve, reject) => {
       let cmdSent = false;
       client.on('data', (data) => {
-        const dataStr = data.toString();
+        dataStr = data.toString();
         console.log('Received:', dataStr);
+        dataStr = dataStr.replace(/[^\x20-\x7E]+/g, ''); // 移除所有非打印字符
+        console.log('cleaned data:', dataStr);
 
         if (dataStr.includes('Password:')) {
           console.log('Sending password...');
@@ -48,7 +50,15 @@ async function fetchDataFromTelnet(port, host, password, command) {
           console.log('Sending command:',command);
           client.write(command + '\n');
           cmdSent = true;
-        } else if (dataStr.includes('aaa>')) {            
+        } else if (dataStr.includes('aaa>')) {
+            // 清理数据
+            //const cleanedData = dataStr.replace(/[^\x20-\x7E]+/g, ''); // 移除所有非打印字符
+            //console.log('cleaned data:', cleanedData);
+
+            const index = dataStr.indexOf('>aaa>');
+            console.log('slice index:', index);
+            console.log('slice data:', dataStr.slice(0, index));
+            allData += dataStr.slice(0, index); // 截断 'aaa>' 及其之后的数据
             console.log('all data:', allData);
             client.end();
             resolve(allData);

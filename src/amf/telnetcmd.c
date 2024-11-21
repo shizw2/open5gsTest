@@ -17,6 +17,7 @@ void showueAll(void);
 void showueDetail(char * id);
 void showsaccnodes(void);
 void showLicenseInfo(void);
+void getnetworkStatus(void);
 void amf(void)
 {
     printf("this is amf system. \r\n");
@@ -29,6 +30,7 @@ telnet_command_t g_commands[] = {
     {"showicpsue",   (GenericFunc)showicpsue,      0, {}},
     {"showsaccnodes", (GenericFunc)showsaccnodes,      0, {}},
     {"showLicenseInfo", (GenericFunc)showLicenseInfo,      0, {}},
+    {"getnetworkStatus", (GenericFunc)getnetworkStatus,      0, {}},
     
 };
 int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);

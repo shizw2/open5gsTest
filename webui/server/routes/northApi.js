@@ -13,5 +13,6 @@ router.use('/wxCm/v1/config', config);
 router.use('/wxCm/v1/software', software);
 router.use('/wxCm/v1/license', license);
 router.use('/wxCm/v1/forward/udm', udm);
+router.use('/wxCm/v1/forward/nrf', software);
 // 导出路由
 module.exports = router;
