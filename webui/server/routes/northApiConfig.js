@@ -43,8 +43,27 @@ router.get('/role', (req, res) => {
     // 返回JSON响应
     res.json(response);
 });
-
-
-
+//6.6用户数据导入
+router.post('/importUe', (req, res) => {
+  // 构建成功响应
+  const response = {
+      result: "OK",
+      result_set: true
+  };
+  
+  // 返回JSON响应
+  res.json(response);
+});
+//6.7用户数据导出
+router.post('/exportUe', (req, res) => {
+  // 构建成功响应
+  const response = {
+      result: "OK",
+      result_set: true
+  };
+  
+  // 返回JSON响应
+  res.json(response);
+});
 // 导出路由
 module.exports = router;

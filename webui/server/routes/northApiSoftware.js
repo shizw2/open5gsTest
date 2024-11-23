@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const globledata = require('../models/globle.js'); 
+const globledata = require('../models/globle.js');
+const nfStatus = globledata.nfStatus;
 const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -75,7 +76,7 @@ router.put('/info', (req, res) => {
 
 
 //4.03
-const nfStatus = globledata.nfStatus;
+
 
 router.get('/device', (req, res) => {
     //res.send('Hello World2');

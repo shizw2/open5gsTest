@@ -244,6 +244,12 @@ int ogs_app_parse_global_conf(ogs_yaml_iter_t *parent)
                 } else if (!strcmp(parameter_key, "capacity")) {                        
                     const char *v = ogs_yaml_iter_value(&parameter_iter);
                     if (v) global_conf.parameter.capacity = atoi(v);
+                } else if (!strcmp(parameter_key, "group")) {                        
+                    const char *v = ogs_yaml_iter_value(&parameter_iter);
+                    if (v) global_conf.parameter.group = atoi(v);
+                } else if (!strcmp(parameter_key, "node")) {                        
+                    const char *v = ogs_yaml_iter_value(&parameter_iter);
+                    if (v) global_conf.parameter.node = atoi(v);
                 } else
                     ogs_warn("unknown key `%s`", parameter_key);
             }

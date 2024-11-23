@@ -128,7 +128,7 @@ co(function* () {
   const csrfIgnore = (req, res, next) => {
     //console.log('req.path====',req.path);
     if (req.path.startsWith('/coreNetwork/')) {
-        //console.log('eeeeeeeeee',req.path);
+      //console.log('eeeeeeeeee',req.path);
         return next();
     }
     return csrf(req, res, next);

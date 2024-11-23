@@ -6,6 +6,12 @@ const path = require('path');
 const { exec } = require('child_process');
 const fetchDataFromTelnet = require('../models/fetchDataFromTelnet'); 
 
+const licenseDir   = path.join(__dirname, '../../../license');
+const binDir       = path.join(__dirname, '../../../install/bin');
+const downloadDir  = path.join(__dirname, '../../../download');
+// 全局变量，存储当前激活的文件名
+let activatedFileName;
+
 //5.01
 // 收到info请求，从telnet服务器获取信息
 router.get('/info', async (req, res) => {
@@ -53,10 +59,6 @@ router.get('/info', async (req, res) => {
 });
 
 //5.02
-const licenseDir   = path.join(__dirname, '../../../license');
-const binDir       = path.join(__dirname, '../../../install/bin');
-const downloadDir  = path.join(__dirname, '../../../download');
-
 router.get('/file', (req, res) => {
     // 读取目录
     fs.readdir(licenseDir, (err, files) => {
@@ -114,10 +116,6 @@ router.get('/file', (req, res) => {
 });
 
 //5.03
-// 全局变量，存储当前激活的文件名
-let activatedFileName;
-
-
 router.post('/activate', (req, res) => {
   const { fileName } = req.body;
 
@@ -242,6 +240,51 @@ router.delete('/file', (req, res) => {
   });
 });
 
+//5.5
+// 导出防伪信息
+router.post('/export', (req, res) => {
+    // 读取 binDir 目录下的所有文件
+    fs.readdir(binDir, (err, files) => {
+      if (err) {
+        return res.status(500).json({
+          "result": "FAIL",
+          "message": `Failed to read bin directory: ${err.message}`
+        });
+      }
+  
+      // 过滤出以 .id 结尾的文件
+      const idFiles = files.filter(file => path.extname(file) === '.id');
+  
+      if (idFiles.length === 0) {
+        return res.status(404).json({
+          "result": "FAIL",
+          "message": `No .id files found in bin directory: ${binDir}`
+        });
+      }
+  
+      // 假设我们只处理第一个 .id 文件，您可以根据需要调整逻辑
+      const srcFilePath = path.join(binDir, idFiles[0]);
+      const destFilePath = path.join(downloadDir, idFiles[0]);
+  
+      // 拷贝文件
+      fs.copyFile(srcFilePath, destFilePath, (err) => {
+        if (err) {
+          return res.status(500).json({
+            "result": "FAIL",
+            "message": `Failed to copy the file: ${err.message}`
+          });
+        }
+  
+        console.log(`File ${srcFilePath} exported successfully to ${downloadDir}.`);
+  
+        res.json({
+          "result": "OK",
+          "result_set": idFiles[0] 
+        });
+      });
+    });
+  });
+  
 
 //5.6
 // 导入文件的路由
@@ -256,7 +299,7 @@ router.post('/import', (req, res) => {
       if (err) {
           return res.status(404).json({
               "result": "FAIL",
-              "message": "File not found in download directory."
+              "message": `File not found in download directory: ${downloadDir}`
           });
       }
 

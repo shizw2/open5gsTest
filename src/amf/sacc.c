@@ -594,7 +594,8 @@ void sacc_sbi_register_nrfinstance_for_ausf(sacc_node_t *peer){
     //ogs_sbi_nf_instance_build_default(nf_instance);
     ogs_sbi_nf_instance_set_status(nf_instance, OpenAPI_nf_status_REGISTERED);
     snprintf(nf_name, sizeof(nf_name), "ausf_%d_%d",peer->group,peer->node);
-    sacc_sbi_context_get_nf_info(nf_name, "nrf", "scp",nf_instance);
+    //sacc_sbi_context_get_nf_info(nf_name, "nrf", "scp",nf_instance);
+    sacc_sbi_context_get_nf_info2("ausfs", nf_name, "nrf", "scp", peer);
     ogs_info("nf_name:%s,nf_instance->num_of_ipv4:%d",nf_name,nf_instance->num_of_ipv4);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_SCP);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_AMF);
@@ -647,7 +648,8 @@ void sacc_sbi_register_nrfinstance_for_smf(sacc_node_t *peer){
     //ogs_sbi_nf_instance_build_default(nf_instance);
     ogs_sbi_nf_instance_set_status(nf_instance, OpenAPI_nf_status_REGISTERED);
     snprintf(nf_name, sizeof(nf_name), "smf_%d_%d",peer->group,peer->node);
-    sacc_sbi_context_get_nf_info(nf_name, "nrf", "scp",nf_instance);
+    //sacc_sbi_context_get_nf_info(nf_name, "nrf", "scp",nf_instance);
+    sacc_sbi_context_get_nf_info2("smfs", nf_name, "nrf", "scp", peer);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_SCP);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_AMF);
 
@@ -706,7 +708,8 @@ void sacc_sbi_register_nrfinstance_for_amf(sacc_node_t *peer){
     //ogs_sbi_nf_instance_build_default(nf_instance);
     ogs_sbi_nf_instance_set_status(nf_instance, OpenAPI_nf_status_REGISTERED);
     snprintf(nf_name, sizeof(nf_name), "amf_%d_%d",peer->group,peer->node);
-    sacc_sbi_context_get_nf_info(nf_name, "nrf", "scp",nf_instance);
+    //sacc_sbi_context_get_nf_info(nf_name, "nrf", "scp",nf_instance);
+    sacc_sbi_context_get_nf_info2("amfs", nf_name, "nrf", "scp", peer);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_SCP);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_SMF);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_AMF);
