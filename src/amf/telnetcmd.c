@@ -319,38 +319,73 @@ void showueDetail( char * supi )
     return ;
 }
 
-void showLicenseInfo(void){
+// void showLicenseInfo(void){
+//     char errorMsg[100];
+//     size_t errorMsgSize = sizeof(errorMsg);
+//     bool result = dsCheckLicense(errorMsg, errorMsgSize);
+//     if (!result) {        
+//         printf("error: %s\n", errorMsg);
+//         return ;
+//     }
+// /*      "licBaseStart": "2024-09-19",
+//         "licBaseExpire": "2025-09-19",
+//         "licBaseDays": "366",
+//         "licBaseValid": "valid",
+//         "licBaseCreate": "2024-09-19 14:51:17",
+//         "licBaseType": "debug",
+//         "licBaseToday": "2024-09-29",
+//         "licBaseCustomer": "XXX",
+//         "licBaseSerialno": "20240919T145117cf230762ac7b85270434b461b5e3b5",
+//         "maximumRanNodes": 3,
+//         "maximumSubscriptions": 10000,
+//         "maximumRegistrations": 8*/
+//     printf("licBaseStart:%s,licBaseExpire:%s,licBaseDays:%lu,licBaseValid:%s,licBaseCreate:%s,licBaseType:%s,
+// licBaseToday:%s,licBaseCustomer:%s,licBaseSerialno:%s,maximumRanNodes:%d,maximumSubscriptions:%d,maximumRegistrations:%d\r\n", 
+//                         timestampToStringDate(getLicenseCreateTime()),
+//                         timestampToStringDate(getLicenseExpireTime()),
+//                         getLicenseDurationTime()/86400,
+//                         result?"valid":"invalid", 
+//                         timestampToString(getLicenseCreateTime()), 
+//                         "debug",                 
+//                         timestampToString(getLicenseCreateTime()), 
+//                         getLicenseCustomer(),
+//                         getLicenseSerialno(),
+//                         getLicenseRanNodes(),
+//                         getLicenseSubscriptions(),
+//                         getLicenseUeNum());
+// }
+
+void showLicenseInfo(void) {
     char errorMsg[100];
     size_t errorMsgSize = sizeof(errorMsg);
+    time_t currentTime;
+    time(&currentTime);
+
     bool result = dsCheckLicense(errorMsg, errorMsgSize);
-    if (!result) {        
-        printf("error: %s\n", errorMsg);
-        return ;
-    }
-/*      "licBaseStart": "2024-09-19",
-        "licBaseExpire": "2025-09-19",
-        "licBaseDays": "366",
-        "licBaseValid": "valid",
-        "licBaseCreate": "2024-09-19 14:51:17",
-        "licBaseType": "debug",
-        "licBaseToday": "2024-09-29",
-        "licBaseCustomer": "XXX",
-        "licBaseSerialno": "20240919T145117cf230762ac7b85270434b461b5e3b5",
-        "maximumRanNodes": 3,
-        "maximumSubscriptions": 10000,
-        "maximumRegistrations": 8*/
-    printf("licBaseStart:%s,licBaseExpire:%s,licBaseDays:%lu,licBaseValid:%s,licBaseCreate:%s,licBaseType:%s,\
-licBaseToday:%s,licBaseCustomer:%s,licBaseSerialno:%s,maximumRanNodes:%d,maximumSubscriptions:%d,maximumRegistrations:%d\r\n", 
-                        timestampToStringDate(getLicenseCreateTime()),
-                        timestampToStringDate(getLicenseExpireTime()),
-                        getLicenseDurationTime()/86400,
-                        result?"valid":"invalid", 
-                        timestampToString(getLicenseCreateTime()), 
-                        "debug",                 
-                        timestampToString(getLicenseCreateTime()), 
-                        getLicenseCustomer(),
-                        getLicenseSerialno(),
-                        getLicenseRanNodes(),
-                        getLicenseSubscriptions(),
-                        getLicenseUeNum());
+
+    cJSON *root = cJSON_CreateObject();
+
+    // 添加基础许可证信息
+    cJSON_AddStringToObject(root, "licBaseStart", timestampToStringDate(getLicenseCreateTime()));
+    cJSON_AddStringToObject(root, "licBaseExpire", timestampToStringDate(getLicenseExpireTime()));
+    cJSON_AddNumberToObject(root, "licBaseDays", getLicenseDurationTime() / 86400);
+    cJSON_AddStringToObject(root, "licBaseValid", result ? "valid" : "invalid");
+    cJSON_AddStringToObject(root, "licBaseCreate", timestampToString(getLicenseCreateTime()));
+    cJSON_AddStringToObject(root, "licBaseType", "debug");
+    cJSON_AddStringToObject(root, "licBaseToday", timestampToString(currentTime));
+    cJSON_AddStringToObject(root, "licBaseCustomer", getLicenseCustomer());
+    cJSON_AddStringToObject(root, "licBaseSerialno", getLicenseSerialno());
+
+    // 添加最大节点数、订阅数和注册数
+    cJSON_AddNumberToObject(root, "maximumRanNodes", getLicenseRanNodes());
+    cJSON_AddNumberToObject(root, "maximumSubscriptions", getLicenseSubscriptions());
+    cJSON_AddNumberToObject(root, "maximumRegistrations", getLicenseUeNum());
+
+    // 将cJSON对象转换为字符串并打印
+    char *json_string = cJSON_Print(root);
+    printf("%s\n", json_string);
+
+    // 释放cJSON对象
+    cJSON_Delete(root);
+    ogs_free(json_string);
 }

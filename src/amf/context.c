@@ -1942,6 +1942,8 @@ amf_ue_t *amf_ue_add(ran_ue_t *ran_ue)
             OGS_SBI_NPCF_AM_POLICY_CONTROL_UE_AMBR_AUTHORIZATION);
 
     amf_ue->rat_restrictions = OpenAPI_list_create();
+    amf_ue->service_area_restriction=ogs_calloc(1, sizeof(struct OpenAPI_service_area_restriction_s));
+    amf_ue->service_area_restriction->areas = OpenAPI_list_create();
 
     ogs_list_init(&amf_ue->sess_list);
 
@@ -1964,6 +1966,7 @@ amf_ue_t *amf_ue_add(ran_ue_t *ran_ue)
 void amf_ue_remove(amf_ue_t *amf_ue)
 {
     int i;
+    OpenAPI_lnode_t *node = NULL;
 
     ogs_assert(amf_ue);
 
@@ -1981,6 +1984,19 @@ void amf_ue_remove(amf_ue_t *amf_ue)
     AMF_UE_CLEAR_5GSM_MESSAGE(amf_ue);
 
     OpenAPI_list_free(amf_ue->rat_restrictions);
+    
+    if(amf_ue->service_area_restriction->areas){
+/*        OpenAPI_list_for_each(amf_ue->service_area_restriction->areas, node) {
+            if(node->data)ogs_free(node->data);
+        }*/
+        OpenAPI_list_free(amf_ue->service_area_restriction->areas);
+        amf_ue->service_area_restriction->areas = NULL;
+   } 
+    
+    if(amf_ue->service_area_restriction){
+        ogs_free(amf_ue->service_area_restriction);
+        amf_ue->service_area_restriction=NULL;
+    }
 
     /* Remove all session context */
     amf_sess_remove_all(amf_ue);
@@ -3539,6 +3555,33 @@ bool amf_ue_is_rat_restricted(amf_ue_t *amf_ue)
     OpenAPI_list_for_each(amf_ue->rat_restrictions, node) {
         if (node->data == (void *)rat) {
             return true;
+        }
+    }
+    return false;
+}
+bool amf_ue_is_area_restricted(amf_ue_t *amf_ue)
+{
+    OpenAPI_lnode_t *node = NULL;
+    int value;
+    char *hexString;
+    ogs_assert(amf_ue);
+    ogs_error("amf_ue->nr_tai.tac=%d",amf_ue->nr_tai.tac.v);
+    if(amf_ue->service_area_restriction->restriction_type==OpenAPI_restriction_type_ALLOWED_AREAS){
+        OpenAPI_list_for_each(amf_ue->service_area_restriction->areas, node) {            
+            hexString=(char*)node->data;
+            sscanf(hexString, "%x", &value);
+            ogs_error("hexString=%s,value=%d",hexString,value);
+            if (value == amf_ue->nr_tai.tac.v)
+               return false;      
+        }
+        return true;
+    }else if(amf_ue->service_area_restriction->restriction_type==OpenAPI_restriction_type_NOT_ALLOWED_AREAS){        
+        OpenAPI_list_for_each(amf_ue->service_area_restriction->areas, node) {
+            hexString=(char*)node->data;
+            sscanf(hexString, "%x", &value);
+            ogs_error("hexString=%s,value=%d",hexString,value);
+            if (value == amf_ue->nr_tai.tac.v)
+               return true;      
         }
     }
     return false;

@@ -860,6 +860,21 @@ void ogs_subscription_data_free(ogs_subscription_data_t *subscription_data)
     subscription_data->num_of_slice = 0;
 
     subscription_data->num_of_msisdn = 0;
+    subscription_data->num_of_rattype=0;
+    
+    if(subscription_data->restrictiontacs){
+        for(i = 0; i < subscription_data->num_of_area; i++){
+            if(subscription_data->restrictiontacs[i]) {             
+              ogs_free(subscription_data->restrictiontacs[i]);
+              subscription_data->restrictiontacs[i]=NULL;
+             }
+            else 
+              break;
+        }        
+       ogs_free(subscription_data->restrictiontacs); 
+       subscription_data->restrictiontacs=NULL;
+    }
+    subscription_data->num_of_area=0;
 }
 
 void ogs_ims_data_free(ogs_ims_data_t *ims_data)

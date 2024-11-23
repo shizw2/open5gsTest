@@ -422,7 +422,7 @@ bool udr_nudr_dr_handle_subscription_context(
 bool udr_nudr_dr_handle_subscription_provisioned(
         ogs_sbi_stream_t *stream, ogs_sbi_message_t *recvmsg)
 {
-    int rv, status = 0;
+    int rv,i, status = 0;
     char *strerror = NULL;
 
     ogs_sbi_message_t sendmsg;
@@ -479,6 +479,11 @@ bool udr_nudr_dr_handle_subscription_provisioned(
         OpenAPI_snssai_t *Snssai = NULL;
 
         OpenAPI_lnode_t *node = NULL;
+        OpenAPI_set_t *rat_restrictions_list = NULL;
+        OpenAPI_list_t *areas_list = NULL;
+        OpenAPI_service_area_restriction_t  rAREA;
+        OpenAPI_area_t AREA;
+        OpenAPI_list_t *tacs_list = NULL;
 
         GpsiList = OpenAPI_list_create();
         for (i = 0; i < subscription_data.num_of_msisdn; i++) {
@@ -488,6 +493,40 @@ bool udr_nudr_dr_handle_subscription_provisioned(
             OpenAPI_list_add(GpsiList, gpsi);
         }
 
+        if(subscription_data.num_of_rattype)rat_restrictions_list=OpenAPI_list_create();
+        for(i = 0; i < subscription_data.num_of_rattype; i++) {          
+            OpenAPI_list_add(rat_restrictions_list,subscription_data.rattype[i]);
+            ogs_error("subscription_data.rattype[i]=%d,subscription_data.num_of_rattype=%d",subscription_data.rattype[i],subscription_data.num_of_rattype);
+        }
+
+        if(subscription_data.num_of_area){
+            areas_list = OpenAPI_list_create();
+            tacs_list = OpenAPI_list_create();
+       
+            for(i=0;i < subscription_data.num_of_area;i++){
+                ogs_error("subscription_data.restrictiontacs[%d]=%s",i,subscription_data.restrictiontacs[i]);
+                OpenAPI_list_add(tacs_list,subscription_data.restrictiontacs[i]);
+            }
+            memset(&AREA,0,sizeof(AREA));
+            AREA.area_code=NULL;
+            AREA.tacs=tacs_list;
+            OpenAPI_list_add(areas_list,&AREA);
+        }
+#if 0        
+         if(subscription_data.restrictiontacs){
+           /* for(i = 0; i < subscription_data.num_of_area; i++){
+                if(subscription_data.restrictiontacs[i]) {
+                    ogs_error("subscription_data.restrictiontacs[i=%d]=%p,subscription_data.restrictiontacs[i]=%s",i,subscription_data.restrictiontacs[i],subscription_data.restrictiontacs[i]);
+                    ogs_free(subscription_data.restrictiontacs[i]);
+                    subscription_data.restrictiontacs[i]=NULL;
+                 }
+                else 
+                  break;
+            } */       
+           ogs_free(subscription_data.restrictiontacs); 
+           subscription_data.restrictiontacs=NULL;
+        }
+#endif
         SubscribedUeAmbr.uplink = ogs_sbi_bitrate_to_string(
                 subscription_data.ambr.uplink, OGS_SBI_BITRATE_KBPS);
         SubscribedUeAmbr.downlink = ogs_sbi_bitrate_to_string(
@@ -545,7 +584,17 @@ bool udr_nudr_dr_handle_subscription_provisioned(
 
         if (GpsiList->count)
             AccessAndMobilitySubscriptionData.gpsis = GpsiList;
-
+        if(rat_restrictions_list && rat_restrictions_list->count){
+            ogs_error("rat_restrictions_list->count=%ld",rat_restrictions_list->count);
+            AccessAndMobilitySubscriptionData.rat_restrictions=rat_restrictions_list;
+        }
+        if(areas_list && areas_list->count){
+            memset(&rAREA,0,sizeof(rAREA));
+            rAREA.areas=areas_list;
+            rAREA.restriction_type=subscription_data.restrictiontype;
+            AccessAndMobilitySubscriptionData.service_area_restriction=&rAREA;
+        }
+        
         AccessAndMobilitySubscriptionData.subscribed_ue_ambr =
             &SubscribedUeAmbr;
 
@@ -568,6 +617,18 @@ bool udr_nudr_dr_handle_subscription_provisioned(
         ogs_free(SubscribedUeAmbr.uplink);
         ogs_free(SubscribedUeAmbr.downlink);
 
+        if(rat_restrictions_list)
+            OpenAPI_list_free(rat_restrictions_list);
+
+ /*       
+        OpenAPI_list_for_each(tacs_list, node) {
+            if (node->data) ogs_free(node->data);
+        }*/
+        if(tacs_list)OpenAPI_list_free(tacs_list);   
+
+
+        if(areas_list)OpenAPI_list_free(areas_list);
+        
         OpenAPI_list_for_each(DefaultSingleNssaiList, node) {
             OpenAPI_snssai_t *Snssai = node->data;
             if (Snssai) {

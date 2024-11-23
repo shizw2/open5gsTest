@@ -338,7 +338,10 @@ ogs_nas_5gmm_cause_t gmm_handle_registration_request(amf_ue_t *amf_ue,
         ogs_error("Registration rejected due to RAT restrictions");
         return OGS_5GMM_CAUSE_5GS_SERVICES_NOT_ALLOWED;
     }
-
+    if (amf_ue_is_area_restricted(amf_ue)) {
+        ogs_error("Registration rejected due to area restrictions");
+        return OGS_5GMM_CAUSE_5GS_SERVICES_NOT_ALLOWED;
+    }
     return OGS_5GMM_CAUSE_REQUEST_ACCEPTED;
 }
 
@@ -1439,14 +1442,7 @@ int gmm_handle_ul_nas_transport(ran_ue_t *ran_ue, amf_ue_t *amf_ue,
                     supi_id = ogs_id_get_value(amf_ue->supi);
                     ogs_sbi_discovery_option_set_supi_id(discovery_option, supi_id);
                 }
-
-                /*if (amf_ue->suci != NULL){
-                    char *supi = ogs_supi_from_suci(amf_ue->suci);
-                    supi_id = ogs_id_get_value(supi);
-                    ogs_info("ogs_sbi_discovery_option_set_supi_id:[%s]", supi_id);
-                    ogs_sbi_discovery_option_set_supi_id(discovery_option, supi_id);
-                }*/
-
+                
                 char *routing_indicator = NULL;
                 if (amf_ue->suci != NULL){
                     routing_indicator = ogs_routing_indicator_from_suci(amf_ue->suci);

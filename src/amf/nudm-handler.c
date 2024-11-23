@@ -42,8 +42,11 @@ int amf_nudm_sdm_handle_provisioned(
                 recvmsg->AccessAndMobilitySubscriptionData->nssai;
             OpenAPI_list_t *RatRestrictions =
                 recvmsg->AccessAndMobilitySubscriptionData->rat_restrictions;
+            struct OpenAPI_service_area_restriction_s *service_area_restriction =
+                recvmsg->AccessAndMobilitySubscriptionData->service_area_restriction;
 
             OpenAPI_lnode_t *node = NULL;
+            OpenAPI_lnode_t *node1 = NULL;
 
             /* Clear MSISDN */
             for (i = 0; i < amf_ue->num_of_msisdn; i++) {
@@ -139,6 +142,22 @@ int amf_nudm_sdm_handle_provisioned(
                     OpenAPI_list_add(amf_ue->rat_restrictions, node->data);
                 }
             }
+            if (service_area_restriction){ 
+                amf_ue->service_area_restriction->restriction_type=service_area_restriction->restriction_type;
+                ogs_error("amf_ue->service_area_restriction->restriction_type=%d",amf_ue->service_area_restriction->restriction_type);
+            }
+            OpenAPI_list_clear(amf_ue->service_area_restriction->areas);
+            if (service_area_restriction && service_area_restriction->areas) {              
+                OpenAPI_list_for_each(service_area_restriction->areas, node) {                    
+                    OpenAPI_area_t *Restriction_tacs=(OpenAPI_area_t *)node->data;
+                    if(Restriction_tacs->tacs){
+                        OpenAPI_list_for_each(Restriction_tacs->tacs,node1){                        
+                            OpenAPI_list_add(amf_ue->service_area_restriction->areas, node1->data);
+                            ogs_error("amf_ue->service_area_restriction->restriction_type=%d,areas=%s",service_area_restriction->restriction_type,(char*)node1->data);
+                        }                       
+                   }
+                }
+            }
         }
 
         if (amf_update_allowed_nssai(amf_ue) == false) {
@@ -153,6 +172,15 @@ int amf_nudm_sdm_handle_provisioned(
 
         if (amf_ue_is_rat_restricted(amf_ue)) {
             ogs_error("Registration rejected due to RAT restrictions");
+            r = nas_5gs_send_gmm_reject(
+                    ran_ue_find_by_id(amf_ue->ran_ue_id), amf_ue,
+                    OGS_5GMM_CAUSE_5GS_SERVICES_NOT_ALLOWED);
+            ogs_expect(r == OGS_OK);
+            ogs_assert(r != OGS_ERROR);
+            return OGS_ERROR;
+        }
+        if(amf_ue_is_area_restricted(amf_ue)){
+            ogs_error("Registration rejected due to area restrictions");
             r = nas_5gs_send_gmm_reject(
                     ran_ue_find_by_id(amf_ue->ran_ue_id), amf_ue,
                     OGS_5GMM_CAUSE_5GS_SERVICES_NOT_ALLOWED);

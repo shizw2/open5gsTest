@@ -202,6 +202,11 @@ extern "C" {
 #define OGS_UE_STRING "ue"
 #define OGS_IPV4_FRAMED_ROUTES_STRING "ipv4_framed_routes"
 #define OGS_IPV6_FRAMED_ROUTES_STRING "ipv6_framed_routes"
+#define OGS_RAT_TYPE_STRING "rattype"
+#define OGS_RESTRICTION_TYPE_STRING "restrictiontype"
+#define OGS_RESTRICTION_AREA_STRING "restrictionarea"
+
+
 
 /************************************
  * PLMN_ID Structure                */
@@ -854,6 +859,11 @@ typedef struct ogs_subscription_data_s {
     char *mme_host;
     char *mme_realm;
     bool purge_flag;
+    int num_of_rattype;
+    uint32_t rattype[21];
+    uint32_t restrictiontype;
+    int num_of_area;
+    char **restrictiontacs;
 } ogs_subscription_data_t;
 
 void ogs_subscription_data_free(ogs_subscription_data_t *subscription_data);

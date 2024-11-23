@@ -47,6 +47,7 @@ async function fetchDataFromTelnet(port, host, password, command) {
           console.log('Sending password...');
           client.write(password + '\n');         
         } else if (dataStr.includes('aaa>') && cmdSent == false) {
+          allData = '';// 重置 allData
           console.log('Sending command:',command);
           client.write(command + '\n');
           cmdSent = true;
@@ -56,6 +57,11 @@ async function fetchDataFromTelnet(port, host, password, command) {
             console.log('slice data:', dataStr.slice(0, index));
             allData += dataStr.slice(0, index); // 截断 'aaa>' 及其之后的数据
             console.log('all data:', allData);
+            // 检查是否返回了 "Command not found"
+            if (allData.includes('Command not found')) {
+              client.end();
+              return reject(new Error(`Command ${command} not found`));
+            }
             client.end();
             resolve(allData);
         } else {

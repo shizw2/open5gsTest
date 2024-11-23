@@ -20,14 +20,8 @@ int udp_ini_open(void)
 
 	if (is_amf_icps())
 	{
-        //TODO:测试代码
-        //if (amf_self()->icps_port != 9777){
-        //    rv = ogs_getaddrinfo(&internel_addr, AF_INET, "128.128.128.126", amf_self()->icps_port, 0);
-		//    ogs_assert(rv == OGS_OK);
-        //}else{
 		rv = ogs_getaddrinfo(&internel_addr, AF_INET, "128.128.128.127", amf_self()->icps_port, 0);
 		ogs_assert(rv == OGS_OK);
-        //}
 
 		amf_self()->udp_node = ogs_socknode_new(internel_addr);
 		ogs_assert(amf_self()->udp_node);

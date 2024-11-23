@@ -793,10 +793,10 @@ void getnetworkStatus(void) {
         sacc_node_t *node = &g_sacc_nodes[i];
         cJSON *json_object = cJSON_CreateObject();
 
-        const char *object_type = (node->group == g_local_node_config.group && node->node == g_local_node_config.node) ? "local/peer" : "peer";
+        const char *object_type = (node->group == g_local_node_config.group && node->node == g_local_node_config.node) ? "local" : "peer";
         cJSON_AddStringToObject(json_object, "object", object_type);
-        cJSON_AddStringToObject(json_object, "group", sacc_node_state_ToString(node->group));
-        cJSON_AddStringToObject(json_object, "node", sacc_node_state_ToString(node->state));
+        cJSON_AddNumberToObject(json_object, "group", node->group);
+        cJSON_AddNumberToObject(json_object, "node", node->node);
         if (node->state == SACC_PEER_STATE_ONLINE){
             currNum++;
         }

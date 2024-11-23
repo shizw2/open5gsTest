@@ -6,12 +6,14 @@ const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
-const fetchDataFromTelnet = require('../models/fetchDataFromTelnet'); 
+const fetchDataFromTelnet = require('../models/fetchDataFromTelnet');
+const { handleError, errorCodes } = require('./northApiCommon');
 
-//4.01
-// 配置文件路径
+const fiveGDir   = path.join(__dirname, '../../../');
+
+//4.01 查询设备信息
 router.get('/info', (req, res) => {
-  const configPath = path.join(__dirname, '../../../install/etc/5gc/amf.yaml');//TODO:确定最终文件
+  const configPath = path.join(__dirname, '../../../install/etc/5gc/amf.yaml'); //TODO:确定最终文件
 
   try {    
     // 读取并解析 YAML 配置文件
@@ -21,36 +23,33 @@ router.get('/info', (req, res) => {
     // 检查必需的字段是否存在
     const requiredFields = ['deviceType', 'deviceName', 'deviceSeq', 'version'];
     for (const field of requiredFields) {
-      if (!config.global || !config.global[field]) {
-        return res.status(500).json({
-          "result": "FAIL",
-          "message": `Missing required field: ${field}`
-        });
+      if (!config.global || !config.global.parameter|| !config.global.parameter[field]) {
+        return handleError(res, 500, 1001, `${configPath} Missing required field: ${field}`, 'info', { desc: `${field} not found in ${configPath}` });
       }
     }
     let response = {
         "result": "OK",
         "result_set": {
-            "deviceType": config.global.deviceType,
-            "deviceName": config.global.deviceName,
-            "deviceSeq": config.global.deviceSeq,
-            "version": config.global.version
+            "deviceType": config.global.parameter.deviceType,
+            "deviceName": config.global.parameter.deviceName,
+            "deviceSeq": config.global.parameter.deviceSeq,
+            "version": config.global.parameter.version
         }
     };
 
     res.json(response);
   } catch (error) {
-    res.status(500).json({ "result": "FAIL", "message": error.message });
+    handleError(res, 500, 1002, 'Failed to read or parse YAML file', 'info', { desc: error.message });
   }
 });
 
-//4.02
+//4.02 修改设备信息
 router.put('/info', (req, res) => {
   const configPath = path.join(__dirname, '../../../install/etc/5gc/amf.yaml');
   const newDeviceName = req.body.deviceName;
 
   if (!newDeviceName) {
-    return res.status(400).json({ "result": "FAIL", "message": "deviceName is required" });
+    return handleError(res, 400, 1003,'deviceName is required','info', { desc: 'deviceName is required' });
   }
 
   try {
@@ -70,17 +69,12 @@ router.put('/info', (req, res) => {
       "result_set": null
     });
   } catch (error) {
-    res.status(500).json({ "result": "FAIL", "message": error.message });
+    handleError(res, 500, 1004,'Failed to update YAML file', 'info', { desc: error.message });
   }
 });
 
-
-//4.03
-
-
+//4.03 查询本机状态信息
 router.get('/device', (req, res) => {
-    //res.send('Hello World2');
-    //fetchAlerts(res);
     console.log('device.........!!' );
     const deviceStatus={
         "result": "OK",
@@ -112,44 +106,43 @@ router.get('/device', (req, res) => {
         }
       };
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    //console.log(nfStatus);
     if(nfStatus['AMF'].up==='1'){
-      deviceStatus.result_set.amf.Status = "";
+      deviceStatus.result_set.amf.Status = "START";
       deviceStatus.result_set.amf.Uptime = nfStatus['AMF'].time;
     }else{
       deviceStatus.result_set.amf.Status = "STOP";
       deviceStatus.result_set.amf.Uptime = "";
     }
     if(nfStatus['PCF'].up==='1'){
-        deviceStatus.result_set.pcf.Status = "";
+        deviceStatus.result_set.pcf.Status = "START";
         deviceStatus.result_set.pcf.Uptime = nfStatus['PCF'].time;
       }else{
         deviceStatus.result_set.pcf.Status = "STOP";
         deviceStatus.result_set.pcf.Uptime = "";
     }
     if(nfStatus['SMF'].up==='1'){
-        deviceStatus.result_set.smf.Status = "";
+        deviceStatus.result_set.smf.Status = "START";
         deviceStatus.result_set.smf.Uptime = nfStatus['SMF'].time;
       }else{
         deviceStatus.result_set.smf.Status = "STOP";
         deviceStatus.result_set.smf.Uptime = "";
     }
     if(nfStatus['UDM'].up==='1'){
-        deviceStatus.result_set.udm.Status = "";
+        deviceStatus.result_set.udm.Status = "START";
         deviceStatus.result_set.udm.Uptime = nfStatus['UDM'].time;
       }else{
         deviceStatus.result_set.udm.Status = "STOP";
         deviceStatus.result_set.udm.Uptime = "";
     }
     if(nfStatus['UPF'].up==='1'){
-        deviceStatus.result_set.upf.Status = "";
+        deviceStatus.result_set.upf.Status = "START";
         deviceStatus.result_set.upf.Uptime = nfStatus['UPF'].time;
       }else{
         deviceStatus.result_set.upf.Status = "STOP";
         deviceStatus.result_set.upf.Uptime = "";
     }
     if(nfStatus['node'].up==='1'){
-        deviceStatus.result_set.system.Status = "";
+        deviceStatus.result_set.system.Status = "START";
         deviceStatus.result_set.system.Uptime = nfStatus['node'].time;
       }else{
         deviceStatus.result_set.system.Status = "STOP";
@@ -172,12 +165,11 @@ router.get('/networkStatus', async (req, res) => {
     res.json({ result, result_set });
   } catch (err) {
     console.error('Error fetching data from Telnet:', err);
-    res.status(500).json({ result: "ERROR", message: err.message });
+    handleError(res, 500, 1005,'Failed to fetch data', 'networkStatus', { desc: err.message });
   }
 });
 
-//4.07
-// 日志文件目录
+//4.07 日志文件目录
 const logDir = path.join(__dirname, '../../../install/var/log/5gc/');
 
 router.get('/debug/file', (req, res) => {
@@ -185,41 +177,29 @@ router.get('/debug/file', (req, res) => {
     fs.readdir(logDir, (err, files) => {
       if (err) {
           // 如果读取失败，返回错误信息
-          res.status(500).send({
-              "result": "ERROR",
-              "message": "Failed to read log files."
-          });
-      } else {
-          // // 根据 history 参数的值过滤日志文件
-          // let logFiles;
-          // if (req.query.history === 'true') {
-          //     logFiles = files.filter(file => file.endsWith('.gz'));
-          // } else {
-          //     logFiles = files.filter(file => file.endsWith('.log'));
-          // }
-          // 根据 history 参数的值过滤日志文件
-          let logFiles = files.filter(file => {
-            if (req.query.history === 'true') {
-                return file.endsWith('.gz');
-            } else {
-                return file.endsWith('.log');
-            }
-          }).map(file => {
-              // 返回文件的全路径
-              return path.join(logDir, file);
-          });
-
-          // 如果读取成功，返回日志文件列表
-          res.json({
-              "result": "OK",
-              "result_set": logFiles
-          });
+          return handleError(res, 500, 1006, 'Failed to read log files','debug', { desc: err.message });
       }
-  });
+      // 根据 history 参数的值过滤日志文件
+      let logFiles = files.filter(file => {
+        if (req.query.history === 'true') {
+            return file.endsWith('.gz');
+        } else {
+            return file.endsWith('.log');
+        }
+      }).map(file => {
+        // 返回文件的全路径
+        return path.join(logDir, file);
+      });
+
+      // 如果读取成功，返回日志文件列表
+      res.json({
+          "result": "OK",
+          "result_set": logFiles
+      });
+    });
 });
 
-//4.08
-// 定义执行系统命令的函数
+//4.08 定义执行系统命令的函数
 const executeCommand = (command, callback) => {
   exec(command, (error, stdout, stderr) => {
     if (error) {
@@ -232,62 +212,58 @@ const executeCommand = (command, callback) => {
   });
 };
 
-
 router.post('/system', (req, res) => {
   const { actionType } = req.body; // 从请求体中获取 actionType
 
-  if (['start', 'stop', 'restart', 'reboot'].includes(actionType)) {
-    let command;
-    switch (actionType) {
-      case 'start':
-        command = '/home/5gc/service.sh start'; 
-        break;
-      case 'stop':
-        command = '/home/5gc/service.sh stop'; 
-        break;
-      case 'restart':
-        command = '/home/test/service.sh restart'; //TODO:需要替换为5gc
-        break;
-      case 'reboot':
-        command = 'reboot';
-        break;
-      default:
-        return res.status(400).json({
-          result: "FAIL",
-          error: "Invalid actionType"
-        });
+  if (!['start', 'stop', 'restart', 'reboot'].includes(actionType)) {
+    return handleError(res, 400, 1007,'Invalid actionType', 'system', { desc: 'Invalid actionType',invalidParam: { param: 'actionType', reason: 'Invalid actionType' } });
+  }
+
+  let command;
+  switch (actionType) {
+    case 'start':
+      command = `${fiveGDir}service.sh start`; 
+      break;
+    case 'stop':
+      command = `${fiveGDir}service.sh stop`; 
+      break;
+    case 'restart':
+      command = `${fiveGDir}service.sh restart`;
+      break;
+    case 'reboot':
+      command = 'reboot';
+      break;
+  }
+
+  // 执行系统命令
+  executeCommand(command, (error, stdout) => {
+    if (error) {
+      return handleError(res, 500, 1008, 'Failed to execute command', 'system', { desc: error.message });
     }
 
-    // 执行系统命令
-    executeCommand(command, (error, stdout) => {
-      if (error) {
-        return res.status(500).json({
-          result: "FAIL",
-          error: error.message
-        });
-      }
-
-      // 构建成功响应
-      const response = {
-        result: "OK",
-        result_set: null
-      };
-
-      // 返回JSON响应
-      res.json(response);
-    });
-  } else {
-    // 如果 actionType 不是有效的操作，返回失败响应
-    res.status(400).json({
-      result: "FAIL",
-      error: "Invalid actionType"
-    });
-  }
+    const response = {
+      result: "OK",
+      result_set: null
+    };
+    res.json(response);
+  });
 });
 
+//4.13 查看磁盘空间
+router.get('/diskUsage', (req, res) => {
+  getDiskUsage((error, diskInfo) => {
+    if (error) {
+      return handleError(res, 500, 1009, 'Failed to get disk usage','diskUsage', { desc: error.message });
+    }
+    const response = {
+      result: "OK",
+      result_set: diskInfo
+    };
+    res.json(response);
+  });
+});
 
-//4.13
-// 定义 getDiskUsage 函数
+//定义 getDiskUsage 函数
 const getDiskUsage = (callback) => {
   exec('df -B 1 / | tail -n +2', (error, stdout, stderr) => {
     if (error) {
@@ -320,27 +296,6 @@ const getDiskUsage = (callback) => {
     callback(null, diskInfo);
   });
 };
-
-
-// 路由处理
-router.get('/diskUsage', (req, res) => {
-  getDiskUsage((error, diskInfo) => {
-    if (error) {
-      res.status(500).json({
-        result: "FAIL",
-        error: error.message
-      });
-    } else {
-      const response = {
-        result: "OK",
-        result_set: diskInfo
-      };
-      res.json(response);
-    }
-  });
-});
-
-
 
 // 导出路由
 module.exports = router;

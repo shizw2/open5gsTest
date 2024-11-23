@@ -1047,7 +1047,7 @@ int amf_namf_callback_handle_sdm_data_change_notify(
             ogs_error("Not implemented : Use Implicit De-registration");
             state = AMF_NETWORK_INITIATED_IMPLICIT_DE_REGISTERED;
 
-        } else if (amf_ue_is_rat_restricted(amf_ue)) {
+        } else if (amf_ue_is_rat_restricted(amf_ue)||amf_ue_is_area_restricted(amf_ue)) {
             /*
              * - AMF_NETWORK_INITIATED_EXPLICIT_DE_REGISTERED
              * 1. UDM_UECM_DeregistrationNotification

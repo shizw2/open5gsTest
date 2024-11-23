@@ -2103,6 +2103,7 @@ ogs_pkbuf_t *ngap_build_handover_request(ran_ue_t *target_ue)
     NGAP_SourceToTarget_TransparentContainer_t
         *SourceToTarget_TransparentContainer = NULL;
     NGAP_GUAMI_t *GUAMI = NULL;
+   // NGAP_MobilityRestrictionList_t *MobilityRestrictionList = NULL;//NGAP 先搁置
 
     ogs_assert(target_ue);
     amf_ue = amf_ue_find_by_id(target_ue->amf_ue_id);

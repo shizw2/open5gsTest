@@ -452,6 +452,7 @@ struct amf_ue_s {
     ogs_bitrate_t   ue_ambr;
     int num_of_slice;
     OpenAPI_list_t *rat_restrictions;
+    struct OpenAPI_service_area_restriction_s *service_area_restriction;//areas 不再包含区域只包含TACS
     ogs_slice_data_t slice[OGS_MAX_NUM_OF_SLICE];
 
     uint64_t        am_policy_control_features; /* SBI Features */
@@ -1102,6 +1103,8 @@ icps_ue_spsno_t* icps_ue_find_by_supi(char *supi);
 icps_ue_spsno_t *icps_ue_find_by_id(ogs_pool_id_t id);
 void icps_ue_remove_all(void);
 bool amf_is_imeicheck(void);
+bool amf_ue_is_area_restricted(amf_ue_t *amf_ue);
+
 
 #ifdef __cplusplus
 }

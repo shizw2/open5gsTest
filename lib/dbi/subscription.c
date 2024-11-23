@@ -401,6 +401,46 @@ int ogs_dbi_subscription_data(char *supi,
             BSON_ITER_HOLDS_INT32(&iter)) {
             subscription_data->network_access_mode =
                 bson_iter_int32(&iter);
+        }  else if (!strcmp(key, OGS_RAT_TYPE_STRING) &&
+            BSON_ITER_HOLDS_ARRAY(&iter)) {
+            int rat_index = 0;
+            bson_iter_recurse(&iter, &child1_iter);
+            while (bson_iter_next(&child1_iter)) {
+                if (BSON_ITER_HOLDS_INT32(&child1_iter)){
+                    if(bson_iter_int32(&child1_iter)){
+                        subscription_data->rattype[rat_index] =
+                        bson_iter_int32(&child1_iter);
+                        rat_index++;
+                        ogs_error("rattype[rat_index=%d]=%d",rat_index-1,subscription_data->rattype[rat_index-1]);
+                    }
+                }                
+            }
+            subscription_data->num_of_rattype = rat_index;
+
+        }else if (!strcmp(key, OGS_RESTRICTION_TYPE_STRING) &&
+            BSON_ITER_HOLDS_INT32(&iter)) {
+            subscription_data->restrictiontype =
+                bson_iter_int32(&iter);
+        } else if (!strcmp(key, OGS_RESTRICTION_AREA_STRING) &&
+            BSON_ITER_HOLDS_ARRAY(&iter)) {
+            int i,area_index = 0; 
+            subscription_data->restrictiontacs = ogs_calloc(16,sizeof(subscription_data->restrictiontacs[0]));
+            bson_iter_recurse(&iter, &child1_iter);
+            while (bson_iter_next(&child1_iter)) {
+                if (BSON_ITER_HOLDS_UTF8(&child1_iter)){
+                    const char *str = bson_iter_utf8(&child1_iter, &length);
+                    if(str){
+                        //subscription_data->restrictiontacs[area_index] = ogs_calloc(1,strlen(str)+1);
+                        subscription_data->restrictiontacs[area_index] =ogs_strdup(str); 
+                        ogs_error("subscription_data.restrictiontacs[area_index=%d]=%p,strlen(str)=%ld",area_index,subscription_data->restrictiontacs[area_index],strlen(str));
+                        //memcpy(subscription_data->restrictiontacs[area_index],str,strlen(str));
+                        area_index++;                    
+                        ogs_error("restrictionarea[area_index=%d]=%s",area_index-1,subscription_data->restrictiontacs[area_index-1]);
+                    }
+                }                
+            }
+            subscription_data->num_of_area = area_index;
+
         } else if (!strcmp(key, OGS_SUBSCRIBED_RAU_TAU_TIMER_STRING) &&
             BSON_ITER_HOLDS_INT32(&iter)) {
             subscription_data->subscribed_rau_tau_timer =
