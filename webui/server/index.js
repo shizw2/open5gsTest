@@ -24,7 +24,8 @@ const MongoStore = require('connect-mongo');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 
-const csrf = require('lusca').csrf();
+// 过滤了上传下载文件的csrf验证
+const csrf = require('lusca').csrf({blocklist:['/coreNetwork/wxCm/v1file/upload','/download']});
 const secret = process.env.SECRET_KEY || 'change-me';
 
 const api = require('./routes');
@@ -147,7 +148,65 @@ co(function* () {
   server.use('/api', api);
   server.use('/coreNetwork', northApi);
   server.use(express.static('static'));//必须要放到server.get('*', (req, res)前
-  
+
+  // 文件上传下载
+  const multer = require('multer');
+
+  // 创建目录
+  const fs = require('fs');
+  const path = require('path');
+  const uploadDir = path.join(__dirname, '/uploads');
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+  }
+ 
+  // 默认
+  const dfDirectory = "./server/uploads/";
+
+  const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      // 指定动态参数目录-directory，参数顺序在file前
+      const { directory } = req.body;
+      console.log(directory,"directory");
+      cb(null, directory ? directory : dfDirectory) // 指定文件存储的目录
+    },
+    filename: function (req, file, cb) {
+      // 指定动态参数目录-filePath，参数顺序在file前
+      const { directory } = req.body;
+      const filePath = path.join(directory ? directory : dfDirectory, file.originalname);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+      cb(null, file.originalname);
+    }
+  });
+
+  const upload = multer({ storage: storage });
+
+  server.post('/coreNetwork/wxCm/v1file/upload', upload.single('file'), (req, res) => {
+    //res.send('上传成功');
+    res.json({"result":"ok","result_set":null})
+  }, (err, req, res, next) => {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).send(err.message);
+    } else if (err) {
+      console.log(err.message);
+      return res.status(500).json({"result":err.message,"result_set":null})
+    }
+  });
+
+  server.get('/download/:filename', (req, res) => {
+    const { filename} = req.params;
+    const {directory} = req.query;
+    console.log(directory,"指定目录")
+    const filePath = directory ? path.join(directory, filename) : path.join(__dirname, 'uploads', filename);
+    res.download(filePath, filename, (err) => {
+      if (err) {
+        res.status(500).send('获取失败: ' + err.message);
+      }
+    });
+  });
+
   server.get('*', (req, res) => {
     return handle(req, res);
   });

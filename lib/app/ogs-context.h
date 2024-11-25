@@ -93,9 +93,6 @@ typedef struct ogs_app_context_s {
     struct metrics {
         uint64_t max_specs;
     } metrics;
-
-    int group;
-    int node;
 } ogs_app_context_t;
 
 int ogs_app_context_init(void);

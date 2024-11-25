@@ -37,8 +37,22 @@ sleep 1
 ./build/src/bsf/5gc-bsfd -e $level -c ./install/etc/5gc/bsf${node:+${node}}.yaml   &
 ./build/src/udr/5gc-udrd -e $level -c ./install/etc/5gc/udr${node:+${node}}.yaml   &
 
-./build/src/upf/5gc-upfd -e $level -c ./install/etc/5gc/upf${node:+${node}}.yaml  &
-./build/src/smf/5gc-smfd -e $level -c ./install/etc/5gc/smf${node:+${node}}.yaml   &
+#./build/src/upf/5gc-upfd -e $level -c ./install/etc/5gc/upf${node:+${node}}.yaml  &
+#./build/src/smf/5gc-smfd -e $level -c ./install/etc/5gc/smf${node:+${node}}.yaml   &
+# 因为一台机器启动两个upf会有问题，所以增加这个判断只是为了只启动一个
+# 检查 smf 和 upf 进程是否存在，如果不存在则启动
+if pgrep -f "5gc-upfd" > /dev/null; then
+    echo "upf process is already running."
+else
+    ./build/src/upf/5gc-upfd -e $level -c ./install/etc/5gc/upf${node:+${node}}.yaml &
+fi
+
+if pgrep -f "5gc-smfd" > /dev/null; then
+    echo "smf process is already running."
+else
+    ./build/src/smf/5gc-smfd -e $level -c ./install/etc/5gc/smf${node:+${node}}.yaml &
+fi
+
 for ((i=1; i<=$spsno; i++))
 do
     ./build/src/amf/5gc-amf-spsd -i ${i} -e $level -c ./install/etc/5gc/amf${node:+${node}}.yaml -l ./install/var/log/5gc/amf_sps${node:+${node}}${i}.log &
