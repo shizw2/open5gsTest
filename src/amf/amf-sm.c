@@ -422,7 +422,6 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             CASE(OGS_SBI_RESOURCE_NAME_NF_INSTANCES)
                 nf_instance = e->h.sbi.data;
                 ogs_assert(nf_instance);
-                ogs_info("nf id:%s, nf_instance->sm:%p",nf_instance->id,&nf_instance->sm);
                 ogs_assert(OGS_FSM_STATE(&nf_instance->sm));
 
                 e->h.sbi.message = &sbi_message;

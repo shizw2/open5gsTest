@@ -499,8 +499,8 @@ void sacc_sbi_register_nrfinstance_for_udm(sacc_node_t *peer)
 
     nf_instance = ogs_sbi_nf_instance_add();
 
-    snprintf(nf_instance_id, OGS_UUID_FORMATTED_LENGTH + 1, "%s%s-000000%02d%02d%02d",
-            OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_ToString(OpenAPI_nf_type_UDM), OpenAPI_nf_type_UDM,peer->group,peer->node);
+    snprintf(nf_instance_id, OGS_UUID_FORMATTED_LENGTH + 1, "%s%s-00000000%02d%02d",
+            OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_ToString(OpenAPI_nf_type_UDM), peer->group,peer->node);
 
     nf_instance = ogs_sbi_nf_instance_find((char*)nf_instance_id);
     if (!nf_instance) {
@@ -630,8 +630,8 @@ void sacc_sbi_register_nrfinstance_for_smf(sacc_node_t *peer){
 
 	char nf_instance_id[OGS_UUID_FORMATTED_LENGTH + 1];
     char nf_name[10];
-    snprintf(nf_instance_id, OGS_UUID_FORMATTED_LENGTH + 1, "%s%s-000000%02d%02d%02d",
-        OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_ToString(OpenAPI_nf_type_SMF),OpenAPI_nf_type_SMF,peer->group,peer->node);
+    snprintf(nf_instance_id, OGS_UUID_FORMATTED_LENGTH + 1, "%s%s-00000000%02d%02d",
+        OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_ToString(OpenAPI_nf_type_SMF),peer->group,peer->node);
 	nf_instance = ogs_sbi_nf_instance_find((char*)nf_instance_id);
     if (!nf_instance) {
         nf_instance = ogs_sbi_nf_instance_add();
@@ -689,8 +689,8 @@ void sacc_sbi_register_nrfinstance_for_amf(sacc_node_t *peer){
     char nf_name[10];
     int i;
 
-    snprintf(nf_instance_id, OGS_UUID_FORMATTED_LENGTH + 1, "%s%s-000000%02d%02d%02d",
-            OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_ToString(OpenAPI_nf_type_AMF), OpenAPI_nf_type_AMF,peer->group,peer->node);
+    snprintf(nf_instance_id, OGS_UUID_FORMATTED_LENGTH + 1, "%s%s-00000000%02d%02d",
+            OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_ToString(OpenAPI_nf_type_AMF), peer->group,peer->node);
 
     nf_instance = ogs_sbi_nf_instance_find((char*)nf_instance_id);
     if (!nf_instance) {

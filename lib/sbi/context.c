@@ -72,8 +72,8 @@ void ogs_sbi_context_init(OpenAPI_nf_type_e nf_type)
 
     ogs_uuid_get(&self.uuid);
     ogs_uuid_format(nf_instance_id, &self.uuid);
-    snprintf(nf_instance_id, OGS_UUID_FORMATTED_LENGTH + 1, "%s%s-000000%02d%02d%02d",
-            OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_ToString(nf_type), nf_type,ogs_global_conf()->parameter.group,ogs_global_conf()->parameter.node);
+    //snprintf(nf_instance_id, OGS_UUID_FORMATTED_LENGTH + 1, "%s%s-00000000%02d%02d",
+    //        OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_ToString(nf_type), ogs_global_conf()->parameter.group,ogs_global_conf()->parameter.node);
     ogs_sbi_nf_instance_set_id(self.nf_instance, nf_instance_id);
     ogs_sbi_nf_instance_set_type(self.nf_instance, nf_type);
 
@@ -1243,8 +1243,8 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_add(void)
     ogs_assert(nf_instance);
     memset(nf_instance, 0, sizeof(ogs_sbi_nf_instance_t));
 
-    //nf_instance->time.heartbeat_interval =
-    //        ogs_local_conf()->time.nf_instance.heartbeat_interval;
+    nf_instance->time.heartbeat_interval =
+            ogs_local_conf()->time.nf_instance.heartbeat_interval;
 
     nf_instance->priority = OGS_SBI_DEFAULT_PRIORITY;
     nf_instance->capacity = ogs_global_conf()->parameter.capacity;//capacity支持为0的配置
