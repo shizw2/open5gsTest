@@ -473,7 +473,7 @@ int amf_context_parse_config(bool reloading)
                                         family, AF_UNSPEC, AF_INET, AF_INET6);
                                     family = AF_UNSPEC;
                                 }
-                            } else if (!strcmp(icps_key, "addr") ||
+                            } else if (!strcmp(icps_key, "address") ||
                                     !strcmp(icps_key, "name")) {
                                 ogs_yaml_iter_t hostname_iter;
                                 ogs_yaml_iter_recurse(
