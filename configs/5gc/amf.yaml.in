@@ -30,6 +30,7 @@ amf:
   icps:
     spsnum: 3
     port: 9777
+    address: 128.128.128.127
   metrics:
     server:
       - address: 127.0.0.5
