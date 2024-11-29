@@ -15,10 +15,11 @@ void showueDetail(char * id);
 void print_pdr(ogs_pfcp_pdr_t *pdr);
 void print_far(ogs_pfcp_far_t *far);
 void print_bearer(smf_bearer_t *bearer);
-
+void getUeInfo(int pageSize, int pageNum);
 telnet_command_t g_commands[] = {
     {"shownf",      (GenericFunc)shownf,         1, {STRING}},
     {"showue",      (GenericFunc)showue,         1, {STRING}},
+    {"getUeInfo",   (GenericFunc)getUeInfo,      2, {INTEGER,INTEGER}},
 };
 int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);
 
@@ -159,12 +160,15 @@ void showueDetail( char * supi )
 
         printf("  |--ue_session_type       : %u \r\n", sess->ue_session_type);
         printf("  |--ue_ssc_mode      : %u \r\n", sess->ue_ssc_mode);
-
-        if (sess->ipv4 != NULL)
+        printf("  |--full_dnn         : %s \r\n", sess->full_dnn);
+        if (sess->ipv4 != NULL){
             printf("  |--ipv4       : %s \r\n", OGS_INET_NTOP(&sess->ipv4->addr, buf1));
-        
-        if (sess->ipv6 != NULL)
+            printf("  |--dnn        : %s \r\n", sess->ipv4->subnet->dnn);
+        }
+        if (sess->ipv6 != NULL){
             printf("  |--ipv6       : %s \r\n", OGS_INET6_NTOP(&sess->ipv6->addr, buf2));
+            printf("  |--dnn        : %s \r\n", sess->ipv6->subnet->dnn);
+        }
 
         printf("  |--gtp_rat_type      : %u \r\n", sess->gtp_rat_type);
         printf("  |--sbi_rat_type      : %u \r\n", sess->sbi_rat_type);
@@ -357,3 +361,188 @@ void print_bearer(smf_bearer_t *bearer){
     //printf("  |--sess               : %p \r\n", bearer->sess);
 
 }
+
+
+void getUeInfo(int pageSize, int pageNum) {
+    smf_ue_t *ue = NULL;
+    smf_sess_t *sess = NULL;
+    char buf[OGS_PLMNIDSTRLEN];
+    char ipbuf[OGS_ADDRSTRLEN];
+    int totalUeNum = 0;
+    int startIdx = (pageNum == 0 || pageSize == 0) ? 0 : (pageNum - 1) * pageSize;
+    int count = 0;
+
+    cJSON *root = cJSON_CreateObject();
+    if (root == NULL) {
+        ogs_error("cJSON_CreateObject failed");
+        return;
+    }
+
+    cJSON *ueInfoList = cJSON_CreateArray();
+    if (ueInfoList == NULL) {
+        ogs_error("cJSON_CreateArray failed");
+        cJSON_Delete(root);
+        return;
+    }
+
+    ogs_list_for_each(&smf_self()->smf_ue_list, ue) {
+        if (pageNum == 0 || pageSize == 0 || (count >= startIdx && count < startIdx + pageSize)) {
+            cJSON *ueInfo = cJSON_CreateObject();
+            if (ueInfo == NULL) {
+                ogs_error("cJSON_CreateObject failed");
+                cJSON_Delete(ueInfoList);
+                cJSON_Delete(root);
+                return;
+            }
+
+            cJSON_AddStringToObject(ueInfo, "imsi", ue->imsi_bcd);
+            cJSON_AddStringToObject(ueInfo, "msisdn", ue->msisdn_bcd);
+
+            cJSON *dnnList = cJSON_CreateArray();
+            if (dnnList == NULL) {
+                ogs_error("cJSON_CreateArray failed");
+                cJSON_Delete(ueInfo);
+                cJSON_Delete(ueInfoList);
+                cJSON_Delete(root);
+                return;
+            }
+
+            cJSON *ueIpAddrList = cJSON_CreateArray();
+            if (ueIpAddrList == NULL) {
+                ogs_error("cJSON_CreateArray failed");
+                cJSON_Delete(dnnList);
+                cJSON_Delete(ueInfo);
+                cJSON_Delete(ueInfoList);
+                cJSON_Delete(root);
+                return;
+            }
+
+            ogs_list_for_each(&ue->sess_list, sess) {
+                cJSON_AddItemToArray(dnnList, cJSON_CreateString(sess->full_dnn));
+                if (sess->ipv4 != NULL) {
+                    cJSON_AddItemToArray(ueIpAddrList, cJSON_CreateString(OGS_INET_NTOP(sess->ipv4->addr, ipbuf)));
+                }
+                if (sess->ipv6 != NULL) {
+                    cJSON_AddItemToArray(ueIpAddrList, cJSON_CreateString(OGS_INET6_NTOP(sess->ipv6->addr, ipbuf)));
+                }
+            }
+
+            cJSON_AddItemToObject(ueInfo, "dnnList", dnnList);
+            cJSON_AddItemToObject(ueInfo, "ueIpAddrlist", ueIpAddrList);
+
+            if (sess!= NULL){//取最后一个sess
+                char *n3ipstr = ogs_ipv4_to_string(sess->gnb_n3_ip.addr);
+                if (n3ipstr == NULL) {
+                    ogs_error("Failed to convert IP to string");
+                    //cJSON_Delete(dnnList);
+                    cJSON_Delete(ueIpAddrList);
+                    cJSON_Delete(ueInfo);
+                    cJSON_Delete(ueInfoList);
+                    cJSON_Delete(root);
+                    return;
+                }
+                cJSON_AddStringToObject(ueInfo, "ranNodeIp", n3ipstr);
+                ogs_free(n3ipstr);
+            }
+
+            cJSON_AddStringToObject(ueInfo, "registTime", ogs_timestampToString(ue->createTime));
+            cJSON_AddStringToObject(ueInfo, "cmState", "CONNECTED"); // TODO:假设所有用户都是已连接状态
+
+            cJSON_AddItemToArray(ueInfoList, ueInfo);
+        }
+        count++;
+        totalUeNum++;
+    }
+
+    cJSON_AddNumberToObject(root, "total", totalUeNum);
+    cJSON_AddItemToObject(root, "ue_infos", ueInfoList);
+
+    char *json_string = cJSON_Print(root);
+    printf("%s\n", json_string);
+
+    // 释放cJSON对象
+    cJSON_Delete(root);
+    ogs_free(json_string);
+}
+
+// void getUeInfo(int pageSize, int pageNum) {
+//     smf_ue_t *ue = NULL;
+//     smf_sess_t *sess = NULL;
+//     char buf[OGS_PLMNIDSTRLEN];
+//     char ipbuf[OGS_ADDRSTRLEN];
+//     int totalUeNum = 0;
+//     int startIdx = (pageNum == 0 || pageSize == 0) ? 0 : (pageNum - 1) * pageSize;
+//     int count = 0;
+
+//     cJSON *root = cJSON_CreateObject();
+//     if (root == NULL) {
+//         ogs_error("cJSON_CreateObject failed");
+//         return;
+//     }
+
+//     cJSON *ueInfoList = cJSON_CreateArray();
+//     if (ueInfoList == NULL) {
+//         ogs_error("cJSON_CreateArray failed");
+//         cJSON_Delete(root);
+//         return;
+//     }
+
+//     ogs_list_for_each(&smf_self()->smf_ue_list, ue) {
+//         if (pageNum == 0 || pageSize == 0 || (count >= startIdx && count < startIdx + pageSize)) {
+//             cJSON *ueInfo = cJSON_CreateObject();
+//             if (ueInfo == NULL) {
+//                 ogs_error("cJSON_CreateObject failed");
+//                 cJSON_Delete(ueInfoList);
+//                 cJSON_Delete(root);
+//                 return;
+//             }
+
+//             cJSON_AddStringToObject(ueInfo, "imsi", ue->imsi_bcd);
+//             cJSON_AddStringToObject(ueInfo, "msisdn", ue->msisdn_bcd);
+
+      
+//             cJSON *ueIpAddrList = cJSON_CreateArray();
+//             if (ueIpAddrList == NULL) {
+//                 ogs_error("cJSON_CreateArray failed");
+//                 cJSON_Delete(ueInfo);
+//                 cJSON_Delete(ueInfoList);
+//                 cJSON_Delete(root);
+//                 return;
+//             }
+
+//             ogs_list_for_each(&ue->sess_list, sess) {
+            
+//                 if (sess->ipv4 != NULL) {
+//                     //cJSON_AddItemToArray(ueIpAddrList, cJSON_CreateString("1.2.3.4"));
+//                     OGS_INET_NTOP(sess->ipv4->addr, ipbuf);
+//                     cJSON_AddItemToArray(ueIpAddrList, cJSON_CreateString(ipbuf));
+//                 }
+//                 if (sess->ipv6 != NULL) {
+//                     //cJSON_AddItemToArray(ueIpAddrList, cJSON_CreateString(OGS_INET6_NTOP(sess->ipv6->addr, buf)));
+//                 }
+//             }
+
+          
+//             cJSON_AddItemToObject(ueInfo, "ueIpAddrlist", ueIpAddrList);
+
+ 
+
+//             cJSON_AddStringToObject(ueInfo, "registTime", ogs_timestampToString(ue->createTime));
+//             cJSON_AddStringToObject(ueInfo, "cmState", "CONNECTED"); // TODO:假设所有用户都是已连接状态
+
+//             cJSON_AddItemToArray(ueInfoList, ueInfo);
+//         }
+//         count++;
+//         totalUeNum++;
+//     }
+
+//     cJSON_AddNumberToObject(root, "total", totalUeNum);
+//     cJSON_AddItemToObject(root, "ue_infos", ueInfoList);
+
+//     char *json_string = cJSON_Print(root);
+//     printf("%s\n", json_string);
+
+//     // 释放cJSON对象
+//     cJSON_Delete(root);
+//     ogs_free(json_string);
+// }

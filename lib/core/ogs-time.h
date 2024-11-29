@@ -118,6 +118,8 @@ void ogs_gmtime(time_t s, struct tm *tm);
 void ogs_msleep(time_t msec);
 void ogs_usleep(time_t usec);
 
+char* ogs_timestampToString(time_t timestamp);
+
 #define ogs_mktime mktime
 #define ogs_strptime strptime
 #define ogs_strftime strftime

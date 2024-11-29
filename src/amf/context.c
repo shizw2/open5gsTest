@@ -1426,6 +1426,8 @@ amf_gnb_t *amf_gnb_add(ogs_sock_t *sock, ogs_sockaddr_t *addr)
     gnb->max_num_of_ostreams = 0;
     gnb->ostream_id = 0;
 
+    time(&gnb->createTime);//记录创建时间
+
     ogs_list_init(&gnb->ran_ue_list);
 
     ogs_hash_set(self.gnb_addr_hash,

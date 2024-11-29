@@ -323,3 +323,19 @@ void ogs_usleep(time_t usec)
         req = rem;
 #endif
 }
+
+
+char* ogs_timestampToString(time_t timestamp) {  
+    static char buffer[4][20]; 
+    static int index = 0; 
+    index++;
+    index = index%4;
+    if (timestamp == 0) {  
+        strcpy(buffer[index], "NA");         
+    } else {  
+        struct tm *timeInfo = localtime(&timestamp);  
+        strftime(buffer[index], sizeof(buffer[0]), "%Y-%m-%d %H:%M:%S", timeInfo);         
+    }  
+
+    return buffer[index]; 
+}

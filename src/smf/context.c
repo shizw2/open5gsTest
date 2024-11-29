@@ -1107,6 +1107,8 @@ static smf_ue_t *smf_ue_add(void)
         return NULL;
     }
 
+    time(&smf_ue->createTime);//记录创建时间
+
     ogs_list_init(&smf_ue->sess_list);
 
     ogs_list_add(&self.smf_ue_list, smf_ue);

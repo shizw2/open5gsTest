@@ -132,6 +132,7 @@ void ngap_handle_ng_setup_request(amf_gnb_t *gnb, ogs_ngap_message_t *message)
     NGAP_GlobalGNB_ID_t *globalGNB_ID = NULL;
     NGAP_SupportedTAList_t *SupportedTAList = NULL;
     NGAP_PagingDRX_t *PagingDRX = NULL;
+    NGAP_RANNodeName_t *RANNodeName = NULL;
 
     NGAP_Cause_PR group = NGAP_Cause_PR_NOTHING;
     long cause = 0;
@@ -160,6 +161,9 @@ void ngap_handle_ng_setup_request(amf_gnb_t *gnb, ogs_ngap_message_t *message)
             break;
         case NGAP_ProtocolIE_ID_id_DefaultPagingDRX:
             PagingDRX = &ie->value.choice.PagingDRX;
+            break;
+        case NGAP_ProtocolIE_ID_id_RANNodeName:
+            RANNodeName = &ie->value.choice.RANNodeName;
             break;
         default:
             break;
@@ -195,6 +199,10 @@ void ngap_handle_ng_setup_request(amf_gnb_t *gnb, ogs_ngap_message_t *message)
         ogs_expect(r == OGS_OK);
         ogs_assert(r != OGS_ERROR);
         return;
+    }
+
+    if (RANNodeName){//可选
+        memcpy(gnb->ran_node_name, RANNodeName->buf,RANNodeName->size);
     }
 
     ogs_ngap_GNB_ID_to_uint32(&globalGNB_ID->gNB_ID, &gnb_id);

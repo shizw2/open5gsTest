@@ -18,6 +18,7 @@ void showueDetail(char * id);
 void showsaccnodes(void);
 void showLicenseInfo(void);
 void getnetworkStatus(void);
+void getRanNode(int pageSize ,int pageNum);
 void amf(void)
 {
     printf("this is amf system. \r\n");
@@ -31,7 +32,7 @@ telnet_command_t g_commands[] = {
     {"showsaccnodes", (GenericFunc)showsaccnodes,      0, {}},
     {"showLicenseInfo", (GenericFunc)showLicenseInfo,      0, {}},
     {"getnetworkStatus", (GenericFunc)getnetworkStatus,      0, {}},
-    
+    {"getRanNode",   (GenericFunc)getRanNode,      2, {INTEGER,INTEGER}},
 };
 int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);
 
@@ -278,6 +279,11 @@ void showueDetail( char * supi )
 	printf("  |--suci               : %s \r\n", ue->suci);
 	printf("  |--pei                : %s \r\n", ue->pei);
 	printf("  |--imeisv_bcd         : %s \r\n", ue->imeisv_bcd);
+    printf("  |--num_of_msisdn      : %d \r\n", ue->num_of_msisdn);
+    for (i = 0; i < ue->num_of_msisdn; i++){
+        printf("    |--msisdn         : %s \r\n", ue->msisdn[i]);
+    }
+
 	if (ue->current.m_tmsi){
 		printf("  |--current            :  \r\n");
 		printf("    |--m_tmsi           : %u \r\n", *ue->current.m_tmsi);
@@ -382,6 +388,74 @@ void showLicenseInfo(void) {
     cJSON_AddNumberToObject(root, "maximumRegistrations", getLicenseUeNum());
 
     // 将cJSON对象转换为字符串并打印
+    char *json_string = cJSON_Print(root);
+    printf("%s\n", json_string);
+
+    // 释放cJSON对象
+    cJSON_Delete(root);
+    ogs_free(json_string);
+}
+
+void getRanNode(int pageSize, int pageNum) {
+    amf_gnb_t *gnb = NULL;
+    char buf[OGS_PLMNIDSTRLEN];
+    int totalRanNodeNum = 0;
+    int startIdx = (pageNum == 0 || pageSize == 0) ? 0 : (pageNum - 1) * pageSize;
+    int count = 0;
+
+    cJSON *root = cJSON_CreateObject();
+    if (root == NULL) {
+        ogs_error("cJSON_CreateObject failed");
+        return;
+    }
+
+    cJSON *ranNodeList = cJSON_CreateArray();
+    if (ranNodeList == NULL) {
+        ogs_error("cJSON_CreateArray failed");
+        cJSON_Delete(root);
+        return;
+    }
+
+    ogs_list_for_each(&amf_self()->gnb_list, gnb) {
+        if (pageNum == 0 || pageSize == 0 || (count >= startIdx && count < startIdx + pageSize)) {
+            cJSON *ranNode = cJSON_CreateObject();
+            if (ranNode == NULL) {
+                ogs_error("cJSON_CreateObject failed");
+                cJSON_Delete(ranNodeList);
+                cJSON_Delete(root);
+                return;
+            }
+
+            cJSON_AddStringToObject(ranNode, "connTime", timestampToString(gnb->createTime));
+            cJSON_AddNumberToObject(ranNode, "dura", 10); // TODO: 是啥?
+            cJSON_AddStringToObject(ranNode, "ipAddr", OGS_ADDR(gnb->sctp.addr, buf));
+            cJSON_AddStringToObject(ranNode, "name", gnb->ran_node_name);
+
+            char nssai[OGS_MAX_NUM_OF_SLICE_SUPPORT] = "";
+            int i;
+            for (i = 0; i < gnb->supported_ta_list[0].bplmn_list[0].num_of_s_nssai; i++) {
+                if (i > 0) {
+                    strcat(nssai, ",");  // 在第一个NSSAI之后添加逗号
+                }
+                char s_nssai[8];  // 用于存储单个NSSAI的临时字符串
+                sprintf(s_nssai, "%d-%x", gnb->supported_ta_list[0].bplmn_list[0].s_nssai[i].sst, gnb->supported_ta_list[0].bplmn_list[0].s_nssai[i].sd.v);
+                strcat(nssai, s_nssai);  // 将格式化的NSSAI追加到主字符串中
+            }
+            cJSON_AddStringToObject(ranNode, "nssai", nssai);
+
+            cJSON_AddStringToObject(ranNode, "plmnId", ogs_plmn_id_to_string(&gnb->plmn_id, buf));
+            cJSON_AddNumberToObject(ranNode, "ranNodeId", gnb->gnb_id);
+            cJSON_AddStringToObject(ranNode, "ranNodeIdType", "GnbId"); // TODO:不知道是啥
+            cJSON_AddItemToArray(ranNodeList, ranNode);
+        }
+        count++;
+        totalRanNodeNum++;
+    }
+
+    cJSON_AddStringToObject(root, "amfName", amf_self()->amf_name);
+    cJSON_AddItemToObject(root, "ranNodeList", ranNodeList);
+    cJSON_AddNumberToObject(root, "totalRanNodeNum", totalRanNodeNum);
+
     char *json_string = cJSON_Print(root);
     printf("%s\n", json_string);
 

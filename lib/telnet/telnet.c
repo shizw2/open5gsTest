@@ -323,12 +323,12 @@ int pttCmdProcess(int fd, char *cmdLine)
                 if (cmd.paramTypes[paramIndex] == INTEGER)
                 {                    
                     params[paramIndex].intValue = pttGetCmdWord32Value(&g_tCmdPara[paramIndex]);
-                    printf("intValue:%d\r\n",params[paramIndex].intValue);
+                    //printf("intValue:%d\r\n",params[paramIndex].intValue);
                 }
                 else if (cmd.paramTypes[paramIndex] == STRING)
                 {
                     params[paramIndex].strValue = (char*)g_tCmdPara[paramIndex].abCont;
-                    printf("strValue:%s\r\n",params[paramIndex].strValue);
+                    //printf("strValue:%s\r\n",params[paramIndex].strValue);
                 }
                 // 处理其他可能的参数类型
             }

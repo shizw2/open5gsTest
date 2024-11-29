@@ -181,7 +181,9 @@ typedef struct amf_gnb_s {
     ogs_pkbuf_t     *ng_reset_ack; /* Reset message */
 
     ogs_list_t      ran_ue_list;
-
+    #define OGS_MAX_NAME_LEN 150
+    char            ran_node_name[OGS_MAX_NAME_LEN];
+    time_t          createTime;    
 } amf_gnb_t;
 
 struct ran_ue_s {

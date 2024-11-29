@@ -133,6 +133,7 @@ typedef struct smf_ue_s {
     char  imeisv_bcd[OGS_MAX_IMEISV_BCD_LEN+1];
 
     ogs_list_t sess_list;
+    time_t createTime;
 } smf_ue_t;
 
 #define SMF_SESS_CLEAR(__sESS) \
