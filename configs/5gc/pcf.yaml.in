@@ -10,6 +10,8 @@ global:
 #    peer: 64
   parameter:
       capacity: 100
+      group: 1
+      node: 1
   cli:
     server:
       - address: 127.0.0.13

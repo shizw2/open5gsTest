@@ -253,7 +253,16 @@ void ogs_sbi_nf_state_registered(ogs_fsm_t *s, ogs_event_t *e)
             CASE(OGS_SBI_RESOURCE_NAME_NF_INSTANCES)
 
                 if (message->res_status == OGS_SBI_HTTP_STATUS_NO_CONTENT ||
-                    message->res_status == OGS_SBI_HTTP_STATUS_OK) {
+                    message->res_status == OGS_SBI_HTTP_STATUS_OK||
+                    message->res_status == OGS_SBI_HTTP_STATUS_CREATED) {//sacc注册其他模块时,会收到201
+                    
+                    if (message->res_status == OGS_SBI_HTTP_STATUS_CREATED) {//sacc注册其他模块时                 
+                        if (message->NFProfile){
+                            nf_instance->time.heartbeat_interval = message->NFProfile->heart_beat_timer;
+                        }
+                    }
+                    //ogs_info("test:OGS_EVENT_SBI_CLIENT nf_type:%s, status:%d,nf_instance->time.heartbeat_interval:%d", OpenAPI_nf_type_ToString(nf_instance->nf_type),message->res_status,nf_instance->time.heartbeat_interval);
+                    
                     if (nf_instance->time.heartbeat_interval)
                         ogs_timer_start(nf_instance->t_no_heartbeat,
                             ogs_time_from_sec(
@@ -289,7 +298,7 @@ void ogs_sbi_nf_state_registered(ogs_fsm_t *s, ogs_event_t *e)
             if (nf_instance->time.heartbeat_interval)
                 ogs_timer_start(nf_instance->t_heartbeat_interval,
                     ogs_time_from_sec(nf_instance->time.heartbeat_interval));
-
+            //ogs_info("test:OGS_TIMER_NF_INSTANCE_HEARTBEAT_INTERVAL,ogs_nnrf_nfm_send_nf_update,nf_type:%s",OpenAPI_nf_type_ToString(nf_instance->nf_type));
             ogs_assert(true == ogs_nnrf_nfm_send_nf_update(nf_instance));
             break;
 

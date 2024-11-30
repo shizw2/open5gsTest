@@ -106,6 +106,9 @@ void eir_terminate(void);
 int sepp_initialize(void);
 void sepp_terminate(void);
 
+int sacc_initialize(void);
+void sacc_terminate(void);
+
 #ifdef __cplusplus
 }
 #endif

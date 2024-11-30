@@ -24,7 +24,6 @@
 #include "license.h"
 #include "ogs-app-timer.h"
 #include "telnet.h"
-#include "sacc.h"
 extern int g_sps_id;
 static ogs_thread_t *thread;
 static ogs_thread_t *cli_thread;
@@ -73,7 +72,7 @@ int amf_initialize(void)
     rv = udp_ini_open();
     if (rv != OGS_OK) return rv;
 
-    sacc_initialize(NULL);
+    //sacc_initialize_nodes(NULL);
     
     /*启动yaml配置检测定时器*/
     rv = ogs_yaml_check_init();
@@ -117,7 +116,6 @@ int amf_sps_initialize()
 
     amf_metrics_init();
     ogs_sbi_context_init(OpenAPI_nf_type_AMF);
-
     rv = ogs_log_config_domain(
             ogs_app()->logger.domain, ogs_app()->logger.level);
     if (rv != OGS_OK) return rv;

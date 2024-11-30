@@ -58,4 +58,6 @@ do
     ./build/src/amf/5gc-amf-spsd -i ${i} -e $level -c ./install/etc/5gc/amf${node:+${node}}.yaml -l ./install/var/log/5gc/amf_sps${node:+${node}}${i}.log &
 done
 
+./build/src/sacc/5gc-saccd -e $level -c ./install/etc/5gc/sacc${node:+${node}}.yaml   &
+
 
