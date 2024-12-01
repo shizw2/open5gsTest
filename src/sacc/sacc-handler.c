@@ -246,7 +246,7 @@ bool sacc_handle_response(int msg_type, ogs_sbi_message_t *recvmsg)
 
     if (g_sacc_nodes[node].state == SACC_PEER_STATE_OFFLINE){
         g_sacc_nodes[node].state = SACC_PEER_STATE_ONLINE;
-
+       
         sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[node].udm_nf_instance);
         sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[node].ausf_nf_instance);
         sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[node].smf_nf_instance);
@@ -271,7 +271,7 @@ bool sacc_nnrf_nfm_send_nf_register(ogs_sbi_nf_instance_t *nf_instance)
 
     ogs_assert(nf_instance);
 
-    ogs_info("sacc_nnrf_nfm_send_nf_register, nf-type:%s.", OpenAPI_nf_type_ToString(nf_instance->nf_type));
+    ogs_info("sacc_nnrf_nfm_send_nf_register, nf-type:%s,id:%s.", OpenAPI_nf_type_ToString(nf_instance->nf_type),nf_instance->id);
 
     request = sacc_nnrf_nfm_build_register(nf_instance);
     if (!request) {

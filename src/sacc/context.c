@@ -768,8 +768,7 @@ void sacc_sbi_context_init_for_udm(sacc_node_t *peer)
     char nf_name[10];    
     ogs_uuid_t uuid;
 
-    snprintf(nf_instance_id, OGS_UUID_FORMATTED_LENGTH + 1, "%s%s-00000000%02d%02d",
-            OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_ToString(OpenAPI_nf_type_UDM), peer->group,peer->node);
+    ogs_uuid_format_custom(nf_instance_id, OpenAPI_nf_type_UDM, peer->group,peer->node);        
 
     nf_instance = ogs_sbi_nf_instance_find((char*)nf_instance_id);
     if (!nf_instance) {
@@ -839,7 +838,8 @@ void sacc_sbi_context_init_for_ausf(sacc_node_t *peer){
     char nf_name[10];
     int i;
 
-    snprintf(nf_instance_id, OGS_UUID_FORMATTED_LENGTH + 1, "%s%s-00000000%02d%02d",OGS_SBI_PREFIX_INSTANCE_ID, OpenAPI_nf_type_ToString(OpenAPI_nf_type_AUSF),peer->group,peer->node);
+    ogs_uuid_format_custom(nf_instance_id, OpenAPI_nf_type_AUSF, peer->group,peer->node);  
+
 	nf_instance = ogs_sbi_nf_instance_find((char*)nf_instance_id);
     if (!nf_instance) {
         nf_instance = ogs_sbi_nf_instance_add();
@@ -888,8 +888,8 @@ void sacc_sbi_context_init_for_smf(sacc_node_t *peer){
 
 	char nf_instance_id[OGS_UUID_FORMATTED_LENGTH + 1];
     char nf_name[10];
-    snprintf(nf_instance_id, OGS_UUID_FORMATTED_LENGTH + 1, "%s%s-00000000%02d%02d",
-        OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_ToString(OpenAPI_nf_type_SMF),peer->group,peer->node);
+    ogs_uuid_format_custom(nf_instance_id, OpenAPI_nf_type_SMF, peer->group,peer->node);
+
 	nf_instance = ogs_sbi_nf_instance_find((char*)nf_instance_id);
     if (!nf_instance) {
         nf_instance = ogs_sbi_nf_instance_add();
@@ -943,8 +943,7 @@ void sacc_sbi_context_init_for_amf(sacc_node_t *peer){
     char nf_name[10];
     int i;
 
-    snprintf(nf_instance_id, OGS_UUID_FORMATTED_LENGTH + 1, "%s%s-00000000%02d%02d",
-            OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_ToString(OpenAPI_nf_type_AMF), peer->group,peer->node);
+    ogs_uuid_format_custom(nf_instance_id, OpenAPI_nf_type_AMF, peer->group,peer->node);
 
     nf_instance = ogs_sbi_nf_instance_find((char*)nf_instance_id);
     if (!nf_instance) {
