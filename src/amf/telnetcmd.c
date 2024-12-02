@@ -19,6 +19,7 @@ void showsaccnodes(void);
 void showLicenseInfo(void);
 void getnetworkStatus(void);
 void getRanNode(int pageSize ,int pageNum);
+void getUeInfo(int pageSize, int pageNum);
 void amf(void)
 {
     printf("this is amf system. \r\n");
@@ -40,6 +41,7 @@ telnet_command_t g_sps_commands[] = {
     {"shownf",      (GenericFunc)shownf,         1, {STRING}},
     {"showranue",   (GenericFunc)showranue,      0, {}},
     {"showue",      (GenericFunc)showue,         1, {STRING}},
+    {"getUeInfo",   (GenericFunc)getUeInfo,      2, {INTEGER,INTEGER}},
 };
 int g_spsnumCommands = sizeof(g_sps_commands) / sizeof(g_sps_commands[0]);
 
@@ -455,6 +457,69 @@ void getRanNode(int pageSize, int pageNum) {
     cJSON_AddStringToObject(root, "amfName", amf_self()->amf_name);
     cJSON_AddItemToObject(root, "ranNodeList", ranNodeList);
     cJSON_AddNumberToObject(root, "totalRanNodeNum", totalRanNodeNum);
+
+    char *json_string = cJSON_Print(root);
+    printf("%s\n", json_string);
+
+    // 释放cJSON对象
+    cJSON_Delete(root);
+    ogs_free(json_string);
+}
+
+void getUeInfo(int pageSize, int pageNum) {
+    amf_ue_t *ue = NULL;
+   
+    char buf[OGS_PLMNIDSTRLEN];
+    char ipbuf[OGS_ADDRSTRLEN];
+    int totalUeNum = 0;
+    int startIdx = (pageNum == 0 || pageSize == 0) ? 0 : (pageNum - 1) * pageSize;
+    int count = 0;
+
+    cJSON *root = cJSON_CreateObject();
+    if (root == NULL) {
+        ogs_error("cJSON_CreateObject failed");
+        return;
+    }
+
+    cJSON *ueInfoList = cJSON_CreateArray();
+    if (ueInfoList == NULL) {
+        ogs_error("cJSON_CreateArray failed");
+        cJSON_Delete(root);
+        return;
+    }
+
+    ogs_list_for_each(&amf_self()->amf_ue_list, ue) {
+        if (pageNum == 0 || pageSize == 0 || (count >= startIdx && count < startIdx + pageSize)) {
+            cJSON *ueInfo = cJSON_CreateObject();
+            if (ueInfo == NULL) {
+                ogs_error("cJSON_CreateObject failed");
+                cJSON_Delete(ueInfoList);
+                cJSON_Delete(root);
+                return;
+            }
+
+            cJSON_AddStringToObject(ueInfo, "imsi", ue->supi);
+            cJSON_AddStringToObject(ueInfo, "msisdn", ue->msisdn[0]);//TODO:会有多个
+
+      
+            //cJSON_AddStringToObject(ueInfo, "ranNodeIp", n3ipstr); //TODO
+    
+
+            cJSON_AddStringToObject(ueInfo, "registTime", ogs_timestampToString(ue->createTime));
+            if (CM_CONNECTED(ue)){
+                cJSON_AddStringToObject(ueInfo, "cmState", "CONNECTED"); 
+            }else{
+                cJSON_AddStringToObject(ueInfo, "cmState", "IDLE"); 
+            }
+
+            cJSON_AddItemToArray(ueInfoList, ueInfo);
+        }
+        count++;
+        totalUeNum++;
+    }
+
+    cJSON_AddNumberToObject(root, "total", totalUeNum);
+    cJSON_AddItemToObject(root, "ue_infos", ueInfoList);
 
     char *json_string = cJSON_Print(root);
     printf("%s\n", json_string);

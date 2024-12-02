@@ -25,24 +25,28 @@ static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimes
         return ;
     }
     
-    snprintf(FilePathName, sizeof(FilePathName), "%s/Machine.id", programDir);
-
-    if ((LicenseInputFile = fopen(FilePathName, "rb")) == NULL)
-    {
-         printf("打开机器特征码文件失败,请查看是否存在该文件!\r\n");
-         return;
-    }
-
-
-    iFileLength = fread(license_info.szSystemInfoFromFile,sizeof(BYTE),MAX_SYS_INFO_LENGTH,LicenseInputFile);
-    if(iFileLength==0)
-    {
-         printf("读入特征码失败，请确认文件内容!\r\n");
-         return;
+    if (strlen(Serialno) != 0){
+        strncpy(license_info.szSystemInfoFromFile,Serialno,MAX_SYS_INFO_LENGTH);
     }else{
-        printf("读入特征码成功!\r\n");
+        snprintf(FilePathName, sizeof(FilePathName), "%s/Machine.id", programDir);
+
+        if ((LicenseInputFile = fopen(FilePathName, "rb")) == NULL)
+        {
+            printf("打开机器特征码文件失败,请查看是否存在该文件!\r\n");
+            return;
+        }
+
+
+        iFileLength = fread(license_info.szSystemInfoFromFile,sizeof(BYTE),MAX_SYS_INFO_LENGTH,LicenseInputFile);
+        if(iFileLength==0)
+        {
+            printf("读入特征码失败，请确认文件内容!\r\n");
+            return;
+        }else{
+            printf("读入特征码成功!\r\n");
+        }
+        fclose(LicenseInputFile);
     }
-    fclose(LicenseInputFile);
 
     license_info.maxUserNum = (int)encrypt_long(numUsers);
     license_info.maxSubscriptions = (int)encrypt_long(numSubscriptions);
@@ -117,6 +121,7 @@ int main(void)
     printf("输入注册用户数: ");
     scanf("%d", &numUsers);
 
+
     printf("输入签约用户数: ");
     scanf("%d", &numSubscriptions);
 
@@ -132,10 +137,23 @@ int main(void)
     // 清空输入缓冲区中的换行符
     while (getchar() != '\n');
 
-    printf("输入序列号(可不填): ");
-    scanf("%99s", Serialno); // 限制输入长度为99个字符，防止溢出
-
-
+    // printf("输入序列号(可不填): ");
+    // if (fgets(Serialno, 99, stdin) != NULL) {
+    //     // 检查输入是否为空字符串（即只包含换行符）
+    //     size_t len = strlen(Serialno);
+    //     if (len > 0 && Serialno[len - 1] == '\n') {
+    //         // 移除换行符
+    //         Serialno[len - 1] = '\0';  
+    //         if (strlen(Serialno) == 0) {
+    //             printf("未输入序列号,使用Machine.id文件的数据\n");
+    //         }          
+    //     } else {
+            
+    //     }
+    // } else {        
+    //     printf("读取输入时发生错误。\n");
+    // }
+ 
 
     printf("请选择许可证类型:\n");
     printf("1. 有效时长\n");

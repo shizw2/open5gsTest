@@ -18,7 +18,7 @@ router.get('/info', (req, res) => {
   try {    
     // 读取并解析 YAML 配置文件
     const fileContents = fs.readFileSync(configPath, 'utf8');
-    
+
     const config = yaml.load(fileContents);
     // 检查必需的字段是否存在
     const requiredFields = ['deviceType', 'deviceName', 'deviceSeq', 'version'];
@@ -55,7 +55,27 @@ router.put('/info', (req, res) => {
   try {
     // 读取并解析 YAML 配置文件
     const fileContents = fs.readFileSync(configPath, 'utf8');
-    let config = yaml.load(fileContents);
+    const options = {
+      schema: yaml.DEFAULT_SCHEMA.extend({
+        implicit: [
+          new yaml.Type('tag:yaml.org,2002:int', {
+            kind: 'scalar',
+            construct: data => {
+              if (typeof data === 'string' && data.startsWith('0')) {
+                //console.log("trun to string:",data)
+                return String(data);
+              }
+              if (!isNaN(data)){
+                //console.log("trun to number:",data)
+                return Number(data);
+              }
+              return data;
+            },
+          }),
+        ],
+      }),
+    };   
+    let config = yaml.load(fileContents, options);
 
     // 更新 deviceName
     config.global.deviceName = newDeviceName;
@@ -205,7 +225,7 @@ router.get('/ueStatus', async (req, res) => {
     const command = `getUeInfo(${pageSize},${pageNum})`; // 假设后端支持getUeInfo命令来获取UE信息
 
     // 调用异步函数获取数据
-    const dataString = await fetchDataFromTelnet(2300, '127.0.0.4', '5gc', command);
+    const dataString = await fetchDataFromTelnet(2301, '127.0.0.5', '5gc', command);
     const data = JSON.parse(dataString);
 
     // 检查数据是否为空
