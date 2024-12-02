@@ -549,7 +549,7 @@ int sacc_sbi_context_get_nf_info(
                                     supiRanges = &nf_info->ausf.supiRanges;
                                     break;    
                                 case OpenAPI_nf_type_SMF:
-                                    //supiRanges = &nf_info->smf.supiRanges;
+                                    supiRanges = &nf_info->smf.supiRanges;
                                     break;
                                 default:
                                     break;

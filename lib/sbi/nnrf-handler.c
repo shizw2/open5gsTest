@@ -432,6 +432,23 @@ static void handle_nf_service(
         nf_service->load = NFService->load;
 }
 
+static void handle_supiRanges(ogs_supi_range_t *supiRanges, OpenAPI_list_t *supi_ranges) {
+    OpenAPI_lnode_t *node = NULL;
+    OpenAPI_supi_range_t *supi_range = NULL;
+
+    OpenAPI_list_for_each(supi_ranges, node) {
+        supi_range = node->data;
+        if (supi_range && supi_range->start && supi_range->end) {
+            ogs_assert(supiRanges->num_of_supi_range < OGS_MAX_NUM_OF_SUPI);
+
+            supiRanges->supi_ranges[supiRanges->num_of_supi_range].start = ogs_strdup(supi_range->start);
+            supiRanges->supi_ranges[supiRanges->num_of_supi_range].end = ogs_strdup(supi_range->end);
+
+            supiRanges->num_of_supi_range++;
+        }
+    }
+}
+
 static void handle_smf_info(
         ogs_sbi_nf_instance_t *nf_instance, OpenAPI_smf_info_t *SmfInfo)
 {
@@ -567,6 +584,8 @@ static void handle_smf_info(
             nf_info->smf.num_of_nr_tai_range++;
         }
     }
+
+    handle_supiRanges(&nf_info->smf.supiRanges,SmfInfo->supi_ranges);
 }
 
 static void handle_scp_info(
@@ -829,23 +848,6 @@ static void handle_amf_info(
                 }
             }
             nf_info->amf.num_of_nr_tai_range++;
-        }
-    }
-}
-
-static void handle_supiRanges(ogs_supi_range_t *supiRanges, OpenAPI_list_t *supi_ranges) {
-    OpenAPI_lnode_t *node = NULL;
-    OpenAPI_supi_range_t *supi_range = NULL;
-
-    OpenAPI_list_for_each(supi_ranges, node) {
-        supi_range = node->data;
-        if (supi_range && supi_range->start && supi_range->end) {
-            ogs_assert(supiRanges->num_of_supi_range < OGS_MAX_NUM_OF_SUPI);
-
-            supiRanges->supi_ranges[supiRanges->num_of_supi_range].start = ogs_strdup(supi_range->start);
-            supiRanges->supi_ranges[supiRanges->num_of_supi_range].end = ogs_strdup(supi_range->end);
-
-            supiRanges->num_of_supi_range++;
         }
     }
 }

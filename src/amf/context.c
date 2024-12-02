@@ -832,6 +832,7 @@ int amf_context_parse_config(bool reloading)
                             YAML_SEQUENCE_NODE);
 
                     if (list2->num || num_of_list1 || num_of_list0) {
+                        ogs_info("self.num_of_served_tai:%d",self.num_of_served_tai);
                         self.num_of_served_tai++;
                     }
                 } else if (!strcmp(amf_key, "plmn_support")) {
@@ -2737,17 +2738,25 @@ void amf_sbi_select_nf(
         sess = (amf_sess_t *)sbi_object;
         ogs_assert(sess);
 
-        ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
-            if (ogs_sbi_discovery_param_is_matched(
-                    nf_instance,
-                    target_nf_type, requester_nf_type, discovery_option) ==
-                        false)
-                continue;
+        // ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
+        //     if (ogs_sbi_discovery_param_is_matched(
+        //             nf_instance,
+        //             target_nf_type, requester_nf_type, discovery_option) ==
+        //                 false)
+        //         continue;
 
+        //     OGS_SBI_SETUP_NF_INSTANCE(
+        //             sbi_object->service_type_array[service_type], nf_instance);
+        //     break;
+        // }
+
+        nf_instance = ogs_sbi_nf_instance_find_by_discovery_param(
+                    target_nf_type, requester_nf_type, discovery_option); 
+
+        if (nf_instance)
             OGS_SBI_SETUP_NF_INSTANCE(
                     sbi_object->service_type_array[service_type], nf_instance);
-            break;
-        }
+                    
         break;
     default:
         ogs_fatal("(NF discover search result) Not implemented [%d]",
