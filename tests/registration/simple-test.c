@@ -296,7 +296,7 @@ static void test1_func(abts_case *tc, void *data)
     ogs_pkbuf_free(recvbuf);
 #endif
 
-    ogs_msleep(400000);
+    //ogs_msleep(400000);
     /* Send UEContextReleaseRequest */
     ogs_info("Send UEContextReleaseRequest.");
     sendbuf = testngap_build_ue_context_release_request(test_ue,

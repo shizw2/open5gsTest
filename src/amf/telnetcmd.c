@@ -15,9 +15,7 @@ void showicpsue( void );
 void showue(char* id);
 void showueAll(void);
 void showueDetail(char * id);
-void showsaccnodes(void);
 void showLicenseInfo(void);
-void getnetworkStatus(void);
 void getRanNode(int pageSize ,int pageNum);
 void getUeInfo(int pageSize, int pageNum);
 void amf(void)
@@ -30,9 +28,7 @@ telnet_command_t g_commands[] = {
     {"shownf",      (GenericFunc)shownf,         1, {STRING}},
     {"showranue",   (GenericFunc)showranue,      0, {}},
     {"showicpsue",   (GenericFunc)showicpsue,      0, {}},
-    {"showsaccnodes", (GenericFunc)showsaccnodes,      0, {}},
     {"showLicenseInfo", (GenericFunc)showLicenseInfo,      0, {}},
-    {"getnetworkStatus", (GenericFunc)getnetworkStatus,      0, {}},
     {"getRanNode",   (GenericFunc)getRanNode,      2, {INTEGER,INTEGER}},
 };
 int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);

@@ -35,7 +35,7 @@ typedef struct ogs_sbi_client_s ogs_sbi_client_t;
 typedef struct ogs_sbi_smf_info_s ogs_sbi_smf_info_t;
 typedef struct ogs_sbi_nf_instance_s ogs_sbi_nf_instance_t;
 
-#define OGS_SBI_PREFIX_INSTANCE_ID                  "31dfb810-bec4-41ec-"
+#define OGS_SBI_PREFIX_INSTANCE_ID                  "31dfb810-bec4-41ec"
 
 typedef enum {
     OGS_SBI_DISCOVERY_DELEGATED_AUTO = 0,
@@ -647,7 +647,7 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_capacity(ogs_sbi_nf_instance_
 bool ogs_sbi_supi_in_vplmn(char *supi);
 bool ogs_sbi_plmn_id_in_vplmn(ogs_plmn_id_t *plmn_id);
 bool ogs_sbi_fqdn_in_vplmn(char *fqdn);
-
+void ogs_uuid_format_custom(char *buffer, int nf_type, int group, int node);
 #ifdef __cplusplus
 }
 #endif

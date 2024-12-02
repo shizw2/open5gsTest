@@ -72,8 +72,10 @@ void ogs_sbi_context_init(OpenAPI_nf_type_e nf_type)
 
     ogs_uuid_get(&self.uuid);
     ogs_uuid_format(nf_instance_id, &self.uuid);
-    //snprintf(nf_instance_id, OGS_UUID_FORMATTED_LENGTH + 1, "%s%s-00000000%02d%02d",
-    //        OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_ToString(nf_type), ogs_global_conf()->parameter.group,ogs_global_conf()->parameter.node);
+    if (ogs_global_conf()->parameter.group != 0 && ogs_global_conf()->parameter.node != 0){
+        ogs_uuid_format_custom(nf_instance_id, nf_type, ogs_global_conf()->parameter.group,ogs_global_conf()->parameter.node);        
+    }
+
     ogs_sbi_nf_instance_set_id(self.nf_instance, nf_instance_id);
     ogs_sbi_nf_instance_set_type(self.nf_instance, nf_type);
 
@@ -1245,7 +1247,7 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_add(void)
 
     nf_instance->time.heartbeat_interval =
             ogs_local_conf()->time.nf_instance.heartbeat_interval;
-
+    ogs_error("test:ogs_sbi_nf_instance_add,heartbeat_interval:%d", ogs_local_conf()->time.nf_instance.heartbeat_interval);
     nf_instance->priority = OGS_SBI_DEFAULT_PRIORITY;
     nf_instance->capacity = ogs_global_conf()->parameter.capacity;//capacity支持为0的配置
     //nf_instance->capacity = OGS_SBI_DEFAULT_CAPACITY;
@@ -3193,6 +3195,18 @@ bool ogs_sbi_fqdn_in_vplmn(char *fqdn)
     return false;
 }
 
+void ogs_uuid_format_custom(char *buffer, int nf_type, int group, int node)
+{
+    if (ogs_system_uuid_get(&self.uuid) != 0){//获取失败，则使用默认值
+        ogs_snprintf(buffer, OGS_UUID_FORMATTED_LENGTH + 1, "%s-%s-00000000%02d%02d",
+                OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_ToString(nf_type), group, node);
+    }else{
+        const unsigned char *d = self.uuid.data;
+        ogs_snprintf(buffer, OGS_UUID_FORMATTED_LENGTH + 1,
+                "%02x%02x%02x%02x-%02x%02x-%02x%02x-%s-00000000%02d%02d",
+                d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], OpenAPI_nf_type_ToString(nf_type), group, node);
+    }
+}
 
 void print_ogs_sbi_nf_info(ogs_sbi_nf_info_t *nf_info);
 void print_supiRanges(ogs_supi_range_t *supiRanges);

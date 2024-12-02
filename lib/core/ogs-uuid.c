@@ -264,3 +264,50 @@ int ogs_uuid_parse(ogs_uuid_t *uuid, const char *uuid_str)
 
     return OGS_OK;
 }
+
+int ogs_system_uuid_get(ogs_uuid_t *uuid)
+{
+    FILE *fp;
+    char buffer[37]; // UUID is 36 characters long, plus 1 for the null terminator
+
+    if (uuid == NULL) {
+        return -1;
+    }
+
+    // Open the file for reading
+    fp = fopen("/sys/class/dmi/id/product_uuid", "r");
+    if (fp == NULL) {
+        perror("Failed to open UUID file");
+        return -1;
+    }
+
+    // Read the UUID
+    if (fgets(buffer, sizeof(buffer), fp) == NULL) {
+        perror("Failed to read UUID");
+        fclose(fp);
+        return -1;
+    }
+
+    // Remove the newline character if present
+    size_t len = strlen(buffer);
+    if (len > 0 && buffer[len - 1] == '\n') {
+        buffer[len - 1] = '\0';
+    }
+
+    // Close the file
+    fclose(fp);
+
+    // Convert the UUID string to binary format
+    int ret = sscanf(buffer, "%2hhx%2hhx%2hhx%2hhx-%2hhx%2hhx-%2hhx%2hhx-%2hhx%2hhx-%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx",
+                     &uuid->data[0], &uuid->data[1], &uuid->data[2], &uuid->data[3],
+                     &uuid->data[4], &uuid->data[5], &uuid->data[6], &uuid->data[7],
+                     &uuid->data[8], &uuid->data[9], &uuid->data[10], &uuid->data[11],
+                     &uuid->data[12], &uuid->data[13], &uuid->data[14], &uuid->data[15]);
+
+    if (ret != 16) {
+        fprintf(stderr, "Failed to parse UUID\n");
+        return -1;
+    }
+
+    return 0;
+}

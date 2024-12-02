@@ -68,8 +68,6 @@ libamf_sources = files('''
     neir-build.c
     neir-handler.c
 
-    sacc.c
-    sacc_context.c
 '''.split())
 
 libamf = static_library('amf',

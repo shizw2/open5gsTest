@@ -1,0 +1,466 @@
+/*
+ * Copyright (C) 2019,2020 by Sukchan Lee <acetcom@gmail.com>
+ *
+ * This file is part of Open5GS.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#include "sbi-path.h"
+#include "sacc-handler.h"
+
+
+//#include "sacc.h"
+#include "context.h"
+#include "sbi-path.h"
+
+extern sacc_config_t g_local_node_config;
+extern sacc_node_t g_sacc_nodes[MAX_PEER_NUM+1];
+
+void sacc_scan(void) {
+    int n;
+
+    if (!g_local_node_config.enable) {
+        ogs_info("SACC scan is disabled.");
+        return;
+    }
+
+    //ogs_info("SACC scanning for nodes...");
+        
+    for (n = 1; n <= g_local_node_config.nodeNum && n < MAX_PEER_NUM; n++){
+        if (g_sacc_nodes[n].state == SACC_PEER_STATE_ONLINE){//激活的不再探测
+            continue;
+        }
+
+        if (n == g_local_node_config.node){//跳过本节点
+            continue;
+        }
+
+        ogs_info("node %d send sacc handshake to node %d.",g_local_node_config.node, g_sacc_nodes[n].node);
+        sacc_send_request(SACC_MSG_TYPE_HANDSHAKE , &g_sacc_nodes[n]); 
+    }
+}
+
+void sacc_heartbeat(void) {
+    int n;
+    ogs_sbi_nf_instance_t *nf_instance;
+    
+    if (!g_local_node_config.enable) {
+        ogs_info("sacc heartbeat is disabled.");
+        return;
+    }
+
+    //ogs_info("sacc sending heartbeats...");
+    
+    for (n = 1; n <= g_local_node_config.nodeNum && n < MAX_PEER_NUM; n++){
+        if (g_sacc_nodes[n].state != SACC_PEER_STATE_ONLINE){//对激活的进行心跳
+            continue;
+        }
+
+        if (n == g_local_node_config.node){//跳过本节点
+            continue;
+        }
+
+        ogs_info("node %d send sacc heartbeat to node %d.",g_local_node_config.node, g_sacc_nodes[n].node);
+        g_sacc_nodes[n].heartbeatLost++;
+        if (g_sacc_nodes[n].heartbeatLost >MAC_HEARTBEAT_LOST_CNT){
+            if ( g_sacc_nodes[n].state != SACC_PEER_STATE_OFFLINE){
+                ogs_info("node %d is offline",n);
+                g_sacc_nodes[n].state = SACC_PEER_STATE_OFFLINE;
+                if (g_sacc_nodes[n].smf_nf_instance){
+                    ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].smf_nf_instance->nf_type),g_sacc_nodes[n].smf_nf_instance->id);
+                    sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].smf_nf_instance);
+                }
+
+                if (g_sacc_nodes[n].ausf_nf_instance){
+                    ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].ausf_nf_instance->nf_type),g_sacc_nodes[n].ausf_nf_instance->id);
+                    sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].ausf_nf_instance);
+                }
+
+                if (g_sacc_nodes[n].udm_nf_instance){
+                    ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].udm_nf_instance->nf_type),g_sacc_nodes[n].udm_nf_instance->id);
+                    sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].udm_nf_instance);
+                }
+
+                if (g_sacc_nodes[n].amf_nf_instance){
+                    ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].amf_nf_instance->nf_type),g_sacc_nodes[n].amf_nf_instance->id);
+                    sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].amf_nf_instance);
+                }                
+            }
+        }
+        sacc_send_request(SACC_MSG_TYPE_HEARDBEAT , &g_sacc_nodes[n]); 
+    }
+}
+
+
+ogs_sbi_request_t *sacc_build_request(int msg_type,
+        sacc_node_t *peer, void *data)
+{
+    ogs_sbi_message_t message;
+    ogs_sbi_request_t *request = NULL;
+
+    sacc_msg_data_t msg_data;
+
+    ogs_assert(peer);
+    ogs_assert(peer->uri);
+
+    memset(&msg_data, 0, sizeof(sacc_msg_data_t));
+
+    snprintf(msg_data.deviceId, sizeof(msg_data.deviceId), "%d", g_local_node_config.node);
+    snprintf(msg_data.group, sizeof(msg_data.group), "%d", g_local_node_config.group);
+    snprintf(msg_data.node, sizeof(msg_data.node), "%d", g_local_node_config.node);
+    OGS_ADDR(g_sacc_nodes[g_local_node_config.node].addr, msg_data.serviceIp);
+
+    memset(&message, 0, sizeof(message));
+    message.h.method = (char *)OGS_SBI_HTTP_METHOD_POST;
+    if (msg_type == SACC_MSG_TYPE_HANDSHAKE){
+        message.h.uri = peer->uri;  //测试不赋值不行，会报No Service Name (../lib/sbi/message.c:321)
+    }else if (msg_type == SACC_MSG_TYPE_HEARDBEAT){
+        message.h.uri = peer->heartbeat_uri;
+    }
+
+    message.sacc_msg_Data = &msg_data;
+
+    //ogs_info("node %d build sacc %s request from node:%s deviceId:%s group:%s serviceIp:%s to node:%d.",g_local_node_config.node, sacc_msg_ToString(msg_type), msg_data.node,msg_data.deviceId,msg_data.group,msg_data.serviceIp, peer->node);
+
+    request = ogs_sbi_build_request(&message);
+    ogs_expect(request);
+
+    return request;
+}
+
+
+void sacc_send_request(int msg_type, sacc_node_t *peer) {
+    bool rc;
+    ogs_sbi_request_t *request = NULL;
+    ogs_sbi_client_t *client = NULL;
+
+    ogs_assert(peer);
+    client = peer->client;
+    ogs_assert(client);
+
+    request = sacc_build_request(msg_type, peer, NULL);
+    ogs_assert(request);
+    rc = ogs_sbi_send_request_to_client(
+            client, ogs_sbi_client_handler, request, peer);
+    ogs_expect(rc == true);
+
+    ogs_sbi_request_free(request);
+}
+
+bool sacc_handle_request(int msg_type, ogs_sbi_stream_t *stream, ogs_sbi_message_t *recvmsg)
+{
+    ogs_sbi_message_t sendmsg;
+    ogs_sbi_response_t *response = NULL;
+    sacc_msg_data_t msg_data;
+    sacc_msg_data_t *recv_msg_Data;
+    int node;
+    int group;
+
+    ogs_assert(stream);
+
+    memset(&sendmsg, 0, sizeof(sendmsg));
+    memset(&msg_data, 0, sizeof(msg_data));
+
+    recv_msg_Data = recvmsg->sacc_msg_Data;
+    node = atoi(recv_msg_Data->node);
+    group = atoi(recv_msg_Data->group);
+
+    ogs_info("node %d receive sacc %s request from node:%s deviceId:%s group:%s serviceIp:%s",g_local_node_config.node, sacc_msg_ToString(msg_type), recv_msg_Data->node, recv_msg_Data->deviceId, recv_msg_Data->group, recv_msg_Data->serviceIp);
+
+    if (node > g_local_node_config.nodeNum || node < 1){
+        ogs_info("incomming node %d is out of range, ignore it.",node);
+        return false;
+    }
+
+    if (group != g_local_node_config.group){
+        ogs_info("incomming node %d has different group %d with this node %d's group %d, ignore it.",node,group,g_local_node_config.node,g_local_node_config.group);
+        return false;
+    }
+
+    if (strcmp(g_local_node_config.role, SACC_NODE_ROLE_T2) != 0){
+        ogs_info("this node %d is not work in %s mode, ignore it.",g_local_node_config.node, SACC_NODE_ROLE_T2);
+        return false;
+    }
+
+    //g_sacc_nodes[node].state = SACC_PEER_STATE_ONLINE; //收到对端请求,并不需要修改状态
+    g_sacc_nodes[node].heartbeatLost = 0;//重置心跳丢失计数
+
+    snprintf(msg_data.deviceId, sizeof(msg_data.deviceId), "%s", g_sacc_nodes[g_local_node_config.node].deviceId);
+    snprintf(msg_data.group, sizeof(msg_data.group), "%d", g_local_node_config.group);
+    snprintf(msg_data.node, sizeof(msg_data.node), "%d", g_local_node_config.node);
+    OGS_ADDR(g_sacc_nodes[g_local_node_config.node].addr, msg_data.serviceIp);
+    snprintf(msg_data.result, sizeof(msg_data.result), "OK");
+
+    sendmsg.sacc_msg_Data = &msg_data;
+    sendmsg.http.location = recvmsg->h.uri;
+
+    ogs_info("node %d send sacc %s response to node:%s.",g_local_node_config.node, sacc_msg_ToString(msg_type), recvmsg->sacc_msg_Data->node);
+
+    response = ogs_sbi_build_response(&sendmsg, OGS_SBI_HTTP_STATUS_OK);
+    ogs_assert(response);
+    ogs_assert(true == ogs_sbi_server_send_response(stream, response));
+
+    return true;
+}
+
+bool sacc_handle_response(int msg_type, ogs_sbi_message_t *recvmsg)
+{
+    sacc_msg_data_t *recv_msg_Data;
+    int node;
+    int group;
+
+    recv_msg_Data = recvmsg->sacc_msg_Data;
+
+    node = atoi(recv_msg_Data->node);
+    group = atoi(recv_msg_Data->group);
+
+    ogs_info("node %d receive sacc %s response, peer node info: deviceId:%s group:%s node:%s serviceIp:%s result:%s",g_local_node_config.node, sacc_msg_ToString(msg_type),recv_msg_Data->deviceId,recv_msg_Data->group,recv_msg_Data->node,recv_msg_Data->serviceIp, recv_msg_Data->result);
+
+    if (node > g_local_node_config.nodeNum || node < 1){
+        ogs_info("incomming node %d is out of range, ignore it.",node);
+        return false;
+    }
+
+    if (group != g_local_node_config.group){
+        ogs_info("incomming node %d has different group %d with this node %d's group %d, ignore it.",node,group,g_local_node_config.node,g_local_node_config.group);
+        return false;
+    }
+
+    if (strcmp(recv_msg_Data->result, "OK") != 0){
+        ogs_info("incomming node %d sacc %s response result is not OK, ignore it.",node, sacc_msg_ToString(msg_type));
+        g_sacc_nodes[node].state = SACC_PEER_STATE_OFFLINE;
+        return false;
+    }
+
+    if (g_sacc_nodes[node].state == SACC_PEER_STATE_OFFLINE){
+        g_sacc_nodes[node].state = SACC_PEER_STATE_ONLINE;
+       
+        sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[node].udm_nf_instance);
+        sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[node].ausf_nf_instance);
+        sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[node].smf_nf_instance);
+        sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[node].amf_nf_instance);
+    }else{
+        sacc_nnrf_nfm_send_nf_update(g_sacc_nodes[node].udm_nf_instance);
+        sacc_nnrf_nfm_send_nf_update(g_sacc_nodes[node].ausf_nf_instance);
+        sacc_nnrf_nfm_send_nf_update(g_sacc_nodes[node].smf_nf_instance);
+        sacc_nnrf_nfm_send_nf_update(g_sacc_nodes[node].amf_nf_instance);
+    }
+
+    
+    g_sacc_nodes[node].heartbeatLost = 0;//重置心跳丢失计数
+    return true;
+}
+
+//ogs_nnrf_nfm_send_nf_register
+bool sacc_nnrf_nfm_send_nf_register(ogs_sbi_nf_instance_t *nf_instance)
+{
+    bool rc;
+    ogs_sbi_request_t *request = NULL;
+
+    ogs_assert(nf_instance);
+
+    ogs_info("sacc_nnrf_nfm_send_nf_register, nf-type:%s,id:%s.", OpenAPI_nf_type_ToString(nf_instance->nf_type),nf_instance->id);
+
+    request = sacc_nnrf_nfm_build_register(nf_instance);
+    if (!request) {
+        ogs_error("No Request");
+        return false;
+    }
+
+    rc = ogs_sbi_send_notification_request(
+            OGS_SBI_SERVICE_TYPE_NNRF_NFM, NULL, request, nf_instance);
+    ogs_expect(rc == true);
+
+    ogs_sbi_request_free(request);
+
+    return rc;
+}
+
+bool sacc_nnrf_nfm_send_nf_update(ogs_sbi_nf_instance_t *nf_instance)
+{
+    bool rc;
+    ogs_sbi_request_t *request = NULL;
+
+    ogs_assert(nf_instance);
+
+    request = sacc_nnrf_nfm_build_update(nf_instance);
+    if (!request) {
+        ogs_error("No Request");
+        return false;
+    }
+
+    rc = ogs_sbi_send_notification_request(
+            OGS_SBI_SERVICE_TYPE_NNRF_NFM, NULL, request, nf_instance);
+    ogs_expect(rc == true);
+
+    ogs_sbi_request_free(request);
+
+    return rc;
+}
+
+bool sacc_nnrf_nfm_send_nf_de_register(ogs_sbi_nf_instance_t *nf_instance)
+{
+    bool rc;
+    ogs_sbi_request_t *request = NULL;
+
+    ogs_assert(nf_instance);
+
+    request = sacc_nnrf_nfm_build_de_register(nf_instance);
+    if (!request) {
+        ogs_error("No Request");
+        return false;
+    }
+
+    rc = ogs_sbi_send_notification_request(
+            OGS_SBI_SERVICE_TYPE_NNRF_NFM, NULL, request, nf_instance);
+    ogs_expect(rc == true);
+
+    ogs_sbi_request_free(request);
+
+    return rc;
+}
+
+
+ogs_sbi_request_t *sacc_nnrf_nfm_build_de_register(ogs_sbi_nf_instance_t *nf_instance)
+{
+    ogs_sbi_message_t message;
+    ogs_sbi_request_t *request = NULL;
+
+    ogs_assert(nf_instance);
+    ogs_assert(nf_instance->id);
+
+    memset(&message, 0, sizeof(message));
+    message.h.method = (char *)OGS_SBI_HTTP_METHOD_DELETE;
+    message.h.service.name = (char *)OGS_SBI_SERVICE_NAME_NNRF_NFM;
+    message.h.api.version = (char *)OGS_SBI_API_V1;
+    message.h.resource.component[0] =
+        (char *)OGS_SBI_RESOURCE_NAME_NF_INSTANCES;
+    message.h.resource.component[1] = nf_instance->id;
+
+    request = ogs_sbi_build_request(&message);
+    ogs_expect(request);
+
+    return request;
+}
+
+ogs_sbi_request_t *sacc_nnrf_nfm_build_register(
+        ogs_sbi_nf_instance_t *nf_instance)
+{
+    ogs_sbi_message_t message;
+    ogs_sbi_request_t *request = NULL;
+
+    OpenAPI_nf_profile_t *NFProfile = NULL;
+
+    //nf_instance = ogs_sbi_self()->nf_instance;
+    ogs_assert(nf_instance);
+    ogs_assert(nf_instance->id);
+
+    memset(&message, 0, sizeof(message));
+    message.h.method = (char *)OGS_SBI_HTTP_METHOD_PUT;
+    message.h.service.name = (char *)OGS_SBI_SERVICE_NAME_NNRF_NFM;
+    message.h.api.version = (char *)OGS_SBI_API_V1;
+    message.h.resource.component[0] =
+        (char *)OGS_SBI_RESOURCE_NAME_NF_INSTANCES;
+    message.h.resource.component[1] = nf_instance->id;
+
+    message.http.content_encoding = (char*)ogs_sbi_self()->content_encoding;
+
+    NFProfile = ogs_nnrf_nfm_build_nf_profile(
+                    nf_instance, NULL, NULL, true);
+    if (!NFProfile) {
+        ogs_error("No NFProfile");
+        goto end;
+    }
+
+    message.NFProfile = NFProfile;
+
+    request = ogs_sbi_build_request(&message);
+    ogs_expect(request);
+
+end:
+
+    if (NFProfile)
+        ogs_nnrf_nfm_free_nf_profile(NFProfile);
+
+    return request;
+}
+
+ogs_sbi_request_t *sacc_nnrf_nfm_build_update(ogs_sbi_nf_instance_t *nf_instance)
+{
+    ogs_sbi_message_t message;
+    ogs_sbi_request_t *request = NULL;
+
+    OpenAPI_list_t *PatchItemList = NULL;
+    OpenAPI_patch_item_t StatusItem;
+    OpenAPI_patch_item_t LoadItem;
+
+    ogs_assert(nf_instance);
+    ogs_assert(nf_instance->id);
+
+    memset(&StatusItem, 0, sizeof(StatusItem));
+    memset(&LoadItem, 0, sizeof(LoadItem));
+
+    memset(&message, 0, sizeof(message));
+    message.h.method = (char *)OGS_SBI_HTTP_METHOD_PATCH;
+    message.h.service.name = (char *)OGS_SBI_SERVICE_NAME_NNRF_NFM;
+    message.h.api.version = (char *)OGS_SBI_API_V1;
+    message.h.resource.component[0] =
+        (char *)OGS_SBI_RESOURCE_NAME_NF_INSTANCES;
+    message.h.resource.component[1] = nf_instance->id;
+
+    message.http.content_type = (char *)OGS_SBI_CONTENT_PATCH_TYPE;
+
+    PatchItemList = OpenAPI_list_create();
+    if (!PatchItemList) {
+        ogs_error("No PatchItemList");
+        goto end;
+    }
+
+    StatusItem.op = OpenAPI_patch_operation_replace;
+    StatusItem.path = (char *)OGS_SBI_PATCH_PATH_NF_STATUS;
+    StatusItem.value = OpenAPI_any_type_create_string(
+        OpenAPI_nf_status_ToString(OpenAPI_nf_status_REGISTERED));
+    if (!StatusItem.value) {
+        ogs_error("No status item.value");
+        goto end;
+    }
+
+    OpenAPI_list_add(PatchItemList, &StatusItem);
+
+    LoadItem.op = OpenAPI_patch_operation_replace;
+    LoadItem.path = (char *)OGS_SBI_PATCH_PATH_LOAD;
+    LoadItem.value = OpenAPI_any_type_create_number(nf_instance->load);
+    if (!LoadItem.value) {
+        ogs_error("No load item.value");
+        goto end;
+    }
+
+    OpenAPI_list_add(PatchItemList, &LoadItem);
+
+    message.PatchItemList = PatchItemList;
+
+    request = ogs_sbi_build_request(&message);
+    ogs_expect(request);
+
+end:
+    if (LoadItem.value)
+        OpenAPI_any_type_free(LoadItem.value);
+    if (StatusItem.value)
+        OpenAPI_any_type_free(StatusItem.value);
+    if (PatchItemList)
+        OpenAPI_list_free(PatchItemList);
+
+    return request;
+}

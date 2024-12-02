@@ -52,6 +52,7 @@ typedef struct {
 void ogs_uuid_get(ogs_uuid_t *uuid);
 void ogs_uuid_format(char *buffer, const ogs_uuid_t *uuid);
 int ogs_uuid_parse(ogs_uuid_t *uuid, const char *uuid_str);
+int ogs_system_uuid_get(ogs_uuid_t *uuid);
 
 #ifdef __cplusplus
 }

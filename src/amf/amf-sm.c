@@ -32,7 +32,7 @@
 #include "license.h"
 #include <unistd.h>
 #include <signal.h>
-#include "sacc.h"
+//#include "sacc.h"
 extern int g_sps_id;
 extern pkt_fwd_tbl_t *g_pt_pkt_fwd_tbl;
 extern int send_heart_cnt;
@@ -353,25 +353,25 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                         sbi_message.h.resource.component[1], NULL));
             END
             break;
-        CASE(OGS_SBI_SERVICE_NAME_ACC)
-            SWITCH(sbi_message.h.resource.component[0])
-            CASE(OGS_SBI_RESOURCE_NAME_HANDSHAKE)
-                sacc_handle_request(SACC_MSG_TYPE_HANDSHAKE, stream, &sbi_message);
-                break;
-            CASE(OGS_SBI_RESOURCE_NAME_HEARTBEAT)
-                sacc_handle_request(SACC_MSG_TYPE_HEARDBEAT, stream, &sbi_message);
-                break;             
-            DEFAULT
-                ogs_error("Invalid resource name [%s]",
-                        sbi_message.h.resource.component[1]);
-                ogs_assert(true ==
-                    ogs_sbi_server_send_error(stream,
-                        OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
-                        "Invalid resource name",
-                        sbi_message.h.resource.component[0], NULL));
-            END
+        // CASE(OGS_SBI_SERVICE_NAME_ACC)
+        //     SWITCH(sbi_message.h.resource.component[0])
+        //     CASE(OGS_SBI_RESOURCE_NAME_HANDSHAKE)
+        //         sacc_handle_request(SACC_MSG_TYPE_HANDSHAKE, stream, &sbi_message);
+        //         break;
+        //     CASE(OGS_SBI_RESOURCE_NAME_HEARTBEAT)
+        //         sacc_handle_request(SACC_MSG_TYPE_HEARDBEAT, stream, &sbi_message);
+        //         break;             
+        //     DEFAULT
+        //         ogs_error("Invalid resource name [%s]",
+        //                 sbi_message.h.resource.component[1]);
+        //         ogs_assert(true ==
+        //             ogs_sbi_server_send_error(stream,
+        //                 OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
+        //                 "Invalid resource name",
+        //                 sbi_message.h.resource.component[0], NULL));
+        //     END
              
-            break;
+        //     break;
         DEFAULT
             ogs_error("Invalid API name [%s]", sbi_message.h.service.name);
             ogs_assert(true ==
@@ -734,24 +734,24 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             amf_nnssf_nsselection_handle_get(sess, &sbi_message);
             break;
 
-        CASE(OGS_SBI_SERVICE_NAME_ACC)
-            SWITCH(sbi_message.h.resource.component[0])
-            CASE(OGS_SBI_RESOURCE_NAME_HANDSHAKE)
-                sacc_handle_response(SACC_MSG_TYPE_HANDSHAKE, &sbi_message);
-                break;
-            CASE(OGS_SBI_RESOURCE_NAME_HEARTBEAT)
-                sacc_handle_response(SACC_MSG_TYPE_HEARDBEAT, &sbi_message);
-                break;             
-            DEFAULT
-                ogs_error("Invalid resource name [%s]",
-                        sbi_message.h.resource.component[0]);
-                ogs_assert(true ==
-                    ogs_sbi_server_send_error(stream,
-                        OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
-                        "Invalid resource name",
-                        sbi_message.h.resource.component[0], NULL));
-            END            
-            break;
+        // CASE(OGS_SBI_SERVICE_NAME_ACC)
+        //     SWITCH(sbi_message.h.resource.component[0])
+        //     CASE(OGS_SBI_RESOURCE_NAME_HANDSHAKE)
+        //         sacc_handle_response(SACC_MSG_TYPE_HANDSHAKE, &sbi_message);
+        //         break;
+        //     CASE(OGS_SBI_RESOURCE_NAME_HEARTBEAT)
+        //         sacc_handle_response(SACC_MSG_TYPE_HEARDBEAT, &sbi_message);
+        //         break;             
+        //     DEFAULT
+        //         ogs_error("Invalid resource name [%s]",
+        //                 sbi_message.h.resource.component[0]);
+        //         ogs_assert(true ==
+        //             ogs_sbi_server_send_error(stream,
+        //                 OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
+        //                 "Invalid resource name",
+        //                 sbi_message.h.resource.component[0], NULL));
+        //     END            
+        //     break;
         DEFAULT
             ogs_error("Invalid service name [%s]", sbi_message.h.service.name);
             ogs_assert_if_reached();
@@ -950,8 +950,8 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             ogs_yaml_check_restart();
 
             //test
-            sacc_scan();
-            sacc_heartbeat();
+            //sacc_scan();
+            //sacc_heartbeat();
             break;
 
         default:
