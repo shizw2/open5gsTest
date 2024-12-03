@@ -34,6 +34,7 @@ telnet_command_t g_commands[] = {
 int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);
 
 telnet_command_t g_sps_commands[] = {
+    {"showgnb",     (GenericFunc)showgnb,        1, {INTEGER}},
     {"shownf",      (GenericFunc)shownf,         1, {STRING}},
     {"showranue",   (GenericFunc)showranue,      0, {}},
     {"showue",      (GenericFunc)showue,         1, {STRING}},

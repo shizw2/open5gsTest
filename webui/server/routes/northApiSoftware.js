@@ -11,9 +11,22 @@ const { handleError, errorCodes } = require('./northApiCommon');
 
 const fiveGDir   = path.join(__dirname, '../../../');
 
+const executeCommand = (command, callback) => {
+  exec(command, (error, stdout, stderr) => {
+    if (error) {
+      return callback(error, null);
+    }
+    if (stderr) {
+      return callback(new Error(stderr), null);
+    }
+    callback(null, stdout);
+  });
+};
+
+
 //4.01 查询设备信息
 router.get('/info', (req, res) => {
-  const configPath = path.join(__dirname, '../../../install/etc/5gc/amf.yaml'); //TODO:确定最终文件
+  const configPath = path.join(__dirname, '../../../install/etc/5gc/sacc.yaml'); //TODO:确定最终文件
 
   try {    
     // 读取并解析 YAML 配置文件
@@ -45,7 +58,7 @@ router.get('/info', (req, res) => {
 
 //4.02 修改设备信息
 router.put('/info', (req, res) => {
-  const configPath = path.join(__dirname, '../../../install/etc/5gc/amf.yaml');
+  const configPath = path.join(__dirname, '../../../install/etc/5gc/sacc.yaml');
   const newDeviceName = req.body.deviceName;
 
   if (!newDeviceName) {
@@ -175,7 +188,7 @@ router.get('/device', (req, res) => {
 //4.04
 router.get('/networkStatus', async (req, res) => {
   try {
-    const dataString = await fetchDataFromTelnet(2300, '127.0.0.5', '5gc', 'getnetworkStatus()');
+    const dataString = await fetchDataFromTelnet(2300, '127.0.0.18', '5gc', 'getnetworkStatus()');
     // 解析 JSON 字符串为对象
     const data = JSON.parse(dataString);
     const result = Object.keys(data).length === 0 ? "FAIL" : "OK";
@@ -241,48 +254,49 @@ router.get('/ueStatus', async (req, res) => {
   }
 });
 
-//4.07 日志文件目录
-const logDir = path.join(__dirname, '../../../install/var/log/5gc/');
+//4.07 升级软件
+router.get('/upgrade', (req, res) => {
+  const fileName = req.body.fileName;
+  const uploadsDir = path.join(__dirname, '../uploads');
+  if (!fileName) {
+    return handleError(res, 400, 1005, 'parameter error', 'upgrade', { desc: 'Missing parameter', invalidParam: { param: 'fileName', reason: 'fileName is Missing.' } });
+  }
 
-router.get('/debug/file', (req, res) => {
-    // 读取日志文件目录
-    fs.readdir(logDir, (err, files) => {
-      if (err) {
-          // 如果读取失败，返回错误信息
-          return handleError(res, 500, 1006, 'Failed to read log files','debug', { desc: err.message });
+  // 检查文件是否以.tar.gz结尾
+  if (!fileName.endsWith('.tar.gz')) {
+    return handleError(res, 400, 1005, 'parameter error', 'upgrade', { desc: 'Invalid file format.', invalidParam: { param: 'fileName', reason: 'Only .tar.gz files are allowed.' } });
+  }
+
+  // 构建解压命令
+  const extractCommand = `tar -xzf ${uploadsDir}/${fileName} -C ${fiveGDir}`;
+  //const extractCommand = `tar -xzf /home/test/webui/server/uploads/${fileName} -C ${fiveGDir}`;
+  executeCommand(extractCommand, (error, stdout) => {
+    if (error) {
+      return handleError(res, 500, 1008, 'Failed to execute command', 'upgrade', { desc: error.message });
+    }
+    console.log('Extracted successfully:', stdout);
+
+    // 构建重启命令
+    const rebootCommand = `${fiveGDir}service.sh restart`;
+
+    executeCommand(rebootCommand, (error, stdout) => {
+      if (error) {
+        return handleError(res, 500, 1008, 'Failed to execute command', 'upgrade', { desc: error.message });
       }
-      // 根据 history 参数的值过滤日志文件
-      let logFiles = files.filter(file => {
-        if (req.query.history === 'true') {
-            return file.endsWith('.gz');
-        } else {
-            return file.endsWith('.log');
-        }
-      }).map(file => {
-        // 返回文件的全路径
-        return path.join(logDir, file);
-      });
+      console.log('Reboot initiated successfully:', stdout);
 
-      // 如果读取成功，返回日志文件列表
-      res.json({
-          "result": "OK",
-          "result_set": logFiles
-      });
+      const response = {
+        result: "OK",
+        result_set: null
+      };
+      res.json(response);
     });
+  });
 });
 
-//4.08 定义执行系统命令的函数
-const executeCommand = (command, callback) => {
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      return callback(error, null);
-    }
-    if (stderr) {
-      return callback(new Error(stderr), null);
-    }
-    callback(null, stdout);
-  });
-};
+
+//4.08 系统维护
+
 
 router.post('/system', (req, res) => {
   const { actionType } = req.body; // 从请求体中获取 actionType
@@ -319,6 +333,65 @@ router.post('/system', (req, res) => {
     };
     res.json(response);
   });
+});
+
+//4.09 导出调试文件
+const logDir = path.join(__dirname, '../../../install/var/log/5gc/');
+
+router.get('/debug/file', (req, res) => {
+    // 读取日志文件目录
+    fs.readdir(logDir, (err, files) => {
+      if (err) {
+          // 如果读取失败，返回错误信息
+          return handleError(res, 500, 1006, 'Failed to read log files','debug', { desc: err.message });
+      }
+      // 根据 history 参数的值过滤日志文件
+      let logFiles = files.filter(file => {
+        if (req.query.history === 'true') {
+            return file.endsWith('.gz');
+        } else {
+            return file.endsWith('.log');
+        }
+      }).map(file => {
+        // 返回文件的全路径
+        return path.join(logDir, file);
+      });
+
+      // 如果读取成功，返回日志文件列表
+      res.json({
+          "result": "OK",
+          "result_set": logFiles
+      });
+    });
+});
+
+// 4.10 开始调试 - POST
+router.post('/debug', (req, res) => {
+  debugStatus = true; 
+  const response = {
+    result: "OK",
+    result_set: null
+  };
+  res.json(response);
+});
+
+// 4.11 停止调试 - PUT
+router.put('/debug', (req, res) => {
+  debugStatus = false; // 停止调试
+  const response = {
+    result: "OK",
+    result_set: null
+  };
+  res.json(response);
+});
+
+// 4.12 查看调试状态 - GET
+router.get('/debug', (req, res) => {
+  const response = {
+    result: "OK",
+    result_set: debugStatus
+  };
+  res.json(response);
 });
 
 //4.13 查看磁盘空间

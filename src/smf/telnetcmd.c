@@ -406,8 +406,9 @@ void getUeInfo(char * supi) {
     }
 
     ogs_list_for_each(&ue->sess_list, sess) {
-        ogs_list_for_each(&sess->bearer_list, bearer){//TODO:不需要取的合适不合适             
+        ogs_list_for_each(&sess->bearer_list, bearer){//TODO:不知道取的合适不合适             
             cJSON_AddItemToArray(dnnList, cJSON_CreateString(bearer->dl_pdr->dnn));
+            break;//取sess的一个bear，否则会重复
         }
         
         if (sess->ipv4 != NULL) {

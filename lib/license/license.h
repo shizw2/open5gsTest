@@ -18,11 +18,10 @@ typedef struct license_info_s{
     long licenseExpireTime;
     long licenseDuration;
     long licenseCreateTime;
+    unsigned char   szDigestFromFile[16];
     int  maxSubscriptions;
     int  maxRanNodes;
     unsigned char   Customer[MAX_STR_LEN];
-    unsigned char   szDigestFromFile[16];
-
 }PACK_1 license_info_t;
 
 typedef struct runtime_info_s{    

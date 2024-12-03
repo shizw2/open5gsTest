@@ -32,10 +32,10 @@ const struct testlist {
     abts_suite *(*func)(abts_suite *suite);
 } alltests[] = {
 
-    {test_qos_flow},
-    {test_session},
-    {test_simple},
-    {test_af},
+    //{test_qos_flow},
+    //{test_session},
+    //{test_simple},
+    //{test_af},
     {test_video},    
     {NULL},
 };

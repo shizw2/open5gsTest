@@ -376,13 +376,39 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
     }
 
     int readlen;
-    readlen = fread(&license_info, sizeof(license_info_t), 1, LicenseInputFile);
-    if (readlen != 1) {
-        snprintf(errorMsg, errorMsgSize, "读取License文件失败,该文件被人为修改,readlen:%d, filelen:%ld.", readlen, sizeof(license_info_t));
-        fclose(LicenseInputFile);
-        return false;
+    // readlen = fread(&license_info, sizeof(license_info_t), 1, LicenseInputFile);
+    // if (readlen != 1) {
+    //     snprintf(errorMsg, errorMsgSize, "读取License文件失败,该文件被人为修改,readlen:%d, filelen:%ld.", readlen, sizeof(license_info_t));
+    //     fclose(LicenseInputFile);
+    //     return false;
+    // }
+    // 读取每个字段
+    fread(license_info.szSystemInfoFromFile, sizeof(BYTE), MAX_SYS_INFO_LENGTH, LicenseInputFile);
+    fread(&license_info.maxUserNum, sizeof(int), 1, LicenseInputFile);
+    fread(&license_info.licenseExpireTime, sizeof(long), 1, LicenseInputFile);
+    fread(&license_info.licenseDuration, sizeof(long), 1, LicenseInputFile);
+    fread(&license_info.licenseCreateTime, sizeof(long), 1, LicenseInputFile);
+    fread(license_info.szDigestFromFile, sizeof(unsigned char), 16, LicenseInputFile);
+    readlen = fread(&license_info.maxSubscriptions, sizeof(int), 1, LicenseInputFile);
+    if (readlen != 1){
+        printf("no maxSubscriptions.\r\n");
+        g_license_info.maxSubscriptions = 0xffffffff;
+    }else{
+        g_license_info.maxSubscriptions = (int)decrypt_long(license_info.maxSubscriptions);
     }
-    
+    readlen = fread(&license_info.maxRanNodes, sizeof(int), 1, LicenseInputFile);
+    if (readlen != 1){
+        printf("no maxRanNodes.\r\n");
+        g_license_info.maxRanNodes = 0xffffffff;
+    }else{
+        g_license_info.maxRanNodes = (int)decrypt_long(license_info.maxRanNodes);
+    }
+    readlen = fread(license_info.Customer, sizeof(unsigned char), MAX_STR_LEN, LicenseInputFile);
+    if (readlen != MAX_STR_LEN*sizeof(unsigned char)){
+        printf("no Customer.\r\n");
+    }    
+
+
     fclose(LicenseInputFile);        
 
     g_license_info.maxUserNum = (int)decrypt_long(license_info.maxUserNum);
@@ -393,8 +419,7 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
    
     g_license_info.licenseCreateTime = decrypt_long(license_info.licenseCreateTime); 
 
-    g_license_info.maxSubscriptions = (int)decrypt_long(license_info.maxSubscriptions);
-    g_license_info.maxRanNodes = (int)decrypt_long(license_info.maxRanNodes);
+    
     strncpy(g_license_info.Customer, license_info.Customer, MAX_STR_LEN);
   
     /*拷贝系统信息到临时变量中*/
@@ -409,7 +434,7 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
     }
 
     /*算临时信息的MD5 digest */
-    dshmac_md5((unsigned char*)&license_info, sizeof(license_info)-16, (unsigned char*)m_szPrivateKey, 32, szDigest);
+    dshmac_md5((unsigned char*)&license_info, sizeof(BYTE) * MAX_SYS_INFO_LENGTH + sizeof(int) + 3 * sizeof(long), (unsigned char*)m_szPrivateKey, 32, szDigest);
 
     if (memcmp(szDigest, license_info.szDigestFromFile, sizeof(szDigest)) != 0) {
         snprintf(errorMsg, errorMsgSize, "License文件信息被人为修改!");
@@ -417,6 +442,14 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
     }
 
     //printf("License文件正确!\n");
+    printf("Max User Num: %d\n", g_license_info.maxUserNum);
+    printf("License Expire Time: %s\n", timestampToString(g_license_info.licenseExpireTime));
+    printf("License Duration: %ld\n", g_license_info.licenseDuration);
+    printf("License Create Time: %s\n", timestampToString(g_license_info.licenseCreateTime));
+    printf("Max Subscriptions: %d\n", g_license_info.maxSubscriptions);
+    printf("Max Ran Nodes: %d\n", g_license_info.maxRanNodes);
+    printf("Customer: %s\n", g_license_info.Customer);
+
     int state = checkLicenseAfterRuntime(0,30);
     if (state == LICENSE_STATE_SOON_TO_EXPIRE) {
         snprintf(errorMsg, errorMsgSize, "许可即将过期!");

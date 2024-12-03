@@ -426,7 +426,7 @@ static void test1_func(abts_case *tc, void *data)
 
     /* Wait for PDU session resource modify complete */
     ogs_msleep(100);
-
+    ogs_msleep(100000);
     /* Test Bearer Remove */
     test_bearer_remove(qos_flow);
 
