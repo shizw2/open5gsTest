@@ -122,6 +122,8 @@
         "bit": "c",
         "compare": "c",
         "concepts": "c",
-        "memory_resource": "c"
+        "memory_resource": "c",
+        "udm_info.h": "c",
+        "smf_info.h": "c"
     }
 }

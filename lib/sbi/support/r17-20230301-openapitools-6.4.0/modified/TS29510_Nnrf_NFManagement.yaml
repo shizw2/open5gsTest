@@ -2067,6 +2067,11 @@ components:
       required:
         - sNssaiSmfInfoList
       properties:
+        supiRanges:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupiRange'
+          minItems: 1
         sNssaiSmfInfoList:
           type: array
           items:

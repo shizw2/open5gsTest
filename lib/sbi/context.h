@@ -313,6 +313,16 @@ typedef struct ogs_sbi_subscription_data_s {
     void *client;
 } ogs_sbi_subscription_data_t;
 
+#define OGS_MAX_NUM_OF_SUPI              16
+typedef struct supi_range_s {   
+    int num_of_supi_range;
+   
+    struct {
+        char *start;
+        char *end;
+    } supi_ranges[OGS_MAX_NUM_OF_SUPI];
+} ogs_supi_range_t;
+
 typedef struct ogs_sbi_smf_info_s {
     int num_of_slice;
     struct {
@@ -337,6 +347,8 @@ typedef struct ogs_sbi_smf_info_s {
         int num_of_tac_range;
         ogs_uint24_t start[OGS_MAX_NUM_OF_TAI], end[OGS_MAX_NUM_OF_TAI];
     } nr_tai_range[OGS_MAX_NUM_OF_TAI];
+
+    ogs_supi_range_t supiRanges;
 } ogs_sbi_smf_info_t;
 
 typedef struct ogs_sbi_scp_info_s {
@@ -379,15 +391,6 @@ typedef struct ogs_sbi_amf_info_s {
     } nr_tai_range[OGS_MAX_NUM_OF_TAI];
 } ogs_sbi_amf_info_t;
 
-#define OGS_MAX_NUM_OF_SUPI              16
-typedef struct supi_range_s {   
-    int num_of_supi_range;
-   
-    struct {
-        char *start;
-        char *end;
-    } supi_ranges[OGS_MAX_NUM_OF_SUPI];
-} ogs_supi_range_t;
 
 #define OGS_MAX_NUM_OF_ROUTING_INDICATOR              16
 typedef struct routing_indicator_s {   
