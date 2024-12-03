@@ -16,6 +16,7 @@
 #include "ip_addr.h"
 #include "smf_info.h"
 #include "snssai_smf_info_item.h"
+#include "supi_range.h"
 #include "tai.h"
 #include "tai_range.h"
 
@@ -25,6 +26,7 @@ extern "C" {
 
 typedef struct OpenAPI_nrf_info_served_smf_info_value_s OpenAPI_nrf_info_served_smf_info_value_t;
 typedef struct OpenAPI_nrf_info_served_smf_info_value_s {
+    OpenAPI_list_t *supi_ranges;
     OpenAPI_list_t *s_nssai_smf_info_list;
     OpenAPI_list_t *tai_list;
     OpenAPI_list_t *tai_range_list;
@@ -45,6 +47,7 @@ typedef struct OpenAPI_nrf_info_served_smf_info_value_s {
 } OpenAPI_nrf_info_served_smf_info_value_t;
 
 OpenAPI_nrf_info_served_smf_info_value_t *OpenAPI_nrf_info_served_smf_info_value_create(
+    OpenAPI_list_t *supi_ranges,
     OpenAPI_list_t *s_nssai_smf_info_list,
     OpenAPI_list_t *tai_list,
     OpenAPI_list_t *tai_range_list,

@@ -5,6 +5,7 @@
 #include "nrf_info_served_smf_info_value.h"
 
 OpenAPI_nrf_info_served_smf_info_value_t *OpenAPI_nrf_info_served_smf_info_value_create(
+    OpenAPI_list_t *supi_ranges,
     OpenAPI_list_t *s_nssai_smf_info_list,
     OpenAPI_list_t *tai_list,
     OpenAPI_list_t *tai_range_list,
@@ -27,6 +28,7 @@ OpenAPI_nrf_info_served_smf_info_value_t *OpenAPI_nrf_info_served_smf_info_value
     OpenAPI_nrf_info_served_smf_info_value_t *nrf_info_served_smf_info_value_local_var = ogs_malloc(sizeof(OpenAPI_nrf_info_served_smf_info_value_t));
     ogs_assert(nrf_info_served_smf_info_value_local_var);
 
+    nrf_info_served_smf_info_value_local_var->supi_ranges = supi_ranges;
     nrf_info_served_smf_info_value_local_var->s_nssai_smf_info_list = s_nssai_smf_info_list;
     nrf_info_served_smf_info_value_local_var->tai_list = tai_list;
     nrf_info_served_smf_info_value_local_var->tai_range_list = tai_range_list;
@@ -54,6 +56,13 @@ void OpenAPI_nrf_info_served_smf_info_value_free(OpenAPI_nrf_info_served_smf_inf
 
     if (NULL == nrf_info_served_smf_info_value) {
         return;
+    }
+    if (nrf_info_served_smf_info_value->supi_ranges) {
+        OpenAPI_list_for_each(nrf_info_served_smf_info_value->supi_ranges, node) {
+            OpenAPI_supi_range_free(node->data);
+        }
+        OpenAPI_list_free(nrf_info_served_smf_info_value->supi_ranges);
+        nrf_info_served_smf_info_value->supi_ranges = NULL;
     }
     if (nrf_info_served_smf_info_value->s_nssai_smf_info_list) {
         OpenAPI_list_for_each(nrf_info_served_smf_info_value->s_nssai_smf_info_list, node) {
@@ -112,6 +121,22 @@ cJSON *OpenAPI_nrf_info_served_smf_info_value_convertToJSON(OpenAPI_nrf_info_ser
     }
 
     item = cJSON_CreateObject();
+    if (nrf_info_served_smf_info_value->supi_ranges) {
+    cJSON *supi_rangesList = cJSON_AddArrayToObject(item, "supiRanges");
+    if (supi_rangesList == NULL) {
+        ogs_error("OpenAPI_nrf_info_served_smf_info_value_convertToJSON() failed [supi_ranges]");
+        goto end;
+    }
+    OpenAPI_list_for_each(nrf_info_served_smf_info_value->supi_ranges, node) {
+        cJSON *itemLocal = OpenAPI_supi_range_convertToJSON(node->data);
+        if (itemLocal == NULL) {
+            ogs_error("OpenAPI_nrf_info_served_smf_info_value_convertToJSON() failed [supi_ranges]");
+            goto end;
+        }
+        cJSON_AddItemToArray(supi_rangesList, itemLocal);
+    }
+    }
+
     if (!nrf_info_served_smf_info_value->s_nssai_smf_info_list) {
         ogs_error("OpenAPI_nrf_info_served_smf_info_value_convertToJSON() failed [s_nssai_smf_info_list]");
         return NULL;
@@ -256,6 +281,8 @@ OpenAPI_nrf_info_served_smf_info_value_t *OpenAPI_nrf_info_served_smf_info_value
 {
     OpenAPI_nrf_info_served_smf_info_value_t *nrf_info_served_smf_info_value_local_var = NULL;
     OpenAPI_lnode_t *node = NULL;
+    cJSON *supi_ranges = NULL;
+    OpenAPI_list_t *supi_rangesList = NULL;
     cJSON *s_nssai_smf_info_list = NULL;
     OpenAPI_list_t *s_nssai_smf_info_listList = NULL;
     cJSON *tai_list = NULL;
@@ -274,6 +301,30 @@ OpenAPI_nrf_info_served_smf_info_value_t *OpenAPI_nrf_info_served_smf_info_value
     cJSON *smf_onboarding_capability = NULL;
     cJSON *ismf_support_ind = NULL;
     cJSON *smf_uprp_capability = NULL;
+    supi_ranges = cJSON_GetObjectItemCaseSensitive(nrf_info_served_smf_info_valueJSON, "supiRanges");
+    if (supi_ranges) {
+        cJSON *supi_ranges_local = NULL;
+        if (!cJSON_IsArray(supi_ranges)) {
+            ogs_error("OpenAPI_nrf_info_served_smf_info_value_parseFromJSON() failed [supi_ranges]");
+            goto end;
+        }
+
+        supi_rangesList = OpenAPI_list_create();
+
+        cJSON_ArrayForEach(supi_ranges_local, supi_ranges) {
+            if (!cJSON_IsObject(supi_ranges_local)) {
+                ogs_error("OpenAPI_nrf_info_served_smf_info_value_parseFromJSON() failed [supi_ranges]");
+                goto end;
+            }
+            OpenAPI_supi_range_t *supi_rangesItem = OpenAPI_supi_range_parseFromJSON(supi_ranges_local);
+            if (!supi_rangesItem) {
+                ogs_error("No supi_rangesItem");
+                goto end;
+            }
+            OpenAPI_list_add(supi_rangesList, supi_rangesItem);
+        }
+    }
+
     s_nssai_smf_info_list = cJSON_GetObjectItemCaseSensitive(nrf_info_served_smf_info_valueJSON, "sNssaiSmfInfoList");
     if (!s_nssai_smf_info_list) {
         ogs_error("OpenAPI_nrf_info_served_smf_info_value_parseFromJSON() failed [s_nssai_smf_info_list]");
@@ -472,6 +523,7 @@ OpenAPI_nrf_info_served_smf_info_value_t *OpenAPI_nrf_info_served_smf_info_value
     }
 
     nrf_info_served_smf_info_value_local_var = OpenAPI_nrf_info_served_smf_info_value_create (
+        supi_ranges ? supi_rangesList : NULL,
         s_nssai_smf_info_listList,
         tai_list ? tai_listList : NULL,
         tai_range_list ? tai_range_listList : NULL,
@@ -493,6 +545,13 @@ OpenAPI_nrf_info_served_smf_info_value_t *OpenAPI_nrf_info_served_smf_info_value
 
     return nrf_info_served_smf_info_value_local_var;
 end:
+    if (supi_rangesList) {
+        OpenAPI_list_for_each(supi_rangesList, node) {
+            OpenAPI_supi_range_free(node->data);
+        }
+        OpenAPI_list_free(supi_rangesList);
+        supi_rangesList = NULL;
+    }
     if (s_nssai_smf_info_listList) {
         OpenAPI_list_for_each(s_nssai_smf_info_listList, node) {
             OpenAPI_snssai_smf_info_item_free(node->data);
