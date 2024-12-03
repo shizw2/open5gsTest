@@ -434,8 +434,8 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
     }
 
     /*算临时信息的MD5 digest */
-    dshmac_md5((unsigned char*)&license_info, sizeof(BYTE) * MAX_SYS_INFO_LENGTH + sizeof(int) + 3 * sizeof(long), (unsigned char*)m_szPrivateKey, 32, szDigest);
-
+    dshmac_md5((unsigned char*)&license_info, MD5_CHECK_LEN, (unsigned char*)m_szPrivateKey, 32, szDigest);
+   
     if (memcmp(szDigest, license_info.szDigestFromFile, sizeof(szDigest)) != 0) {
         snprintf(errorMsg, errorMsgSize, "License文件信息被人为修改!");
         return false;

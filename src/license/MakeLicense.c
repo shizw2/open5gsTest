@@ -75,27 +75,48 @@ static void dsMakeLicense(int numUsers, long expireTimestamp, long durationTimes
     /* 写文件 */
     if ((LicenseOutputFile = fopen(OutFilePathName, "wb")) == NULL)
     {
-         printf("创建License文件失败,请重试!\r\n");
-         return;
+        printf("创建License文件失败,请重试!\r\n");
+        return;
     }    
    
-    if(fwrite((unsigned char *)&license_info,sizeof(BYTE),sizeof(license_info)-16, LicenseOutputFile)!= sizeof(license_info)-16)
+    if(fwrite((unsigned char *)&license_info,sizeof(BYTE),MD5_CHECK_LEN, LicenseOutputFile)!= MD5_CHECK_LEN)
     {
-         printf("生成License文件出错，请重试!\r\n");
-           fclose(LicenseOutputFile);
-         return;
+        printf("生成License文件出错，请重试!\r\n");
+        fclose(LicenseOutputFile);
+        return;
     }
     
     memset(digest,0,16);   
   
     /*添加一个MD5 digest */
-    dshmac_md5((unsigned char *)&license_info,sizeof(license_info)-16,(unsigned char *)m_szPrivateKey,32,digest);
+    dshmac_md5((unsigned char *)&license_info,MD5_CHECK_LEN,(unsigned char *)m_szPrivateKey,32,digest);
 
     if(fwrite(digest,sizeof(BYTE),16, LicenseOutputFile)!=16)
     {
-         printf("生成License文件出错，请重试!\r\n");
-           fclose(LicenseOutputFile);
-         return;
+        printf("生成License文件出错，请重试!\r\n");
+        fclose(LicenseOutputFile);
+        return;
+    }
+
+    if(fwrite(&license_info.maxSubscriptions,sizeof(int),1, LicenseOutputFile) != 1)
+    {
+        printf("生成maxSubscriptions出错，请重试!\r\n");
+        fclose(LicenseOutputFile);
+        return;
+    }
+
+    if(fwrite(&license_info.maxRanNodes,sizeof(int),1, LicenseOutputFile) != 1)
+    {
+        printf("生成maxRanNodes出错，请重试!\r\n");
+        fclose(LicenseOutputFile);
+        return;
+    }
+
+    if(fwrite(license_info.Customer,sizeof(unsigned char), MAX_STR_LEN, LicenseOutputFile) != MAX_STR_LEN)
+    {
+        printf("生成Customer出错，请重试!\r\n");
+        fclose(LicenseOutputFile);
+        return;
     }
 
     fclose(LicenseOutputFile);

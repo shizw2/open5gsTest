@@ -12,6 +12,7 @@
 #define false 0
 #define MAX_SYS_INFO_LENGTH 4096
 #define MAX_STR_LEN 100
+#define MD5_CHECK_LEN  sizeof(BYTE) * MAX_SYS_INFO_LENGTH + sizeof(int) + 3 * sizeof(long)
 typedef struct license_info_s{
     BYTE   szSystemInfoFromFile[MAX_SYS_INFO_LENGTH];
     int  maxUserNum;
@@ -19,6 +20,7 @@ typedef struct license_info_s{
     long licenseDuration;
     long licenseCreateTime;
     unsigned char   szDigestFromFile[16];
+    //以下为可选信息,不参与md5运算
     int  maxSubscriptions;
     int  maxRanNodes;
     unsigned char   Customer[MAX_STR_LEN];

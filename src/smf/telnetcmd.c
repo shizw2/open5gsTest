@@ -373,6 +373,7 @@ void getUeInfo(char * supi) {
     int totalUeNum = 0;
    
     int count = 0;
+    bool getn3ip = false;
 
     if(supi == NULL || strlen(supi) == 0){
         return;
@@ -417,7 +418,22 @@ void getUeInfo(char * supi) {
         if (sess->ipv6 != NULL) {
             cJSON_AddItemToArray(ueIpAddrList, cJSON_CreateString(OGS_INET6_NTOP(sess->ipv6->addr, ipbuf)));
         }
+
+        if (getn3ip == false){
+            char *n3ipstr = ogs_ipv4_to_string(sess->gnb_n3_ip.addr);
+            if (n3ipstr == NULL) {
+                ogs_error("Failed to convert IP to string");
+                cJSON_Delete(dnnList);
+                cJSON_Delete(root);
+                return;
+            }
+            cJSON_AddStringToObject(root, "ranNodeIp", n3ipstr);
+            ogs_free(n3ipstr);
+            getn3ip = true;
+        }
     }
+
+
 
     cJSON_AddItemToObject(root, "dnnList", dnnList);
     cJSON_AddItemToObject(root, "ueIpAddrlist", ueIpAddrList);

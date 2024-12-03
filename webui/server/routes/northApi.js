@@ -54,6 +54,7 @@ router.get('/wxCm/v1/ueStatus', async (req, res) => {
                     if (extraData) {
                         ueInfo.dnnList = extraData.dnnList || [];
                         ueInfo.ueIpAddrlist = extraData.ueIpAddrlist || [];
+                        ueInfo.ranNodeIp = extraData.ranNodeIp;
                     }
                 } catch (err) {
                     console.error(`Error fetching extra data for IMSI ${ueInfo.imsi}:`, err);

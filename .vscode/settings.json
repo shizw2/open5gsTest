@@ -124,6 +124,7 @@
         "concepts": "c",
         "memory_resource": "c",
         "udm_info.h": "c",
-        "smf_info.h": "c"
+        "smf_info.h": "c",
+        "license.h": "c"
     }
 }
