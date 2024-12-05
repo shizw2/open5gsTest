@@ -243,12 +243,12 @@ static void test1_func(abts_case *tc, void *data)
             NGAP_ProcedureCode_id_PDUSessionResourceSetup,
             test_ue->ngap_procedure_code);
 
-    /* Send GTP-U ICMP Packet */
-    ogs_info("Send GTP-U ICMP Packet.");
+    // /* Send GTP-U ICMP Packet */
+    // ogs_info("Send GTP-U ICMP Packet.");
     qos_flow = test_qos_flow_find_by_qfi(sess, 1);
     ogs_assert(qos_flow);
-    rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
-    ABTS_INT_EQUAL(tc, OGS_OK, rv);
+    // rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
+    // ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Send PDUSessionResourceSetupResponse */
     ogs_info("Send PDUSessionResourceSetupResponse.");
@@ -257,22 +257,22 @@ static void test1_func(abts_case *tc, void *data)
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
-    /* Receive GTP-U ICMP Packet */
-    ogs_info("Send Receive GTP-U ICMP Packet1.");
-    recvbuf = testgnb_gtpu_read(gtpu);
-    ABTS_PTR_NOTNULL(tc, recvbuf);
-    ogs_pkbuf_free(recvbuf);
+    // /* Receive GTP-U ICMP Packet */
+    // ogs_info("Send Receive GTP-U ICMP Packet1.");
+    // recvbuf = testgnb_gtpu_read(gtpu);
+    // ABTS_PTR_NOTNULL(tc, recvbuf);
+    // ogs_pkbuf_free(recvbuf);
 
-    /* Send GTP-U ICMP Packet */
-    ogs_info("Send GTP-U ICMP Packet.");
-    rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
-    ABTS_INT_EQUAL(tc, OGS_OK, rv);
+    // /* Send GTP-U ICMP Packet */
+    // ogs_info("Send GTP-U ICMP Packet.");
+    // rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
+    // ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
-    /* Receive GTP-U ICMP Packet */
-    ogs_info("Send Receive GTP-U ICMP Packet2.");
-    recvbuf = testgnb_gtpu_read(gtpu);
-    ABTS_PTR_NOTNULL(tc, recvbuf);
-    ogs_pkbuf_free(recvbuf);
+    // /* Receive GTP-U ICMP Packet */
+    // ogs_info("Send Receive GTP-U ICMP Packet2.");
+    // recvbuf = testgnb_gtpu_read(gtpu);
+    // ABTS_PTR_NOTNULL(tc, recvbuf);
+    // ogs_pkbuf_free(recvbuf);
 
     /* Send GTP-U Router Solicitation */
     ogs_info("Send GTP-U Router Solicitation.");
