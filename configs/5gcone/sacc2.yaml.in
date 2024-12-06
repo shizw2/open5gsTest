@@ -1,6 +1,6 @@
 logger:
   file:
-    path: @localstatedir@/log/@project_name@/sacc.log
+    path: @localstatedir@/log/@project_name@/sacc2.log
 global:
   parameter:
     capacity: 100

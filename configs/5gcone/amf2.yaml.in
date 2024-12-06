@@ -1,6 +1,6 @@
 logger:
   file:
-    path: @localstatedir@/log/@project_name@/amf.log
+    path: @localstatedir@/log/@project_name@/amf2.log
 global:
   max:
     ue: 1024

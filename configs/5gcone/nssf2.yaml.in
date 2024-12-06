@@ -1,6 +1,6 @@
 logger:
   file:
-    path: @localstatedir@/log/@project_name@/nssf.log
+    path: @localstatedir@/log/@project_name@/nssf2.log
 #  level: info   # fatal|error|warn|info(default)|debug|trace
 
 global:

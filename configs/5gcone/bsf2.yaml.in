@@ -1,6 +1,6 @@
 logger:
   file:
-    path: @localstatedir@/log/@project_name@/bsf.log
+    path: @localstatedir@/log/@project_name@/bsf2.log
 #  level: info   # fatal|error|warn|info(default)|debug|trace
 
 global:

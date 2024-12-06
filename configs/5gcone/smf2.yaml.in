@@ -1,6 +1,6 @@
 logger:
   file:
-    path: @localstatedir@/log/@project_name@/smf.log
+    path: @localstatedir@/log/@project_name@/smf2.log
 #  level: info   # fatal|error|warn|info(default)|debug|trace
 
 global:
