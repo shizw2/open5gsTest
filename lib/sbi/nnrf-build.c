@@ -316,10 +316,10 @@ OpenAPI_nf_profile_t *ogs_nnrf_nfm_build_nf_profile(
     ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
         if (nf_info->nf_type == OpenAPI_nf_type_SMF) {
 
-            if (nf_info->smf.num_of_slice == 0) {
-                ogs_fatal("CHECK CONFIGURATION: No S-NSSAI");
-                ogs_assert_if_reached();
-            }
+            // if (nf_info->smf.num_of_slice == 0) {
+            //     ogs_fatal("CHECK CONFIGURATION: No S-NSSAI");
+            //     ogs_assert_if_reached();
+            // }
 
             SmfInfo = build_smf_info(nf_info);
             ogs_assert(SmfInfo);

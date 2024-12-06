@@ -3578,7 +3578,7 @@ bool amf_ue_is_area_restricted(amf_ue_t *amf_ue)
     int value;
     char *hexString;
     ogs_assert(amf_ue);
-    ogs_error("amf_ue->nr_tai.tac=%d",amf_ue->nr_tai.tac.v);
+    ogs_info("amf_ue->nr_tai.tac=%d",amf_ue->nr_tai.tac.v);
     if(amf_ue->service_area_restriction->restriction_type==OpenAPI_restriction_type_ALLOWED_AREAS){
         OpenAPI_list_for_each(amf_ue->service_area_restriction->areas, node) {            
             hexString=(char*)node->data;

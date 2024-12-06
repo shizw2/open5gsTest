@@ -1,0 +1,73 @@
+logger:
+  file:
+    path: @localstatedir@/log/@project_name@/amf.log
+global:
+  max:
+    ue: 1024
+  parameter:
+    capacity: 100
+    group: 1
+    node: 2
+    deviceType: test
+    deviceName: test
+    deviceSeq: 1
+    version: 1.1
+  cli:
+    server:
+      - address: 127.0.0.19
+        port: 2300
+  deviceName: WJTEST
+amf:
+  sbi:
+    server:
+      - address: 127.0.0.19
+        port: 8100
+    client:
+      nrf:
+        - uri: http://127.0.0.19:8600
+  ngap:
+    server:
+      - address: 127.0.0.19
+  icps:
+    spsnum: 3
+    port: 9778
+  metrics:
+    server:
+      - address: 127.0.0.19
+        port: 9090
+  guami:
+    - plmn_id:
+        mcc: 460
+        mnc: 07
+      amf_id:
+        region: 2
+        set: 1
+  tai:
+    - plmn_id:
+        mcc: 460
+        mnc: 07
+      tac: [1]
+  plmn_support:
+    - plmn_id:
+        mcc: 460
+        mnc: 07
+      s_nssai:
+        - sst: 1
+  security:
+    integrity_order:
+      - NIA2
+      - NIA1
+      - NIA0
+    ciphering_order:
+      - NEA0
+      - NEA1
+      - NEA2
+  network_name:
+    full: 5gc
+    short: Next
+  amf_name: 5gc-amf0
+  imeicheck: false
+  time:
+    t3512:
+      value: 540
+_nf: amf

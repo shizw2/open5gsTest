@@ -233,7 +233,6 @@ int sacc_sbi_context_get_nf_info(
                             break;
                         }
                     }else if (!strcmp(node_key, "sbi")) {
-                        ogs_info("node test sbi.");
                         ogs_yaml_iter_t sbi_iter;
                         ogs_yaml_iter_recurse(&node_iter, &sbi_iter);
                         while (ogs_yaml_iter_next(&sbi_iter)) {
@@ -674,6 +673,7 @@ char * sacc_node_state_ToString(int state){
 int sacc_initialize_nodes(void) {
     int rv,n;
     char buf[OGS_ADDRSTRLEN];
+    ogs_sbi_server_t *server = NULL;
 
     g_local_node_config.group = ogs_global_conf()->parameter.group;
     g_local_node_config.node = ogs_global_conf()->parameter.node;
@@ -693,11 +693,6 @@ int sacc_initialize_nodes(void) {
         int base = 100 + g_local_node_config.group;
         int offset = n * 2 + 1; // Calculate the last octet as N*2-1
         //snprintf(ip, sizeof(ip), "192.168.%d.%d", base, offset);
-        //构造测试地址
-        snprintf(ip, sizeof(ip), "127.0.0.%d", 18+ (n-1)*20);//5,25,45,65...   
-       
-        rv = ogs_addaddrinfo(&g_sacc_nodes[n].addr,AF_INET, ip, g_local_node_config.port, 0);
-        ogs_assert(rv == OGS_OK);
 
         g_sacc_nodes[n].group = g_local_node_config.group;
         g_sacc_nodes[n].node = n;
@@ -707,19 +702,31 @@ int sacc_initialize_nodes(void) {
             g_sacc_nodes[n].state = SACC_PEER_STATE_OFFLINE;
         }
 
-        ogs_info("sacc node %d addr:%s",n, OGS_ADDR(g_sacc_nodes[n].addr,buf));
-        sacc_associate_peer_client(&g_sacc_nodes[n]);
-
-        snprintf(uri, sizeof(uri), "http://%s:%d/acc/v1/nfinfo", ip,g_local_node_config.port);
-        g_sacc_nodes[n].uri = ogs_strdup(uri);
-        snprintf(uri, sizeof(uri), "http://%s:%d/acc/v1/heartbeat", ip,g_local_node_config.port);
-        g_sacc_nodes[n].heartbeat_uri = ogs_strdup(uri);
-        ogs_info("node handshake uri:%s,heartbeat uri:%s", g_sacc_nodes[n].uri,g_sacc_nodes[n].heartbeat_uri);
-        
         sacc_sbi_context_init_for_udm(&g_sacc_nodes[n]);
         sacc_sbi_context_init_for_ausf(&g_sacc_nodes[n]);
         sacc_sbi_context_init_for_smf(&g_sacc_nodes[n]);
         sacc_sbi_context_init_for_amf(&g_sacc_nodes[n]);
+
+        server = ogs_list_first(&ogs_sbi_self()->server_list);
+        ogs_assert(server);
+        // g_sacc_nodes[n].addr = server->node.addr;
+        // ogs_info("sacc node %d addr:%s, port:%d",n, OGS_ADDR(g_sacc_nodes[n].addr,buf),OGS_PORT(g_sacc_nodes[n].addr));
+        // sacc_associate_peer_client(&g_sacc_nodes[n]);
+
+        if (g_sacc_nodes[n].udm_nf_instance->num_of_ipv4 > 0){
+            g_sacc_nodes[n].addr = g_sacc_nodes[n].udm_nf_instance->ipv4[0];
+            g_sacc_nodes[n].addr->ogs_sin_port = server->node.addr->ogs_sin_port;
+            ogs_info("sacc node %d addr:%s, port:%d",n, OGS_ADDR(g_sacc_nodes[n].addr,buf),OGS_PORT(g_sacc_nodes[n].addr));
+            sacc_associate_peer_client(&g_sacc_nodes[n]);
+        }else{
+            
+        }
+
+        snprintf(uri, sizeof(uri), "http://%s:%d/acc/v1/nfinfo", OGS_ADDR(g_sacc_nodes[n].addr,buf),OGS_PORT(g_sacc_nodes[n].addr));
+        g_sacc_nodes[n].uri = ogs_strdup(uri);
+        //snprintf(uri, sizeof(uri), "http://%s:%d/acc/v1/heartbeat", ip,g_local_node_config.port);
+        //g_sacc_nodes[n].heartbeat_uri = ogs_strdup(uri);
+        //ogs_info("node handshake uri:%s,heartbeat uri:%s", g_sacc_nodes[n].uri,g_sacc_nodes[n].heartbeat_uri);
     }
 
     return OGS_OK;

@@ -39,14 +39,41 @@ void sacc_scan(void) {
     //ogs_info("SACC scanning for nodes...");
         
     for (n = 1; n <= g_local_node_config.nodeNum && n < MAX_PEER_NUM; n++){
-        if (g_sacc_nodes[n].state == SACC_PEER_STATE_ONLINE){//激活的不再探测
-            continue;
-        }
+        // if (g_sacc_nodes[n].state == SACC_PEER_STATE_ONLINE){//激活的不再探测
+        //     continue;
+        // }
 
         if (n == g_local_node_config.node){//跳过本节点
             continue;
         }
 
+        g_sacc_nodes[n].heartbeatLost++;
+        if (g_sacc_nodes[n].heartbeatLost >MAC_HEARTBEAT_LOST_CNT){
+            if ( g_sacc_nodes[n].state != SACC_PEER_STATE_OFFLINE){
+                ogs_info("node %d is offline",n);
+                g_sacc_nodes[n].state = SACC_PEER_STATE_OFFLINE;
+                if (g_sacc_nodes[n].smf_nf_instance){
+                    ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].smf_nf_instance->nf_type),g_sacc_nodes[n].smf_nf_instance->id);
+                    sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].smf_nf_instance);
+                }
+
+                if (g_sacc_nodes[n].ausf_nf_instance){
+                    ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].ausf_nf_instance->nf_type),g_sacc_nodes[n].ausf_nf_instance->id);
+                    sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].ausf_nf_instance);
+                }
+
+                if (g_sacc_nodes[n].udm_nf_instance){
+                    ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].udm_nf_instance->nf_type),g_sacc_nodes[n].udm_nf_instance->id);
+                    sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].udm_nf_instance);
+                }
+
+                if (g_sacc_nodes[n].amf_nf_instance){
+                    ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].amf_nf_instance->nf_type),g_sacc_nodes[n].amf_nf_instance->id);
+                    sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].amf_nf_instance);
+                }                
+            }
+        }
+       
         ogs_info("node %d send sacc handshake to node %d.",g_local_node_config.node, g_sacc_nodes[n].node);
         sacc_send_request(SACC_MSG_TYPE_HANDSHAKE , &g_sacc_nodes[n]); 
     }
@@ -124,11 +151,11 @@ ogs_sbi_request_t *sacc_build_request(int msg_type,
 
     memset(&message, 0, sizeof(message));
     message.h.method = (char *)OGS_SBI_HTTP_METHOD_POST;
-    if (msg_type == SACC_MSG_TYPE_HANDSHAKE){
-        message.h.uri = peer->uri;  //测试不赋值不行，会报No Service Name (../lib/sbi/message.c:321)
-    }else if (msg_type == SACC_MSG_TYPE_HEARDBEAT){
-        message.h.uri = peer->heartbeat_uri;
-    }
+    //if (msg_type == SACC_MSG_TYPE_HANDSHAKE){
+    message.h.uri = peer->uri;
+    //}else if (msg_type == SACC_MSG_TYPE_HEARDBEAT){
+    //    message.h.uri = peer->heartbeat_uri;
+    //}
 
     message.sacc_msg_Data = &msg_data;
 

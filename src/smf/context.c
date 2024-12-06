@@ -186,10 +186,10 @@ static int smf_context_validation(void)
         ogs_sbi_smf_info_t *smf_info = &nf_info->smf;
         ogs_assert(smf_info);
 
-        if (smf_info->num_of_slice == 0) {
-            ogs_error("CHECK CONFIGURATION: No S-NSSAI in smfInfo");
-            return OGS_ERROR;
-        }
+        // if (smf_info->num_of_slice == 0) {
+        //     ogs_error("CHECK CONFIGURATION: No S-NSSAI in smfInfo");
+        //     return OGS_ERROR;
+        // }
 
         for (i = 0; i < smf_info->num_of_slice; i++) {
             if (smf_info->slice[i].num_of_dnn == 0) {
@@ -291,11 +291,13 @@ static int smf_context_validation(void)
 }
 
 bool isCfgChanged = false;
+bool is_nfinfo_changed = false;
 int smf_context_parse_config(bool reloading)
 {
     int rv;
     yaml_document_t *document = NULL;
     ogs_yaml_iter_t root_iter;
+    is_nfinfo_changed = false;
 
     document = ogs_app()->document;
     ogs_assert(document);
@@ -992,6 +994,8 @@ int smf_context_parse_config(bool reloading)
                                 smf_info->num_of_nr_tai = num_of_nr_tai;
                                 smf_info->num_of_nr_tai_range =
                                     num_of_nr_tai_range;
+                            } else if (!strcmp(info_key, "supi")) {
+                                is_nfinfo_changed = ogs_sbi_context_parse_supi_ranges(&info_iter, &smf_info->supiRanges); 
                             } else
                                 ogs_warn("unknown key `%s`", info_key);
                         }

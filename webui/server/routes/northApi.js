@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const fetchDataFromTelnet = require('../models/fetchDataFromTelnet');
-const { handleError, errorCodes } = require('./northApiCommon');
+
 
 // 引入模块
 const config = require('./northApiConfig');

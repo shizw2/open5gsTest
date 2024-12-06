@@ -1,0 +1,33 @@
+db_uri: mongodb://localhost/@project_name@
+logger:
+  file:
+    path: @localstatedir@/log/@project_name@/eir.log
+#  level: info   # fatal|error|warn|info(default)|debug|trace
+
+global:
+  max:
+    ue: 1024  # The number of UE can be increased depending on memory size.
+#    peer: 64
+  parameter:
+      capacity: 100
+  cli:
+    server:
+      - address: 127.0.0.22
+        port: 2300
+
+eir:
+  sbi:
+    server:
+      - address: 127.0.0.19
+        port: 8901
+    client:
+      nrf:
+        - uri: http://127.0.0.19:8600
+#      scp:
+#        - uri: http://127.0.0.200:7777
+  metrics:
+    server:
+      - address: 127.0.0.19
+        port: 9086
+
+_nf: eir

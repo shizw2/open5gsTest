@@ -332,7 +332,6 @@ void sacc_state_operational(ogs_fsm_t *s, sacc_event_t *e)
 
             //TODO:test 后续新增定时器
             sacc_scan();
-            sacc_heartbeat();
             break;
 
         default:
