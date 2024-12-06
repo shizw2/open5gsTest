@@ -1,6 +1,6 @@
 logger:
   file:
-    path: @localstatedir@/log/@project_name@/scp.log
+    path: @localstatedir@/log/@project_name@/scp2.log
 #  level: info   # fatal|error|warn|info(default)|debug|trace
 
 global:
@@ -11,11 +11,11 @@ global:
 scp:
   sbi:
     server:
-      - address: 127.0.0.18
+      - address: 127.0.0.19
         port: 8820
     client:
       nrf:
-        - uri: http://127.0.0.18:8600
+        - uri: http://127.0.0.19:8600
 #      next_scp:
 #        - uri: http://192.168.6.225:7777
 

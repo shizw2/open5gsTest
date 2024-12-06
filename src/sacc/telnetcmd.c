@@ -19,7 +19,6 @@ void setCommands(void){
     set_telnet_commands(g_commands, g_numCommands);
 }
 
-extern sacc_config_t g_local_node_config;
 extern sacc_node_t g_sacc_nodes[MAX_PEER_NUM+1];
 
 void showsaccnodes(void) {
@@ -28,7 +27,7 @@ void showsaccnodes(void) {
     printf("| node   | group  |  state  |   deviceID     | role   |    addr        |\n");
     printf("+--------+--------+---------+----------------+--------+----------------+\n");
     char buf[OGS_ADDRSTRLEN];
-    for (int i = 1; i <= g_local_node_config.nodeNum && i <=MAX_PEER_NUM; i++) {
+    for (int i = 1; i <= sacc_self()->nodeNum && i <=MAX_PEER_NUM; i++) {
         sacc_node_t *node = &g_sacc_nodes[i];
         printf("| %6d | %6d | %7s | %-14s | %-6s | %-14s |\n",
                node->node, node->group, sacc_node_state_ToString(node->state),
@@ -42,14 +41,14 @@ void getnetworkStatus(void) {
     cJSON *root = cJSON_CreateObject();
     cJSON *nodeInfo = cJSON_CreateArray();
 
-    int maxNum = g_local_node_config.nodeNum;
+    int maxNum = sacc_self()->nodeNum;
     int currNum = 0;
 
-    for (int i = 1; i <= g_local_node_config.nodeNum && i <=MAX_PEER_NUM; i++) {
+    for (int i = 1; i <= sacc_self()->nodeNum && i <=MAX_PEER_NUM; i++) {
         sacc_node_t *node = &g_sacc_nodes[i];
         cJSON *json_object = cJSON_CreateObject();
 
-        const char *object_type = (node->group == g_local_node_config.group && node->node == g_local_node_config.node) ? "local" : "peer";
+        const char *object_type = (node->group == sacc_self()->group && node->node == sacc_self()->node) ? "local" : "peer";
         cJSON_AddStringToObject(json_object, "object", object_type);
         cJSON_AddNumberToObject(json_object, "group", node->group);
         cJSON_AddNumberToObject(json_object, "node", node->node);

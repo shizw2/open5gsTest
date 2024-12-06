@@ -26,18 +26,6 @@ int __sacc_log_domain;
 
 static int context_initialized = 0;
 
-sacc_config_t g_local_node_config = {
-    .enable = 1,
-    .port = 2333,//2333,
-    .scanInterval = 5,
-    .heartbeatInterval = 5,
-    .heartbeatLost = 5,
-    .role = "T2",
-    .group = 1,
-    .node = 1,
-    .nodeNum = 2
-};
-
 sacc_node_t g_sacc_nodes[MAX_PEER_NUM+1];
 
 void sacc_context_init(void)
@@ -108,6 +96,24 @@ int sacc_context_parse_config(void)
                     /* handle config in sbi library */
                 } else if (!strcmp(sacc_key, "metrics")) {
                     /* handle config in metrics library */
+                } else if (!strcmp(sacc_key, "role")) {
+                    self.role = ogs_yaml_iter_value(&sacc_iter);
+                } else if (!strcmp(sacc_key, "enable")) {
+                    self.enable = ogs_yaml_iter_bool(&sacc_iter);
+                } else if (!strcmp(sacc_key, "inherite_enable")) {
+                    self.inheriteEnable = ogs_yaml_iter_bool(&sacc_iter);
+                } else if (!strcmp(sacc_key, "node_num")) {
+                    const char *v = ogs_yaml_iter_value(&sacc_iter);
+                    if (v) self.nodeNum = atoi(v);
+                } else if (!strcmp(sacc_key, "scan_interval")) {
+                    const char *v = ogs_yaml_iter_value(&sacc_iter);
+                    if (v) self.scanInterval = atoi(v);
+                } else if (!strcmp(sacc_key, "heartbeat_interval")) {
+                    const char *v = ogs_yaml_iter_value(&sacc_iter);
+                    if (v) self.heartbeatInterval = atoi(v);
+                } else if (!strcmp(sacc_key, "heartbeat_lost")) {
+                    const char *v = ogs_yaml_iter_value(&sacc_iter);
+                    if (v) self.heartbeatLost = atoi(v);
                 } else
                     ogs_warn("unknown key `%s`", sacc_key);
             }
@@ -675,28 +681,28 @@ int sacc_initialize_nodes(void) {
     char buf[OGS_ADDRSTRLEN];
     ogs_sbi_server_t *server = NULL;
 
-    g_local_node_config.group = ogs_global_conf()->parameter.group;
-    g_local_node_config.node = ogs_global_conf()->parameter.node;
+    self.group = ogs_global_conf()->parameter.group;
+    self.node = ogs_global_conf()->parameter.node;
 
     ogs_info("SACC initialized with configuration: enable=%d, port=%d, scanInterval=%d, heartbeatInterval=%d, heartbeatLost=%d, role=%s, group=%d, node=%d, nodeNum=%d",
-                 g_local_node_config.enable, g_local_node_config.port, g_local_node_config.scanInterval, g_local_node_config.heartbeatInterval, g_local_node_config.heartbeatLost,
-                 g_local_node_config.role, g_local_node_config.group, g_local_node_config.node, g_local_node_config.nodeNum);
+                 self.enable, self.port, self.scanInterval, self.heartbeatInterval, self.heartbeatLost,
+                 self.role, self.group, self.node, self.nodeNum);
 
     char ip[16];
 
     memset(g_sacc_nodes, 0, sizeof(sacc_node_t)*MAX_PEER_NUM);
 
 
-    for (n = 1; n <= g_local_node_config.nodeNum && n < MAX_PEER_NUM; n++){
+    for (n = 1; n <= self.nodeNum && n < MAX_PEER_NUM; n++){
         char ip[16];
         char uri[256] = {};
-        int base = 100 + g_local_node_config.group;
-        int offset = n * 2 + 1; // Calculate the last octet as N*2-1
+        //int base = 100 + self.group;
+        //int offset = n * 2 + 1; // Calculate the last octet as N*2-1
         //snprintf(ip, sizeof(ip), "192.168.%d.%d", base, offset);
 
-        g_sacc_nodes[n].group = g_local_node_config.group;
+        g_sacc_nodes[n].group = self.group;
         g_sacc_nodes[n].node = n;
-        if (n == g_local_node_config.node){//本节点上电,默认为online
+        if (n == self.node){//本节点上电,默认为online
             g_sacc_nodes[n].state = SACC_PEER_STATE_ONLINE;
         }else{
             g_sacc_nodes[n].state = SACC_PEER_STATE_OFFLINE;

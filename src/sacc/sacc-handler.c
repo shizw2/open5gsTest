@@ -25,25 +25,24 @@
 #include "context.h"
 #include "sbi-path.h"
 
-extern sacc_config_t g_local_node_config;
 extern sacc_node_t g_sacc_nodes[MAX_PEER_NUM+1];
 
 void sacc_scan(void) {
     int n;
 
-    if (!g_local_node_config.enable) {
+    if (!sacc_self()->enable) {
         ogs_info("SACC scan is disabled.");
         return;
     }
 
     //ogs_info("SACC scanning for nodes...");
         
-    for (n = 1; n <= g_local_node_config.nodeNum && n < MAX_PEER_NUM; n++){
+    for (n = 1; n <= sacc_self()->nodeNum && n < MAX_PEER_NUM; n++){
         // if (g_sacc_nodes[n].state == SACC_PEER_STATE_ONLINE){//激活的不再探测
         //     continue;
         // }
 
-        if (n == g_local_node_config.node){//跳过本节点
+        if (n == sacc_self()->node){//跳过本节点
             continue;
         }
 
@@ -74,7 +73,7 @@ void sacc_scan(void) {
             }
         }
        
-        ogs_info("node %d send sacc handshake to node %d.",g_local_node_config.node, g_sacc_nodes[n].node);
+        ogs_info("node %d send sacc handshake to node %d.",sacc_self()->node, g_sacc_nodes[n].node);
         sacc_send_request(SACC_MSG_TYPE_HANDSHAKE , &g_sacc_nodes[n]); 
     }
 }
@@ -83,23 +82,23 @@ void sacc_heartbeat(void) {
     int n;
     ogs_sbi_nf_instance_t *nf_instance;
     
-    if (!g_local_node_config.enable) {
+    if (!sacc_self()->enable) {
         ogs_info("sacc heartbeat is disabled.");
         return;
     }
 
     //ogs_info("sacc sending heartbeats...");
     
-    for (n = 1; n <= g_local_node_config.nodeNum && n < MAX_PEER_NUM; n++){
+    for (n = 1; n <= sacc_self()->nodeNum && n < MAX_PEER_NUM; n++){
         if (g_sacc_nodes[n].state != SACC_PEER_STATE_ONLINE){//对激活的进行心跳
             continue;
         }
 
-        if (n == g_local_node_config.node){//跳过本节点
+        if (n == sacc_self()->node){//跳过本节点
             continue;
         }
 
-        ogs_info("node %d send sacc heartbeat to node %d.",g_local_node_config.node, g_sacc_nodes[n].node);
+        ogs_info("node %d send sacc heartbeat to node %d.",sacc_self()->node, g_sacc_nodes[n].node);
         g_sacc_nodes[n].heartbeatLost++;
         if (g_sacc_nodes[n].heartbeatLost >MAC_HEARTBEAT_LOST_CNT){
             if ( g_sacc_nodes[n].state != SACC_PEER_STATE_OFFLINE){
@@ -144,10 +143,10 @@ ogs_sbi_request_t *sacc_build_request(int msg_type,
 
     memset(&msg_data, 0, sizeof(sacc_msg_data_t));
 
-    snprintf(msg_data.deviceId, sizeof(msg_data.deviceId), "%d", g_local_node_config.node);
-    snprintf(msg_data.group, sizeof(msg_data.group), "%d", g_local_node_config.group);
-    snprintf(msg_data.node, sizeof(msg_data.node), "%d", g_local_node_config.node);
-    OGS_ADDR(g_sacc_nodes[g_local_node_config.node].addr, msg_data.serviceIp);
+    snprintf(msg_data.deviceId, sizeof(msg_data.deviceId), "%d", sacc_self()->node);
+    snprintf(msg_data.group, sizeof(msg_data.group), "%d", sacc_self()->group);
+    snprintf(msg_data.node, sizeof(msg_data.node), "%d", sacc_self()->node);
+    OGS_ADDR(g_sacc_nodes[sacc_self()->node].addr, msg_data.serviceIp);
 
     memset(&message, 0, sizeof(message));
     message.h.method = (char *)OGS_SBI_HTTP_METHOD_POST;
@@ -204,36 +203,36 @@ bool sacc_handle_request(int msg_type, ogs_sbi_stream_t *stream, ogs_sbi_message
     node = atoi(recv_msg_Data->node);
     group = atoi(recv_msg_Data->group);
 
-    ogs_info("node %d receive sacc %s request from node:%s deviceId:%s group:%s serviceIp:%s",g_local_node_config.node, sacc_msg_ToString(msg_type), recv_msg_Data->node, recv_msg_Data->deviceId, recv_msg_Data->group, recv_msg_Data->serviceIp);
+    ogs_info("node %d receive sacc %s request from node:%s deviceId:%s group:%s serviceIp:%s",sacc_self()->node, sacc_msg_ToString(msg_type), recv_msg_Data->node, recv_msg_Data->deviceId, recv_msg_Data->group, recv_msg_Data->serviceIp);
 
-    if (node > g_local_node_config.nodeNum || node < 1){
-        ogs_info("incomming node %d is out of range, ignore it.",node);
+    if (node > sacc_self()->nodeNum || node < 1){
+        ogs_info("incomming node %d is out of range %d, ignore it.",node, sacc_self()->nodeNum);
         return false;
     }
 
-    if (group != g_local_node_config.group){
-        ogs_info("incomming node %d has different group %d with this node %d's group %d, ignore it.",node,group,g_local_node_config.node,g_local_node_config.group);
+    if (group != sacc_self()->group){
+        ogs_info("incomming node %d has different group %d with this node %d's group %d, ignore it.",node,group,sacc_self()->node,sacc_self()->group);
         return false;
     }
 
-    if (strcmp(g_local_node_config.role, SACC_NODE_ROLE_T2) != 0){
-        ogs_info("this node %d is not work in %s mode, ignore it.",g_local_node_config.node, SACC_NODE_ROLE_T2);
+    if (strcmp(sacc_self()->role, SACC_NODE_ROLE_T2) != 0){
+        ogs_info("this node %d is not work in %s mode, ignore it.",sacc_self()->node, SACC_NODE_ROLE_T2);
         return false;
     }
 
     //g_sacc_nodes[node].state = SACC_PEER_STATE_ONLINE; //收到对端请求,并不需要修改状态
     g_sacc_nodes[node].heartbeatLost = 0;//重置心跳丢失计数
 
-    snprintf(msg_data.deviceId, sizeof(msg_data.deviceId), "%s", g_sacc_nodes[g_local_node_config.node].deviceId);
-    snprintf(msg_data.group, sizeof(msg_data.group), "%d", g_local_node_config.group);
-    snprintf(msg_data.node, sizeof(msg_data.node), "%d", g_local_node_config.node);
-    OGS_ADDR(g_sacc_nodes[g_local_node_config.node].addr, msg_data.serviceIp);
+    snprintf(msg_data.deviceId, sizeof(msg_data.deviceId), "%s", g_sacc_nodes[sacc_self()->node].deviceId);
+    snprintf(msg_data.group, sizeof(msg_data.group), "%d", sacc_self()->group);
+    snprintf(msg_data.node, sizeof(msg_data.node), "%d", sacc_self()->node);
+    OGS_ADDR(g_sacc_nodes[sacc_self()->node].addr, msg_data.serviceIp);
     snprintf(msg_data.result, sizeof(msg_data.result), "OK");
 
     sendmsg.sacc_msg_Data = &msg_data;
     sendmsg.http.location = recvmsg->h.uri;
 
-    ogs_info("node %d send sacc %s response to node:%s.",g_local_node_config.node, sacc_msg_ToString(msg_type), recvmsg->sacc_msg_Data->node);
+    ogs_info("node %d send sacc %s response to node:%s.",sacc_self()->node, sacc_msg_ToString(msg_type), recvmsg->sacc_msg_Data->node);
 
     response = ogs_sbi_build_response(&sendmsg, OGS_SBI_HTTP_STATUS_OK);
     ogs_assert(response);
@@ -253,15 +252,15 @@ bool sacc_handle_response(int msg_type, ogs_sbi_message_t *recvmsg)
     node = atoi(recv_msg_Data->node);
     group = atoi(recv_msg_Data->group);
 
-    ogs_info("node %d receive sacc %s response, peer node info: deviceId:%s group:%s node:%s serviceIp:%s result:%s",g_local_node_config.node, sacc_msg_ToString(msg_type),recv_msg_Data->deviceId,recv_msg_Data->group,recv_msg_Data->node,recv_msg_Data->serviceIp, recv_msg_Data->result);
+    ogs_info("node %d receive sacc %s response, peer node info: deviceId:%s group:%s node:%s serviceIp:%s result:%s",sacc_self()->node, sacc_msg_ToString(msg_type),recv_msg_Data->deviceId,recv_msg_Data->group,recv_msg_Data->node,recv_msg_Data->serviceIp, recv_msg_Data->result);
 
-    if (node > g_local_node_config.nodeNum || node < 1){
+    if (node > sacc_self()->nodeNum || node < 1){
         ogs_info("incomming node %d is out of range, ignore it.",node);
         return false;
     }
 
-    if (group != g_local_node_config.group){
-        ogs_info("incomming node %d has different group %d with this node %d's group %d, ignore it.",node,group,g_local_node_config.node,g_local_node_config.group);
+    if (group != sacc_self()->group){
+        ogs_info("incomming node %d has different group %d with this node %d's group %d, ignore it.",node,group,sacc_self()->node,sacc_self()->group);
         return false;
     }
 

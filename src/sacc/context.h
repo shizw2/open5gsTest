@@ -51,6 +51,16 @@ extern int __sacc_log_domain;
 #define SACC_NODE_ROLE_T2 "T2"
 
 typedef struct sacc_context_s {
+    int enable;             //可开启和关闭随遇接入功能
+    int port;               //随遇接入端口
+    int scanInterval;       //5秒扫描一次
+    int heartbeatInterval;  //每5秒发一次心跳
+    int heartbeatLost;      //丢失5次心跳，认为断线
+    const char *role;          //当前设备身份标识
+    int group;              //当前设备组号，身份为T0时T1时，组号为零
+    int node;               //当前设备节点号，身份为T0时T1时，节点号为零
+    int nodeNum;
+    int inheriteEnable;     //能否有继承功能开关
 } sacc_context_t;
 
 
