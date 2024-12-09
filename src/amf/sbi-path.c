@@ -144,7 +144,9 @@ int amf_ue_sbi_discover_and_send(
 
     xact->state = state;
 
-    xact->routingIndicator = ogs_routing_indicator_from_suci(amf_ue->suci);
+    if (amf_ue->suci != NULL){
+        xact->routingIndicator = ogs_routing_indicator_from_suci(amf_ue->suci);
+    }
     if (amf_ue->supi){
         xact->supi_id = ogs_id_get_value(amf_ue->supi); 
     }
