@@ -533,12 +533,37 @@ typedef struct ogs_sbi_discovery_option_s {
     char *routingIndicator;//add for scp 
 } ogs_sbi_discovery_option_t;
 
+#define DEVICE_ID_LEN 64
+#define GROUP_LEN 16
+#define NODE_LEN 16
+#define SERVICE_IP_LEN 16
+#define RESULT_LEN 16
+#define NFTYPE_LEN 16
+#define NF_INSTANCE_ID_LEN 100
+#define MAX_TEMPORARY_SERVICES 4
+#define MAX_NF_INSTANCES 4
+
+typedef struct sacc_nf_instance_id_s {
+    char nf_type[NFTYPE_LEN];
+    char id[NF_INSTANCE_ID_LEN]; // NF实例ID
+} sacc_nf_instance_id_t;
+
+typedef struct sacc_temporary_service_s {
+    char group[GROUP_LEN];   // 临时服务设备的组号
+    char node[NODE_LEN];     // 临时服务设备的节点号
+} sacc_temporary_service_t;
+
 typedef struct sacc_msg_data_s {
-    char deviceId[64];  // 本端设备序列号
-    char group[16];    // 本端设备组号
-    char node[16];     // 本端设备节点号
-    char serviceIp[16];// 本端业务地址
-    char result[16];   // 应答独有
+    char deviceId[DEVICE_ID_LEN];  // 本端设备序列号
+    char group[GROUP_LEN];         // 本端设备组号
+    char node[NODE_LEN];           // 本端设备节点号
+    char serviceIp[SERVICE_IP_LEN]; // 本端业务地址
+    char inheriteEnable[GROUP_LEN]; // 打开继承功能
+    int temporaryServiceNum;       // 临时服务数量
+    sacc_temporary_service_t temporaryServices[MAX_TEMPORARY_SERVICES]; // 临时服务设备信息数组
+    int nfNum;                     // NF实例数量
+    sacc_nf_instance_id_t nfInstanceIds[MAX_NF_INSTANCES]; // 指向NF实例ID的指针
+    char result[16];
 } sacc_msg_data_t;
 
 typedef struct ogs_sbi_message_s {
