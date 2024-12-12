@@ -110,7 +110,9 @@ int ausf_sbi_discover_and_send(
     if (ausf_ue->supi){
         xact->supi_id = ogs_id_get_value(ausf_ue->supi);
     }
-    xact->routingIndicator = ogs_routing_indicator_from_suci(ausf_ue->suci);
+    if (ausf_ue->suci != NULL){
+        xact->routingIndicator = ogs_routing_indicator_from_suci(ausf_ue->suci);
+    }
 
     r = ogs_sbi_discover_and_send(xact);
     if (r != OGS_OK) {

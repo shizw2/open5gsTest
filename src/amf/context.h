@@ -609,6 +609,7 @@ struct amf_ue_s {
     } explict_de_registered;
 
     ogs_list_t      sess_list;
+    ogs_ip_t        ue_ip;
     time_t          createTime;
 };
 

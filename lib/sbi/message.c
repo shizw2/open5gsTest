@@ -3711,6 +3711,8 @@ cJSON *OpenAPI_sacc_msg_data_convertToJSON(sacc_msg_data_t *handshake)
 {
     cJSON *item = NULL;
     OpenAPI_lnode_t *node = NULL;
+    cJSON *nfInstanceIds_array = NULL;
+    int i;
 
     if (handshake == NULL) {
         ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [handshake]");
@@ -3740,6 +3742,37 @@ cJSON *OpenAPI_sacc_msg_data_convertToJSON(sacc_msg_data_t *handshake)
         goto end;
     }
 
+    // 添加nfInstanceIds的编码
+    nfInstanceIds_array = cJSON_CreateArray();
+    if (nfInstanceIds_array == NULL) {
+        ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [nfInstanceIds_array]");
+        goto end;
+    }
+
+    for (i = 0; i < handshake->nfNum; ++i) {
+        // 创建一个对象来保存当前NF实例的类型和ID
+        cJSON *nfInstance_item = cJSON_CreateObject();
+        if (nfInstance_item == NULL) {
+            ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [nfInstance_item]");
+            goto end;
+        }
+
+        // 添加NF类型
+        if (cJSON_AddStringToObject(nfInstance_item, handshake->nfInstanceIds[i].nf_type, handshake->nfInstanceIds[i].id) == NULL) {
+            ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [nfInstance_id]");
+            cJSON_Delete(nfInstance_item);
+            goto end;
+        }
+
+        // 将对象添加到数组中
+        cJSON_AddItemToArray(nfInstanceIds_array, nfInstance_item);
+    }
+
+    if (cJSON_AddItemToObject(item, "nfInstanceIds", nfInstanceIds_array) == NULL) {
+        ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [nfInstanceIds]");
+        goto end;
+    }
+
     if (handshake->result != NULL){//可选
         if (cJSON_AddStringToObject(item, "result", handshake->result) == NULL) {
             ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [result]");
@@ -3761,7 +3794,14 @@ sacc_msg_data_t *OpenAPI_sacc_msg_data_parseFromJSON(cJSON *msg_dataJSON)
     cJSON *serviceIp = NULL;
     cJSON *result = NULL;
     char *result_value = NULL;
+    cJSON *nfInstanceIds = NULL;
     OpenAPI_equipment_status_e statusVariable = 0;
+    cJSON *nfInstanceIdItem = NULL;
+    cJSON *nfTypeItem = NULL;
+    cJSON *nfIdItem = NULL;
+
+    int index;
+
     deviceId = cJSON_GetObjectItemCaseSensitive(msg_dataJSON, "deviceId");
     if (!deviceId) {
         ogs_error("OpenAPI_sacc_msg_data_parseFromJSON() failed [deviceId]");
@@ -3812,10 +3852,45 @@ sacc_msg_data_t *OpenAPI_sacc_msg_data_parseFromJSON(cJSON *msg_dataJSON)
         result_value = result->valuestring;
     }
 
-    sacc_msg_data_local_var = OpenAPI_sacc_msg_data_create (
-        deviceId->valuestring,group->valuestring,node->valuestring,serviceIp->valuestring,result_value
-    );
+    // sacc_msg_data_local_var = OpenAPI_sacc_msg_data_create (
+    //     deviceId->valuestring,group->valuestring,node->valuestring,serviceIp->valuestring,result_value
+    // );
 
+    sacc_msg_data_local_var = ogs_malloc(sizeof(sacc_msg_data_t));
+    ogs_assert(sacc_msg_data_local_var);
+
+    strncpy(sacc_msg_data_local_var->deviceId, deviceId->valuestring, sizeof(sacc_msg_data_local_var->deviceId));
+    strncpy(sacc_msg_data_local_var->group, group->valuestring, sizeof(sacc_msg_data_local_var->group));
+    strncpy(sacc_msg_data_local_var->node, node->valuestring, sizeof(sacc_msg_data_local_var->node));
+    strncpy(sacc_msg_data_local_var->serviceIp, serviceIp->valuestring, sizeof(sacc_msg_data_local_var->serviceIp));
+    if (result != NULL){
+        strncpy(sacc_msg_data_local_var->result, result->valuestring, sizeof(sacc_msg_data_local_var->result));
+    }
+
+    nfInstanceIds = cJSON_GetObjectItemCaseSensitive(msg_dataJSON, "nfInstanceIds");
+    if (nfInstanceIds && cJSON_IsArray(nfInstanceIds)) {
+        int nfNum = cJSON_GetArraySize(nfInstanceIds);
+        if (nfNum > MAX_NF_INSTANCES) {
+            ogs_error("OpenAPI_sacc_msg_data_parseFromJSON() failed [nfInstanceIds]: too many NF instances");
+            goto end;
+        }
+        sacc_msg_data_local_var->nfNum = nfNum;
+        for (index = 0; index < nfNum; index++) {
+            nfInstanceIdItem = cJSON_GetArrayItem(nfInstanceIds, index);
+            if (cJSON_IsObject(nfInstanceIdItem)) {
+                // 获取对象的第一个键值对，假设它是NF类型和ID
+                cJSON *key = nfInstanceIdItem->child;
+                if (key != NULL && cJSON_IsString(key) && key->valuestring != NULL) {
+                    // 将键（NF类型）和值（ID）复制到相应的结构体数组中
+                    strncpy(sacc_msg_data_local_var->nfInstanceIds[index].nf_type, key->string, NFTYPE_LEN);
+                    strncpy(sacc_msg_data_local_var->nfInstanceIds[index].id, key->valuestring, NF_INSTANCE_ID_LEN);
+                } else {
+                    ogs_error("OpenAPI_sacc_msg_data_parseFromJSON() failed [nfInstanceIds]: invalid format");
+                    goto end;
+                }
+            }
+        }
+    }
     return sacc_msg_data_local_var;
 end:
     return NULL;

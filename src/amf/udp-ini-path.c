@@ -12,38 +12,56 @@ int udp_ini_open(void)
     ogs_socknode_t *node = NULL;    
     ogs_sock_t *udp;
     char buf[OGS_ADDRSTRLEN];
-
+   
 
     int rv,i;
 	ogs_sockaddr_t  *internel_addr;
 	ogs_sockaddr_t  *icps_addr;
 
+    ogs_list_for_each(&amf_self()->icps_list, node){
+        ogs_info("fount a icps addr %s",OGS_ADDR(node->addr, buf));
+        break;
+    }
+ 
+    if(!node){        
+        rv = ogs_getaddrinfo(&icps_addr, AF_INET, "128.128.128.127", amf_self()->icps_port, 0);
+        ogs_assert(rv == OGS_OK);
+        ogs_info("no config icps addr, use default, addr:%s,port:%d",OGS_ADDR(icps_addr, buf),OGS_PORT(icps_addr));
+    }else{
+        icps_addr = node->addr;
+        ogs_info("has config icps addr, addr:%s,port:%d",OGS_ADDR(icps_addr, buf),OGS_PORT(icps_addr));
+    }
+
+
 	if (is_amf_icps())
 	{
-		rv = ogs_getaddrinfo(&internel_addr, AF_INET, "128.128.128.127", amf_self()->icps_port, 0);
-		ogs_assert(rv == OGS_OK);
-
-		amf_self()->udp_node = ogs_socknode_new(internel_addr);
+ 		amf_self()->udp_node = ogs_socknode_new(icps_addr);
 		ogs_assert(amf_self()->udp_node);
 		
 		/*设置sps的信息,用于发送消息*/
 		for (i = 1; i <= amf_self()->spsnum && i <= MAX_SPS_NUM; i++)
 		{
 			char ipstring[20] = {0};
-			ogs_snprintf(ipstring, sizeof(ipstring), "128.128.128.%u", i);
-
+			//ogs_snprintf(ipstring, sizeof(ipstring), "128.128.128.%u", i);
+            ogs_snprintf(ipstring, sizeof(ipstring), "%u.%d.%u.%u", icps_addr->sin.sin_addr.s_addr & 0xFF,icps_addr->sin.sin_addr.s_addr>>8& 0xFF,icps_addr->sin.sin_addr.s_addr>>16& 0xFF,i);
+           
 			rv = ogs_getaddrinfo(&internel_addr, AF_INET, ipstring, amf_self()->icps_port, 0);
 			ogs_assert(rv == OGS_OK);
 
 			amf_self()->sps_nodes[i] = ogs_socknode_new(internel_addr);
 			ogs_assert(amf_self()->sps_nodes[i]);
 		}
+
+		for (i = 1; i <= amf_self()->spsnum && i <= MAX_SPS_NUM; i++)
+		{            
+            ogs_info("sps %d addr:%s, port:%d",i, OGS_ADDR(amf_self()->sps_nodes[i]->addr, buf),OGS_PORT(amf_self()->sps_nodes[i]->addr));
+		}
 	}
 	else/*sps*/
 	{
 		char ipstring[20] = {0};
-		ogs_snprintf(ipstring, sizeof(ipstring), "128.128.128.%u", g_sps_id);
-
+		//ogs_snprintf(ipstring, sizeof(ipstring), "128.128.128.%u", g_sps_id);
+        ogs_snprintf(ipstring, sizeof(ipstring), "%u.%d.%u.%u", icps_addr->sin.sin_addr.s_addr & 0xFF,icps_addr->sin.sin_addr.s_addr>>8& 0xFF,icps_addr->sin.sin_addr.s_addr>>16& 0xFF, g_sps_id);
 		rv = ogs_getaddrinfo(&internel_addr, AF_INET, ipstring, amf_self()->icps_port, 0);
 		ogs_assert(rv == OGS_OK);
 
@@ -51,11 +69,13 @@ int udp_ini_open(void)
 		ogs_assert(amf_self()->udp_node);
 	
 	    /*设置icps的信息,用于发送消息*/
-		rv = ogs_getaddrinfo(&icps_addr, AF_INET, "128.128.128.127", amf_self()->icps_port, 0);
-		ogs_assert(rv == OGS_OK);
-
+		// rv = ogs_getaddrinfo(&icps_addr, AF_INET, icpsaddr, amf_self()->icps_port, 0);
+		// ogs_assert(rv == OGS_OK);
 		amf_self()->icps_node = ogs_socknode_new(icps_addr);
 		ogs_assert(amf_self()->icps_node);
+
+        ogs_info("icps addr:%s, port:%d.",OGS_ADDR(icps_addr, buf), OGS_PORT(icps_addr));
+        ogs_info("sps addr:%s, port:%d.",OGS_ADDR(internel_addr, buf), OGS_PORT(internel_addr));
 	}
 
 

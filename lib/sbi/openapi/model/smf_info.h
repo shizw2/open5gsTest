@@ -14,6 +14,7 @@
 #include "../include/binary.h"
 #include "access_type.h"
 #include "ip_addr.h"
+#include "ipv4_address_range.h"
 #include "snssai_smf_info_item.h"
 #include "supi_range.h"
 #include "tai.h"
@@ -26,6 +27,7 @@ extern "C" {
 typedef struct OpenAPI_smf_info_s OpenAPI_smf_info_t;
 typedef struct OpenAPI_smf_info_s {
     OpenAPI_list_t *supi_ranges;
+    OpenAPI_list_t *static_ipv4_address_ranges;
     OpenAPI_list_t *s_nssai_smf_info_list;
     OpenAPI_list_t *tai_list;
     OpenAPI_list_t *tai_range_list;
@@ -47,6 +49,7 @@ typedef struct OpenAPI_smf_info_s {
 
 OpenAPI_smf_info_t *OpenAPI_smf_info_create(
     OpenAPI_list_t *supi_ranges,
+    OpenAPI_list_t *static_ipv4_address_ranges,
     OpenAPI_list_t *s_nssai_smf_info_list,
     OpenAPI_list_t *tai_list,
     OpenAPI_list_t *tai_range_list,

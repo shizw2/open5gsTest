@@ -229,6 +229,21 @@ bool sacc_handle_request(int msg_type, ogs_sbi_stream_t *stream, ogs_sbi_message
     OGS_ADDR(g_sacc_nodes[sacc_self()->node].addr, msg_data.serviceIp);
     snprintf(msg_data.result, sizeof(msg_data.result), "OK");
 
+    int nf_num = 0;
+    snprintf(msg_data.nfInstanceIds[nf_num].nf_type, sizeof(msg_data.nfInstanceIds[0].nf_type), "%s", OpenAPI_nf_type_ToString(g_sacc_nodes[sacc_self()->node].amf_nf_instance->nf_type));
+    snprintf(msg_data.nfInstanceIds[nf_num++].id, sizeof(msg_data.nfInstanceIds[0]), "%s", g_sacc_nodes[sacc_self()->node].amf_nf_instance->id);
+
+    snprintf(msg_data.nfInstanceIds[nf_num].nf_type, sizeof(msg_data.nfInstanceIds[0].nf_type), "%s", OpenAPI_nf_type_ToString(g_sacc_nodes[sacc_self()->node].smf_nf_instance->nf_type));
+    snprintf(msg_data.nfInstanceIds[nf_num++].id, sizeof(msg_data.nfInstanceIds[0]), "%s", g_sacc_nodes[sacc_self()->node].smf_nf_instance->id);
+
+    snprintf(msg_data.nfInstanceIds[nf_num].nf_type, sizeof(msg_data.nfInstanceIds[0].nf_type), "%s", OpenAPI_nf_type_ToString(g_sacc_nodes[sacc_self()->node].udm_nf_instance->nf_type));
+    snprintf(msg_data.nfInstanceIds[nf_num++].id, sizeof(msg_data.nfInstanceIds[0]), "%s", g_sacc_nodes[sacc_self()->node].udm_nf_instance->id);
+
+    snprintf(msg_data.nfInstanceIds[nf_num].nf_type, sizeof(msg_data.nfInstanceIds[0].nf_type), "%s", OpenAPI_nf_type_ToString(g_sacc_nodes[sacc_self()->node].ausf_nf_instance->nf_type));
+    snprintf(msg_data.nfInstanceIds[nf_num++].id, sizeof(msg_data.nfInstanceIds[0]), "%s", g_sacc_nodes[sacc_self()->node].ausf_nf_instance->id);
+
+    msg_data.nfNum = nf_num;
+    ogs_info("nf_num:%d, nfsize:%ld.",nf_num,sizeof(msg_data.nfInstanceIds[0]));
     sendmsg.sacc_msg_Data = &msg_data;
     sendmsg.http.location = recvmsg->h.uri;
 
@@ -270,9 +285,21 @@ bool sacc_handle_response(int msg_type, ogs_sbi_message_t *recvmsg)
         return false;
     }
 
+    // 遍历nfInstanceIds数组，将ID赋值给对应的NF实例
+    for (int i = 0; i < recv_msg_Data->nfNum; ++i) {
+        if (strcmp(recv_msg_Data->nfInstanceIds[i].nf_type, "AMF") == 0) {
+            ogs_sbi_nf_instance_set_id(g_sacc_nodes[node].amf_nf_instance, recv_msg_Data->nfInstanceIds[i].id);
+        } else if (strcmp(recv_msg_Data->nfInstanceIds[i].nf_type, "SMF") == 0) {
+            ogs_sbi_nf_instance_set_id(g_sacc_nodes[node].smf_nf_instance, recv_msg_Data->nfInstanceIds[i].id);
+        } else if (strcmp(recv_msg_Data->nfInstanceIds[i].nf_type, "UDM") == 0) {
+            ogs_sbi_nf_instance_set_id(g_sacc_nodes[node].udm_nf_instance, recv_msg_Data->nfInstanceIds[i].id);
+        } else if (strcmp(recv_msg_Data->nfInstanceIds[i].nf_type, "AUSF") == 0) {
+            ogs_sbi_nf_instance_set_id(g_sacc_nodes[node].ausf_nf_instance, recv_msg_Data->nfInstanceIds[i].id);
+        }
+    }
+
     if (g_sacc_nodes[node].state == SACC_PEER_STATE_OFFLINE){
-        g_sacc_nodes[node].state = SACC_PEER_STATE_ONLINE;
-       
+        g_sacc_nodes[node].state = SACC_PEER_STATE_ONLINE;       
         sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[node].udm_nf_instance);
         sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[node].ausf_nf_instance);
         sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[node].smf_nf_instance);
