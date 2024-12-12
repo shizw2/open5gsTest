@@ -1,4 +1,50 @@
- exports.nfStatus ={
+exports.configinfo ={
+    "role": "T2",
+    "group": "G1",
+    "node": "N1",
+    "oamIp": "192.168.100.1", //amf metrics ip
+    "serviceIp": "192.168.100.2", //amf sbi ip
+    "dataplanIp": "192.168.100.1", //upf ip
+    "oamNetmask": "",
+    "dataplanNetmask": "",
+    "serviceNetmask": "",
+    "guami": {
+        "amf_region_id": 1,
+        "amf_set_id": 1,
+        "amf_pointer": 1
+    },
+    "plmnList": [
+        {
+            "mcc": "460",
+            "mnc": "00",
+            "tac_list": "0001FE,0001FF"
+        }
+    ],
+    "nssaiList": [
+        {
+            "sst": "1",
+            "sd": "000001"
+        }
+    ],
+    "dnnList": [
+        "ims",
+        "net"
+    ],
+    "ueAddrPoolList": [
+        {
+            "ipStart": "10.0.0.1",
+            "netMask": 16,
+            "numberOfAddresses": 500
+        },
+        {
+            "ipStart": "10.0.0.1",
+            "netMask": 8,
+            "numberOfAddresses": 500
+        }
+    ]
+};
+
+exports.nfStatus ={
     "AMF" : {
        "up" : 1,
        "reason" : "AMF服务离线,或监控IP或端口错误",
@@ -33,8 +79,9 @@
         "up" : 1,
         "reason" : "设备离线,或监控IP或端口错误",
         "time": "",
-      }
-  };
+    }
+};
+
 let lalerts = [];
 exports.addAlert = function(alert) {
     lalerts.push(alert);
@@ -56,7 +103,7 @@ exports.clearcurrentAlerts = function() {
     gcurrentalerts.length = 0; // 清空数组
 };
 
- const config = {
+const config = {
     "amf": {   
         "ngap": {
             "server": [

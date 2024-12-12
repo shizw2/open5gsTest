@@ -72,8 +72,6 @@ int amf_initialize(void)
     rv = udp_ini_open();
     if (rv != OGS_OK) return rv;
 
-    //sacc_initialize_nodes(NULL);
-    
     /*启动yaml配置检测定时器*/
     rv = ogs_yaml_check_init();
     if (rv != OGS_OK) return rv;
@@ -145,16 +143,7 @@ int amf_sps_initialize()
 
     ogs_metrics_context_open(ogs_metrics_self());
 
-    // //test:amf的id比较特殊，需要特殊处理
-    // char nf_instance_id[OGS_UUID_FORMATTED_LENGTH + 1];
-    // if (amf_self()->icps_port == 9777){//TODO:测试，待删除        
-    //     snprintf(nf_instance_id, OGS_UUID_FORMATTED_LENGTH + 1, "%s%s-00000000%02d%02d",
-    //             OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_ToString(OpenAPI_nf_type_AMF), 1,1);
-    // }else{
-    //     snprintf(nf_instance_id, OGS_UUID_FORMATTED_LENGTH + 1, "%s%s-00000000%02d%02d",
-    //             OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_ToString(OpenAPI_nf_type_AMF), 1,2);
-    // }
-    // ogs_sbi_nf_instance_set_id(ogs_sbi_self()->nf_instance, nf_instance_id);
+
     //rv = amf_sps_sbi_open();
     //if (rv != OGS_OK) return rv;
     rv = amf_sbi_open();

@@ -11,19 +11,19 @@ global:
       capacity: 100
   cli:
     server:
-      - address: 127.0.0.7
-        port: 2300
+      - address: 127.0.0.6
+        port: 2800
 
 upf:
   pfcp:
     server:
-      - address: 127.0.0.19
+      - address: 127.0.0.6
 #    client:
 #      smf:     #  UPF PFCP Client try to associate SMF PFCP Server
 #        - address: 127.0.0.4
   gtpu:
     server:
-      - address: 127.0.0.19
+      - address: 127.0.0.6
   session:
     - subnet: 10.45.0.0/16
       gateway: 10.45.0.1
@@ -31,8 +31,8 @@ upf:
       gateway: 2001:db8:cafe::1
   metrics:
     server:
-      - address: 127.0.0.19
-        port: 9090
+      - address: 127.0.0.6
+        port: 9800
   dpdk:
     pfcp_lcore: 0
     dpt_lcore: 1

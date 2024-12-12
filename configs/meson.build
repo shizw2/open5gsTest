@@ -49,10 +49,10 @@ foreach file : example_conf
             configuration : conf_data)
 endforeach
 
+subdir('5gcone')
 subdir(project_name)
 subdir('freeDiameter')
 subdir('systemd')
 subdir('logrotate')
 subdir('newsyslog')
 subdir('examples')
-subdir('5gcone')

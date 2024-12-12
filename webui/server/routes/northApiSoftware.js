@@ -34,19 +34,19 @@ router.get('/info', (req, res) => {
 
     const config = yaml.load(fileContents);
     // 检查必需的字段是否存在
-    const requiredFields = ['deviceType', 'deviceName', 'deviceSeq', 'version'];
+    const requiredFields = ['device_type', 'device_name', 'device_seq', 'version'];
     for (const field of requiredFields) {
-      if (!config.global || !config.global.parameter|| !config.global.parameter[field]) {
+      if (!config.sacc || !config.sacc[field]) {
         return handleError(res, 500, 1001, `${configPath} Missing required field: ${field}`, 'info', { desc: `${field} not found in ${configPath}` });
       }
     }
     let response = {
         "result": "OK",
         "result_set": {
-            "deviceType": config.global.parameter.deviceType,
-            "deviceName": config.global.parameter.deviceName,
-            "deviceSeq": config.global.parameter.deviceSeq,
-            "version": config.global.parameter.version
+            "deviceType": config.sacc.device_type,
+            "deviceName": config.sacc.device_name,
+            "deviceSeq": config.sacc.device_seq,
+            "version": config.sacc.version
         }
     };
 
@@ -91,7 +91,7 @@ router.put('/info', (req, res) => {
     let config = yaml.load(fileContents, options);
 
     // 更新 deviceName
-    config.global.deviceName = newDeviceName;
+    config.sacc.device_name = newDeviceName;
 
     // 将更新后的配置写回 YAML 文件
     const updatedContents = yaml.dump(config);

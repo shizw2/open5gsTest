@@ -17,8 +17,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SACC_EVENT_H
-#define SACC_EVENT_H
+#ifndef SACC_TIMER_H
+#define SACC_TIMER_H
 
 #include "ogs-proto.h"
 
@@ -26,24 +26,28 @@
 extern "C" {
 #endif
 
+/* forward declaration */
 typedef enum {
-    SACC_EVENT_BASE = OGS_MAX_NUM_OF_PROTO_EVENT,
-    SACC_EVENT_TIMER,
-    MAX_NUM_OF_SACC_EVENT,
-} sacc_event_e;
+    SACC_TIMER_BASE = OGS_MAX_NUM_OF_PROTO_TIMER,
 
-typedef struct sacc_event_s {
-    ogs_event_t h;
-} sacc_event_t;
+    SACC_TIMER_NODE_HANDSHAKE,
 
-OGS_STATIC_ASSERT(OGS_EVENT_SIZE >= sizeof(sacc_event_t));
+    MAX_NUM_OF_SACC_TIMER,
+} sacc_timer_e;
 
-sacc_event_t *sacc_event_new(int id);
+typedef struct sacc_timer_cfg_s {
+    bool have;
+    int max_count;
+    ogs_time_t duration;
+} sacc_timer_cfg_t;
 
-const char *sacc_event_get_name(sacc_event_t *e);
+sacc_timer_cfg_t *sacc_timer_cfg(sacc_timer_e id);
 
+const char *sacc_timer_get_name(int timer_id);
+
+void sacc_timer_node_handshake_timer_expire(void *data);
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* SACC_EVENT_H */
+#endif /* SACC_TIMER_H */

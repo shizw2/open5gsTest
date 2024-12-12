@@ -14,23 +14,23 @@ global:
       node: 1
   cli:
     server:
-      - address: 127.0.0.13
-        port: 2300
+      - address: 127.0.0.19
+        port: 2701
 
 pcf:
   sbi:
     server:
-      - address: 127.0.0.18
+      - address: 127.0.0.5
         port: 8701
     client:
       nrf:
-        - uri: http://127.0.0.18:8600
+        - uri: http://127.0.0.5:8600
 #      scp:
 #        - uri: http://127.0.0.200:7777
   metrics:
     server:
-      - address: 127.0.0.18
-        port: 9090
+      - address: 127.0.0.5
+        port: 9701
 #    info:
 #      supi:
 #        - range: 46001-46002

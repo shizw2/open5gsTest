@@ -200,7 +200,7 @@ int getProgramDirectory(char* programPath, size_t bufferSize) {
 
 int getProgramName(char* programName) {
     // 获取当前程序的文件路径
-    char path[100];
+    char path[100]={0};
     if (readlink("/proc/self/exe", path, sizeof(path)) == -1) {
         perror("readlink");
         exit(EXIT_FAILURE);
@@ -382,7 +382,7 @@ bool dsCheckLicense(char* errorMsg, size_t errorMsgSize) {
     //     fclose(LicenseInputFile);
     //     return false;
     // }
-    // 读取每个字段
+    // 为了兼容老版本的license文件，读取每个字段，而不是一次性读取整个结构体
     fread(license_info.szSystemInfoFromFile, sizeof(BYTE), MAX_SYS_INFO_LENGTH, LicenseInputFile);
     fread(&license_info.maxUserNum, sizeof(int), 1, LicenseInputFile);
     fread(&license_info.licenseExpireTime, sizeof(long), 1, LicenseInputFile);

@@ -26,7 +26,7 @@
 
 #include "sacc-sm.h"
 #include "metrics.h"
-
+#include "timer.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,6 +51,10 @@ extern int __sacc_log_domain;
 #define SACC_NODE_ROLE_T2 "T2"
 
 typedef struct sacc_context_s {
+    const char *deviceType; //产品型号
+    const char *deviceName; //设备名称
+    const char *deviceSeq;  //设备序列号,同deviceId
+    const char *version;
     int enable;             //可开启和关闭随遇接入功能
     int port;               //随遇接入端口
     int scanInterval;       //5秒扫描一次
@@ -61,6 +65,7 @@ typedef struct sacc_context_s {
     int node;               //当前设备节点号，身份为T0时T1时，节点号为零
     int nodeNum;
     int inheriteEnable;     //能否有继承功能开关
+    ogs_timer_t     *t_hand_shake_interval;   /* timer to send hand shake to peer node */
 } sacc_context_t;
 
 

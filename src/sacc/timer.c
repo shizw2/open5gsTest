@@ -17,33 +17,37 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SACC_EVENT_H
-#define SACC_EVENT_H
+#include "context.h"
 
-#include "ogs-proto.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+const char *sacc_timer_get_name(int timer_id)
+{
+    switch (timer_id) {    
+    case SACC_TIMER_NODE_HANDSHAKE:
+        return "SACC_TIMER_NODE_HANDSHAKE";
+    default: 
+        break;
+    }
 
-typedef enum {
-    SACC_EVENT_BASE = OGS_MAX_NUM_OF_PROTO_EVENT,
-    SACC_EVENT_TIMER,
-    MAX_NUM_OF_SACC_EVENT,
-} sacc_event_e;
-
-typedef struct sacc_event_s {
-    ogs_event_t h;
-} sacc_event_t;
-
-OGS_STATIC_ASSERT(OGS_EVENT_SIZE >= sizeof(sacc_event_t));
-
-sacc_event_t *sacc_event_new(int id);
-
-const char *sacc_event_get_name(sacc_event_t *e);
-
-#ifdef __cplusplus
+    ogs_error("Unknown Timer[%d]", timer_id);
+    return "UNKNOWN_TIMER";
 }
-#endif
 
-#endif /* SACC_EVENT_H */
+void sacc_timer_node_handshake_timer_expire(void *data)
+{
+    int rv;
+    sacc_event_t *e = NULL;
+
+    //ogs_assert(data);
+  
+    e = sacc_event_new(SACC_EVENT_TIMER);
+    ogs_assert(e);
+
+    e->h.timer_id = SACC_TIMER_NODE_HANDSHAKE;
+
+    rv = ogs_queue_push(ogs_app()->queue, e);
+    if (rv != OGS_OK) {
+        ogs_error("ogs_queue_push() failed:%d", (int)rv);
+        ogs_event_free(e);
+    }
+}

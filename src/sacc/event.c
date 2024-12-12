@@ -51,7 +51,8 @@ const char *sacc_event_get_name(sacc_event_t *e)
         return OGS_EVENT_NAME_SBI_TIMER;
     case OGS_EVENT_APP_CHECK_TIMER:
         return OGS_EVENT_NAME_APP_CHECK_TIMER;
-        
+    case SACC_EVENT_TIMER:
+        return "SACC_EVENT_TIMER";        
     default:
         break;
     }

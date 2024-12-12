@@ -65,8 +65,10 @@ typedef struct ogs_global_conf_s {
         int no_time_zone_information;
 
         int capacity;
+        //以下参数是用来生成NF的UUID,如果不配置，则UUID还是按之前的规则生成.
         int group;
         int node;
+        int module; //如果一个NF有多个模块，用这个来区分.
     } parameter;
 
     struct {

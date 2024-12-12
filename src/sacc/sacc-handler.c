@@ -143,7 +143,7 @@ ogs_sbi_request_t *sacc_build_request(int msg_type,
 
     memset(&msg_data, 0, sizeof(sacc_msg_data_t));
 
-    snprintf(msg_data.deviceId, sizeof(msg_data.deviceId), "%d", sacc_self()->node);
+    snprintf(msg_data.deviceId, sizeof(msg_data.deviceId), "%s", sacc_self()->deviceSeq);
     snprintf(msg_data.group, sizeof(msg_data.group), "%d", sacc_self()->group);
     snprintf(msg_data.node, sizeof(msg_data.node), "%d", sacc_self()->node);
     OGS_ADDR(g_sacc_nodes[sacc_self()->node].addr, msg_data.serviceIp);

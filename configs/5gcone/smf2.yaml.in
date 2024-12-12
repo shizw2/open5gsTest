@@ -13,35 +13,37 @@ global:
       node: 2 
   cli:
     server:
-      - address: 127.0.0.4
-        port: 2300
+      - address: 127.0.0.6
+        port: 2200
 
 smf:
   sbi:
     server:
-      - address: 127.0.0.19
+      - address: 127.0.0.6
         port: 8200
     client:
       nrf:
-        - uri: http://127.0.0.19:8600
+        - uri: http://127.0.0.6:8600
 #      scp:
 #        - uri: http://127.0.0.200:7777
   pfcp:
     server:
-      - address: 127.0.0.19
+      - address: 127.0.0.6
+        port: 8806
     client:
       upf:
-        - address: 127.0.0.19
+        - address: 127.0.0.6
+          port: 8805
   gtpc:
     server:
-      - address: 127.0.0.19
+      - address: 127.0.0.6
   gtpu:
     server:
-      - address: 127.0.0.19
+      - address: 127.0.0.44
   metrics:
     server:
-      - address: 127.0.0.19
-        port: 9090
+      - address: 127.0.0.6
+        port: 9200
   session:
     - subnet: 10.45.0.0/16
       gateway: 10.45.0.1
@@ -61,7 +63,7 @@ smf:
 #    - ::1
 #  ctf:
 #    enabled: auto   # auto(default)|yes|no
-  freeDiameter: /home/test/install/etc/freeDiameter/smf.conf
+  freeDiameter: @sysconfdir@/freeDiameter/smf.conf
 _nf: smf
 ################################################################################
 # SMF Info

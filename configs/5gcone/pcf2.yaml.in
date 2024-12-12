@@ -14,30 +14,30 @@ global:
       node: 2 
   cli:
     server:
-      - address: 127.0.0.13
-        port: 2300
+      - address: 127.0.0.6
+        port: 2701
 
 pcf:
   sbi:
     server:
-      - address: 127.0.0.19
+      - address: 127.0.0.6
         port: 8701
     client:
       nrf:
-        - uri: http://127.0.0.19:8600
+        - uri: http://127.0.0.6:8600
 #      scp:
 #        - uri: http://127.0.0.200:7777
   metrics:
     server:
-      - address: 127.0.0.19
-        port: 9090
+      - address: 127.0.0.6
+        port: 9701
 #    info:
 #      supi:
 #        - range: 46001-46002
   freeDiameter:
     identity: pcf.localdomain
     realm: localdomain
-    listen_on: 127.0.0.19
+    listen_on: 127.0.0.6
     no_fwd: true
     load_extension:
       - module: @libdir@/freeDiameter/dbg_msg_dumps.fdx

@@ -650,7 +650,7 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_capacity(ogs_sbi_nf_instance_
 bool ogs_sbi_supi_in_vplmn(char *supi);
 bool ogs_sbi_plmn_id_in_vplmn(ogs_plmn_id_t *plmn_id);
 bool ogs_sbi_fqdn_in_vplmn(char *fqdn);
-void ogs_uuid_format_custom(char *buffer, int nf_type, int group, int node);
+void ogs_uuid_format_custom(char *buffer, int nf_type, int group, int node, int module);
 #ifdef __cplusplus
 }
 #endif

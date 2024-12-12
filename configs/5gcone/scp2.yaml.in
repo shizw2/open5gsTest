@@ -11,11 +11,11 @@ global:
 scp:
   sbi:
     server:
-      - address: 127.0.0.19
+      - address: 127.0.0.6
         port: 8820
     client:
       nrf:
-        - uri: http://127.0.0.19:8600
+        - uri: http://127.0.0.6:8600
 #      next_scp:
 #        - uri: http://192.168.6.225:7777
 
