@@ -6,6 +6,7 @@
 
 OpenAPI_smf_info_t *OpenAPI_smf_info_create(
     OpenAPI_list_t *supi_ranges,
+    OpenAPI_list_t *static_ipv4_address_ranges,
     OpenAPI_list_t *s_nssai_smf_info_list,
     OpenAPI_list_t *tai_list,
     OpenAPI_list_t *tai_range_list,
@@ -29,6 +30,7 @@ OpenAPI_smf_info_t *OpenAPI_smf_info_create(
     ogs_assert(smf_info_local_var);
 
     smf_info_local_var->supi_ranges = supi_ranges;
+    smf_info_local_var->static_ipv4_address_ranges = static_ipv4_address_ranges;
     smf_info_local_var->s_nssai_smf_info_list = s_nssai_smf_info_list;
     smf_info_local_var->tai_list = tai_list;
     smf_info_local_var->tai_range_list = tai_range_list;
@@ -63,6 +65,13 @@ void OpenAPI_smf_info_free(OpenAPI_smf_info_t *smf_info)
         }
         OpenAPI_list_free(smf_info->supi_ranges);
         smf_info->supi_ranges = NULL;
+    }
+    if (smf_info->static_ipv4_address_ranges) {
+        OpenAPI_list_for_each(smf_info->static_ipv4_address_ranges, node) {
+            OpenAPI_ipv4_address_range_free(node->data);
+        }
+        OpenAPI_list_free(smf_info->static_ipv4_address_ranges);
+        smf_info->static_ipv4_address_ranges = NULL;
     }
     if (smf_info->s_nssai_smf_info_list) {
         OpenAPI_list_for_each(smf_info->s_nssai_smf_info_list, node) {
@@ -137,10 +146,23 @@ cJSON *OpenAPI_smf_info_convertToJSON(OpenAPI_smf_info_t *smf_info)
     }
     }
 
-    if (!smf_info->s_nssai_smf_info_list) {
-        ogs_error("OpenAPI_smf_info_convertToJSON() failed [s_nssai_smf_info_list]");
-        return NULL;
+    if (smf_info->static_ipv4_address_ranges) {
+    cJSON *static_ipv4_address_rangesList = cJSON_AddArrayToObject(item, "staticIpv4AddressRanges");
+    if (static_ipv4_address_rangesList == NULL) {
+        ogs_error("OpenAPI_smf_info_convertToJSON() failed [static_ipv4_address_ranges]");
+        goto end;
     }
+    OpenAPI_list_for_each(smf_info->static_ipv4_address_ranges, node) {
+        cJSON *itemLocal = OpenAPI_ipv4_address_range_convertToJSON(node->data);
+        if (itemLocal == NULL) {
+            ogs_error("OpenAPI_smf_info_convertToJSON() failed [static_ipv4_address_ranges]");
+            goto end;
+        }
+        cJSON_AddItemToArray(static_ipv4_address_rangesList, itemLocal);
+    }
+    }
+
+    if (smf_info->s_nssai_smf_info_list) {
     cJSON *s_nssai_smf_info_listList = cJSON_AddArrayToObject(item, "sNssaiSmfInfoList");
     if (s_nssai_smf_info_listList == NULL) {
         ogs_error("OpenAPI_smf_info_convertToJSON() failed [s_nssai_smf_info_list]");
@@ -153,6 +175,7 @@ cJSON *OpenAPI_smf_info_convertToJSON(OpenAPI_smf_info_t *smf_info)
             goto end;
         }
         cJSON_AddItemToArray(s_nssai_smf_info_listList, itemLocal);
+    }
     }
 
     if (smf_info->tai_list) {
@@ -283,6 +306,8 @@ OpenAPI_smf_info_t *OpenAPI_smf_info_parseFromJSON(cJSON *smf_infoJSON)
     OpenAPI_lnode_t *node = NULL;
     cJSON *supi_ranges = NULL;
     OpenAPI_list_t *supi_rangesList = NULL;
+    cJSON *static_ipv4_address_ranges = NULL;
+    OpenAPI_list_t *static_ipv4_address_rangesList = NULL;
     cJSON *s_nssai_smf_info_list = NULL;
     OpenAPI_list_t *s_nssai_smf_info_listList = NULL;
     cJSON *tai_list = NULL;
@@ -325,11 +350,32 @@ OpenAPI_smf_info_t *OpenAPI_smf_info_parseFromJSON(cJSON *smf_infoJSON)
         }
     }
 
-    s_nssai_smf_info_list = cJSON_GetObjectItemCaseSensitive(smf_infoJSON, "sNssaiSmfInfoList");
-    if (!s_nssai_smf_info_list) {
-        ogs_error("OpenAPI_smf_info_parseFromJSON() failed [s_nssai_smf_info_list]");
-        goto end;
+    static_ipv4_address_ranges = cJSON_GetObjectItemCaseSensitive(smf_infoJSON, "staticIpv4AddressRanges");
+    if (static_ipv4_address_ranges) {
+        cJSON *static_ipv4_address_ranges_local = NULL;
+        if (!cJSON_IsArray(static_ipv4_address_ranges)) {
+            ogs_error("OpenAPI_smf_info_parseFromJSON() failed [static_ipv4_address_ranges]");
+            goto end;
+        }
+
+        static_ipv4_address_rangesList = OpenAPI_list_create();
+
+        cJSON_ArrayForEach(static_ipv4_address_ranges_local, static_ipv4_address_ranges) {
+            if (!cJSON_IsObject(static_ipv4_address_ranges_local)) {
+                ogs_error("OpenAPI_smf_info_parseFromJSON() failed [static_ipv4_address_ranges]");
+                goto end;
+            }
+            OpenAPI_ipv4_address_range_t *static_ipv4_address_rangesItem = OpenAPI_ipv4_address_range_parseFromJSON(static_ipv4_address_ranges_local);
+            if (!static_ipv4_address_rangesItem) {
+                ogs_error("No static_ipv4_address_rangesItem");
+                goto end;
+            }
+            OpenAPI_list_add(static_ipv4_address_rangesList, static_ipv4_address_rangesItem);
+        }
     }
+
+    s_nssai_smf_info_list = cJSON_GetObjectItemCaseSensitive(smf_infoJSON, "sNssaiSmfInfoList");
+    if (s_nssai_smf_info_list) {
         cJSON *s_nssai_smf_info_list_local = NULL;
         if (!cJSON_IsArray(s_nssai_smf_info_list)) {
             ogs_error("OpenAPI_smf_info_parseFromJSON() failed [s_nssai_smf_info_list]");
@@ -350,6 +396,7 @@ OpenAPI_smf_info_t *OpenAPI_smf_info_parseFromJSON(cJSON *smf_infoJSON)
             }
             OpenAPI_list_add(s_nssai_smf_info_listList, s_nssai_smf_info_listItem);
         }
+    }
 
     tai_list = cJSON_GetObjectItemCaseSensitive(smf_infoJSON, "taiList");
     if (tai_list) {
@@ -524,7 +571,8 @@ OpenAPI_smf_info_t *OpenAPI_smf_info_parseFromJSON(cJSON *smf_infoJSON)
 
     smf_info_local_var = OpenAPI_smf_info_create (
         supi_ranges ? supi_rangesList : NULL,
-        s_nssai_smf_info_listList,
+        static_ipv4_address_ranges ? static_ipv4_address_rangesList : NULL,
+        s_nssai_smf_info_list ? s_nssai_smf_info_listList : NULL,
         tai_list ? tai_listList : NULL,
         tai_range_list ? tai_range_listList : NULL,
         pgw_fqdn && !cJSON_IsNull(pgw_fqdn) ? ogs_strdup(pgw_fqdn->valuestring) : NULL,
@@ -551,6 +599,13 @@ end:
         }
         OpenAPI_list_free(supi_rangesList);
         supi_rangesList = NULL;
+    }
+    if (static_ipv4_address_rangesList) {
+        OpenAPI_list_for_each(static_ipv4_address_rangesList, node) {
+            OpenAPI_ipv4_address_range_free(node->data);
+        }
+        OpenAPI_list_free(static_ipv4_address_rangesList);
+        static_ipv4_address_rangesList = NULL;
     }
     if (s_nssai_smf_info_listList) {
         OpenAPI_list_for_each(s_nssai_smf_info_listList, node) {

@@ -13,3 +13,14 @@ omm/
 web.log
 webui/.next
 *.si4project
+lib/sbi/openapi/.openapi-generator/FILES
+lib/sbi/openapi/CMakeLists.txt
+lib/sbi/openapi/Packing.cmake
+lib/sbi/openapi/README.md
+lib/sbi/openapi/api/
+lib/sbi/openapi/docs/
+lib/sbi/openapi/include/apiClient.h
+lib/sbi/openapi/libcurl.licence
+lib/sbi/openapi/src/apiClient.c
+lib/sbi/openapi/uncrustify-rules.cfg
+lib/sbi/openapi/unit-test/

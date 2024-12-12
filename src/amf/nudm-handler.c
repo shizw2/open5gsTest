@@ -45,8 +45,48 @@ int amf_nudm_sdm_handle_provisioned(
             struct OpenAPI_service_area_restriction_s *service_area_restriction =
                 recvmsg->AccessAndMobilitySubscriptionData->service_area_restriction;
 
+            OpenAPI_list_t *staticIpAddress =
+                recvmsg->AccessAndMobilitySubscriptionData->static_ip_address;
+
             OpenAPI_lnode_t *node = NULL;
             OpenAPI_lnode_t *node1 = NULL;
+
+            OpenAPI_ip_address_t *ipAddress = NULL;
+            OpenAPI_lnode_t *node2 = NULL;
+            if (staticIpAddress) {
+                ogs_info("get static ip address.");
+                OpenAPI_list_for_each(staticIpAddress, node2) {
+                    if (node2->data) {
+                        ipAddress = node2->data;
+                        if (ipAddress) {
+                            int rv;
+                            bool ipv4 = false, ipv6 = false;
+                            ogs_ipsubnet_t ipsub4, ipsub6;
+                            if (ipAddress->ipv4_addr) {
+                                rv = ogs_ipsubnet(&ipsub4,
+                                        ipAddress->ipv4_addr, NULL);
+                                if (rv == OGS_OK) ipv4 = true;
+                            }
+                            if (ipAddress->ipv6_addr) {
+                                rv = ogs_ipsubnet(&ipsub6,
+                                        ipAddress->ipv6_addr, NULL);
+                                if (rv == OGS_OK) ipv6 = true;
+                            }
+
+                            if (ipv4 && ipv6) {
+                                amf_ue->ue_ip.addr = ipsub4.sub[0];
+                                memcpy(amf_ue->ue_ip.addr6,
+                                        ipsub6.sub, OGS_IPV6_LEN);
+                            } else if (ipv4) {
+                                amf_ue->ue_ip.addr = ipsub4.sub[0];
+                            } else if (ipv6) {
+                                memcpy(amf_ue->ue_ip.addr6,
+                                        ipsub6.sub, OGS_IPV6_LEN);
+                            }
+                        }
+                    }
+                }
+            }
 
             /* Clear MSISDN */
             for (i = 0; i < amf_ue->num_of_msisdn; i++) {

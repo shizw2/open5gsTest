@@ -541,16 +541,16 @@ int amf_context_parse_config(bool reloading)
                     } while (ogs_yaml_iter_type(&icps_array) ==
                             YAML_SEQUENCE_NODE);
 
-                    if (ogs_list_first(&self.icps_list) == NULL &&
-                        ogs_list_first(&self.icps_list6) == NULL) {
-                        rv = ogs_socknode_probe(
-                                ogs_global_conf()->parameter.no_ipv4 ?
-                                    NULL : &self.icps_list,
-                                ogs_global_conf()->parameter.no_ipv6 ?
-                                    NULL : &self.icps_list6,
-                                NULL, self.icps_port, NULL);
-                        ogs_assert(rv == OGS_OK);
-                    }
+                    // if (ogs_list_first(&self.icps_list) == NULL &&
+                    //     ogs_list_first(&self.icps_list6) == NULL) {
+                    //     rv = ogs_socknode_probe(
+                    //             ogs_global_conf()->parameter.no_ipv4 ?
+                    //                 NULL : &self.icps_list,
+                    //             ogs_global_conf()->parameter.no_ipv6 ?
+                    //                 NULL : &self.icps_list6,
+                    //             NULL, self.icps_port, NULL);
+                    //     ogs_assert(rv == OGS_OK);
+                    // }
                 }else if (!strcmp(amf_key, "guami")) {
                     ogs_yaml_iter_t guami_array, guami_iter;
                     ogs_yaml_iter_recurse(&amf_iter, &guami_array);

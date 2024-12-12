@@ -76,7 +76,8 @@ OpenAPI_access_and_mobility_subscription_data_1_t *OpenAPI_access_and_mobility_s
     OpenAPI_aerial_ue_subscription_info_1_t *aerial_ue_sub_info,
     OpenAPI_roaming_restrictions_t *roaming_restrictions,
     bool is_remote_prov_ind,
-    int remote_prov_ind
+    int remote_prov_ind,
+    OpenAPI_list_t *static_ip_address
 )
 {
     OpenAPI_access_and_mobility_subscription_data_1_t *access_and_mobility_subscription_data_1_local_var = ogs_malloc(sizeof(OpenAPI_access_and_mobility_subscription_data_1_t));
@@ -154,6 +155,7 @@ OpenAPI_access_and_mobility_subscription_data_1_t *OpenAPI_access_and_mobility_s
     access_and_mobility_subscription_data_1_local_var->roaming_restrictions = roaming_restrictions;
     access_and_mobility_subscription_data_1_local_var->is_remote_prov_ind = is_remote_prov_ind;
     access_and_mobility_subscription_data_1_local_var->remote_prov_ind = remote_prov_ind;
+    access_and_mobility_subscription_data_1_local_var->static_ip_address = static_ip_address;
 
     return access_and_mobility_subscription_data_1_local_var;
 }
@@ -343,6 +345,13 @@ void OpenAPI_access_and_mobility_subscription_data_1_free(OpenAPI_access_and_mob
     if (access_and_mobility_subscription_data_1->roaming_restrictions) {
         OpenAPI_roaming_restrictions_free(access_and_mobility_subscription_data_1->roaming_restrictions);
         access_and_mobility_subscription_data_1->roaming_restrictions = NULL;
+    }
+    if (access_and_mobility_subscription_data_1->static_ip_address) {
+        OpenAPI_list_for_each(access_and_mobility_subscription_data_1->static_ip_address, node) {
+            OpenAPI_ip_address_1_free(node->data);
+        }
+        OpenAPI_list_free(access_and_mobility_subscription_data_1->static_ip_address);
+        access_and_mobility_subscription_data_1->static_ip_address = NULL;
     }
     ogs_free(access_and_mobility_subscription_data_1);
 }
@@ -975,6 +984,22 @@ cJSON *OpenAPI_access_and_mobility_subscription_data_1_convertToJSON(OpenAPI_acc
     }
     }
 
+    if (access_and_mobility_subscription_data_1->static_ip_address) {
+    cJSON *static_ip_addressList = cJSON_AddArrayToObject(item, "staticIpAddress");
+    if (static_ip_addressList == NULL) {
+        ogs_error("OpenAPI_access_and_mobility_subscription_data_1_convertToJSON() failed [static_ip_address]");
+        goto end;
+    }
+    OpenAPI_list_for_each(access_and_mobility_subscription_data_1->static_ip_address, node) {
+        cJSON *itemLocal = OpenAPI_ip_address_1_convertToJSON(node->data);
+        if (itemLocal == NULL) {
+            ogs_error("OpenAPI_access_and_mobility_subscription_data_1_convertToJSON() failed [static_ip_address]");
+            goto end;
+        }
+        cJSON_AddItemToArray(static_ip_addressList, itemLocal);
+    }
+    }
+
 end:
     return item;
 }
@@ -1066,6 +1091,8 @@ OpenAPI_access_and_mobility_subscription_data_1_t *OpenAPI_access_and_mobility_s
     cJSON *roaming_restrictions = NULL;
     OpenAPI_roaming_restrictions_t *roaming_restrictions_local_nonprim = NULL;
     cJSON *remote_prov_ind = NULL;
+    cJSON *static_ip_address = NULL;
+    OpenAPI_list_t *static_ip_addressList = NULL;
     supported_features = cJSON_GetObjectItemCaseSensitive(access_and_mobility_subscription_data_1JSON, "supportedFeatures");
     if (supported_features) {
     if (!cJSON_IsString(supported_features) && !cJSON_IsNull(supported_features)) {
@@ -1783,6 +1810,30 @@ OpenAPI_access_and_mobility_subscription_data_1_t *OpenAPI_access_and_mobility_s
     }
     }
 
+    static_ip_address = cJSON_GetObjectItemCaseSensitive(access_and_mobility_subscription_data_1JSON, "staticIpAddress");
+    if (static_ip_address) {
+        cJSON *static_ip_address_local = NULL;
+        if (!cJSON_IsArray(static_ip_address)) {
+            ogs_error("OpenAPI_access_and_mobility_subscription_data_1_parseFromJSON() failed [static_ip_address]");
+            goto end;
+        }
+
+        static_ip_addressList = OpenAPI_list_create();
+
+        cJSON_ArrayForEach(static_ip_address_local, static_ip_address) {
+            if (!cJSON_IsObject(static_ip_address_local)) {
+                ogs_error("OpenAPI_access_and_mobility_subscription_data_1_parseFromJSON() failed [static_ip_address]");
+                goto end;
+            }
+            OpenAPI_ip_address_1_t *static_ip_addressItem = OpenAPI_ip_address_1_parseFromJSON(static_ip_address_local);
+            if (!static_ip_addressItem) {
+                ogs_error("No static_ip_addressItem");
+                goto end;
+            }
+            OpenAPI_list_add(static_ip_addressList, static_ip_addressItem);
+        }
+    }
+
     access_and_mobility_subscription_data_1_local_var = OpenAPI_access_and_mobility_subscription_data_1_create (
         supported_features && !cJSON_IsNull(supported_features) ? ogs_strdup(supported_features->valuestring) : NULL,
         gpsis ? gpsisList : NULL,
@@ -1855,7 +1906,8 @@ OpenAPI_access_and_mobility_subscription_data_1_t *OpenAPI_access_and_mobility_s
         aerial_ue_sub_info ? aerial_ue_sub_info_local_nonprim : NULL,
         roaming_restrictions ? roaming_restrictions_local_nonprim : NULL,
         remote_prov_ind ? true : false,
-        remote_prov_ind ? remote_prov_ind->valueint : 0
+        remote_prov_ind ? remote_prov_ind->valueint : 0,
+        static_ip_address ? static_ip_addressList : NULL
     );
 
     return access_and_mobility_subscription_data_1_local_var;
@@ -2014,6 +2066,13 @@ end:
     if (roaming_restrictions_local_nonprim) {
         OpenAPI_roaming_restrictions_free(roaming_restrictions_local_nonprim);
         roaming_restrictions_local_nonprim = NULL;
+    }
+    if (static_ip_addressList) {
+        OpenAPI_list_for_each(static_ip_addressList, node) {
+            OpenAPI_ip_address_1_free(node->data);
+        }
+        OpenAPI_list_free(static_ip_addressList);
+        static_ip_addressList = NULL;
     }
     return NULL;
 }

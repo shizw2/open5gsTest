@@ -2214,6 +2214,12 @@ components:
         remoteProvInd:
           type: boolean
           default: false
+        staticIpAddress:
+          type: array
+          items:
+            $ref: '#/components/schemas/IpAddress'
+          minItems: 1
+          maxItems: 2  
 
     PcfSelectionAssistanceInfo:
       type: object

@@ -466,7 +466,7 @@ bool udr_nudr_dr_handle_subscription_provisioned(
 
     SWITCH(recvmsg->h.resource.component[4])
     CASE(OGS_SBI_RESOURCE_NAME_AM_DATA)
-        int i;
+        int i,j;
 
         OpenAPI_access_and_mobility_subscription_data_t
             AccessAndMobilitySubscriptionData;
@@ -484,6 +484,8 @@ bool udr_nudr_dr_handle_subscription_provisioned(
         OpenAPI_service_area_restriction_t  rAREA;
         OpenAPI_area_t AREA;
         OpenAPI_list_t *tacs_list = NULL;
+        OpenAPI_list_t *staticIpAddress = NULL;
+        OpenAPI_ip_address_t *ipAddress = NULL;
 
         GpsiList = OpenAPI_list_create();
         for (i = 0; i < subscription_data.num_of_msisdn; i++) {
@@ -600,6 +602,75 @@ bool udr_nudr_dr_handle_subscription_provisioned(
 
         if (DefaultSingleNssaiList->count)
             AccessAndMobilitySubscriptionData.nssai = &NSSAI;
+
+        //获取静态IP
+        staticIpAddress = OpenAPI_list_create();
+        ogs_assert(staticIpAddress);
+        for (j = 0; j < subscription_data.num_of_slice; j++) {
+            slice_data = &subscription_data.slice[j];
+            for (i = 0; i < slice_data->num_of_session; i++) {
+                ogs_session_t *session = NULL;
+
+                if (i >= OGS_MAX_NUM_OF_SESS) {
+                    ogs_warn("Ignore max session count overflow [%d>=%d]",
+                        slice_data->num_of_session, OGS_MAX_NUM_OF_SESS);
+                    break;
+                }
+
+                session = &slice_data->session[i];
+                ogs_assert(session);
+                ogs_assert(session->name);
+
+                if (recvmsg->param.dnn &&
+                    ogs_strcasecmp(recvmsg->param.dnn, session->name) != 0)
+                    continue;
+
+                if (!session->qos.index) {
+                    ogs_error("No 5QI");
+                    continue;
+                }
+                if (!session->qos.arp.priority_level) {
+                    ogs_error("No Priority Level");
+                    continue;
+                }
+
+                if (!session->ambr.uplink && !session->ambr.downlink) {
+                    ogs_error("No Session-AMBR");
+                    continue;
+                }
+            
+                // staticIpAddress = OpenAPI_list_create();
+                // ogs_assert(staticIpAddress);
+
+                if (session->ue_ip.ipv4 || session->ue_ip.ipv6) {
+                    ipAddress = ogs_calloc(1, sizeof(*ipAddress));
+                    ogs_assert(ipAddress);
+
+                    if (session->ue_ip.ipv4) {
+                        ipAddress->ipv4_addr =
+                            ogs_ipv4_to_string(session->ue_ip.addr);
+                        ogs_assert(ipAddress->ipv4_addr);
+                    }
+                    if (session->ue_ip.ipv6) {
+                        ipAddress->ipv6_addr =
+                            ogs_ipv6addr_to_string(session->ue_ip.addr6);
+                        ogs_assert(ipAddress->ipv6_addr);
+                    }
+
+                    if (ipAddress->ipv4_addr || ipAddress->ipv6_addr)
+                        OpenAPI_list_add(staticIpAddress, ipAddress);
+                    else
+                        ogs_free(ipAddress);
+                }
+            }
+        }
+
+        if (staticIpAddress->count){
+            ogs_info("staticIpAddress->count:%ld",staticIpAddress->count);
+            AccessAndMobilitySubscriptionData.static_ip_address = staticIpAddress;
+        }
+        else
+            OpenAPI_list_free(staticIpAddress);
 
         memset(&sendmsg, 0, sizeof(sendmsg));
         sendmsg.AccessAndMobilitySubscriptionData =

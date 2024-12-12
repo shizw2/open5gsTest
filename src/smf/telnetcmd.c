@@ -17,10 +17,13 @@ void print_far(ogs_pfcp_far_t *far);
 void print_bearer(smf_bearer_t *bearer);
 //void getUeInfo(int pageSize, int pageNum);
 void getUeInfo(char * supi);
+void showContext(void);
+
 telnet_command_t g_commands[] = {
     {"shownf",      (GenericFunc)shownf,         1, {STRING}},
     {"showue",      (GenericFunc)showue,         1, {STRING}},
     {"getUeInfo",   (GenericFunc)getUeInfo,      1, {STRING}},
+    {"showContext", (GenericFunc)showContext,    0, {}},
 };
 int g_numCommands = sizeof(g_commands) / sizeof(g_commands[0]);
 
@@ -363,6 +366,44 @@ void print_bearer(smf_bearer_t *bearer){
 
 }
 
+void showContext(void){
+    ogs_pfcp_subnet_t *subnet = NULL;
+    char buf1[OGS_ADDRSTRLEN];
+    char buf2[OGS_ADDRSTRLEN];
+    int subnet_idx = 0;
+    ogs_list_for_each(&ogs_pfcp_self()->subnet_list, subnet) {
+        char *subnet_string = NULL;
+        char *gw_string = NULL;
+        if (subnet->family == AF_INET) {
+            subnet_string = ogs_ipv4_to_string(subnet->sub.sub[0]);
+            gw_string = ogs_ipv4_to_string(subnet->gw.sub[0]);
+            ogs_assert(subnet_string);
+        } else if (subnet->family == AF_INET6) {
+            subnet_string = ogs_ipv6addr_to_string(
+                    (uint8_t*)&subnet->sub.sub[0]);
+            ogs_assert(subnet_string);
+            gw_string = ogs_ipv6addr_to_string((uint8_t*)&subnet->sub.sub[0]);
+        }
+        printf("        |--subnet_idx          : %d \r\n", subnet_idx);
+        printf("          |--subnet            : %s \r\n", subnet_string);
+        printf("          |--gateway           : %s \r\n", gw_string);
+        printf("          |--dnn               : %s \r\n", subnet->dnn);
+        printf("          |--num_of_range      : %d \r\n", subnet->num_of_range);
+
+        for (int i = 0; i < subnet->num_of_range; ++i) {
+            printf("          |--range[%d].low     : %s \r\n", i, subnet->range[i].low);
+            printf("          |--range[%d].high    : %s \r\n", i, subnet->range[i].high);
+        }
+
+        printf("          |--family            : %d \r\n", subnet->family);
+        printf("          |--prefixlen         : %d \r\n", subnet->prefixlen);
+        //printf("          |--pool              : %s \r\n", ogs_pool_name(subnet->pool));
+        //printf("          |--dev               : %p \r\n", subnet->dev);       
+        ogs_free(subnet_string);
+        ogs_free(gw_string);
+        subnet_idx++;
+    }
+}
 
 void getUeInfo(char * supi) {
     smf_ue_t *ue = NULL;

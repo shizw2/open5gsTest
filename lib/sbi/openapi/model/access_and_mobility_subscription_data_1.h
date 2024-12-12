@@ -20,6 +20,7 @@
 #include "ec_restriction_data_wb.h"
 #include "edrx_parameters_1.h"
 #include "expected_ue_behaviour_data_1.h"
+#include "ip_address_1.h"
 #include "mdt_configuration_1.h"
 #include "mdt_user_consent.h"
 #include "nssai_1.h"
@@ -116,6 +117,7 @@ typedef struct OpenAPI_access_and_mobility_subscription_data_1_s {
     struct OpenAPI_roaming_restrictions_s *roaming_restrictions;
     bool is_remote_prov_ind;
     int remote_prov_ind;
+    OpenAPI_list_t *static_ip_address;
 } OpenAPI_access_and_mobility_subscription_data_1_t;
 
 OpenAPI_access_and_mobility_subscription_data_1_t *OpenAPI_access_and_mobility_subscription_data_1_create(
@@ -190,7 +192,8 @@ OpenAPI_access_and_mobility_subscription_data_1_t *OpenAPI_access_and_mobility_s
     OpenAPI_aerial_ue_subscription_info_1_t *aerial_ue_sub_info,
     OpenAPI_roaming_restrictions_t *roaming_restrictions,
     bool is_remote_prov_ind,
-    int remote_prov_ind
+    int remote_prov_ind,
+    OpenAPI_list_t *static_ip_address
 );
 void OpenAPI_access_and_mobility_subscription_data_1_free(OpenAPI_access_and_mobility_subscription_data_1_t *access_and_mobility_subscription_data_1);
 OpenAPI_access_and_mobility_subscription_data_1_t *OpenAPI_access_and_mobility_subscription_data_1_parseFromJSON(cJSON *access_and_mobility_subscription_data_1JSON);
