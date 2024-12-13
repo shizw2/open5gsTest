@@ -898,6 +898,42 @@ static OpenAPI_list_t * build_supi_ranges(ogs_supi_range_t *supiRanges)
     return NULL;
 }
 
+static OpenAPI_list_t * build_ip_ranges(ogs_ip_range_t *ipRanges)
+{
+    int i;
+  
+    OpenAPI_list_t *IPRangeList = NULL;
+    OpenAPI_supi_range_t *IPRangeItem = NULL;
+
+    ogs_assert(ipRanges);
+
+    IPRangeList = OpenAPI_list_create();
+    if (!IPRangeList) {
+        ogs_error("No IPRangeList");
+        OpenAPI_list_free(IPRangeList);
+        return NULL;
+    }
+
+    for (i = 0;i < ipRanges->num_of_range;i++) {
+        IPRangeItem = ogs_calloc(1, sizeof(*IPRangeItem));
+        ogs_assert(IPRangeItem);
+
+        IPRangeItem->start = ogs_strdup(ipRanges->range[i].start);
+        ogs_assert(IPRangeItem->start);
+        IPRangeItem->end = ogs_strdup(ipRanges->range[i].end);
+        ogs_assert(IPRangeItem->end);
+        
+        OpenAPI_list_add(IPRangeList, IPRangeItem);
+    }  
+
+    if (IPRangeList->count)
+        return IPRangeList;
+    else
+        OpenAPI_list_free(IPRangeList);
+
+    return NULL;
+}
+
 static OpenAPI_smf_info_t *build_smf_info(ogs_sbi_nf_info_t *nf_info)
 {
     int i, j;
@@ -916,7 +952,7 @@ static OpenAPI_smf_info_t *build_smf_info(ogs_sbi_nf_info_t *nf_info)
     OpenAPI_list_t *TacRangeList = NULL;
     OpenAPI_tac_range_t *TacRangeItem = NULL;
     OpenAPI_list_t *SupiRangeList = NULL;
-
+    OpenAPI_list_t *StaticIPRangeList = NULL;
     ogs_assert(nf_info);
 
     SmfInfo = ogs_calloc(1, sizeof(*SmfInfo));
@@ -1089,6 +1125,12 @@ static OpenAPI_smf_info_t *build_smf_info(ogs_sbi_nf_info_t *nf_info)
 
     if (SupiRangeList) {
         SmfInfo->supi_ranges = SupiRangeList;
+    }
+
+    StaticIPRangeList = build_ip_ranges(&nf_info->smf.staticIPRanges);
+
+    if (StaticIPRangeList) {
+        SmfInfo->static_ipv4_address_ranges = StaticIPRangeList;
     }
 
     return SmfInfo;

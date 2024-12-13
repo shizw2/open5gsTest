@@ -323,6 +323,15 @@ typedef struct supi_range_s {
     } supi_ranges[OGS_MAX_NUM_OF_SUPI];
 } ogs_supi_range_t;
 
+typedef struct ip_range_s{
+#define OGS_MAX_NUM_OF_SUBNET_RANGE 16
+    struct {
+        char *start;
+        char *end;
+    } range[OGS_MAX_NUM_OF_SUBNET_RANGE];
+    int num_of_range;
+}ogs_ip_range_t;
+
 typedef struct ogs_sbi_smf_info_s {
     int num_of_slice;
     struct {
@@ -349,6 +358,7 @@ typedef struct ogs_sbi_smf_info_s {
     } nr_tai_range[OGS_MAX_NUM_OF_TAI];
 
     ogs_supi_range_t supiRanges;
+    ogs_ip_range_t staticIPRanges;
 } ogs_sbi_smf_info_t;
 
 typedef struct ogs_sbi_scp_info_s {
@@ -445,6 +455,7 @@ int ogs_sbi_context_parse_config(
         const char *local, const char *nrf, const char *scp);
 int ogs_sbi_context_parse_hnet_config(ogs_yaml_iter_t *root_iter);
 int ogs_sbi_context_parse_supi_ranges(ogs_yaml_iter_t *root_iter, ogs_supi_range_t *supiRanges);
+int ogs_sbi_context_parse_ip_ranges(ogs_yaml_iter_t *root_iter, ogs_ip_range_t *ipRanges);
 int ogs_sbi_context_parse_routing_indicator(ogs_yaml_iter_t *root_iter, ogs_routing_indicator_t *routingIndicators);
 int ogs_sbi_context_parse_server_config(
         ogs_yaml_iter_t *parent, const char *interface);

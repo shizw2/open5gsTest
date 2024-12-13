@@ -996,6 +996,8 @@ int smf_context_parse_config(bool reloading)
                                     num_of_nr_tai_range;
                             } else if (!strcmp(info_key, "supi")) {
                                 is_nfinfo_changed = ogs_sbi_context_parse_supi_ranges(&info_iter, &smf_info->supiRanges); 
+                            } else if (!strcmp(info_key, "static_ip")) {
+                                is_nfinfo_changed = ogs_sbi_context_parse_ip_ranges(&info_iter, &smf_info->staticIPRanges); 
                             } else
                                 ogs_warn("unknown key `%s`", info_key);
                         }

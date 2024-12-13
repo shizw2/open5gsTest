@@ -449,6 +449,23 @@ static void handle_supiRanges(ogs_supi_range_t *supiRanges, OpenAPI_list_t *supi
     }
 }
 
+static void handle_ipRanges(ogs_ip_range_t *ipRanges, OpenAPI_list_t *ip_ranges) {
+    OpenAPI_lnode_t *node = NULL;
+    OpenAPI_supi_range_t *ip_range = NULL;
+
+    OpenAPI_list_for_each(ip_ranges, node) {
+        ip_range = node->data;
+        if (ip_range && ip_range->start && ip_range->end) {
+            ogs_assert(ipRanges->num_of_range < OGS_MAX_NUM_OF_SUPI);
+
+            ipRanges->range[ipRanges->num_of_range].start = ogs_strdup(ip_range->start);
+            ipRanges->range[ipRanges->num_of_range].end = ogs_strdup(ip_range->end);
+
+            ipRanges->num_of_range++;
+        }
+    }
+}
+
 static void handle_smf_info(
         ogs_sbi_nf_instance_t *nf_instance, OpenAPI_smf_info_t *SmfInfo)
 {
@@ -518,11 +535,12 @@ static void handle_smf_info(
         }
     }
 
-    if (nf_info->smf.num_of_slice == 0) {
-        ogs_error("No S-NSSAI(DNN) in smfInfo");
-        ogs_sbi_nf_info_remove(&nf_instance->nf_info_list, nf_info);
-        return;
-    }
+    //可以为空
+    // if (nf_info->smf.num_of_slice == 0) {
+    //     ogs_error("No S-NSSAI(DNN) in smfInfo");
+    //     ogs_sbi_nf_info_remove(&nf_instance->nf_info_list, nf_info);
+    //     return;
+    // }
 
     TaiList = SmfInfo->tai_list;
     OpenAPI_list_for_each(TaiList, node) {
@@ -586,6 +604,7 @@ static void handle_smf_info(
     }
 
     handle_supiRanges(&nf_info->smf.supiRanges,SmfInfo->supi_ranges);
+    handle_ipRanges(&nf_info->smf.staticIPRanges,SmfInfo->static_ipv4_address_ranges);
 }
 
 static void handle_scp_info(

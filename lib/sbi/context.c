@@ -1175,6 +1175,118 @@ int ogs_sbi_context_parse_supi_ranges(ogs_yaml_iter_t *root_iter, ogs_supi_range
     return isCfgChanged;
 }
 
+int ogs_sbi_context_parse_ip_ranges(ogs_yaml_iter_t *root_iter, ogs_ip_range_t *ipRanges)
+{
+    const char *low[OGS_MAX_NUM_OF_SUPI];
+    const char *high[OGS_MAX_NUM_OF_SUPI];
+    int i, num_of_range = 0;
+    ogs_yaml_iter_t supi_array, supi_iter;
+    ogs_yaml_iter_recurse(root_iter, &supi_array);
+    bool isCfgChanged;
+
+    do {                                  
+        if (ogs_yaml_iter_type(&supi_array) ==
+                YAML_MAPPING_NODE) {
+            memcpy(&supi_iter, &supi_array,
+                    sizeof(ogs_yaml_iter_t));
+        } else if (ogs_yaml_iter_type(&supi_array) ==
+                YAML_SEQUENCE_NODE) {
+            if (!ogs_yaml_iter_next(&supi_array))
+                break;
+            ogs_yaml_iter_recurse(&supi_array,
+                    &supi_iter);
+        } else if (ogs_yaml_iter_type(&supi_array) ==
+                YAML_SCALAR_NODE) {
+            break;
+        } else
+            ogs_assert_if_reached();
+
+        while (ogs_yaml_iter_next(&supi_iter)) {
+            const char *tai_key =
+                ogs_yaml_iter_key(&supi_iter);
+            ogs_assert(tai_key);
+            if (!strcmp(tai_key, "range")) {
+                ogs_yaml_iter_t range_iter;
+                ogs_yaml_iter_recurse(
+                        &supi_iter, &range_iter);
+                ogs_assert(ogs_yaml_iter_type(&range_iter) !=
+                    YAML_MAPPING_NODE);
+                do {
+                    char *v = NULL;
+
+                    if (ogs_yaml_iter_type(&range_iter) ==
+                            YAML_SEQUENCE_NODE) {
+                        if (!ogs_yaml_iter_next(&range_iter))
+                            break;
+                    }
+
+                    v = (char *)
+                        ogs_yaml_iter_value(&range_iter);
+                    if (v) {
+                        ogs_assert(num_of_range <
+                                OGS_MAX_NUM_OF_SUPI);
+                        low[num_of_range] =
+                            (const char *)strsep(&v, "-");
+                        if (low[num_of_range] && strlen(low[num_of_range]) == 0)
+                            low[num_of_range] = NULL;
+
+                        high[num_of_range] = (const char *)v;
+                        if (high[num_of_range] && strlen(high[num_of_range]) == 0)
+                            high[num_of_range] = NULL;
+                    }
+
+                    if (low[num_of_range] || high[num_of_range]) {
+                        num_of_range++;
+                    }
+                } while (
+                    ogs_yaml_iter_type(&range_iter) ==
+                    YAML_SEQUENCE_NODE);
+            } else
+                ogs_warn("unknown key `%s`",
+                        tai_key);
+        }                                   
+        
+    } while (ogs_yaml_iter_type(&supi_array) ==
+            YAML_SEQUENCE_NODE);
+
+    isCfgChanged = false;
+    if (num_of_range) {
+        for (i = 0; i < num_of_range; i++) {
+            if (ipRanges->range[i].start != NULL){
+                if (strcmp(ipRanges->range[i].start, low[i]) != 0) {
+                    isCfgChanged = true;
+                    ogs_info("supiRange  start changed from %s to %s.", 
+                        ipRanges->range[i].start,low[i]);
+                }
+                ogs_free((void *)ipRanges->range[i].start);
+            }else{
+                isCfgChanged = true;//说明是新增了一个start
+            }
+            
+            if (ipRanges->range[i].end != NULL){
+                if (strcmp(ipRanges->range[i].end, high[i]) != 0) {
+                    isCfgChanged = true;
+                    ogs_info("supiRange  end changed from %s to %s.", 
+                        ipRanges->range[i].end,high[i]);
+                }
+                ogs_free((void *)ipRanges->range[i].end);
+            }else{
+                isCfgChanged = true;//说明是新增了一个end
+            }
+
+            ipRanges->range[i].start = ogs_strdup(low[i]);
+            ipRanges->range[i].end = ogs_strdup(high[i]);
+            ogs_info("supiRange,start %s, end %s.", low[i], high[i]);
+        }
+
+        ipRanges->num_of_range = num_of_range;
+                        
+    } else {
+        ogs_warn("No supi range info");
+    }
+    return isCfgChanged;
+}
+
 int ogs_sbi_context_parse_routing_indicator(ogs_yaml_iter_t *root_iter, ogs_routing_indicator_t *routingIndicators){
     ogs_yaml_iter_t routing_indicator_iter;
     int num_of_routing_indicator = 0;
@@ -2005,6 +2117,19 @@ static void supiRange_free(ogs_supi_range_t *supiRanges)
     supiRanges->num_of_supi_range = 0;
 }
 
+static void ipRange_free(ogs_ip_range_t *ipRanges)
+{
+    int i;
+    ogs_assert(ipRanges);
+    
+    for (i = 0; i < ipRanges->num_of_range; i++) {     
+        //ogs_info("supiRange_free, start:%s,end:%s",supiRanges->supi_ranges[i].start,supiRanges->supi_ranges[i].end);    
+        ogs_free(ipRanges->range[i].start);
+        ogs_free(ipRanges->range[i].end);
+    }
+    ipRanges->num_of_range = 0;
+}
+
 static void smf_info_free(ogs_sbi_smf_info_t *smf_info)
 {
     int i, j;
@@ -2020,6 +2145,7 @@ static void smf_info_free(ogs_sbi_smf_info_t *smf_info)
     smf_info->num_of_nr_tai_range = 0;
 
     supiRange_free(&smf_info->supiRanges);
+    ipRange_free(&smf_info->staticIPRanges);
     ogs_pool_free(&smf_info_pool, smf_info);
 }
 
@@ -3217,6 +3343,7 @@ void ogs_uuid_format_custom(char *buffer, int nf_type, int group, int node)
 
 void print_ogs_sbi_nf_info(ogs_sbi_nf_info_t *nf_info);
 void print_supiRanges(ogs_supi_range_t *supiRanges);
+void print_ipRanges(ogs_ip_range_t *ipRanges);
 void print_ogs_sbi_nf_service(ogs_sbi_nf_service_t *nf_service);
 
 void shownf(char *id){
@@ -3338,6 +3465,7 @@ void print_ogs_sbi_nf_info(ogs_sbi_nf_info_t *nf_info) {
             }
         }
         print_supiRanges(&nf_info->smf.supiRanges);
+        print_ipRanges(&nf_info->smf.staticIPRanges);
     } else if (nf_info->nf_type == OpenAPI_nf_type_AMF) {
         printf("        |--amf_set_id       : %d \r\n", nf_info->amf.amf_set_id);
         printf("        |--amf_region_id    : %d \r\n", nf_info->amf.amf_region_id);
@@ -3401,6 +3529,14 @@ void print_supiRanges(ogs_supi_range_t *supiRanges){
     printf("        |--supiRanges.num_of_supi_range: %d \r\n", supiRanges->num_of_supi_range);
     for (i = 0; i < supiRanges->num_of_supi_range; i++) {
         printf("          |--supiRanges.supi_ranges[%d]:%s-%s\n", i,supiRanges->supi_ranges[i].start,supiRanges->supi_ranges[i].end);
+    }
+}
+
+void print_ipRanges(ogs_ip_range_t *ipRanges){
+    int i;
+    printf("        |--ipRanges.num_of_range: %d \r\n", ipRanges->num_of_range);
+    for (i = 0; i < ipRanges->num_of_range; i++) {
+        printf("          |--ipRanges.range[%d]:%s-%s\n", i,ipRanges->range[i].start,ipRanges->range[i].end);
     }
 }
 

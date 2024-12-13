@@ -2015,9 +2015,19 @@ components:
     SmfInfo:
       description: Information of an SMF NF Instance
       type: object
-      required:
-        - sNssaiSmfInfoList
+      #required:
+      #  - sNssaiSmfInfoList
       properties:
+        supiRanges:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupiRange'
+          minItems: 1
+        staticIpv4AddressRanges:
+          type: array
+          items:
+            $ref: '#/components/schemas/Ipv4AddressRange'
+          minItems: 1       
         sNssaiSmfInfoList:
           type: array
           items:
