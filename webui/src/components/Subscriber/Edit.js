@@ -978,7 +978,7 @@ class Edit extends Component {
     //formData = Object.assign({}, this.props.profiles.filter(p => p._id === profile)[0]);
     formData = Object.assign({}, profiles.filter(p => p._id === profile)[0]);
     formData = Object.assign(formData, { profile });
-
+    formData.tpl=formData.title;
     delete formData.title;
     delete formData._id;
     delete formData.__v;

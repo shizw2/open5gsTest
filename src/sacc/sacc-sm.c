@@ -330,16 +330,32 @@ void sacc_state_operational(ogs_fsm_t *s, sacc_event_t *e)
             yaml_check_proc();
             ogs_yaml_check_restart();
 
-            //TODO:test 后续新增定时器
-            sacc_scan();
             break;
+        // case OGS_TIMER_SACC_SCAN:
+        //     sacc_scan();
+        //     break;
 
         default:
             ogs_error("Unknown timer[%s:%d]",
                     ogs_timer_get_name(e->h.timer_id), e->h.timer_id);
         }
         break;
-        
+
+    case SACC_EVENT_TIMER:
+        ogs_assert(e);
+
+        switch(e->h.timer_id) {        
+        case SACC_TIMER_NODE_HANDSHAKE:
+            sacc_scan();  
+            ogs_timer_start(sacc_self()->t_hand_shake_interval, ogs_time_from_sec(sacc_self()->heartbeatInterval));    
+            break;
+
+        default:
+            ogs_error("Unknown timer[%s:%d]",
+                    sacc_timer_get_name(e->h.timer_id), e->h.timer_id);
+        }
+        break;
+
     default:
         ogs_error("No handler for event %s", sacc_event_get_name(e));
         break;

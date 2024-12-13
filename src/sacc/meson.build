@@ -26,6 +26,8 @@ libsacc_sources = files('''
     sbi-path.c
     sacc-sm.c
 
+    timer.c
+
     init.c
 '''.split())
 

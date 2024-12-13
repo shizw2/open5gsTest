@@ -890,6 +890,151 @@ export const nf_sbi_OldUiSchema = {
   }
 };
 
+export const amf_sbi_Schema = {
+  type: "object",
+  title:"SBI",
+  properties: {
+    server:{
+      type: "array",
+      title:"Server",
+      "minItems": 1,
+      "maxItems": 4,
+      "messages": {
+        "minItems": "At least 1 Interface is required",
+        "maxItems": "4 Interfaces are supported"
+      },
+      items: {
+        type: "object",
+        properties: {
+          address: {
+            type: "string",
+            title: "Address",
+/*
+            anyOf: [
+              { format: "ipv4" },
+              { format: "ipv6" },
+            ],
+            messages: {
+              "anyOf": "IPv4 or IPv6 allowed"
+            },
+*/
+            //format:"ipv4",
+            //description: "IPv4/IPv6 Address or FQDN",
+            required: true,
+            //default: "127.0.0.5"
+          },
+          mask: {
+            type: "string",
+            title: "Mask",
+            //required: true,
+          },
+          port: {
+            type: "number",
+            title: "Port",
+            minimum: 1,
+            maximum: 65535,
+            //required: true,
+            //default: 7777
+          }
+        }
+      }
+    },
+    client: {
+      type: "object",
+      title: "Client",
+      properties: {
+        nrf: {
+          type: "array",
+          title:"NRF",
+          "maxItems": 1,
+          items: {
+            type: "object",
+            properties: {
+              uri: {
+                type: "string",
+                title: "URI",
+                //required: true,
+              }
+            }
+          }
+        },
+/*
+        scp: {
+          type: "array",
+          title:"SCP",
+          "maxItems": 4,
+          items: {
+            type: "object",
+            properties: {
+              uri: {
+                type: "string",
+                title: "URI",
+                //required: true,
+              }
+            }
+          }
+        }
+*/
+      }
+    }
+  }
+};
+
+export const amf_sbi_UiSchema = {
+  classNames: "col-xs-12",
+  "ui:title": <CustomTitle18 title="SBI Interface" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
+  server: {
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="Server" />,
+    items: {
+      address: {
+        classNames: "col-xs-5",
+        //"ui:help": "IPv4/IPv6 or FQDN",
+        "ui:placeholder": "IPv4/IPv6 or FQDN",
+      },
+      mask: {
+        classNames: "col-xs-4",
+      },
+      port: {
+        classNames: "col-xs-3",
+        //"ui:disabled": false,
+        //"ui:readonly": false,
+      }
+    }
+  },
+  client: {
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="Client" />,
+    nrf: {
+      classNames: "col-xs-12",
+      "ui:title": <CustomTitle14 title="NRF URI" />,
+      items: {
+        uri: {
+          classNames: "col-xs-12",
+          "ui:options": {
+            "label": false
+          }
+        }
+      }
+    },
+/*
+    scp: {
+      classNames: "col-xs-12",
+      "ui:title": <CustomTitle14 title="SCP URI" />,
+      items: {
+        uri: {
+          classNames: "col-xs-12",
+          "ui:options": {
+            "label": false
+          }
+        }
+      }
+    }
+*/
+  }
+};
+
 export const nf_sbi_Schema = {
   type: "object",
   title:"SBI",
@@ -1712,6 +1857,81 @@ export const metricsUiSchema = {
   }
 };
 
+export const amfmetricsSchema = {
+  type: "object",
+  title:"Metrics",
+  properties: {
+    server:{
+      type: "array",
+      title: "Server",
+      //"minItems": 1,
+      "maxItems": 4,
+      "messages": {
+        "minItems": "At least 1 Interface is required",
+        "maxItems": "4 Interfaces are supported"
+      },
+      items: {
+        type: "object",
+        properties: {
+          address: {
+            type: "string",
+            title: "IP Address",
+            anyOf: [
+              { format: "ipv4" },
+              { format: "ipv6" }
+            ],
+            messages: {
+              "anyOf": "IPv4 or IPv6 allowed"
+            },
+            default: "127.0.0.5"
+          },
+          mask: {
+            type: "string",
+            title: "Mask",
+            //required: true,
+          },
+          port: {
+            type: "number",
+            title: "Port",
+            minimum: 1,
+            maximum: 65535,
+            default: 9090,
+            //required: true,
+          }
+        }
+      }
+    }
+  }
+};
+
+export const amfmetricsUiSchema = {
+  classNames: "col-xs-12",
+  "ui:title": <CustomTitle18 title="Metrics" />,
+  "ui:description": <Customhelp14 title={promptRestart} />,
+  //items: {
+    //classNames: "col-xs-12",//层次感  
+    //metrics: {
+      //classNames: "col-xs-12",
+  server:{
+    classNames: "col-xs-12",
+    "ui:title": <CustomTitle18 title="Server" />,
+      items: {
+        //classNames: "col-xs-12",
+        address: {
+          classNames: "col-xs-5",
+        },
+        mask: {
+          classNames: "col-xs-4",
+        },
+        port: {
+          classNames: "col-xs-3",
+        },
+      //},
+    //},
+    },
+  }
+};
+
 export const metricsShortUiSchema = {
   classNames: "col-xs-6",
   "ui:title": <CustomTitle18 title="Metrics" />,
@@ -1801,6 +2021,17 @@ export const guamiSchema = {
               maximum: "must <= 1023",
             },
             required: true,
+          },
+          pointer: {
+            type: "integer",
+            title: "Pointer",
+            minimum: 0,
+            maximum: 63,
+            messages: {
+              minimum: "must >= 0",
+              maximum: "must <= 63",
+            },
+            //required: true,
           }
         },
         //required: ["region", "set"]
@@ -1815,7 +2046,7 @@ export const guamiUiSchema = {
   "ui:title": <CustomTitle18 title="GUAMI" />,
   items: {
     plmn_id: {
-      classNames: "col-xs-6",//增加这个，体现层次感
+      classNames: "col-xs-5",//增加这个，体现层次感
       "ui:title": <CustomTitle18 title="PLMN_ID" />,
       mcc: {
         classNames: "col-xs-6"
@@ -1825,13 +2056,16 @@ export const guamiUiSchema = {
       }
     },
     amf_id: {
-      classNames: "col-xs-6",
+      classNames: "col-xs-7",
       "ui:title": <CustomTitle18 title="AMF_ID"/>,
       region: {
-        classNames: "col-xs-6"
+        classNames: "col-xs-4"
       },
       set: {
-        classNames: "col-xs-6"
+        classNames: "col-xs-4"
+      },
+      pointer: {
+        classNames: "col-xs-4"
       }
     }
   }
@@ -2538,6 +2772,7 @@ export const gtpuSchema = {
   properties: {
     server:{
       type: "array",
+      title: "Server",
       minItems: 1,
       maxItems: 8,
       items: {
@@ -2556,6 +2791,11 @@ export const gtpuSchema = {
             //default: "127.0.0.5"
             required: true,
           },
+          mask: {
+            type: "string",
+            title: "Mask",
+            //required: true,
+          },
         }
       }
     }
@@ -2563,21 +2803,27 @@ export const gtpuSchema = {
 };
 
 export const gtpuUiSchema = {
-  classNames: "col-xs-6",
+  classNames: "col-xs-12",
   "ui:title": <CustomTitle18 title="GTPU" />,
   "ui:description": <Customhelp14 title={promptRestart} />,
   server: {
     classNames: "col-xs-12",
-    "ui:title": <CustomTitle14 title="Server Address" />,
+    "ui:title": <CustomTitle18 title="Server" />,
     "ui:options": {
       "label": false
     },
     items: {
       classNames: "col-xs-12",
       address: {
-        classNames: "col-xs-12",
+        classNames: "col-xs-7",
         "ui:options": {
-          "label": false
+          //"label": false
+        },
+      },
+      mask: {
+        classNames: "col-xs-5",
+        "ui:options": {
+          //"label": false
         }
       }
     }
@@ -2631,7 +2877,11 @@ export const sessionSchema = {
       dnn: {
         type: "string",
         title: "DNN",
-      }
+      },
+      num: {
+        type: "number",
+        title: "Num",
+      },
     }
   }
 };
@@ -2642,14 +2892,17 @@ export const sessionUiSchema = {
   "ui:description": <Customhelp14 title={promptRestart} />,
   items: {
     subnet: {
-      classNames: "col-xs-5",
+      classNames: "col-xs-4",
       "ui:placeholder": "ipv4/v6 subnet address",
     },
     gateway: {
-      classNames: "col-xs-4",
+      classNames: "col-xs-3",
     },
     dnn: {
       classNames: "col-xs-3",
+    },
+    num: {
+      classNames: "col-xs-2",
     }
   }
 };

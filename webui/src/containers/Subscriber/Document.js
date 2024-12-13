@@ -449,7 +449,7 @@ class Document extends Component {
     } = this.props
     let editformData = subscriber.data || {}; 
     if (action === 'create') {
-      editformData = { ...formData, ...subscriber.data }; // 将 account.data 的值合并到 formData 中
+      editformData = { ...formData, ...subscriber.data }; 
     }
     return (
       <Subscriber.Edit

@@ -46,7 +46,7 @@ export const upfuiSchema = {
     dpdk: schemas.dpdkUiSchema,
     vxlan: schemas.vxlanUiSchema,
     //relative_capacity: schemas.relative_capUiSchema,
-    metrics: schemas.metricsShortUiSchema,
+    metrics: schemas.metricsUiSchema,
     nbrlocalserver: schemas.nbrlocalserverUiSchema,
     nbrlocalclient: schemas.nbrlocalclientUiSchema,
     nbrremoteserver: schemas.nbrremoteserverUiSchema,

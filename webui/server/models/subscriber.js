@@ -104,8 +104,8 @@ const Subscriber = new Schema({
   subscribed_rau_tau_timer: {
     $type: Number,
     default: 12 // minites
-  }
-
+  },
+  tpl: String  //模版名称
 }, { typeKey: '$type' });
 
 module.exports = mongoose.model('Subscriber', Subscriber);

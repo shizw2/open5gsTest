@@ -166,7 +166,8 @@ export const MetricsSection = ({ metrics }) => (
           {metrics.server.map((item, index) => (
             <div key={index}>
               <div>- address: {item.address}</div>
-              <div>&nbsp;&nbsp;port: {item.port}</div>
+              {item.mask && (<div>&nbsp;&nbsp;mask: {item.mask}</div>)}
+              {item.port && (<div>&nbsp;&nbsp;port: {item.port}</div>)}
             </div>
           ))}
         </div>
@@ -223,7 +224,8 @@ export const NF_SBI_Section = ({ sbi }) => (
           {sbi.server.map((item, index) => (
             <div key={index}>
               <div>- address: {item.address}</div>
-              <div>&nbsp;&nbsp;port: {item.port}</div>
+              {item.mask && (<div>&nbsp;&nbsp;mask: {item.mask}</div>)}
+              {item.port && (<div>&nbsp;&nbsp;port: {item.port}</div>)}
             </div>
           ))}
         </div>
@@ -373,6 +375,7 @@ export const GuamiSection = ({ guamis }) => (
               <div>&nbsp;&nbsp;amf_id:</div>
               <div className="twenty-spaces">region: {item.amf_id.region}</div>
               <div className="twenty-spaces">set: {item.amf_id.set}</div>
+              {item.amf_id.pointer && (<div className="twenty-spaces">pointer: {item.amf_id.pointer}</div>)}
             </div>
           ))}
         </div>
@@ -495,8 +498,8 @@ export const SecuritySection = ({ security }) => (
 export const TimeSection = ({ time }) => (
   <div>
       <div className="time-section">
-        <div className="time-header">time:</div>  
-        {time && time.nf_instance && (     
+        <div className="time-header">time:</div>
+        {time && time.nf_instance && (
             <div className="twenty-spaces">
               <div>nf_instance:</div>
               <div className="twenty-spaces">heartbeat: {time.nf_instance.heartbeat}</div>
@@ -783,7 +786,8 @@ export const GtpuSection = ({ gtpu }) => {
           <div className="forty-spaces">server:</div>
           {gtpu.server.map((item, index) => (
             <div key={index} className="sixty-spaces">
-              <div>- address: {item.address}</div>          
+              <div>- address: {item.address}</div>
+              {item.mask && (<div>&nbsp;&nbsp;mask: {item.mask}</div>)}
             </div>
           ))}
         </div>
@@ -821,6 +825,7 @@ export const SessionSection = ({ session }) => {
               <div className="twenty-spaces">- subnet: {item.subnet}</div>
               {item.gateway && <div className="twenty-spaces">&nbsp;&nbsp;gateway: {item.gateway}</div>}
               {item.dnn && <div className="twenty-spaces">&nbsp;&nbsp;dnn: {item.dnn}</div>}
+              {item.num && <div className="twenty-spaces">&nbsp;&nbsp;num: {item.num}</div>}
             </div>
           ))}
         </div>
@@ -956,7 +961,7 @@ export const DnsSection = ({ dns }) => {
           <div className="twenty-spaces">dns:</div>
           {dns.map((item, index) => (
             <div key={index} className="twenty-spaces">
-              <div className="twenty-spaces">- {item}</div>          
+              <div className="twenty-spaces">- {item}</div>
             </div>
           ))}
         </div>
@@ -973,7 +978,7 @@ export const PcscfSection = ({ 'p-cscf': pcscf }) => {
           <div className="twenty-spaces">p-cscf:</div>
           {pcscf.map((item, index) => (
             <div key={index} className="twenty-spaces">
-              <div className="twenty-spaces">- {item}</div>          
+              <div className="twenty-spaces">- {item}</div>
             </div>
           ))}
         </div>

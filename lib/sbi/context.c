@@ -73,7 +73,7 @@ void ogs_sbi_context_init(OpenAPI_nf_type_e nf_type)
     ogs_uuid_get(&self.uuid);
     ogs_uuid_format(nf_instance_id, &self.uuid);
     if (ogs_global_conf()->parameter.group != 0 && ogs_global_conf()->parameter.node != 0){
-        ogs_uuid_format_custom(nf_instance_id, nf_type, ogs_global_conf()->parameter.group,ogs_global_conf()->parameter.node);        
+        ogs_uuid_format_custom(nf_instance_id, nf_type, ogs_global_conf()->parameter.group,ogs_global_conf()->parameter.node,ogs_global_conf()->parameter.module);        
     }
 
     ogs_sbi_nf_instance_set_id(self.nf_instance, nf_instance_id);
@@ -3328,16 +3328,19 @@ bool ogs_sbi_fqdn_in_vplmn(char *fqdn)
     return false;
 }
 
-void ogs_uuid_format_custom(char *buffer, int nf_type, int group, int node)
+/*group: 组号,默认为1
+  node: 节点号,默认为1
+  module: 模块号，默认为0. 当同一个节点,有多个模块时使用。比如多个UDM进行负载均衡时*/
+void ogs_uuid_format_custom(char *buffer, int nf_type, int group, int node, int module)
 {
     if (ogs_system_uuid_get(&self.uuid) != 0){//获取失败，则使用默认值
-        ogs_snprintf(buffer, OGS_UUID_FORMATTED_LENGTH + 1, "%s-%s-00000000%02d%02d",
-                OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_ToString(nf_type), group, node);
+        ogs_snprintf(buffer, OGS_UUID_FORMATTED_LENGTH + 1, "%s-%s-000000%02d%02d%02d",
+                OGS_SBI_PREFIX_INSTANCE_ID,OpenAPI_nf_type_ToString(nf_type), group, node, module);
     }else{
         const unsigned char *d = self.uuid.data;
         ogs_snprintf(buffer, OGS_UUID_FORMATTED_LENGTH + 1,
-                "%02x%02x%02x%02x-%02x%02x-%02x%02x-%s-00000000%02d%02d",
-                d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], OpenAPI_nf_type_ToString(nf_type), group, node);
+                "%02x%02x%02x%02x-%02x%02x-%02x%02x-%s-000000%02d%02d%02d",
+                d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], OpenAPI_nf_type_ToString(nf_type), group, node, module);
     }
 }
 
@@ -3358,7 +3361,9 @@ void shownf(char *id){
 
 void shownfBriefAll(void){
     ogs_sbi_nf_instance_t *nf_instance = NULL;
+    ogs_sbi_nf_service_t *nf_service = NULL;
     char buf[OGS_ADDRSTRLEN];
+    
     
     printf("\nnf instance Brief All(current %u nf count):\r\n", ogs_list_count(&ogs_sbi_self()->nf_instance_list));
     printf("+--------------------------------------+---------+------------+----------+--------------------+\n\r");
@@ -3367,9 +3372,17 @@ void shownfBriefAll(void){
 
     ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
         char addrInfo[OGS_ADDRSTRLEN] = {0};
-        if (nf_instance->num_of_ipv4 > 0){
-            sprintf(addrInfo,"%s:%d",OGS_ADDR(nf_instance->ipv4[0], buf), OGS_PORT(nf_instance->ipv4[0]));
+        if (nf_instance->num_of_ipv4 > 0){            
+            nf_service = ogs_list_first(&nf_instance->nf_service_list);
+            //通过NFProfile获取NF的ipv4地址中的port默认都是80,显示具有误导性,所以这里取第一个服务的PORT
+            if (nf_service != NULL && nf_service->num_of_addr > 0){
+                sprintf(addrInfo,"%s:%d",OGS_ADDR(nf_instance->ipv4[0], buf), nf_service->addr[0].port);
+            }else{
+                sprintf(addrInfo,"%s:%d",OGS_ADDR(nf_instance->ipv4[0], buf), OGS_PORT(nf_instance->ipv4[0]));
+            }
         }
+
+
         printf("| %-36s | %-7s | %-10s | %-8d | %-18s |\r\n",nf_instance->id, 
         OpenAPI_nf_type_ToString(nf_instance->nf_type),
         OpenAPI_nf_status_ToString(nf_instance->nf_status),

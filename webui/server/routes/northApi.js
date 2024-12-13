@@ -13,10 +13,9 @@ const ue = require('./northApiUe');
 router.use('/wxCm/v1/config', config);
 router.use('/wxCm/v1/software', software);
 router.use('/wxCm/v1/forward/nrf', software);
-
 router.use('/wxCm/v1/license', license);
 router.use('/wxCm/v1/forward/udm', udm);
-router.use('/wxCm/v1/forward/ue', ue);
+router.use('/wxCm/v1/ue', ue);
 
 router.get('/wxCm/v1/ueStatus', (req, res, next) => {
     // 改变请求的 URL 以匹配 software 模块中的路由    

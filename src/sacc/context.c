@@ -114,6 +114,14 @@ int sacc_context_parse_config(void)
                 } else if (!strcmp(sacc_key, "heartbeat_lost")) {
                     const char *v = ogs_yaml_iter_value(&sacc_iter);
                     if (v) self.heartbeatLost = atoi(v);
+                } else if (!strcmp(sacc_key, "device_type")) {
+                    self.deviceType = ogs_yaml_iter_value(&sacc_iter);
+                } else if (!strcmp(sacc_key, "device_name")) {
+                    self.deviceName = ogs_yaml_iter_value(&sacc_iter);
+                } else if (!strcmp(sacc_key, "device_seq")) {
+                    self.deviceSeq = ogs_yaml_iter_value(&sacc_iter);
+                } else if (!strcmp(sacc_key, "version")) {
+                    self.version = ogs_yaml_iter_value(&sacc_iter);
                 } else
                     ogs_warn("unknown key `%s`", sacc_key);
             }
@@ -735,6 +743,9 @@ int sacc_initialize_nodes(void) {
         //ogs_info("node handshake uri:%s,heartbeat uri:%s", g_sacc_nodes[n].uri,g_sacc_nodes[n].heartbeat_uri);
     }
 
+    self.t_hand_shake_interval = ogs_timer_add(ogs_app()->timer_mgr,sacc_timer_node_handshake_timer_expire, NULL);
+	ogs_timer_start(self.t_hand_shake_interval, ogs_time_from_sec(self.heartbeatInterval));
+
     return OGS_OK;
 }
 
@@ -781,7 +792,7 @@ void sacc_sbi_context_init_for_udm(sacc_node_t *peer)
     char nf_name[10];    
     ogs_uuid_t uuid;
 
-    ogs_uuid_format_custom(nf_instance_id, OpenAPI_nf_type_UDM, peer->group,peer->node);        
+    ogs_uuid_format_custom(nf_instance_id, OpenAPI_nf_type_UDM, peer->group,peer->node, 0);        
 
     nf_instance = ogs_sbi_nf_instance_find((char*)nf_instance_id);
     if (!nf_instance) {
@@ -851,7 +862,7 @@ void sacc_sbi_context_init_for_ausf(sacc_node_t *peer){
     char nf_name[10];
     int i;
 
-    ogs_uuid_format_custom(nf_instance_id, OpenAPI_nf_type_AUSF, peer->group,peer->node);  
+    ogs_uuid_format_custom(nf_instance_id, OpenAPI_nf_type_AUSF, peer->group,peer->node, 0);  
 
 	nf_instance = ogs_sbi_nf_instance_find((char*)nf_instance_id);
     if (!nf_instance) {
@@ -901,7 +912,7 @@ void sacc_sbi_context_init_for_smf(sacc_node_t *peer){
 
 	char nf_instance_id[OGS_UUID_FORMATTED_LENGTH + 1];
     char nf_name[10];
-    ogs_uuid_format_custom(nf_instance_id, OpenAPI_nf_type_SMF, peer->group,peer->node);
+    ogs_uuid_format_custom(nf_instance_id, OpenAPI_nf_type_SMF, peer->group,peer->node, 0);
 
 	nf_instance = ogs_sbi_nf_instance_find((char*)nf_instance_id);
     if (!nf_instance) {
@@ -956,7 +967,7 @@ void sacc_sbi_context_init_for_amf(sacc_node_t *peer){
     char nf_name[10];
     int i;
 
-    ogs_uuid_format_custom(nf_instance_id, OpenAPI_nf_type_AMF, peer->group,peer->node);
+    ogs_uuid_format_custom(nf_instance_id, OpenAPI_nf_type_AMF, peer->group,peer->node, 0);
 
     nf_instance = ogs_sbi_nf_instance_find((char*)nf_instance_id);
     if (!nf_instance) {

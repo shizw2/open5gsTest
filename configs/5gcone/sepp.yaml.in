@@ -12,10 +12,10 @@ sepp:
   default:
     tls:
       server:
-        private_key: /home/test/install/etc/5gc/tls/sepp1.key
-        cert: /home/test/install/etc/5gc/tls/sepp1.crt
+        private_key: @sysconfdir@/5gc/tls/sepp1.key
+        cert: @sysconfdir@/5gc/tls/sepp1.crt
       client:
-        cacert: /home/test/install/etc/5gc/tls/ca.crt
+        cacert: @sysconfdir@/5gc/tls/ca.crt
   sbi:
     server:
       - address: 127.0.1.250

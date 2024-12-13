@@ -12,22 +12,22 @@ global:
       capacity: 100
   cli:
     server:
-      - address: 127.0.0.22
-        port: 2300
+      - address: 127.0.0.5
+        port: 2301
 
 eir:
   sbi:
     server:
-      - address: 127.0.0.18
-        port: 8901
+      - address: 127.0.0.5
+        port: 8301
     client:
       nrf:
-        - uri: http://127.0.0.18:8600
+        - uri: http://127.0.0.5:8600
 #      scp:
 #        - uri: http://127.0.0.200:7777
   metrics:
     server:
-      - address: 127.0.0.18
-        port: 9086
+      - address: 127.0.0.5
+        port: 9301
 
 _nf: eir
