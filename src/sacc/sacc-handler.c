@@ -47,7 +47,7 @@ void sacc_scan(void) {
         }
 
         g_sacc_nodes[n].heartbeatLost++;
-        if (g_sacc_nodes[n].heartbeatLost >MAC_HEARTBEAT_LOST_CNT){
+        if (g_sacc_nodes[n].heartbeatLost >MAC_HEARTBEAT_LOST_CNT*(1+2+4)){
             if ( g_sacc_nodes[n].state != SACC_PEER_STATE_OFFLINE){
                 ogs_info("node %d is offline",n);
                 g_sacc_nodes[n].state = SACC_PEER_STATE_OFFLINE;
@@ -73,61 +73,73 @@ void sacc_scan(void) {
             }
         }
        
-        ogs_info("node %d send sacc handshake to node %d.",sacc_self()->node, g_sacc_nodes[n].node);
-        sacc_send_request(SACC_MSG_TYPE_HANDSHAKE , &g_sacc_nodes[n]); 
+        //ogs_info("node %d send sacc handshake to node %d.",sacc_self()->node, g_sacc_nodes[n].node);
+        //sacc_send_request(SACC_MSG_TYPE_HANDSHAKE , &g_sacc_nodes[n]); 
+        // 检查是否需要发送握手
+        // 未断链或断链次数小于5次，正常发送握手
+        // 断链5次的节点，在计数器%2=0的时候再发送握手，即变为10秒一次
+        // 断链10次的节点，在计数器%4=0的时候发送握手，即变为20秒一次
+        if (g_sacc_nodes[n].heartbeatLost <= MAC_HEARTBEAT_LOST_CNT ||
+            (g_sacc_nodes[n].heartbeatLost > MAC_HEARTBEAT_LOST_CNT && 
+             (g_sacc_nodes[n].heartbeatLost % 2 == 0 && g_sacc_nodes[n].heartbeatLost <= (MAC_HEARTBEAT_LOST_CNT * 2))) ||
+            (g_sacc_nodes[n].heartbeatLost > (MAC_HEARTBEAT_LOST_CNT * 2) && 
+             g_sacc_nodes[n].heartbeatLost % 4 == 0)) {
+            ogs_info("Node %d send SACC handshake to node %d(heartbeatLost:%d).", sacc_self()->node, g_sacc_nodes[n].node,g_sacc_nodes[n].heartbeatLost);
+            sacc_send_request(SACC_MSG_TYPE_HANDSHAKE, &g_sacc_nodes[n]);
+        }
     }
 }
 
-void sacc_heartbeat(void) {
-    int n;
-    ogs_sbi_nf_instance_t *nf_instance;
+// void sacc_heartbeat(void) {
+//     int n;
+//     ogs_sbi_nf_instance_t *nf_instance;
     
-    if (!sacc_self()->enable) {
-        ogs_info("sacc heartbeat is disabled.");
-        return;
-    }
+//     if (!sacc_self()->enable) {
+//         ogs_info("sacc heartbeat is disabled.");
+//         return;
+//     }
 
-    //ogs_info("sacc sending heartbeats...");
+//     //ogs_info("sacc sending heartbeats...");
     
-    for (n = 1; n <= sacc_self()->nodeNum && n < MAX_PEER_NUM; n++){
-        if (g_sacc_nodes[n].state != SACC_PEER_STATE_ONLINE){//对激活的进行心跳
-            continue;
-        }
+//     for (n = 1; n <= sacc_self()->nodeNum && n < MAX_PEER_NUM; n++){
+//         if (g_sacc_nodes[n].state != SACC_PEER_STATE_ONLINE){//对激活的进行心跳
+//             continue;
+//         }
 
-        if (n == sacc_self()->node){//跳过本节点
-            continue;
-        }
+//         if (n == sacc_self()->node){//跳过本节点
+//             continue;
+//         }
 
-        ogs_info("node %d send sacc heartbeat to node %d.",sacc_self()->node, g_sacc_nodes[n].node);
-        g_sacc_nodes[n].heartbeatLost++;
-        if (g_sacc_nodes[n].heartbeatLost >MAC_HEARTBEAT_LOST_CNT){
-            if ( g_sacc_nodes[n].state != SACC_PEER_STATE_OFFLINE){
-                ogs_info("node %d is offline",n);
-                g_sacc_nodes[n].state = SACC_PEER_STATE_OFFLINE;
-                if (g_sacc_nodes[n].smf_nf_instance){
-                    ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].smf_nf_instance->nf_type),g_sacc_nodes[n].smf_nf_instance->id);
-                    sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].smf_nf_instance);
-                }
+//         ogs_info("node %d send sacc heartbeat to node %d.",sacc_self()->node, g_sacc_nodes[n].node);
+//         g_sacc_nodes[n].heartbeatLost++;
+//         if (g_sacc_nodes[n].heartbeatLost >MAC_HEARTBEAT_LOST_CNT*(1+2+4)){
+//             if ( g_sacc_nodes[n].state != SACC_PEER_STATE_OFFLINE){
+//                 ogs_info("node %d is offline",n);
+//                 g_sacc_nodes[n].state = SACC_PEER_STATE_OFFLINE;
+//                 if (g_sacc_nodes[n].smf_nf_instance){
+//                     ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].smf_nf_instance->nf_type),g_sacc_nodes[n].smf_nf_instance->id);
+//                     sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].smf_nf_instance);
+//                 }
 
-                if (g_sacc_nodes[n].ausf_nf_instance){
-                    ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].ausf_nf_instance->nf_type),g_sacc_nodes[n].ausf_nf_instance->id);
-                    sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].ausf_nf_instance);
-                }
+//                 if (g_sacc_nodes[n].ausf_nf_instance){
+//                     ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].ausf_nf_instance->nf_type),g_sacc_nodes[n].ausf_nf_instance->id);
+//                     sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].ausf_nf_instance);
+//                 }
 
-                if (g_sacc_nodes[n].udm_nf_instance){
-                    ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].udm_nf_instance->nf_type),g_sacc_nodes[n].udm_nf_instance->id);
-                    sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].udm_nf_instance);
-                }
+//                 if (g_sacc_nodes[n].udm_nf_instance){
+//                     ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].udm_nf_instance->nf_type),g_sacc_nodes[n].udm_nf_instance->id);
+//                     sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].udm_nf_instance);
+//                 }
 
-                if (g_sacc_nodes[n].amf_nf_instance){
-                    ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].amf_nf_instance->nf_type),g_sacc_nodes[n].amf_nf_instance->id);
-                    sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].amf_nf_instance);
-                }                
-            }
-        }
-        sacc_send_request(SACC_MSG_TYPE_HEARDBEAT , &g_sacc_nodes[n]); 
-    }
-}
+//                 if (g_sacc_nodes[n].amf_nf_instance){
+//                     ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].amf_nf_instance->nf_type),g_sacc_nodes[n].amf_nf_instance->id);
+//                     sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].amf_nf_instance);
+//                 }                
+//             }
+//         }
+//         sacc_send_request(SACC_MSG_TYPE_HEARDBEAT , &g_sacc_nodes[n]);
+//     }
+// }
 
 
 ogs_sbi_request_t *sacc_build_request(int msg_type,
@@ -296,7 +308,7 @@ bool sacc_handle_response(int msg_type, ogs_sbi_message_t *recvmsg)
         } else if (strcmp(recv_msg_Data->nfInstanceIds[i].nf_type, "AUSF") == 0) {
             ogs_sbi_nf_instance_set_id(g_sacc_nodes[node].ausf_nf_instance, recv_msg_Data->nfInstanceIds[i].id);
         }
-    }
+    }   
 
     if (g_sacc_nodes[node].state == SACC_PEER_STATE_OFFLINE){
         g_sacc_nodes[node].state = SACC_PEER_STATE_ONLINE;       
@@ -312,7 +324,17 @@ bool sacc_handle_response(int msg_type, ogs_sbi_message_t *recvmsg)
     }
 
     
-    g_sacc_nodes[node].heartbeatLost = 0;//重置心跳丢失计数
+    //g_sacc_nodes[node].heartbeatLost = 0;//重置心跳丢失计数
+    // 收到响应后，增加成功响应计数器
+    //g_sacc_nodes[node].successful_responses++;
+
+    // 减少握手周期
+    if (g_sacc_nodes[node].heartbeatLost >= (MAC_HEARTBEAT_LOST_CNT * 2)) {
+        // 从20秒调整为10秒
+        g_sacc_nodes[node].heartbeatLost = MAC_HEARTBEAT_LOST_CNT;
+    } else {
+        g_sacc_nodes[node].heartbeatLost = 0;
+    }
     return true;
 }
 

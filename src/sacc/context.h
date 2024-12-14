@@ -88,7 +88,8 @@ typedef struct sacc_node_s {
     char deviceId[64];
     char role[16];
     int heartbeatLost;
-
+    int successful_responses;
+    
     ogs_sockaddr_t *addr;    
     char *uri;
     char *heartbeat_uri;
