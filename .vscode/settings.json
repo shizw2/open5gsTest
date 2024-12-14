@@ -125,6 +125,13 @@
         "memory_resource": "c",
         "udm_info.h": "c",
         "smf_info.h": "c",
-        "license.h": "c"
+        "license.h": "c",
+        "rat_type.h": "c",
+        "stdlib.h": "c",
+        "keyvaluepair.h": "c",
+        "list.h": "c",
+        "sacc-handler.h": "c",
+        "metrics.h": "c",
+        "sacc-sm.h": "c"
     }
 }

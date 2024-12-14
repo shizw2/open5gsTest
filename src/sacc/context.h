@@ -83,12 +83,12 @@ typedef struct sacc_config_s {
 
 typedef struct sacc_node_s {
     int group;
-    int node;    
+    int node;
+    int priority; //优先级，越小越优先
     int state;//是否激活
     char deviceId[64];
     char role[16];
     int heartbeatLost;
-    int successful_responses;
     
     ogs_sockaddr_t *addr;    
     char *uri;

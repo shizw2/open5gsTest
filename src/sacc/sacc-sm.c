@@ -282,7 +282,7 @@ void sacc_state_operational(ogs_fsm_t *s, sacc_event_t *e)
             nf_instance = e->h.sbi.data;
             ogs_assert(nf_instance);
             ogs_assert(OGS_FSM_STATE(&nf_instance->sm));
-
+            ogs_info("test:OGS_EVENT_SBI_TIMER, timer_id:%d, nf_type:%s", e->h.timer_id, OpenAPI_nf_type_ToString(nf_instance->nf_type));
             ogs_fsm_dispatch(&nf_instance->sm, e);
             if (OGS_FSM_CHECK(&nf_instance->sm, ogs_sbi_nf_state_exception))
                 ogs_error("[%s] State machine exception [%d]",

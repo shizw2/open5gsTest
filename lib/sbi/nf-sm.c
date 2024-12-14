@@ -113,6 +113,7 @@ void ogs_sbi_nf_state_will_register(ogs_fsm_t *s, ogs_event_t *e)
 
     nf_instance = e->sbi.data;
     ogs_assert(nf_instance);
+    ogs_info("ogs_sbi_nf_state_will_register, nf id:%s, nf type:%s", nf_instance->id, OpenAPI_nf_type_ToString(nf_instance->nf_type));
     ogs_assert(NF_INSTANCE_TYPE_IS_NRF(nf_instance));
 
     switch (e->id) {
@@ -254,21 +255,23 @@ void ogs_sbi_nf_state_registered(ogs_fsm_t *s, ogs_event_t *e)
 
                 if (message->res_status == OGS_SBI_HTTP_STATUS_NO_CONTENT ||
                     message->res_status == OGS_SBI_HTTP_STATUS_OK||
-                    message->res_status == OGS_SBI_HTTP_STATUS_CREATED) {//sacc注册其他模块时,会收到201
-                    
+                    message->res_status == OGS_SBI_HTTP_STATUS_CREATED) {
+                    //sacc注册其他模块时,会收到201。本模块的注册的201,是在ogs_sbi_nf_state_will_register收到的。
                     if (message->res_status == OGS_SBI_HTTP_STATUS_CREATED) {//sacc注册其他模块时                 
                         if (message->NFProfile){
                             nf_instance->time.heartbeat_interval = message->NFProfile->heart_beat_timer;
                         }
                     }
-                    //ogs_info("test:OGS_EVENT_SBI_CLIENT nf_type:%s, status:%d,nf_instance->time.heartbeat_interval:%d", OpenAPI_nf_type_ToString(nf_instance->nf_type),message->res_status,nf_instance->time.heartbeat_interval);
-                    
-                    if (nf_instance->time.heartbeat_interval)
-                        ogs_timer_start(nf_instance->t_no_heartbeat,
-                            ogs_time_from_sec(
-                                nf_instance->time.heartbeat_interval +
-                                ogs_local_conf()->time.nf_instance.
-                                    no_heartbeat_margin));
+                    //sacc代理注册的其他模块,不在这里启动no_heartbeat定时器。否则一旦sacc断链,会导致本模块的心跳出问题ogs_sbi_nf_state_will_register
+                    if (NF_INSTANCE_TYPE_IS_NRF(nf_instance)){//TODO:不确定加上这个限制会不会有问题。
+                        //ogs_info("test:ogs_sbi_nf_state_registered, res_status:%d, nf id:%s, nf type:%s,heartbeat_interval:%ds", message->res_status, nf_instance->id, OpenAPI_nf_type_ToString(nf_instance->nf_type),nf_instance->time.heartbeat_interval);
+                        if (nf_instance->time.heartbeat_interval)
+                            ogs_timer_start(nf_instance->t_no_heartbeat,
+                                ogs_time_from_sec(
+                                    nf_instance->time.heartbeat_interval +
+                                    ogs_local_conf()->time.nf_instance.
+                                        no_heartbeat_margin));
+                    }
                 } else {
                     ogs_warn("[%s] HTTP response error [%d]",
                             NF_INSTANCE_ID(ogs_sbi_self()->nf_instance),

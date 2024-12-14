@@ -44,9 +44,7 @@ udms:
       server:
         - address: 127.0.0.12
           port: 7777
-      client:
-        nrf:
-          - uri: http://127.0.0.10:7777
+
     info:
       supi:
         - range: 46001-46002
@@ -55,9 +53,7 @@ udms:
       server:
         - address: 127.0.0.32
           port: 7777
-      client:
-        nrf:
-          - uri: http://127.0.0.10:7777
+
     info:
       supi:
         - range: 460070000021309-460070000021309
@@ -66,9 +62,7 @@ udms:
       server:
         - address: 127.0.0.52
           port: 7777
-      client:
-        nrf:
-          - uri: http://127.0.0.20:7777
+
     info:
       supi:
         - range: 46005-46006
@@ -78,34 +72,26 @@ amfs:
       server:
         - address: 127.0.0.5
           port: 7777
-      client:
-        nrf:
-          - uri: http://127.0.0.10:7777
+
   - node: amf_1_2
     sbi:
       server:
         - address: 127.0.0.25
           port: 7777
-      client:
-        nrf:
-          - uri: http://127.0.0.30:7777
+
   - node: amf_1_3
     sbi:
       server:
         - address: 127.0.0.45
           port: 7777
-      client:
-        nrf:
-          - uri: http://127.0.0.50:7777
+
 ausfs:
   - node: ausf_1_1
     sbi:
       server:
         - address: 127.0.0.11
           port: 7777
-      client:
-        nrf:
-          - uri: http://127.0.0.10:7777
+
     info:
       supi:
         - range: 46001-46002
@@ -114,9 +100,7 @@ ausfs:
       server:
         - address: 127.0.0.31
           port: 7777
-      client:
-        nrf:
-          - uri: http://127.0.0.30:7777
+
     info:
       supi:
         - range: 460070000021309-460070000021309
@@ -125,9 +109,7 @@ ausfs:
       server:
         - address: 127.0.0.51
           port: 7777
-      client:
-        nrf:
-          - uri: http://127.0.0.50:7777
+
     info:
       supi:
         - range: 46005-46006
@@ -137,25 +119,25 @@ smfs:
       server:
         - address: 127.0.0.4
           port: 7777
-      client:
-        nrf:
-          - uri: http://127.0.0.10:7777
+    info:
+      static_ip:
+        - range: 10.45.0.2-10.45.0.100
 
   - node: smf_1_2
     sbi:
       server:
         - address: 127.0.0.24
           port: 7777
-      client:
-        nrf:
-          - uri: http://127.0.0.30:7777
+    info:
+      static_ip:
+        - range: 10.45.1.2-10.45.1.100
 
   - node: smf_1_3
     sbi:
       server:
         - address: 127.0.0.44
           port: 7777
-      client:
-        nrf:
-          - uri: http://127.0.0.50:7777
+    info:
+      static_ip:
+        - range: 10.45.2.2-10.45.2.100
 

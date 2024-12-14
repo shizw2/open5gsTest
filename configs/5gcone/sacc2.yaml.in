@@ -132,24 +132,24 @@ smfs:
       server:
         - address: 127.0.0.5
           port: 8200
-      client:
-        nrf:
-          - uri: http://127.0.0.5:8600
+    info:
+      static_ip:
+        - range: 10.45.0.2-10.45.0.254
 
   - node: smf_1_2
     sbi:
       server:
         - address: 127.0.0.6
           port: 8200
-      client:
-        nrf:
-          - uri: http://127.0.0.6:8600
+    info:
+      static_ip:
+        - range: 10.45.1.2-10.45.1.254
 
   - node: smf_1_3
     sbi:
       server:
         - address: 127.0.0.7
           port: 8200
-      client:
-        nrf:
-          - uri: http://127.0.0.7:8600
+    info:
+      static_ip:
+        - range: 10.45.2.2-10.45.2.254

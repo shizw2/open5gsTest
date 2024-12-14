@@ -84,63 +84,11 @@ void sacc_scan(void) {
              (g_sacc_nodes[n].heartbeatLost % 2 == 0 && g_sacc_nodes[n].heartbeatLost <= (MAC_HEARTBEAT_LOST_CNT * 2))) ||
             (g_sacc_nodes[n].heartbeatLost > (MAC_HEARTBEAT_LOST_CNT * 2) && 
              g_sacc_nodes[n].heartbeatLost % 4 == 0)) {
-            ogs_info("Node %d send SACC handshake to node %d(heartbeatLost:%d).", sacc_self()->node, g_sacc_nodes[n].node,g_sacc_nodes[n].heartbeatLost);
+            ogs_info("Node %d send sacc handshake to node %d(heartbeatLost:%d).", sacc_self()->node, g_sacc_nodes[n].node,g_sacc_nodes[n].heartbeatLost);
             sacc_send_request(SACC_MSG_TYPE_HANDSHAKE, &g_sacc_nodes[n]);
         }
     }
 }
-
-// void sacc_heartbeat(void) {
-//     int n;
-//     ogs_sbi_nf_instance_t *nf_instance;
-    
-//     if (!sacc_self()->enable) {
-//         ogs_info("sacc heartbeat is disabled.");
-//         return;
-//     }
-
-//     //ogs_info("sacc sending heartbeats...");
-    
-//     for (n = 1; n <= sacc_self()->nodeNum && n < MAX_PEER_NUM; n++){
-//         if (g_sacc_nodes[n].state != SACC_PEER_STATE_ONLINE){//对激活的进行心跳
-//             continue;
-//         }
-
-//         if (n == sacc_self()->node){//跳过本节点
-//             continue;
-//         }
-
-//         ogs_info("node %d send sacc heartbeat to node %d.",sacc_self()->node, g_sacc_nodes[n].node);
-//         g_sacc_nodes[n].heartbeatLost++;
-//         if (g_sacc_nodes[n].heartbeatLost >MAC_HEARTBEAT_LOST_CNT*(1+2+4)){
-//             if ( g_sacc_nodes[n].state != SACC_PEER_STATE_OFFLINE){
-//                 ogs_info("node %d is offline",n);
-//                 g_sacc_nodes[n].state = SACC_PEER_STATE_OFFLINE;
-//                 if (g_sacc_nodes[n].smf_nf_instance){
-//                     ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].smf_nf_instance->nf_type),g_sacc_nodes[n].smf_nf_instance->id);
-//                     sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].smf_nf_instance);
-//                 }
-
-//                 if (g_sacc_nodes[n].ausf_nf_instance){
-//                     ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].ausf_nf_instance->nf_type),g_sacc_nodes[n].ausf_nf_instance->id);
-//                     sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].ausf_nf_instance);
-//                 }
-
-//                 if (g_sacc_nodes[n].udm_nf_instance){
-//                     ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].udm_nf_instance->nf_type),g_sacc_nodes[n].udm_nf_instance->id);
-//                     sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].udm_nf_instance);
-//                 }
-
-//                 if (g_sacc_nodes[n].amf_nf_instance){
-//                     ogs_info("send de-register %s[%s] to nrf.", OpenAPI_nf_type_ToString(g_sacc_nodes[n].amf_nf_instance->nf_type),g_sacc_nodes[n].amf_nf_instance->id);
-//                     sacc_nnrf_nfm_send_nf_de_register(g_sacc_nodes[n].amf_nf_instance);
-//                 }                
-//             }
-//         }
-//         sacc_send_request(SACC_MSG_TYPE_HEARDBEAT , &g_sacc_nodes[n]);
-//     }
-// }
-
 
 ogs_sbi_request_t *sacc_build_request(int msg_type,
         sacc_node_t *peer, void *data)
@@ -233,7 +181,7 @@ bool sacc_handle_request(int msg_type, ogs_sbi_stream_t *stream, ogs_sbi_message
     }
 
     //g_sacc_nodes[node].state = SACC_PEER_STATE_ONLINE; //收到对端请求,并不需要修改状态
-    g_sacc_nodes[node].heartbeatLost = 0;//重置心跳丢失计数
+    //g_sacc_nodes[node].heartbeatLost = 0;//重置心跳丢失计数
 
     snprintf(msg_data.deviceId, sizeof(msg_data.deviceId), "%s", g_sacc_nodes[sacc_self()->node].deviceId);
     snprintf(msg_data.group, sizeof(msg_data.group), "%d", sacc_self()->group);
@@ -248,14 +196,13 @@ bool sacc_handle_request(int msg_type, ogs_sbi_stream_t *stream, ogs_sbi_message
     snprintf(msg_data.nfInstanceIds[nf_num].nf_type, sizeof(msg_data.nfInstanceIds[0].nf_type), "%s", OpenAPI_nf_type_ToString(g_sacc_nodes[sacc_self()->node].smf_nf_instance->nf_type));
     snprintf(msg_data.nfInstanceIds[nf_num++].id, sizeof(msg_data.nfInstanceIds[0]), "%s", g_sacc_nodes[sacc_self()->node].smf_nf_instance->id);
 
-    snprintf(msg_data.nfInstanceIds[nf_num].nf_type, sizeof(msg_data.nfInstanceIds[0].nf_type), "%s", OpenAPI_nf_type_ToString(g_sacc_nodes[sacc_self()->node].udm_nf_instance->nf_type));
-    snprintf(msg_data.nfInstanceIds[nf_num++].id, sizeof(msg_data.nfInstanceIds[0]), "%s", g_sacc_nodes[sacc_self()->node].udm_nf_instance->id);
+    // snprintf(msg_data.nfInstanceIds[nf_num].nf_type, sizeof(msg_data.nfInstanceIds[0].nf_type), "%s", OpenAPI_nf_type_ToString(g_sacc_nodes[sacc_self()->node].udm_nf_instance->nf_type));
+    // snprintf(msg_data.nfInstanceIds[nf_num++].id, sizeof(msg_data.nfInstanceIds[0]), "%s", g_sacc_nodes[sacc_self()->node].udm_nf_instance->id);
 
-    snprintf(msg_data.nfInstanceIds[nf_num].nf_type, sizeof(msg_data.nfInstanceIds[0].nf_type), "%s", OpenAPI_nf_type_ToString(g_sacc_nodes[sacc_self()->node].ausf_nf_instance->nf_type));
-    snprintf(msg_data.nfInstanceIds[nf_num++].id, sizeof(msg_data.nfInstanceIds[0]), "%s", g_sacc_nodes[sacc_self()->node].ausf_nf_instance->id);
+    // snprintf(msg_data.nfInstanceIds[nf_num].nf_type, sizeof(msg_data.nfInstanceIds[0].nf_type), "%s", OpenAPI_nf_type_ToString(g_sacc_nodes[sacc_self()->node].ausf_nf_instance->nf_type));
+    // snprintf(msg_data.nfInstanceIds[nf_num++].id, sizeof(msg_data.nfInstanceIds[0]), "%s", g_sacc_nodes[sacc_self()->node].ausf_nf_instance->id);
 
     msg_data.nfNum = nf_num;
-    ogs_info("nf_num:%d, nfsize:%ld.",nf_num,sizeof(msg_data.nfInstanceIds[0]));
     sendmsg.sacc_msg_Data = &msg_data;
     sendmsg.http.location = recvmsg->h.uri;
 
@@ -303,42 +250,37 @@ bool sacc_handle_response(int msg_type, ogs_sbi_message_t *recvmsg)
             ogs_sbi_nf_instance_set_id(g_sacc_nodes[node].amf_nf_instance, recv_msg_Data->nfInstanceIds[i].id);
         } else if (strcmp(recv_msg_Data->nfInstanceIds[i].nf_type, "SMF") == 0) {
             ogs_sbi_nf_instance_set_id(g_sacc_nodes[node].smf_nf_instance, recv_msg_Data->nfInstanceIds[i].id);
-        } else if (strcmp(recv_msg_Data->nfInstanceIds[i].nf_type, "UDM") == 0) {
-            ogs_sbi_nf_instance_set_id(g_sacc_nodes[node].udm_nf_instance, recv_msg_Data->nfInstanceIds[i].id);
-        } else if (strcmp(recv_msg_Data->nfInstanceIds[i].nf_type, "AUSF") == 0) {
-            ogs_sbi_nf_instance_set_id(g_sacc_nodes[node].ausf_nf_instance, recv_msg_Data->nfInstanceIds[i].id);
-        }
+        }// } else if (strcmp(recv_msg_Data->nfInstanceIds[i].nf_type, "UDM") == 0) {
+        //     ogs_sbi_nf_instance_set_id(g_sacc_nodes[node].udm_nf_instance, recv_msg_Data->nfInstanceIds[i].id);
+        // } else if (strcmp(recv_msg_Data->nfInstanceIds[i].nf_type, "AUSF") == 0) {
+        //     ogs_sbi_nf_instance_set_id(g_sacc_nodes[node].ausf_nf_instance, recv_msg_Data->nfInstanceIds[i].id);
+        // }
     }   
 
     if (g_sacc_nodes[node].state == SACC_PEER_STATE_OFFLINE){
-        g_sacc_nodes[node].state = SACC_PEER_STATE_ONLINE;       
-        sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[node].udm_nf_instance);
-        sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[node].ausf_nf_instance);
+        g_sacc_nodes[node].state = SACC_PEER_STATE_ONLINE;
+        //sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[node].udm_nf_instance);
+        //sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[node].ausf_nf_instance);
         sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[node].smf_nf_instance);
         sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[node].amf_nf_instance);
     }else{
-        sacc_nnrf_nfm_send_nf_update(g_sacc_nodes[node].udm_nf_instance);
-        sacc_nnrf_nfm_send_nf_update(g_sacc_nodes[node].ausf_nf_instance);
+        //sacc_nnrf_nfm_send_nf_update(g_sacc_nodes[node].udm_nf_instance);
+        //sacc_nnrf_nfm_send_nf_update(g_sacc_nodes[node].ausf_nf_instance);
         sacc_nnrf_nfm_send_nf_update(g_sacc_nodes[node].smf_nf_instance);
         sacc_nnrf_nfm_send_nf_update(g_sacc_nodes[node].amf_nf_instance);
     }
 
-    
-    //g_sacc_nodes[node].heartbeatLost = 0;//重置心跳丢失计数
-    // 收到响应后，增加成功响应计数器
-    //g_sacc_nodes[node].successful_responses++;
-
-    // 减少握手周期
+    // 减少握手周期. 内部实现,不需要按方案中连续三次应答再调整周期，那会复杂很多
     if (g_sacc_nodes[node].heartbeatLost >= (MAC_HEARTBEAT_LOST_CNT * 2)) {
         // 从20秒调整为10秒
         g_sacc_nodes[node].heartbeatLost = MAC_HEARTBEAT_LOST_CNT;
-    } else {
+    } else {// 从10秒调整为5秒
         g_sacc_nodes[node].heartbeatLost = 0;
     }
     return true;
 }
 
-//ogs_nnrf_nfm_send_nf_register
+//参考ogs_nnrf_nfm_send_nf_register
 bool sacc_nnrf_nfm_send_nf_register(ogs_sbi_nf_instance_t *nf_instance)
 {
     bool rc;

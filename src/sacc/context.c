@@ -528,6 +528,7 @@ int sacc_sbi_context_get_nf_info(
                         do {
                             ogs_sbi_nf_info_t *nf_info = NULL;                        
                             ogs_supi_range_t *supiRanges = NULL;
+                            ogs_ip_range_t *staticIPRanges = NULL;
                             if (ogs_yaml_iter_type(&info_array) ==
                                     YAML_MAPPING_NODE) {
                                 memcpy(&info_iter, &info_array,
@@ -545,12 +546,12 @@ int sacc_sbi_context_get_nf_info(
 
                             nf_info = ogs_sbi_nf_info_find(
                                         &nf_instance->nf_info_list,
-                                            nf_instance->nf_type/*OpenAPI_nf_type_5G_EIR*/);
+                                            nf_instance->nf_type);
                             
                             if (nf_info == NULL){
                                 nf_info = ogs_sbi_nf_info_add(
                                         &nf_instance->nf_info_list,
-                                            nf_instance->nf_type/*OpenAPI_nf_type_5G_EIR*/);
+                                            nf_instance->nf_type);
                             }
                             ogs_assert(nf_info);
                             
@@ -563,6 +564,7 @@ int sacc_sbi_context_get_nf_info(
                                     break;    
                                 case OpenAPI_nf_type_SMF:
                                     supiRanges = &nf_info->smf.supiRanges;
+                                    staticIPRanges = &nf_info->smf.staticIPRanges;
                                     break;
                                 default:
                                     break;
@@ -575,8 +577,10 @@ int sacc_sbi_context_get_nf_info(
                                     ogs_yaml_iter_key(&info_iter);
                                 ogs_assert(info_key);
                                 if (!strcmp(info_key, "supi")) {
-                                    ogs_sbi_context_parse_supi_ranges(&info_iter, supiRanges);
-                                } else
+                                    is_nfinfo_changed = ogs_sbi_context_parse_supi_ranges(&info_iter, supiRanges);
+                                } else if (!strcmp(info_key, "static_ip")) {
+                                    is_nfinfo_changed = ogs_sbi_context_parse_ip_ranges(&info_iter, staticIPRanges); 
+                                }else
                                     ogs_warn("unknown key `%s`", info_key);
                             }
 
@@ -716,8 +720,8 @@ int sacc_initialize_nodes(void) {
             g_sacc_nodes[n].state = SACC_PEER_STATE_OFFLINE;
         }
 
-        sacc_sbi_context_init_for_udm(&g_sacc_nodes[n]);
-        sacc_sbi_context_init_for_ausf(&g_sacc_nodes[n]);
+        //sacc_sbi_context_init_for_udm(&g_sacc_nodes[n]);
+        //sacc_sbi_context_init_for_ausf(&g_sacc_nodes[n]);
         sacc_sbi_context_init_for_smf(&g_sacc_nodes[n]);
         sacc_sbi_context_init_for_amf(&g_sacc_nodes[n]);
 
@@ -727,9 +731,9 @@ int sacc_initialize_nodes(void) {
         // ogs_info("sacc node %d addr:%s, port:%d",n, OGS_ADDR(g_sacc_nodes[n].addr,buf),OGS_PORT(g_sacc_nodes[n].addr));
         // sacc_associate_peer_client(&g_sacc_nodes[n]);
 
-        if (g_sacc_nodes[n].udm_nf_instance->num_of_ipv4 > 0){
-            g_sacc_nodes[n].addr = g_sacc_nodes[n].udm_nf_instance->ipv4[0];
-            g_sacc_nodes[n].addr->ogs_sin_port = server->node.addr->ogs_sin_port;
+        if (g_sacc_nodes[n].amf_nf_instance->num_of_ipv4 > 0){//从amf、smf中任意取一个即可
+            g_sacc_nodes[n].addr = g_sacc_nodes[n].amf_nf_instance->ipv4[0];
+            g_sacc_nodes[n].addr->ogs_sin_port = server->node.addr->ogs_sin_port;//端口取默认的sacc端口2333
             ogs_info("sacc node %d addr:%s, port:%d",n, OGS_ADDR(g_sacc_nodes[n].addr,buf),OGS_PORT(g_sacc_nodes[n].addr));
             sacc_associate_peer_client(&g_sacc_nodes[n]);
         }else{

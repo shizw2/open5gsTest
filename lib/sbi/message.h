@@ -559,10 +559,11 @@ typedef struct sacc_msg_data_s {
     char node[NODE_LEN];           // 本端设备节点号
     char serviceIp[SERVICE_IP_LEN]; // 本端业务地址
     char inheriteEnable[GROUP_LEN]; // 打开继承功能
+    int nfNum;
+    sacc_nf_instance_id_t nfInstanceIds[MAX_NF_INSTANCES]; // 指向NF实例ID的指针
     int temporaryServiceNum;       // 临时服务数量
     sacc_temporary_service_t temporaryServices[MAX_TEMPORARY_SERVICES]; // 临时服务设备信息数组
-    int nfNum;                     // NF实例数量
-    sacc_nf_instance_id_t nfInstanceIds[MAX_NF_INSTANCES]; // 指向NF实例ID的指针
+                       // NF实例数量
     char result[16];
 } sacc_msg_data_t;
 
