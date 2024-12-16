@@ -95,6 +95,14 @@ typedef struct sacc_node_s {
     char *heartbeat_uri;
     ogs_sbi_client_t *client;
 
+    int num_of_ipv4;
+    ogs_sockaddr_t *ipv4[OGS_SBI_MAX_NUM_OF_IP_ADDRESS];
+    int num_of_ipv6;
+    ogs_sockaddr_t *ipv6[OGS_SBI_MAX_NUM_OF_IP_ADDRESS];    
+
+    ogs_supi_range_t supiRanges;
+    ogs_ip_range_t staticIPRanges;
+
     ogs_sbi_nf_instance_t *amf_nf_instance;
     ogs_sbi_nf_instance_t *smf_nf_instance;
     ogs_sbi_nf_instance_t *udm_nf_instance;
@@ -108,7 +116,10 @@ sacc_context_t *sacc_self(void);
 int sacc_context_parse_config(void);
 int sacc_sbi_context_get_nf_info(
         const char *local, const char * nf_name, const char *nrf, const char *scp, sacc_node_t *sacc_nodes);
-
+int sacc_sbi_context_get_nf_info2(
+        OpenAPI_nf_type_e nf_type, sacc_node_t *sacc_nodes);
+int sacc_context_get_nodes_info(
+        const char *local, sacc_node_t *sacc_nodes);
 char* sacc_msg_ToString(int msg_type);
 char * sacc_node_state_ToString(int state);
 int sacc_initialize_nodes(void);

@@ -669,6 +669,350 @@ int sacc_sbi_context_get_nf_info(
     return OGS_OK;
 }
 
+int sacc_sbi_context_get_nf_info2(
+        OpenAPI_nf_type_e nf_type, sacc_node_t *sacc_nodes)
+{
+    int rv;
+    ogs_sbi_nf_info_t *nf_info = NULL;                        
+    ogs_supi_range_t *supiRanges = NULL;
+    ogs_ip_range_t *staticIPRanges = NULL;
+    int i;
+
+    ogs_sbi_nf_instance_t *nf_instance = NULL;
+
+    switch (nf_type){
+        case OpenAPI_nf_type_UDM:
+            nf_instance = sacc_nodes->udm_nf_instance;
+            break;
+        case OpenAPI_nf_type_AUSF:
+            nf_instance = sacc_nodes->ausf_nf_instance;
+            break;    
+        case OpenAPI_nf_type_SMF:
+            nf_instance = sacc_nodes->smf_nf_instance;
+            break;
+        case OpenAPI_nf_type_AMF:
+            nf_instance = sacc_nodes->amf_nf_instance;
+            break; 
+        default:
+            ogs_error("unknown local node type:%d", nf_type);
+            return OGS_ERROR;;
+    }
+
+    ogs_assert(nf_instance);
+
+    for (i = 0; i < sacc_nodes->num_of_ipv4; i++){
+        //nf_instance->ipv4[i] = sacc_nodes->ipv4[i];
+        ogs_copyaddrinfo(&nf_instance->ipv4[i], sacc_nodes->ipv4[i]);
+    }
+    nf_instance->num_of_ipv4 = sacc_nodes->num_of_ipv4;
+
+    nf_info = ogs_sbi_nf_info_find(
+                &nf_instance->nf_info_list,
+                    nf_instance->nf_type);
+    
+    if (nf_info == NULL){
+        nf_info = ogs_sbi_nf_info_add(
+                &nf_instance->nf_info_list,
+                    nf_instance->nf_type);
+    }
+    ogs_assert(nf_info);
+    
+    switch (nf_instance->nf_type){
+        case OpenAPI_nf_type_UDM:
+            nf_info->udm.supiRanges = sacc_nodes->supiRanges;
+            break;
+        case OpenAPI_nf_type_AUSF:
+            nf_info->ausf.supiRanges = sacc_nodes->supiRanges;
+            break;    
+        case OpenAPI_nf_type_SMF:
+            nf_info->smf.supiRanges = sacc_nodes->supiRanges;
+            nf_info->smf.staticIPRanges = sacc_nodes->staticIPRanges;
+            break;
+        default:
+            break;
+    }
+
+    return OGS_OK;
+}
+
+int sacc_context_get_nodes_info(
+        const char *local, sacc_node_t *sacc_nodes)
+{
+    int rv;
+    yaml_document_t *document = NULL;
+    ogs_yaml_iter_t root_iter;
+
+    document = ogs_app()->document;
+    ogs_assert(document);
+
+    ogs_yaml_iter_init(&root_iter, document);
+    while (ogs_yaml_iter_next(&root_iter)) {
+        const char *root_key = ogs_yaml_iter_key(&root_iter);
+        ogs_assert(root_key);
+        if (local && !strcmp(root_key, local)) {
+            //ogs_yaml_iter_t local_iter;
+            //ogs_yaml_iter_recurse(&root_iter, &local_iter);
+            int i;
+            ogs_yaml_iter_t node_array, node_iter;
+            ogs_yaml_iter_recurse(&root_iter, &node_array);
+
+            do {             
+
+                if (ogs_yaml_iter_type(&node_array) ==
+                        YAML_MAPPING_NODE) {
+                    memcpy(&node_iter, &node_array,
+                            sizeof(ogs_yaml_iter_t));
+                } else if (ogs_yaml_iter_type(&node_array) ==
+                            YAML_SEQUENCE_NODE) {
+                    if (!ogs_yaml_iter_next(&node_array))
+                        break;
+                    ogs_yaml_iter_recurse(&node_array, &node_iter);
+                } else if (ogs_yaml_iter_type(&node_array) ==
+                            YAML_SCALAR_NODE) {
+                    break;
+                } else
+                    ogs_assert_if_reached();
+
+
+                while (ogs_yaml_iter_next(&node_iter)) {
+                    const char *node = NULL;
+                    const char *node_key = ogs_yaml_iter_key(&node_iter);
+                    ogs_assert(node_key);
+                    int cur_group = 0;
+                    int cur_node = 0;
+                    if (!strcmp(node_key, "group")) {
+                        const char *v = ogs_yaml_iter_value(&node_iter);                        
+                        if (v) cur_group = atoi(v);
+                        
+                        if (cur_group  != self.group){
+                            continue;
+                        }
+                    } if (!strcmp(node_key, "node")) {
+                        const char *v = ogs_yaml_iter_value(&node_iter);                        
+                        if (v) cur_node = atoi(v);
+                        if (cur_node > self.nodeNum){
+                            continue;
+                        }
+                        sacc_nodes[cur_node].node = cur_node;
+                        
+                    } else if (!strcmp(node_key, "sbi")) {
+                        ogs_yaml_iter_t sbi_iter;
+                        ogs_yaml_iter_recurse(&node_iter, &sbi_iter);
+                        while (ogs_yaml_iter_next(&sbi_iter)) {
+                            const char *sbi_key = ogs_yaml_iter_key(&sbi_iter);
+                            ogs_assert(sbi_key);
+                            if (!strcmp(sbi_key, "server")) {
+                                //rv = ogs_sbi_context_parse_server_config(
+                                //        &sbi_iter, NULL);
+                                int rv;
+                                ogs_sbi_server_t *server = NULL;
+                                OpenAPI_uri_scheme_e scheme = OpenAPI_uri_scheme_NULL;                            
+
+                                ogs_yaml_iter_t server_iter, server_array;
+                                ogs_yaml_iter_recurse(&sbi_iter, &server_array);
+                                do {
+                                    int i, family = AF_UNSPEC;
+                                    int num = 0;
+                                    const char *hostname[OGS_MAX_NUM_OF_HOSTNAME];
+                                    int num_of_advertise = 0;
+                                    const char *advertise[OGS_MAX_NUM_OF_HOSTNAME];
+
+                                    uint16_t port = 0;
+                                    const char *dev = NULL;
+                                    ogs_sockaddr_t *addr = NULL;
+
+                                    const char *private_key = NULL, *cert = NULL;
+
+                                    bool verify_client = false;
+                                    const char *verify_client_cacert = NULL;
+
+                                    ogs_sockopt_t option;
+                                    bool is_option = false;
+
+                                    if (ogs_yaml_iter_type(&server_array) == YAML_MAPPING_NODE) {
+                                        memcpy(&server_iter, &server_array, sizeof(ogs_yaml_iter_t));
+                                    } else if (ogs_yaml_iter_type(&server_array) == YAML_SEQUENCE_NODE) {
+                                        if (!ogs_yaml_iter_next(&server_array))
+                                            break;
+                                        ogs_yaml_iter_recurse(&server_array, &server_iter);
+                                    } else if (ogs_yaml_iter_type(&server_array) == YAML_SCALAR_NODE) {
+                                        break;
+                                    } else
+                                        ogs_assert_if_reached();
+
+                                    while (ogs_yaml_iter_next(&server_iter)) {
+                                        const char *server_key = ogs_yaml_iter_key(&server_iter);
+                                        ogs_assert(server_key);
+                                        if (!strcmp(server_key, OGS_SBI_INTERFACE_NAME_N32F)) {
+                                            rv = ogs_sbi_context_parse_server_config(
+                                                    &server_iter, server_key);
+                                            if (rv != OGS_OK) {
+                                                ogs_error("ogs_sbi_context_parse_server_config() "
+                                                        "failed[key:%s]", server_key);
+                                                return rv;
+                                            }
+                                        } else if (!strcmp(server_key, "family")) {
+                                            const char *v = ogs_yaml_iter_value(&server_iter);
+                                            if (v) family = atoi(v);
+                                            if (family != AF_UNSPEC && family != AF_INET &&
+                                                family != AF_INET6) {
+                                                ogs_warn("Ignore family(%d) : AF_UNSPEC(%d), "
+                                                    "AF_INET(%d), AF_INET6(%d) ",
+                                                    family, AF_UNSPEC, AF_INET, AF_INET6);
+                                                family = AF_UNSPEC;
+                                            }
+                                        } else if (!strcmp(server_key, "address")) {
+                                            ogs_yaml_iter_t hostname_iter;
+                                            ogs_yaml_iter_recurse(&server_iter, &hostname_iter);
+                                            ogs_assert(ogs_yaml_iter_type(
+                                                        &hostname_iter) != YAML_MAPPING_NODE);
+
+                                            do {
+                                                if (ogs_yaml_iter_type(
+                                                            &hostname_iter) == YAML_SEQUENCE_NODE) {
+                                                    if (!ogs_yaml_iter_next(&hostname_iter))
+                                                        break;
+                                                }
+
+                                                ogs_assert(num < OGS_MAX_NUM_OF_HOSTNAME);
+                                                hostname[num++] = ogs_yaml_iter_value(&hostname_iter);
+                                            } while (ogs_yaml_iter_type(
+                                                        &hostname_iter) == YAML_SEQUENCE_NODE);
+                                        } else if (!strcmp(server_key, "advertise")) {
+                                            ogs_yaml_iter_t advertise_iter;
+                                            ogs_yaml_iter_recurse(&server_iter, &advertise_iter);
+                                            ogs_assert(ogs_yaml_iter_type(
+                                                        &advertise_iter) != YAML_MAPPING_NODE);
+
+                                            do {
+                                                if (ogs_yaml_iter_type(
+                                                            &advertise_iter) == YAML_SEQUENCE_NODE) {
+                                                    if (!ogs_yaml_iter_next(&advertise_iter))
+                                                        break;
+                                                }
+
+                                                ogs_assert(num_of_advertise < OGS_MAX_NUM_OF_HOSTNAME);
+                                                advertise[num_of_advertise++] =
+                                                    ogs_yaml_iter_value(&advertise_iter);
+                                            } while (ogs_yaml_iter_type(
+                                                        &advertise_iter) == YAML_SEQUENCE_NODE);
+                                        } else if (!strcmp(server_key, "port")) {
+                                            const char *v = ogs_yaml_iter_value(&server_iter);
+                                            if (v)
+                                                port = atoi(v);
+                                        } else if (!strcmp(server_key, "dev")) {
+                                            dev = ogs_yaml_iter_value(&server_iter);
+                                        } else if (!strcmp(server_key, "scheme")) {
+                                            const char *v = ogs_yaml_iter_value(&server_iter);
+                                            if (v) {
+                                                if (!ogs_strcasecmp(v, "https"))
+                                                    scheme = OpenAPI_uri_scheme_https;
+                                                else if (!ogs_strcasecmp(v, "http"))
+                                                    scheme = OpenAPI_uri_scheme_http;
+                                                else
+                                                    ogs_warn("unknown scheme `%s`", v);
+                                            }
+                                        } else if (!strcmp(server_key, "private_key")) {
+                                            private_key = ogs_yaml_iter_value(&server_iter);
+                                        } else if (!strcmp(server_key, "cert")) {
+                                            cert = ogs_yaml_iter_value(&server_iter);
+                                        } else if (!strcmp(server_key, "verify_client")) {
+                                            verify_client = ogs_yaml_iter_bool(&server_iter);
+                                        } else if (!strcmp(server_key, "verify_client_cacert")) {
+                                            verify_client_cacert = ogs_yaml_iter_value(&server_iter);
+                                        } else if (!strcmp(server_key, "option")) {
+                                            rv = ogs_app_parse_sockopt_config(&server_iter, &option);
+                                            if (rv != OGS_OK) {
+                                                ogs_error("ogs_app_parse_sockopt_config() failed");
+                                                return rv;
+                                            }
+                                            is_option = true;
+                                        }
+                                    }
+
+                                    if (scheme == OpenAPI_uri_scheme_NULL)
+                                        scheme = ogs_sbi_self()->tls.server.scheme;
+
+                                    if (!port) {
+                                        if (scheme == OpenAPI_uri_scheme_https)
+                                            port = OGS_SBI_HTTPS_PORT;
+                                        else if (scheme == OpenAPI_uri_scheme_http)
+                                            port = OGS_SBI_HTTP_PORT;
+                                        else
+                                            ogs_assert_if_reached();
+                                    }
+
+                                    addr = NULL;
+                                    for (i = 0; i < num; i++) {
+                                        rv = ogs_addaddrinfo(&addr, family, hostname[i], port, 0);
+                                        ogs_assert(rv == OGS_OK);
+                                        sacc_nodes[cur_node].ipv4[sacc_nodes[cur_node].num_of_ipv4] = addr;
+                                        sacc_nodes[cur_node].num_of_ipv4++;
+                                    }
+
+                                } while (ogs_yaml_iter_type(&server_array) == YAML_SEQUENCE_NODE);
+
+                                if (rv != OGS_OK) {
+                                    ogs_error("ogs_sbi_context_parse_server_"
+                                            "config() failed");
+                                    return rv;
+                                }
+                            } else
+                                ogs_warn("unknown key `%s`", sbi_key);
+                        }
+                    }  else if (!strcmp(node_key, "info")) { //smf,amf的info都是单独解析的，不太合适放到某个library中
+                   
+                        ogs_yaml_iter_t info_array, info_iter;
+                        ogs_yaml_iter_recurse(&node_iter, &info_array);
+
+                        do {
+                            ogs_sbi_nf_info_t *nf_info = NULL;                        
+                            ogs_supi_range_t *supiRanges = NULL;
+                            ogs_ip_range_t *staticIPRanges = NULL;
+                            if (ogs_yaml_iter_type(&info_array) ==
+                                    YAML_MAPPING_NODE) {
+                                memcpy(&info_iter, &info_array,
+                                        sizeof(ogs_yaml_iter_t));
+                            } else if (ogs_yaml_iter_type(&info_array) ==
+                                        YAML_SEQUENCE_NODE) {
+                                if (!ogs_yaml_iter_next(&info_array))
+                                    break;
+                                ogs_yaml_iter_recurse(&info_array, &info_iter);
+                            } else if (ogs_yaml_iter_type(&info_array) ==
+                                        YAML_SCALAR_NODE) {
+                                break;
+                            } else
+                                ogs_assert_if_reached();
+ 
+                            while (ogs_yaml_iter_next(&info_iter)) {
+                                const char *info_key =
+                                    ogs_yaml_iter_key(&info_iter);
+                                ogs_assert(info_key);
+                                if (!strcmp(info_key, "supi")) {
+                                    is_nfinfo_changed = ogs_sbi_context_parse_supi_ranges(&info_iter, &sacc_nodes[cur_node].supiRanges);
+                                } else if (!strcmp(info_key, "static_ip")) {
+                                    is_nfinfo_changed = ogs_sbi_context_parse_ip_ranges(&info_iter, &sacc_nodes[cur_node].staticIPRanges); 
+                                }else
+                                    ogs_warn("unknown key `%s`", info_key);
+                            }
+
+                        } while (ogs_yaml_iter_type(&info_array) ==
+                                YAML_SEQUENCE_NODE);
+
+                    } 
+                }
+            } while (ogs_yaml_iter_type(&node_array) ==
+                    YAML_SEQUENCE_NODE);
+            
+        }
+    }
+
+    // rv = ogs_sbi_context_validation(local, nrf, scp);
+    // if (rv != OGS_OK) return rv;
+
+    return OGS_OK;
+}
+
 char* sacc_msg_ToString(int msg_type)
 {
     const char *msg_typeArray[] =  { "handshake", "heartbeat"};
@@ -703,7 +1047,8 @@ int sacc_initialize_nodes(void) {
     char ip[16];
 
     memset(g_sacc_nodes, 0, sizeof(sacc_node_t)*MAX_PEER_NUM);
-
+    
+    sacc_context_get_nodes_info("nodes", g_sacc_nodes);
 
     for (n = 1; n <= self.nodeNum && n < MAX_PEER_NUM; n++){
         char ip[16];
@@ -712,8 +1057,8 @@ int sacc_initialize_nodes(void) {
         //int offset = n * 2 + 1; // Calculate the last octet as N*2-1
         //snprintf(ip, sizeof(ip), "192.168.%d.%d", base, offset);
 
-        g_sacc_nodes[n].group = self.group;
-        g_sacc_nodes[n].node = n;
+        // g_sacc_nodes[n].group = self.group;
+        // g_sacc_nodes[n].node = n;
         if (n == self.node){//本节点上电,默认为online
             g_sacc_nodes[n].state = SACC_PEER_STATE_ONLINE;
         }else{
@@ -730,9 +1075,10 @@ int sacc_initialize_nodes(void) {
         // g_sacc_nodes[n].addr = server->node.addr;
         // ogs_info("sacc node %d addr:%s, port:%d",n, OGS_ADDR(g_sacc_nodes[n].addr,buf),OGS_PORT(g_sacc_nodes[n].addr));
         // sacc_associate_peer_client(&g_sacc_nodes[n]);
-
-        if (g_sacc_nodes[n].amf_nf_instance->num_of_ipv4 > 0){//从amf、smf中任意取一个即可
-            g_sacc_nodes[n].addr = g_sacc_nodes[n].amf_nf_instance->ipv4[0];
+        ogs_info("sacc node %d num_of_ipv4:%d",n, g_sacc_nodes[n].num_of_ipv4);
+        if (g_sacc_nodes[n].num_of_ipv4 > 0){
+            ogs_info("sacc node %d addr:%s, port:%d",n, OGS_ADDR(g_sacc_nodes[n].ipv4[0],buf),OGS_PORT(g_sacc_nodes[n].ipv4[0]));
+            g_sacc_nodes[n].addr = g_sacc_nodes[n].ipv4[0];
             g_sacc_nodes[n].addr->ogs_sin_port = server->node.addr->ogs_sin_port;//端口取默认的sacc端口2333
             ogs_info("sacc node %d addr:%s, port:%d",n, OGS_ADDR(g_sacc_nodes[n].addr,buf),OGS_PORT(g_sacc_nodes[n].addr));
             sacc_associate_peer_client(&g_sacc_nodes[n]);
@@ -815,7 +1161,7 @@ void sacc_sbi_context_init_for_udm(sacc_node_t *peer)
 
     snprintf(nf_name, sizeof(nf_name), "udm_%d_%d",peer->group,peer->node); 
 
-    sacc_sbi_context_get_nf_info("udms", nf_name, "nrf", "scp", peer);
+    sacc_sbi_context_get_nf_info2(OpenAPI_nf_type_UDM, peer);
     
     nf_instance->time.heartbeat_interval = 0;//不搞心跳,否则NRF会超时释放掉. amf对这些网元搞心跳也麻烦
 
@@ -885,7 +1231,7 @@ void sacc_sbi_context_init_for_ausf(sacc_node_t *peer){
     ogs_sbi_nf_instance_set_status(nf_instance, OpenAPI_nf_status_REGISTERED);
     snprintf(nf_name, sizeof(nf_name), "ausf_%d_%d",peer->group,peer->node);
    
-    sacc_sbi_context_get_nf_info("ausfs", nf_name, "nrf", "scp", peer);
+    sacc_sbi_context_get_nf_info2(OpenAPI_nf_type_AUSF, peer);
     ogs_info("nf_name:%s,nf_instance->num_of_ipv4:%d",nf_name,nf_instance->num_of_ipv4);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_SCP);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_AMF);
@@ -935,7 +1281,7 @@ void sacc_sbi_context_init_for_smf(sacc_node_t *peer){
     ogs_sbi_nf_instance_set_status(nf_instance, OpenAPI_nf_status_REGISTERED);
     snprintf(nf_name, sizeof(nf_name), "smf_%d_%d",peer->group,peer->node);
    
-    sacc_sbi_context_get_nf_info("smfs", nf_name, "nrf", "scp", peer);
+    sacc_sbi_context_get_nf_info2(OpenAPI_nf_type_SMF, peer);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_SCP);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_AMF);
 
@@ -990,7 +1336,7 @@ void sacc_sbi_context_init_for_amf(sacc_node_t *peer){
     ogs_sbi_nf_instance_set_status(nf_instance, OpenAPI_nf_status_REGISTERED);
     snprintf(nf_name, sizeof(nf_name), "amf_%d_%d",peer->group,peer->node);
    
-    sacc_sbi_context_get_nf_info("amfs", nf_name, "nrf", "scp", peer);
+    sacc_sbi_context_get_nf_info2(OpenAPI_nf_type_AMF, peer);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_SCP);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_SMF);
     ogs_sbi_nf_instance_add_allowed_nf_type(nf_instance, OpenAPI_nf_type_AMF);

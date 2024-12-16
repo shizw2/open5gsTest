@@ -38,106 +38,38 @@ sacc:
   heartbeat_interval: 5
   heartbeat_lost: 5
   
-udms:
-  - node: udm_1_1
-    sbi:
-      server:
-        - address: 127.0.0.12
-          port: 7777
-
-    info:
-      supi:
-        - range: 46001-46002
-  - node: udm_1_2
-    sbi:
-      server:
-        - address: 127.0.0.32
-          port: 7777
-
-    info:
-      supi:
-        - range: 460070000021309-460070000021309
-  - node: udm_1_3
-    sbi:
-      server:
-        - address: 127.0.0.52
-          port: 7777
-
-    info:
-      supi:
-        - range: 46005-46006
-amfs:
-  - node: amf_1_1
+nodes:
+  - group: 1
+    node: 1
     sbi:
       server:
         - address: 127.0.0.5
-          port: 7777
-
-  - node: amf_1_2
-    sbi:
-      server:
-        - address: 127.0.0.25
-          port: 7777
-
-  - node: amf_1_3
-    sbi:
-      server:
-        - address: 127.0.0.45
-          port: 7777
-
-ausfs:
-  - node: ausf_1_1
-    sbi:
-      server:
-        - address: 127.0.0.11
-          port: 7777
-
+          port: 8401
     info:
       supi:
         - range: 46001-46002
-  - node: ausf_1_2
+      static_ip:
+        - range: 10.45.0.2-10.45.0.254
+        
+  - group: 1
+    node: 2
     sbi:
       server:
-        - address: 127.0.0.31
-          port: 7777
-
+        - address: 127.0.0.6
+          port: 8401
     info:
       supi:
         - range: 460070000021309-460070000021309
-  - node: ausf_1_3
+      static_ip:
+        - range: 10.45.1.2-10.45.1.254        
+  - group: 1
+    node: 3  
     sbi:
       server:
-        - address: 127.0.0.51
-          port: 7777
-
+        - address: 127.0.0.7
+          port: 8401
     info:
       supi:
         - range: 46005-46006
-smfs:
-  - node: smf_1_1
-    sbi:
-      server:
-        - address: 127.0.0.4
-          port: 7777
-    info:
       static_ip:
-        - range: 10.45.0.2-10.45.0.100
-
-  - node: smf_1_2
-    sbi:
-      server:
-        - address: 127.0.0.24
-          port: 7777
-    info:
-      static_ip:
-        - range: 10.45.1.2-10.45.1.100
-
-  - node: smf_1_3
-    sbi:
-      server:
-        - address: 127.0.0.44
-          port: 7777
-    info:
-      static_ip:
-        - range: 10.45.2.2-10.45.2.100
-
+        - range: 10.45.2.2-10.45.2.254
