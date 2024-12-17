@@ -98,7 +98,10 @@ typedef struct sacc_node_s {
     int num_of_ipv4;
     ogs_sockaddr_t *ipv4[OGS_SBI_MAX_NUM_OF_IP_ADDRESS];
     int num_of_ipv6;
-    ogs_sockaddr_t *ipv6[OGS_SBI_MAX_NUM_OF_IP_ADDRESS];    
+    ogs_sockaddr_t *ipv6[OGS_SBI_MAX_NUM_OF_IP_ADDRESS];
+
+    int amf_sbi_port;
+    int smf_sbi_port;
 
     ogs_supi_range_t supiRanges;
     ogs_ip_range_t staticIPRanges;

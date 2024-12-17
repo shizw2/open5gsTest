@@ -214,12 +214,12 @@ int sacc_sbi_context_get_nf_info(
     ogs_sbi_nf_instance_t *nf_instance = NULL;
 
     switch (nf_type){
-        case OpenAPI_nf_type_UDM:
-            nf_instance = sacc_nodes->udm_nf_instance;
-            break;
-        case OpenAPI_nf_type_AUSF:
-            nf_instance = sacc_nodes->ausf_nf_instance;
-            break;    
+        // case OpenAPI_nf_type_UDM:
+        //     nf_instance = sacc_nodes->udm_nf_instance;
+        //     break;
+        // case OpenAPI_nf_type_AUSF:
+        //     nf_instance = sacc_nodes->ausf_nf_instance;
+        //     break;    
         case OpenAPI_nf_type_SMF:
             nf_instance = sacc_nodes->smf_nf_instance;
             break;
@@ -234,14 +234,16 @@ int sacc_sbi_context_get_nf_info(
     ogs_assert(nf_instance);
 
     for (i = 0; i < sacc_nodes->num_of_ipv4; i++){
-        //nf_instance->ipv4[i] = sacc_nodes->ipv4[i];
         ogs_copyaddrinfo(&nf_instance->ipv4[i], sacc_nodes->ipv4[i]);
+        if (nf_instance->nf_type == OpenAPI_nf_type_SMF){
+            nf_instance->ipv4[i]->ogs_sin_port = sacc_nodes->smf_sbi_port;
+        }else if (nf_instance->nf_type == OpenAPI_nf_type_AMF){
+            nf_instance->ipv4[i]->ogs_sin_port = sacc_nodes->amf_sbi_port;  
+        }
     }
     nf_instance->num_of_ipv4 = sacc_nodes->num_of_ipv4;
 
-    if (nf_instance->nf_type == OpenAPI_nf_type_UDM ||
-      nf_instance->nf_type == OpenAPI_nf_type_AUSF ||
-      nf_instance->nf_type == OpenAPI_nf_type_SMF){
+    if (nf_instance->nf_type == OpenAPI_nf_type_SMF){
         nf_info = ogs_sbi_nf_info_find(
                     &nf_instance->nf_info_list,
                         nf_instance->nf_type);
@@ -255,16 +257,14 @@ int sacc_sbi_context_get_nf_info(
     }
     
     switch (nf_instance->nf_type){
-        case OpenAPI_nf_type_UDM:
-            supiRange_copy(&sacc_nodes->supiRanges, &nf_info->udm.supiRanges);
-            break;
-        case OpenAPI_nf_type_AUSF:
-            supiRange_copy(&sacc_nodes->supiRanges, &nf_info->ausf.supiRanges);
-            break;
+        // case OpenAPI_nf_type_UDM:
+        //     supiRange_copy(&sacc_nodes->supiRanges, &nf_info->udm.supiRanges);
+        //     break;
+        // case OpenAPI_nf_type_AUSF:
+        //     supiRange_copy(&sacc_nodes->supiRanges, &nf_info->ausf.supiRanges);
+        //     break;
         case OpenAPI_nf_type_SMF:
-            //nf_info->smf.supiRanges = sacc_nodes->supiRanges;
-            supiRange_copy(&sacc_nodes->supiRanges, &nf_info->smf.supiRanges);
-            //nf_info->smf.staticIPRanges = sacc_nodes->staticIPRanges;
+            // supiRange_copy(&sacc_nodes->supiRanges, &nf_info->smf.supiRanges);
             ipRange_copy(&sacc_nodes->staticIPRanges, &nf_info->smf.staticIPRanges);
             break;
         default:
@@ -338,6 +338,12 @@ int sacc_context_get_nodes_info(
                     } else if (!strcmp(node_key, "priority")) {
                         const char *v = ogs_yaml_iter_value(&node_iter);                        
                         if (v) sacc_nodes[cur_node].priority = atoi(v);                      
+                    } else if (!strcmp(node_key, "amf_sbi_port")) {
+                        const char *v = ogs_yaml_iter_value(&node_iter);                        
+                        if (v) sacc_nodes[cur_node].amf_sbi_port = atoi(v);                      
+                    } else if (!strcmp(node_key, "smb_sbi_port")) {
+                        const char *v = ogs_yaml_iter_value(&node_iter);                        
+                        if (v) sacc_nodes[cur_node].smf_sbi_port = atoi(v);                      
                     } else if (!strcmp(node_key, "sbi")) {
                         ogs_yaml_iter_t sbi_iter;
                         ogs_yaml_iter_recurse(&node_iter, &sbi_iter);

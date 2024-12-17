@@ -69,6 +69,8 @@ void show_node_details(int node_id) {
     printf("  |--group              : %d \r\n", node->group);
     printf("  |--node               : %d \r\n", node->node);
     printf("  |--priority           : %d \r\n", node->priority);
+    printf("  |--amf_sbi_port       : %d \r\n", node->amf_sbi_port);
+    printf("  |--smf_sbi_port       : %d \r\n", node->smf_sbi_port);
     printf("  |--state              : %s \r\n", sacc_node_state_ToString(node->state));
     printf("  |--deviceId           : %s \r\n", node->deviceId);
     printf("  |--role               : %s \r\n", node->role);
