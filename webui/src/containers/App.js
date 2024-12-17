@@ -16,6 +16,7 @@ import * as Performance from 'containers/Performance';
 import * as Oprlog from 'containers/Oprlog';
 import * as NFConfig from 'containers/NFConfig';
 import * as Imeicheck from 'containers/Imeicheck';
+import * as Dynmanage from 'containers/Dynmanage';
 import { Ommlog } from 'modules/crud/ommlog';
 import React from 'react';
 import Logout from 'components/Base/Logout';
@@ -110,6 +111,9 @@ class App extends Component {
         </Layout.Container>
         <Layout.Container visible={view === "imeicheck"}> 
           <Imeicheck.Collection/>       
+        </Layout.Container>
+        <Layout.Container visible={view === "dynmanage"}> 
+          <Dynmanage.Collection/>       
         </Layout.Container>
         <Notification/>
         <Ommlog session={session}/>

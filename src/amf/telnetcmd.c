@@ -256,109 +256,74 @@ void showueDetail( char * supi )
     amf_ue_t *ue = NULL;
     char buffer[20] = {};
     struct tm tm;
-	int i;
-	char buf1[OGS_PLMNIDSTRLEN];
-    
-	ue = amf_ue_find_by_supi(supi);
- 
-	if (ue == NULL){
-		printf("cat not find amf ue by supi:%s\r\n",supi);
-		return;
-	}
-    
+    int i;
+    char buf1[OGS_PLMNIDSTRLEN];
 
-	time_t time = ogs_time_sec(ue->ue_location_timestamp);
-	struct tm *timeInfo = localtime(&time);  
+    ue = amf_ue_find_by_supi(supi);
+
+    if (ue == NULL){
+        printf("cat not find amf ue by supi:%s\r\n",supi);
+        return;
+    }
+
+
+    time_t time = ogs_time_sec(ue->ue_location_timestamp);
+    struct tm *timeInfo = localtime(&time);  
     strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeInfo);
 
 
-	
-	printf("The amf ue(supi=%s) detail info is the following: \r\n", supi);
-	printf("  |--registration       : %u \r\n", ue->nas.registration.value);   
-	printf("  |--suci               : %s \r\n", ue->suci);
-	printf("  |--pei                : %s \r\n", ue->pei);
-	printf("  |--imeisv_bcd         : %s \r\n", ue->imeisv_bcd);
+
+    printf("The amf ue(supi=%s) detail info is the following: \r\n", supi);
+    printf("  |--registration       : %u \r\n", ue->nas.registration.value);   
+    printf("  |--suci               : %s \r\n", ue->suci);
+    printf("  |--pei                : %s \r\n", ue->pei);
+    printf("  |--imeisv_bcd         : %s \r\n", ue->imeisv_bcd);
     printf("  |--num_of_msisdn      : %d \r\n", ue->num_of_msisdn);
     for (i = 0; i < ue->num_of_msisdn; i++){
         printf("    |--msisdn         : %s \r\n", ue->msisdn[i]);
     }
 
-	if (ue->current.m_tmsi){
-		printf("  |--current            :  \r\n");
-		printf("    |--m_tmsi           : %u \r\n", *ue->current.m_tmsi);
-	}
-	if (ue->next.m_tmsi){
-		printf("  |--next               :  \r\n");
-		printf("    |--m_tmsi           : %u \r\n", *ue->next.m_tmsi);
-	}
-	if (ue->guami){
-		printf("  |--guami              : \r\n");
-		printf("    |--amf_id           : region:%d,set1:%d,set2:%d,pointer:%d\r\n", ue->guami->amf_id.region,ue->guami->amf_id.set1,ue->guami->amf_id.set2,ue->guami->amf_id.pointer);
-		printf("    |--plmn_id          : %s \r\n", ogs_plmn_id_to_string(&ue->guami->plmn_id,buf1));
-	}
-	printf("  |--nr_tai             : plmn_id:%s,TAC:%d \r\n", ogs_plmn_id_to_string(&ue->nr_tai.plmn_id,buf1),
-															       ue->nr_tai.tac.v);
-	printf("  |--nr_cgi             : plmn_id:%s,CELL:%lu \r\n", ogs_plmn_id_to_string(&ue->nr_cgi.plmn_id,buf1),
-																       ue->nr_cgi.cell_id);
+    if (ue->current.m_tmsi){
+        printf("  |--current            :  \r\n");
+        printf("    |--m_tmsi           : %u \r\n", *ue->current.m_tmsi);
+    }
+    if (ue->next.m_tmsi){
+        printf("  |--next               :  \r\n");
+        printf("    |--m_tmsi           : %u \r\n", *ue->next.m_tmsi);
+    }
+    if (ue->guami){
+        printf("  |--guami              : \r\n");
+        printf("    |--amf_id           : region:%d,set1:%d,set2:%d,pointer:%d\r\n", ue->guami->amf_id.region,ue->guami->amf_id.set1,ue->guami->amf_id.set2,ue->guami->amf_id.pointer);
+        printf("    |--plmn_id          : %s \r\n", ogs_plmn_id_to_string(&ue->guami->plmn_id,buf1));
+    }
+    printf("  |--nr_tai             : plmn_id:%s,TAC:%d \r\n", ogs_plmn_id_to_string(&ue->nr_tai.plmn_id,buf1),
+                                                                    ue->nr_tai.tac.v);
+    printf("  |--nr_cgi             : plmn_id:%s,CELL:%lu \r\n", ogs_plmn_id_to_string(&ue->nr_cgi.plmn_id,buf1),
+                                                                        ue->nr_cgi.cell_id);
 
-	printf("  |--last_visited_plmn_id: %s \r\n", ogs_plmn_id_to_string(&ue->last_visited_plmn_id,buf1));
-	printf("  |--gmm_capability     :   \r\n");
-	printf("    |--lte_positioning_protocol_capability: %d  \r\n", ue->gmm_capability.lte_positioning_protocol_capability);
-	printf("    |--ho_attach        : %d \r\n", ue->gmm_capability.ho_attach);
-	printf("    |--s1_mode          : %d \r\n", ue->gmm_capability.s1_mode);
-	printf("  |--security_context_available: %d \r\n", ue->security_context_available);
-	printf("  |--mac_failed         : %d \r\n", ue->mac_failed);
-	printf("  |--ue_ambr            : downlink:%lu,uplink:%lu \r\n", ue->ue_ambr.downlink,ue->ue_ambr.uplink);
-	printf("  |--num_of_slice       : %d \r\n", ue->num_of_slice);
-	printf("  |--slice              : \r\n");
-	for (i = 0; i < ue->num_of_slice; i++){
+    printf("  |--last_visited_plmn_id: %s \r\n", ogs_plmn_id_to_string(&ue->last_visited_plmn_id,buf1));
+    printf("  |--gmm_capability     :   \r\n");
+    printf("    |--lte_positioning_protocol_capability: %d  \r\n", ue->gmm_capability.lte_positioning_protocol_capability);
+    printf("    |--ho_attach        : %d \r\n", ue->gmm_capability.ho_attach);
+    printf("    |--s1_mode          : %d \r\n", ue->gmm_capability.s1_mode);
+    printf("  |--security_context_available: %d \r\n", ue->security_context_available);
+    printf("  |--mac_failed         : %d \r\n", ue->mac_failed);
+    printf("  |--ue_ambr            : downlink:%lu,uplink:%lu \r\n", ue->ue_ambr.downlink,ue->ue_ambr.uplink);
+    printf("  |--num_of_slice       : %d \r\n", ue->num_of_slice);
+    printf("  |--slice              : \r\n");
+    for (i = 0; i < ue->num_of_slice; i++){
         printf("    |--s_nssai          : SST:%d SD:0x%x \r\n", ue->slice[i].s_nssai.sst,ue->slice[i].s_nssai.sd.v);
         printf("    |--num_of_session 	: %d \r\n", ue->slice[i].num_of_session);
-	}
+    }
     printf("  |--CM_status     :   \r\n");
-	printf("    |--CM_CONNECTED(amf_ue): %d  \r\n", CM_CONNECTED(ue));
-	printf("    |--CM_IDLE(amf_ue)     : %d  \r\n", CM_IDLE(ue));
-	
-	printf("\r\n");
-    
+    printf("    |--CM_CONNECTED(amf_ue): %d  \r\n", CM_CONNECTED(ue));
+    printf("    |--CM_IDLE(amf_ue)     : %d  \r\n", CM_IDLE(ue));
+
+    printf("\r\n");
+
     return ;
 }
 
-// void showLicenseInfo(void){
-//     char errorMsg[100];
-//     size_t errorMsgSize = sizeof(errorMsg);
-//     bool result = dsCheckLicense(errorMsg, errorMsgSize);
-//     if (!result) {        
-//         printf("error: %s\n", errorMsg);
-//         return ;
-//     }
-// /*      "licBaseStart": "2024-09-19",
-//         "licBaseExpire": "2025-09-19",
-//         "licBaseDays": "366",
-//         "licBaseValid": "valid",
-//         "licBaseCreate": "2024-09-19 14:51:17",
-//         "licBaseType": "debug",
-//         "licBaseToday": "2024-09-29",
-//         "licBaseCustomer": "XXX",
-//         "licBaseSerialno": "20240919T145117cf230762ac7b85270434b461b5e3b5",
-//         "maximumRanNodes": 3,
-//         "maximumSubscriptions": 10000,
-//         "maximumRegistrations": 8*/
-//     printf("licBaseStart:%s,licBaseExpire:%s,licBaseDays:%lu,licBaseValid:%s,licBaseCreate:%s,licBaseType:%s,
-// licBaseToday:%s,licBaseCustomer:%s,licBaseSerialno:%s,maximumRanNodes:%d,maximumSubscriptions:%d,maximumRegistrations:%d\r\n", 
-//                         timestampToStringDate(getLicenseCreateTime()),
-//                         timestampToStringDate(getLicenseExpireTime()),
-//                         getLicenseDurationTime()/86400,
-//                         result?"valid":"invalid", 
-//                         timestampToString(getLicenseCreateTime()), 
-//                         "debug",                 
-//                         timestampToString(getLicenseCreateTime()), 
-//                         getLicenseCustomer(),
-//                         getLicenseSerialno(),
-//                         getLicenseRanNodes(),
-//                         getLicenseSubscriptions(),
-//                         getLicenseUeNum());
-// }
 
 void showLicenseInfo(void) {
     char errorMsg[100];

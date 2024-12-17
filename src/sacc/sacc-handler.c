@@ -46,6 +46,11 @@ void sacc_scan(void) {
             continue;
         }
 
+        if (g_sacc_nodes[n].num_of_ipv4 == 0){
+            ogs_error("sacc node %d has no ipv4 addr,do not send sacc handshake.",n);
+            continue;
+        }
+
         g_sacc_nodes[n].heartbeatLost++;
         if (g_sacc_nodes[n].heartbeatLost >MAC_HEARTBEAT_LOST_CNT*(1+2+4)){
             if ( g_sacc_nodes[n].state != SACC_PEER_STATE_OFFLINE){
@@ -84,7 +89,7 @@ void sacc_scan(void) {
              (g_sacc_nodes[n].heartbeatLost % 2 == 0 && g_sacc_nodes[n].heartbeatLost <= (MAC_HEARTBEAT_LOST_CNT * 2))) ||
             (g_sacc_nodes[n].heartbeatLost > (MAC_HEARTBEAT_LOST_CNT * 2) && 
              g_sacc_nodes[n].heartbeatLost % 4 == 0)) {
-            ogs_info("Node %d send sacc handshake to node %d(heartbeatLost:%d).", sacc_self()->node, g_sacc_nodes[n].node,g_sacc_nodes[n].heartbeatLost);
+            ogs_info("node %d send sacc handshake to node %d(heartbeatLost:%d).", sacc_self()->node, g_sacc_nodes[n].node,g_sacc_nodes[n].heartbeatLost);
             sacc_send_request(SACC_MSG_TYPE_HANDSHAKE, &g_sacc_nodes[n]);
         }
     }

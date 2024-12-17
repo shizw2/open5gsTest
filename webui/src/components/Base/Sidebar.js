@@ -13,6 +13,7 @@ import AlertIcon from 'react-icons/lib/go/alert';
 import PerformanceIcon from 'react-icons/lib/go/graph';
 import OprlogIcon from 'react-icons/lib/go/steps';
 import ImeicheckIcon from 'react-icons/lib/go/check';
+import DynmanageIcon from 'react-icons/lib/go/question';
 import properties from '../../../properties'; // 导入配置文件
 
 const Menu = styled.div`
@@ -128,6 +129,10 @@ const Sidebar = ({ isOpen, width, selectedView, onSelectView }) => (
     <Item name="imeicheck" selected={selectedView} onSelect={onSelectView}>
       <Icon><ImeicheckIcon/></Icon>
       <Title>{properties.base_imeicheck}</Title>
+    </Item>
+    <Item name="dynmanage" selected={selectedView} onSelect={onSelectView}>
+      <Icon><DynmanageIcon/></Icon>
+      <Title>{properties.base_dynmanage}</Title>
     </Item>
     <Item name="account" selected={selectedView} onSelect={onSelectView}>
       <Icon><AccountIcon/></Icon>

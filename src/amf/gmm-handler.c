@@ -1027,8 +1027,9 @@ ogs_nas_5gmm_cause_t gmm_handle_identity_response(amf_ue_t *amf_ue,
         }
 
         amf_ue_set_suci(amf_ue, mobile_identity);
-        amf_ue->supi = ogs_supi_from_suci(amf_ue->suci);//尝试先预解析出supi
-        ogs_info("[%s]    SUCI,[%s]    SUPI", amf_ue->suci, amf_ue->supi);
+        ogs_info("[%s]    SUCI", amf_ue->suci);
+        //amf_ue->supi = ogs_supi_from_suci(amf_ue->suci);//尝试先预解析出supi
+        //ogs_info("[%s]    SUCI,[%s]    SUPI", amf_ue->suci, amf_ue->supi);
     } else {
         ogs_error("Not supported Identity type[%d]",
                 mobile_identity_header->type);

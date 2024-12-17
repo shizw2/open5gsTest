@@ -1359,7 +1359,7 @@ ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_add(void)
 
     nf_instance->time.heartbeat_interval =
             ogs_local_conf()->time.nf_instance.heartbeat_interval;
-    ogs_info("test:ogs_sbi_nf_instance_add,heartbeat_interval:%d", ogs_local_conf()->time.nf_instance.heartbeat_interval);
+
     nf_instance->priority = OGS_SBI_DEFAULT_PRIORITY;
     nf_instance->capacity = ogs_global_conf()->parameter.capacity;//capacity支持为0的配置
     //nf_instance->capacity = OGS_SBI_DEFAULT_CAPACITY;
@@ -1431,9 +1431,6 @@ bool ogs_sbi_nf_instance_is_allowed_nf_type(
 
     ogs_assert(nf_instance);
     ogs_assert(allowed_nf_type);
-    ogs_info("test:allowed nf-type[%s] , nf-instance nf_type[%s]",
-            OpenAPI_nf_type_ToString(allowed_nf_type),
-            OpenAPI_nf_type_ToString(nf_instance->nf_type));
 
     if (!nf_instance->num_of_allowed_nf_type) {
         return true;
@@ -1687,7 +1684,7 @@ void ogs_sbi_nf_instances_find_by_supi(ogs_sbi_nf_instance_t *matched_nf_instanc
     for (i = 0; i < *matched_nf_count; i++) {
         nf_instance = matched_nf_instances[i];
 
-        ogs_info("ogs_sbi_nf_instances_find_by_supi, nf_instance->nf_type:%s, supi:%s.", OpenAPI_nf_type_ToString(nf_instance->nf_type), supi_id);
+        ogs_debug("ogs_sbi_nf_instances_find_by_supi, nf_instance->nf_type:%s, supi:%s.", OpenAPI_nf_type_ToString(nf_instance->nf_type), supi_id);
 
         switch (nf_instance->nf_type) {
             case OpenAPI_nf_type_UDM:
@@ -3397,7 +3394,6 @@ void shownfBriefAll(void){
     ogs_sbi_nf_instance_t *nf_instance = NULL;
     ogs_sbi_nf_service_t *nf_service = NULL;
     char buf[OGS_ADDRSTRLEN];
-    
     
     printf("\nnf instance Brief All(current %u nf count):\r\n", ogs_list_count(&ogs_sbi_self()->nf_instance_list));
     printf("+--------------------------------------+---------+------------+----------+--------------------+\n\r");

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
 import { MODEL, fetchSubscribers, deleteSubscriber } from 'modules/crud/subscriber';
-import { Ommlog} from 'modules/crud/ommlog';
+import { Ommlog,globalUsername } from 'modules/crud/ommlog';
 import { clearActionStatus } from 'modules/crud/actions';
 import { select, selectActionStatus } from 'modules/crud/selectors';
 import * as Notification from 'modules/notification/actions';
@@ -17,7 +17,7 @@ import {
   Dimmed,
   Confirm
 } from 'components';
-
+import MoprButtons from './Mopr';
 import Document from './Document';
 
 class Collection extends Component {
@@ -321,7 +321,8 @@ class Collection extends Component {
             { text: "CANCEL", action: confirmHandler.hide, info:true },
             { text: "DELETE", action: confirmHandler.actions.delete, danger:true }
           ]}/>
-      </Layout.Content>
+        {globalUsername==="admin"&&<MoprButtons />}
+      </Layout.Content> 
     )
   }
 }

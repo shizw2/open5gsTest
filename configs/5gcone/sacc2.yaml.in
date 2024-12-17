@@ -38,10 +38,17 @@ nodes:
   - group: 1
     node: 1
     priority: 1
+    amf_sbi_port: 8100
+    smf_sbi_port: 8200
+    info:
+      supi:
+        - range: 46000-46001
+      static_ip:
+        - range: 10.45.0.1-10.45.0.254
     sbi:
       server:
         - address: 127.0.0.5
-          port: 8401
+          port: 2333
     info:
       supi:
         - range: 46001-46002
@@ -51,10 +58,12 @@ nodes:
   - group: 1
     node: 2
     priority: 1
+    amf_sbi_port: 8100
+    smf_sbi_port: 8200
     sbi:
       server:
         - address: 127.0.0.6
-          port: 8401
+          port: 2333
     info:
       supi:
         - range: 460070000021309-460070000021309
@@ -63,10 +72,12 @@ nodes:
   - group: 1
     node: 3
     priority: 1
+    amf_sbi_port: 8100
+    smf_sbi_port: 8200    
     sbi:
       server:
         - address: 127.0.0.7
-          port: 8401
+          port: 2333
     info:
       supi:
         - range: 46005-46006

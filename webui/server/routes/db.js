@@ -17,12 +17,34 @@ const config = JSON.parse(configFileData);
 
 // 获取配置文件的目录路径
 const directoryPath = config.directoryPath;
+const imei = require('./imei')
 
 const Subscriber = require('../models/subscriber');
 restify.serve(router, Subscriber, {
   prefix: '',
   version: '',
-  idProperty: 'imsi'
+  idProperty: 'imsi',
+  postCreate: (req, res, next) => {
+    const result = req.erm.result         // unfiltered document or object
+    const statusCode = req.erm.statusCode // 201
+    // console.log("result",[result])
+    imei.addDbImsi([result]);
+    next()
+  },
+  postUpdate: (req, res, next) => {
+    const result = req.erm.result         // unfiltered document or object
+    //const statusCode = req.erm.statusCode // 200
+    imei.updateDbImsi(result);
+    next()
+    
+  },
+  preDelete: async (req, res, next) => {
+    const imsis = await Subscriber.findOne({"imsi":req.params.id});
+
+    //const statusCode = req.erm.statusCode // 204
+    imei.delDbImsi(imsis);
+    next()
+  }
 });
 
 const Profile = require('../models/profile');

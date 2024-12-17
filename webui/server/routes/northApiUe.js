@@ -6,6 +6,7 @@ const Profile=require('../models/profile.js');
 //const { legacy_createStore } = require('redux');
 const fillSubscriber = require('../models/fillsubscriber');
 //连续开户
+const { handleError, errorCodes } = require('./northApiCommon');
 router.put('/regSub', (req, res) => {
     console.log('regSub PUT.........!!' );
     // 处理 PUT 请求的逻辑
@@ -371,7 +372,8 @@ router.delete('/cancelSub', (req, res) => {
                 fail.error.detail.invalidParam.param = "imsi"+imsi;
                 fail.error.detail.invalidParam.reason = "数据库操作失败";
                 ret=0;
-                res.json(fail);
+                //res.status(500).json(fail);
+                handleError(res, 500, 1600, '数据库操作失败', 'cancelSub', { desc: '数据库操作失败'});
                 return console.error(err);
             } 
             /*//不做判断，无论是否存在都执行删除操作
@@ -387,13 +389,20 @@ router.delete('/cancelSub', (req, res) => {
             }
             */
         });
-        if(ret==1){
+        if(ret===1){
             ret=0;
             res.json({
                 "result": "OK",
                 "result_set": null
             });
         }
+    }
+    if(ret===1){
+      fail.error.message = "携带的用户数量不对";
+      fail.error.detail.desc = "数据库操作失败";
+      fail.error.detail.invalidParam.param = "ueNum"+ueNum;
+      fail.error.detail.invalidParam.reason = "携带参数不对";    
+      res.status(400).json(fail);
     }
 
 });

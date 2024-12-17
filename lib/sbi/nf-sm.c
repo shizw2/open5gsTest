@@ -301,7 +301,7 @@ void ogs_sbi_nf_state_registered(ogs_fsm_t *s, ogs_event_t *e)
             if (nf_instance->time.heartbeat_interval)
                 ogs_timer_start(nf_instance->t_heartbeat_interval,
                     ogs_time_from_sec(nf_instance->time.heartbeat_interval));
-            //ogs_info("test:OGS_TIMER_NF_INSTANCE_HEARTBEAT_INTERVAL,ogs_nnrf_nfm_send_nf_update,nf_type:%s",OpenAPI_nf_type_ToString(nf_instance->nf_type));
+
             ogs_assert(true == ogs_nnrf_nfm_send_nf_update(nf_instance));
             break;
 

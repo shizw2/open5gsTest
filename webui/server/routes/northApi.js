@@ -8,9 +8,16 @@ const software = require('./northApiSoftware');
 const license = require('./northApiLicense');
 const udm = require('./northApiUdm');
 const ue = require('./northApiUe');
+const imei = require('./imei.js');
+//自定义文件列表获取接口
+const fileList = require('./northApiFileList');
+
+// 挂载自定义文件列表获取接口
+router.use('/wxCm/v1/file', fileList);
 
 // 挂载北向接口各个模块的路由
 router.use('/wxCm/v1/config', config);
+router.use('/wxCm/v1/config', imei.imei);
 router.use('/wxCm/v1/software', software);
 router.use('/wxCm/v1/forward/nrf', software);
 router.use('/wxCm/v1/license', license);

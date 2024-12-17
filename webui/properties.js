@@ -9,6 +9,7 @@ const properties = {
   base_oprlog: '日志管理',
   base_account: '账号管理',
   base_imeicheck: '黑白名单',
+  base_dynmanage: '动态管理',
   grafanaport: '3002',
   monitor: 1,
 };

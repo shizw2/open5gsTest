@@ -615,16 +615,14 @@ int sacc_initialize_nodes(void) {
 
         server = ogs_list_first(&ogs_sbi_self()->server_list);
         ogs_assert(server);
-
+        
         ogs_info("sacc node %d num_of_ipv4:%d",n, g_sacc_nodes[n].num_of_ipv4);
         if (g_sacc_nodes[n].num_of_ipv4 > 0){
             ogs_info("sacc node %d addr:%s, port:%d",n, OGS_ADDR(g_sacc_nodes[n].ipv4[0],buf),OGS_PORT(g_sacc_nodes[n].ipv4[0]));
-            //g_sacc_nodes[n].addr = g_sacc_nodes[n].ipv4[0];
-            //g_sacc_nodes[n].addr->ogs_sin_port = server->node.addr->ogs_sin_port;//端口取默认的sacc端口2333
-            //ogs_info("sacc node %d addr:%s, port:%d",n, OGS_ADDR(g_sacc_nodes[n].addr,buf),OGS_PORT(g_sacc_nodes[n].addr));
             sacc_associate_peer_client(&g_sacc_nodes[n]);
         }else{
-            
+            ogs_error("sacc node %d has no ipv4 addr",n);
+            continue;
         }
 
         snprintf(uri, sizeof(uri), "http://%s:%d/acc/v1/nfinfo", OGS_ADDR(g_sacc_nodes[n].ipv4[0],buf),OGS_PORT(g_sacc_nodes[n].ipv4[0]));

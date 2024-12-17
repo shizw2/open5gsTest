@@ -11,7 +11,7 @@ const next = require('next');
 const dev = process.env.NODE_ENV !== 'production';/* 开发模式还是生产模式 */
 const app = next({ dev });
 const handle = app.getRequestHandler();
-
+const url = require('url');
 const express = require('express');
 const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
@@ -29,6 +29,7 @@ const csrf = require('lusca').csrf({blocklist:['/coreNetwork/wxCm/v1file/upload'
 const secret = process.env.SECRET_KEY || 'change-me';
 
 const api = require('./routes');
+//const imei = require('./routes/imei.js');
 const northApi = require('./routes/northApi'); // 引入北向接口的路由处理器
 const fetchAlerts = require('./models/fetchalerts.js');
 const fetchNfStatus = require('./models/fetchnfstatus.js');
@@ -97,10 +98,10 @@ co(function* () {
   checkLogFileSize();
   setInterval(checkLogFileSize, intervalInMilliseconds); 
   // 定时执行 fetchAlerts 函数
-  // setInterval(() => {
-  //   fetchNfStatus();
-  //   fetchAlerts(); // 调用 fetchAlerts 函数
-  // }, 3000); // 每 3000 毫秒（3 秒）执行一次
+  setInterval(() => {
+    fetchNfStatus();
+    //fetchAlerts(); // 调用 fetchAlerts 函数
+  }, 3000); // 每 3000 毫秒（3 秒）执行一次
   server.use(session({
     secret: secret,
     store: MongoStore.create({
@@ -147,6 +148,7 @@ co(function* () {
 
   server.use('/api', api);
   server.use('/coreNetwork', northApi);
+  //server.use('/coreNetwork', imei.imei);
   server.use(express.static('static'));//必须要放到server.get('*', (req, res)前
 
   // 文件上传下载
@@ -177,13 +179,15 @@ co(function* () {
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
-      cb(null, file.originalname);
+      const newFileName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+      cb(null, newFileName);
+      //cb(null, file.originalname);
     }
   });
 
   const upload = multer({ storage: storage });
 
-  server.post('/coreNetwork/wxCm/v1file/upload', upload.single('file'), (req, res) => {
+  server.post('/coreNetwork/wxCm/v1/file/upload', upload.single('file'), (req, res) => {
     //res.send('上传成功');
     res.json({"result":"ok","result_set":null})
   }, (err, req, res, next) => {
@@ -197,7 +201,8 @@ co(function* () {
 
   server.get('/download/:filename', (req, res) => {
     const { filename} = req.params;
-    const {directory} = req.query;
+    const query = url.parse(req.url, true).query;
+    const directory = query.dir;
     console.log(directory,"指定目录")
     const filePath = directory ? path.join(directory, filename) : path.join(__dirname, 'uploads', filename);
     res.download(filePath, filename, (err) => {

@@ -201,11 +201,9 @@ ogs_pfcp_rule_t *ogs_pfcp_pdr_rule_find_by_packet(
 
         if (memcmp(src_mask, ipfw->ip.src.addr, addr_len) == 0 &&
             memcmp(dst_mask, ipfw->ip.dst.addr, addr_len) == 0) {
-            ogs_info("enther Matched rule");
             /* Protocol match */
             if (ipfw->proto == 0) { /* IP */
                 /* No need to match port */
-                 ogs_info("enther Matched rule1");
                 return rule;
             }
 
@@ -235,7 +233,7 @@ ogs_pfcp_rule_t *ogs_pfcp_pdr_rule_find_by_packet(
                           be16toh(tcph->th_dport) > ipfw->port.dst.high) {
                         continue;
                     }
-                     ogs_info("enther Matched rule2");
+
                     /* Matched */
                     return rule;
 
@@ -264,12 +262,12 @@ ogs_pfcp_rule_t *ogs_pfcp_pdr_rule_find_by_packet(
                           be16toh(udph->uh_dport) > ipfw->port.dst.high) {
                         continue;
                     }
-                    ogs_info("enther Matched rule3");
+
                     /* Matched */
                     return rule;
 
                 } else {
-                     ogs_info("enther Matched rule4"); 
+
                     /* No need to match port */
                     return rule;
 
@@ -277,6 +275,6 @@ ogs_pfcp_rule_t *ogs_pfcp_pdr_rule_find_by_packet(
             }
         }
     }
- ogs_info("enther no Matched rule"); 
+
     return NULL;
 }

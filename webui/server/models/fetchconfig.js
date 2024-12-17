@@ -5,9 +5,28 @@ const http = require('http');
 const { session } = require('passport');
 const { NOTFOUND } = require('dns');
 const passport = require('passport');
+const fs = require('fs');
+const path = require('path');
+const yaml = require('js-yaml');
+const { handleError, errorCodes } = require('../routes/northApiCommon');
 
 function fetchConfigInfo(req, res) {
   //console.log('> Ready on fetchConfiginfo');
+
+  //const configPath = path.join(__dirname, '../../../install/etc/5gc/sacc.yaml');
+  let configPath = path.join(__dirname,'../../nfconfig/sacc.yaml');
+  
+  try {
+    //读取并解析 YAML 配置文件
+    const fileContents = fs.readFileSync(configPath, 'utf8');
+    let configfile = yaml.load(fileContents);
+
+    configinfo.role  = configfile.global.parameter.role;
+    configinfo.group = configfile.global.parameter.group;
+    configinfo.node  = configfile.global.parameter.node; 
+  } catch (error) {
+    handleError(res, 500, 1004,'Failed to read YAML file', 'info', { desc: error.message });
+  }
   
   http.get('http://127.0.0.1:3000/api/yaml/NFConfig/amf', (response) => {
     let data = '';
@@ -20,10 +39,6 @@ function fetchConfigInfo(req, res) {
     response.on('end', () => {
       const parsedData = JSON.parse(data); // 解析 JSON 数据
 
-      configinfo.role  = parsedData.global.parameter.role;
-      configinfo.group = parsedData.global.parameter.group;
-      configinfo.node  = parsedData.global.parameter.node;
-      
       configinfo.oamIp      = parsedData.amf.metrics.server[0].address;
       configinfo.oamNetmask = parsedData.amf.metrics.server[0].mask;
       

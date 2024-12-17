@@ -110,13 +110,12 @@ bool nrf_nnrf_handle_nf_register(ogs_sbi_nf_instance_t *nf_instance,
     } else
         ogs_assert_if_reached();
 
-    ogs_info("nrf_nnrf_handle_nf_register, nf_type:%s, status:%d,NFProfile->is_heart_beat_timer:%d", OpenAPI_nf_type_ToString(nf_instance->nf_type),status,NFProfile->is_heart_beat_timer);
+    ogs_info("nrf_nnrf_handle_nf_register, nf_type:%s, status:%d", OpenAPI_nf_type_ToString(nf_instance->nf_type),status);
 
     /* NRF uses pre-configured heartbeat if NFs did not send it */
-    //TODO:NF不带就不进行心跳检测
-    /*if (NFProfile->is_heart_beat_timer == false)
+    if (NFProfile->is_heart_beat_timer == false)
         nf_instance->time.heartbeat_interval =
-            ogs_local_conf()->time.nf_instance.heartbeat_interval;*/
+            ogs_local_conf()->time.nf_instance.heartbeat_interval;
 
     /*
      * TS29.510

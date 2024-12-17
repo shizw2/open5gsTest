@@ -15,7 +15,7 @@ void showueDetail(char * id);
 void print_pdr(ogs_pfcp_pdr_t *pdr);
 void print_far(ogs_pfcp_far_t *far);
 void print_bearer(smf_bearer_t *bearer);
-//void getUeInfo(int pageSize, int pageNum);
+
 void getUeInfo(char * supi);
 void showContext(void);
 

@@ -40,7 +40,7 @@ function fillSubscriber(data, ue,res,optype){
             fail.error.detail.desc="数据库查询失败";
             fail.error.detail.invalidParam.param="tpl:"+data.tpl;
             fail.error.detail.invalidParam.reason="数据库查询失败"; 
-            res.json(fail);
+            res.status(500).json(fail);
              return console.error(err);
         }
         if(profile1.length==0){
@@ -49,7 +49,7 @@ function fillSubscriber(data, ue,res,optype){
             fail.error.detail.desc="模板不存在";
             fail.error.detail.invalidParam.param="tpl:"+data.tpl;
             fail.error.detail.invalidParam.reason="模板不存在"; 
-            res.json(fail);
+            res.status(400).json(fail);
             return;
         }
         //console.log('profile1',profile1.slice);
@@ -165,7 +165,7 @@ function fillSubscriber(data, ue,res,optype){
             ue.slice[j]=JSON.parse(JSON.stringify(profile.slice[j]));
         }
 
-        if(optype=='modify'){
+        if(optype==='modify'){
             ue.security.amf=profile.security.amf;
             ue.ambr.downlink=profile.ambr.downlink;
             ue.ambr.uplink=profile.ambr.uplink;
@@ -178,7 +178,7 @@ function fillSubscriber(data, ue,res,optype){
                     fail.error.detail.desc = "数据库操作失败";
                     fail.error.detail.invalidParam.param = "imsi"+imsi;
                     fail.error.detail.invalidParam.reason = "数据库操作失败";
-                    res.json(fail);
+                    res.status(500).json(fail);
                     return;
                 }else{
                     console.log('result:',result);
@@ -189,7 +189,7 @@ function fillSubscriber(data, ue,res,optype){
                         fail.error.detail.desc = "用户不存在";
                         fail.error.detail.invalidParam.param = "imsi:" + data.imsi;
                         fail.error.detail.invalidParam.reason = "指定的 imsi 不存在";
-                        res.json(fail);
+                        res.status(400).json(fail);
                         return;
                     }else{
                         //console.log(result);
@@ -200,7 +200,7 @@ function fillSubscriber(data, ue,res,optype){
                     }
                 }
             });
-        }else if(optype=='addcontinue'){
+        }else if(optype==='addcontinue'){
             ue.security.k=data.ki;
             ue.security.op=data.op;
             ue.security.opc=data.opc;
@@ -219,16 +219,17 @@ function fillSubscriber(data, ue,res,optype){
                         fail.error.detail.desc = "数据库操作失败";
                         fail.error.detail.invalidParam.param = "imsi"+imsi;
                         fail.error.detail.invalidParam.reason = "数据库操作失败";
-                        res.json(fail);
-                        return;
-                    }return console.error(err);
+                        res.status(500).json(fail);
+                        re=0;
+                        return console.error(err);;
+                    }
                     console.log('> create subscriber');
-                    //console.log(subscriber);
+
                 });
                 ue.msisdn = [];
-                if(re==1){
+                if(re===1){
                     //连续操作，第一个成功则返回成功
-                    ret=0;
+                    re=0;
                     res.json({
                         "result": "OK",
                         "result_set": null

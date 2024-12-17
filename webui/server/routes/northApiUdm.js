@@ -43,7 +43,7 @@ router.get('/subscriber', (req, res) => {
         "result": "FAIL",
         "error": {
             "code": 1600,
-            "target": "wxCmAgent",
+            "target": "subscriber",
             "message": "",
             "detail": {
                 "desc": "",
@@ -64,7 +64,7 @@ router.get('/subscriber', (req, res) => {
             fail.error.detail.desc = "数据库操作失败";
             fail.error.detail.invalidParam.param = "imsi";
             fail.error.detail.invalidParam.reason = "数据库操作失败,请检查参数携带是否正确";
-            res.json(fail);
+            res.status(500).json(fail);
             return console.error(err);
         };
        // 处理查询结果
@@ -146,7 +146,7 @@ router.get('/staticIp', (req, res) => {
         "result": "FAIL",
         "error": {
             "code": 1600,
-            "target": "wxCmAgent",
+            "target": "staticIp",
             "message": "",
             "detail": {
                 "desc": "",
@@ -164,7 +164,7 @@ router.get('/staticIp', (req, res) => {
             fail.error.detail.desc = "用户不存在";
             fail.error.detail.invalidParam.param = "imsi:"+imsi;
             fail.error.detail.invalidParam.reason = "用户不存在";
-            res.json(fail);
+            res.status(400).json(fail);
             return;
         }
         const response =  {
@@ -177,7 +177,7 @@ router.get('/staticIp', (req, res) => {
             fail.error.detail.desc = "数据库操作失败";
             fail.error.detail.invalidParam.param = "imsi"+imsi;
             fail.error.detail.invalidParam.reason = "数据库操作失败";
-            res.json(fail);
+            res.status(500).json(fail);
             return console.error(err);
         } 
         console.log(subscribers);
@@ -274,7 +274,7 @@ router.post('/ipManager', (req, res) => {
         "result": "FAIL",
         "error": {
             "code": 1600,
-            "target": "wxCmAgent",
+            "target": "ipManager",
             "message": "",
             "detail": {
                 "desc": "",
@@ -286,7 +286,7 @@ router.post('/ipManager', (req, res) => {
         }
     }
     let ret=1;
-    if(mode=="mode2"){
+    if(mode==="mode2"){
         for(let i=0;i<req.body.req_data.length;i++){
             let req_data={
                 "imsi": "",
@@ -304,7 +304,7 @@ router.post('/ipManager', (req, res) => {
                     fail.error.detail.desc = "用户不存在";
                     fail.error.detail.invalidParam.param = "imsi:"+req_data.imsi;
                     fail.error.detail.invalidParam.reason = "用户不存在";
-                    res.json(fail);
+                    res.status(400).json(fail);
                     ret=0;
                     return;
                 }
@@ -329,11 +329,11 @@ router.post('/ipManager', (req, res) => {
                                     fail.error.detail.desc = "用户不存在";
                                     fail.error.detail.invalidParam.param = "imsi:" + data.imsi;
                                     fail.error.detail.invalidParam.reason = "指定的 imsi 不存在";
-                                    res.json(fail);
+                                    res.status(400).json(fail);
                                     ret=0;
                                     return;
                                 }
-                                if(ret==1){
+                                if(ret===1){
                                     ret=0;
                                     res.json({
                                         "result": "OK",
@@ -350,7 +350,7 @@ router.post('/ipManager', (req, res) => {
 
       }
 
-    }else if(mode=="mode1"){
+    }else if(mode==="mode1"){
         let retflag=1;
         mode1.ip=usefirstIp(mode1.ip);//如果使用第一个IP地址
         Subscriber.find({}, function(err, subscribers){
@@ -360,7 +360,7 @@ router.post('/ipManager', (req, res) => {
                 fail.error.detail.desc = "数据库操作失败";
                 fail.error.detail.invalidParam.param = "mode1";
                 fail.error.detail.invalidParam.reason = "数据库操作失败,请检查参数携带是否正确";
-                res.json(fail);
+                res.status(500).json(fail);
                 retflag=0;
                 return;
             }
@@ -376,7 +376,7 @@ router.post('/ipManager', (req, res) => {
                                     fail.error.detail.desc = "数据库操作失败";
                                     fail.error.detail.invalidParam.param = "mode1";
                                     fail.error.detail.invalidParam.reason = "数据库操作失败,请检查参数携带是否正确";
-                                    res.json(fail);
+                                    res.status(500).json(fail);
                                     retflag=0;
                                     return;
                                 }
@@ -389,14 +389,14 @@ router.post('/ipManager', (req, res) => {
                             fail.error.detail.desc = "静态IP地址已用完";
                             fail.error.detail.invalidParam.param = "mode1:"+mode1.ip;
                             fail.error.detail.invalidParam.reason = "静态IP地址已用完";
-                            res.json(fail);
+                            res.status(500).json(fail);
                             retflag=0;
                             return;
                         }
                     }
                 }
             }
-            if(retflag==1){ 
+            if(retflag===1){ 
                 retflag=0;           
                 res.json({
                     "result": "OK",
@@ -405,6 +405,14 @@ router.post('/ipManager', (req, res) => {
             }
         });
     
+    }else{
+        fail.error.code = 1607;
+        fail.error.message = "携带的mode参数错误";
+        fail.error.detail.desc = "携带的mode参数错误";
+        fail.error.detail.invalidParam.param = "mode:"+mode;
+        fail.error.detail.invalidParam.reason = "携带的mode参数错误";
+        res.status(500).json(fail);
+        retflag=0;
     }
 
         

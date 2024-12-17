@@ -832,7 +832,6 @@ int amf_context_parse_config(bool reloading)
                             YAML_SEQUENCE_NODE);
 
                     if (list2->num || num_of_list1 || num_of_list0) {
-                        ogs_info("self.num_of_served_tai:%d",self.num_of_served_tai);
                         self.num_of_served_tai++;
                     }
                 } else if (!strcmp(amf_key, "plmn_support")) {

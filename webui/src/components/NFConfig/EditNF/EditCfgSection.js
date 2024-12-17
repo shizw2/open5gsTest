@@ -923,11 +923,6 @@ export const amf_sbi_Schema = {
             required: true,
             //default: "127.0.0.5"
           },
-          mask: {
-            type: "string",
-            title: "Mask",
-            //required: true,
-          },
           port: {
             type: "number",
             title: "Port",
@@ -989,15 +984,12 @@ export const amf_sbi_UiSchema = {
     "ui:title": <CustomTitle18 title="Server" />,
     items: {
       address: {
-        classNames: "col-xs-5",
+        classNames: "col-xs-7",
         //"ui:help": "IPv4/IPv6 or FQDN",
         "ui:placeholder": "IPv4/IPv6 or FQDN",
       },
-      mask: {
-        classNames: "col-xs-4",
-      },
       port: {
-        classNames: "col-xs-3",
+        classNames: "col-xs-5",
         //"ui:disabled": false,
         //"ui:readonly": false,
       }
@@ -1885,11 +1877,6 @@ export const amfmetricsSchema = {
             },
             default: "127.0.0.5"
           },
-          mask: {
-            type: "string",
-            title: "Mask",
-            //required: true,
-          },
           port: {
             type: "number",
             title: "Port",
@@ -1918,13 +1905,10 @@ export const amfmetricsUiSchema = {
       items: {
         //classNames: "col-xs-12",
         address: {
-          classNames: "col-xs-5",
-        },
-        mask: {
-          classNames: "col-xs-4",
+          classNames: "col-xs-7",
         },
         port: {
-          classNames: "col-xs-3",
+          classNames: "col-xs-5",
         },
       //},
     //},
@@ -2115,7 +2099,7 @@ export const taiSchema = {
         items: {
           type: "string",
           pattern: /^(?:\d+|\d+-\d+)$/,
-  	      messages: {
+  	  messages: {
             pattern: "Format like 1 or 3-5",
             type: "Format like 1 or 3-5",
           },

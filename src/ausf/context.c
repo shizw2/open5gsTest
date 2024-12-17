@@ -208,7 +208,7 @@ ausf_ue_t *ausf_ue_add(char *suci)
     ogs_assert(ausf_ue->suci);
     ogs_hash_set(self.suci_hash, ausf_ue->suci, strlen(ausf_ue->suci), ausf_ue);
 
-    ausf_ue->supi = ogs_supi_from_suci(suci);//临时生成，不需要设置hash
+    //ausf_ue->supi = ogs_supi_from_suci(suci);//临时生成，不需要设置hash
 
     memset(&e, 0, sizeof(e));
     e.ausf_ue_id = ausf_ue->id;

@@ -8,7 +8,7 @@ export const amfschema = {
       type: "object",
       title: "AMF",
       properties: {
-        sbi: schemas.amf_sbi_Schema,
+        sbi: schemas.nf_sbi_Schema,
         ngap: schemas.ngapSchema,
         guami: schemas.guamiSchema,
         tai: schemas.taiSchema,
@@ -17,7 +17,7 @@ export const amfschema = {
         network_name:schemas.network_nameSchema,
         amf_name:schemas.amf_nameSchema,
         access_control: schemas.access_controlSchema,
-        metrics: schemas.amfmetricsSchema,
+        metrics: schemas.metricsSchema,
         //relative_capacity: schemas.relative_capSchema,
         time: {
           type: "object",
@@ -51,9 +51,9 @@ export const amfuiSchema = {
   //nrf: schemas.nrfUiSchema,
   amf: {
     classNames: "col-xs-12",
-    sbi: schemas.amf_sbi_UiSchema,
+    sbi: schemas.nf_sbi_UiSchema,
     ngap: schemas.ngapUiSchema,
-    metrics: schemas.amfmetricsUiSchema,
+    metrics: schemas.metricsUiSchema,
     guami: schemas.guamiUiSchema,
     tai: schemas.taiUiSchema,
     access_control: schemas.access_controlUiSchema,

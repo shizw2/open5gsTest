@@ -482,8 +482,6 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
             ogs_list_for_each(&pfcp_sess->pdr_list, pdr) {
 
-                ogs_info("pdr->far->dst_if:%d",pdr->far->dst_if);
-
                 /* Check if Source Interface */
                 if (pdr->src_if != OGS_PFCP_INTERFACE_ACCESS &&
                     pdr->src_if != OGS_PFCP_INTERFACE_CP_FUNCTION)
@@ -685,7 +683,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
         }
 
-        ogs_info("test:far->dst_if:%d",far->dst_if);
+
         if (far->dst_if == OGS_PFCP_INTERFACE_CORE) {
 
             if (!subnet) {

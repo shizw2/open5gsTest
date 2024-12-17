@@ -11,8 +11,9 @@ const Wrapper = styled.div`
   display: flex;
   align-items: center;
 
-  width: 700px;
-  margin: 2rem auto 1rem auto;
+  width: 400px;
+
+  margin: 2rem 0rem 1rem 1rem;
 
   background: white;
   color: ${oc.gray[6]};

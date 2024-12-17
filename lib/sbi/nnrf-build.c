@@ -128,7 +128,7 @@ OpenAPI_nf_profile_t *ogs_nnrf_nfm_build_nf_profile(
 
     ogs_trace("[%s] ogs_nnrf_nfm_build_nf_profile()", nf_instance->id);
 
-    ogs_info("NF-Type[%s] NF-Status[%s] IPv4[%d] IPv6[%d]",
+    ogs_trace("NF-Type[%s] NF-Status[%s] IPv4[%d] IPv6[%d]",
                 OpenAPI_nf_type_ToString(nf_instance->nf_type),
                 OpenAPI_nf_status_ToString(nf_instance->nf_status),
                 nf_instance->num_of_ipv4, nf_instance->num_of_ipv6);
@@ -182,7 +182,7 @@ OpenAPI_nf_profile_t *ogs_nnrf_nfm_build_nf_profile(
 
     for (i = 0; i < nf_instance->num_of_ipv4; i++) {
         if (nf_instance->ipv4[i]) {
-            ogs_info("IPv4 [family:%d, addr:%x, port:%d]",
+            ogs_trace("IPv4 [family:%d, addr:%x, port:%d]",
                     nf_instance->ipv4[i]->ogs_sa_family,
                     htobe32(nf_instance->ipv4[i]->sin.sin_addr.s_addr),
                     nf_instance->ipv4[i]->ogs_sin_port);
@@ -903,7 +903,7 @@ static OpenAPI_list_t * build_ip_ranges(ogs_ip_range_t *ipRanges)
     int i;
   
     OpenAPI_list_t *IPRangeList = NULL;
-    OpenAPI_supi_range_t *IPRangeItem = NULL;
+    OpenAPI_ipv4_address_range_t *IPRangeItem = NULL;
 
     ogs_assert(ipRanges);
 
@@ -1660,6 +1660,48 @@ static OpenAPI_sepp_info_t *build_sepp_info(ogs_sbi_nf_info_t *nf_info)
     return SeppInfo;
 }
 
+static void free_supi_ranges(OpenAPI_list_t *SupiRangeList)
+{
+    OpenAPI_supi_range_t *SupiRangeItem = NULL;
+
+    OpenAPI_lnode_t *node = NULL;
+
+    ogs_assert(SupiRangeList);
+
+    OpenAPI_list_for_each(SupiRangeList, node) {
+        SupiRangeItem = node->data;
+        ogs_assert(SupiRangeItem);
+        if (SupiRangeItem->start)
+            ogs_free(SupiRangeItem->start);
+        if (SupiRangeItem->end)
+            ogs_free(SupiRangeItem->end);
+
+        ogs_free(SupiRangeItem);
+    }
+    OpenAPI_list_free(SupiRangeList);
+}
+
+static void free_ip_ranges(OpenAPI_list_t *IPRangeList)
+{
+    OpenAPI_ipv4_address_range_t *IPRangeItem = NULL;
+
+    OpenAPI_lnode_t *node = NULL;
+
+    ogs_assert(IPRangeList);
+
+    OpenAPI_list_for_each(IPRangeList, node) {
+        IPRangeItem = node->data;
+        ogs_assert(IPRangeItem);
+        if (IPRangeItem->start)
+            ogs_free(IPRangeItem->start);
+        if (IPRangeItem->end)
+            ogs_free(IPRangeItem->end);
+
+        ogs_free(IPRangeItem);
+    }
+    OpenAPI_list_free(IPRangeList);
+}
+
 static void free_smf_info(OpenAPI_smf_info_t *SmfInfo)
 {
     OpenAPI_list_t *sNssaiSmfInfoList = NULL;
@@ -1676,11 +1718,6 @@ static void free_smf_info(OpenAPI_smf_info_t *SmfInfo)
     OpenAPI_tac_range_t *TacRangeItem = NULL;
 
     OpenAPI_lnode_t *node = NULL, *node2 = NULL;
-
-    OpenAPI_list_t *IPRangeList = NULL;
-    OpenAPI_supi_range_t *IPRangeItem = NULL;
-
-    OpenAPI_list_t *SupirangeList = NULL;
 
     ogs_assert(SmfInfo);
 
@@ -1749,7 +1786,7 @@ static void free_smf_info(OpenAPI_smf_info_t *SmfInfo)
         free_supi_ranges(SmfInfo->supi_ranges);
 
     if (SmfInfo->static_ipv4_address_ranges)
-        free_supi_ranges(SmfInfo->static_ipv4_address_ranges);
+        free_ip_ranges(SmfInfo->static_ipv4_address_ranges);
         
     ogs_free(SmfInfo);
 }
@@ -1876,26 +1913,6 @@ static void free_scp_info(OpenAPI_scp_info_t *ScpInfo)
     ogs_free(ScpInfo);
 }
 
-static void free_supi_ranges(OpenAPI_list_t *SupiRangeList)
-{
-    OpenAPI_supi_range_t *SupiRangeItem = NULL;
-
-    OpenAPI_lnode_t *node = NULL;
-
-    ogs_assert(SupiRangeList);
-
-    OpenAPI_list_for_each(SupiRangeList, node) {
-        SupiRangeItem = node->data;
-        ogs_assert(SupiRangeItem);
-        if (SupiRangeItem->start)
-            ogs_free(SupiRangeItem->start);
-        if (SupiRangeItem->end)
-            ogs_free(SupiRangeItem->end);
-
-        ogs_free(SupiRangeItem);
-    }
-    OpenAPI_list_free(SupiRangeList);
-}
 
 static void free_udm_info(OpenAPI_udm_info_t *UdmInfo)
 {
