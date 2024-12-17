@@ -2104,30 +2104,64 @@ static void amf_info_free(ogs_sbi_amf_info_t *amf_info)
     ogs_pool_free(&amf_info_pool, amf_info);
 }
 
-static void supiRange_free(ogs_supi_range_t *supiRanges)
+void supiRange_free(ogs_supi_range_t *supiRanges)
 {
     int i;
     ogs_assert(supiRanges);
     
     for (i = 0; i < supiRanges->num_of_supi_range; i++) {     
-        //ogs_info("supiRange_free, start:%s,end:%s",supiRanges->supi_ranges[i].start,supiRanges->supi_ranges[i].end);    
+        ogs_info("supiRange_free, start:%s,end:%s",supiRanges->supi_ranges[i].start,supiRanges->supi_ranges[i].end);    
         ogs_free(supiRanges->supi_ranges[i].start);
         ogs_free(supiRanges->supi_ranges[i].end);
     }
     supiRanges->num_of_supi_range = 0;
 }
 
-static void ipRange_free(ogs_ip_range_t *ipRanges)
+void supiRange_copy(const ogs_supi_range_t *src, ogs_supi_range_t *dst) {
+    int i;
+    if (!src || !dst) return;
+    
+    // 清空目标结构体
+    memset(dst, 0, sizeof(ogs_supi_range_t));
+
+    // 复制基础结构
+    dst->num_of_supi_range = src->num_of_supi_range;
+
+    // 为每个SUPI范围分配新的内存并复制内容
+    for (i = 0; i < src->num_of_supi_range; i++) {
+        dst->supi_ranges[i].start = ogs_strdup(src->supi_ranges[i].start);
+        dst->supi_ranges[i].end = ogs_strdup(src->supi_ranges[i].end);
+    }
+}
+
+void ipRange_free(ogs_ip_range_t *ipRanges)
 {
     int i;
     ogs_assert(ipRanges);
     
     for (i = 0; i < ipRanges->num_of_range; i++) {     
-        //ogs_info("supiRange_free, start:%s,end:%s",supiRanges->supi_ranges[i].start,supiRanges->supi_ranges[i].end);    
+        ogs_info("ipRange_free, start:%s,end:%s",ipRanges->range[i].start,ipRanges->range[i].end);    
         ogs_free(ipRanges->range[i].start);
         ogs_free(ipRanges->range[i].end);
     }
     ipRanges->num_of_range = 0;
+}
+
+void ipRange_copy(const ogs_ip_range_t *src, ogs_ip_range_t *dst) {
+    int i;
+    if (!src || !dst) return;
+    
+    // 清空目标结构体
+    memset(dst, 0, sizeof(ogs_ip_range_t));
+
+    // 复制基础结构
+    dst->num_of_range = src->num_of_range;
+
+    // 为每个SUPI范围分配新的内存并复制内容
+    for (i = 0; i < src->num_of_range; i++) {
+        dst->range[i].start = ogs_strdup(src->range[i].start);
+        dst->range[i].end = ogs_strdup(src->range[i].end);
+    }
 }
 
 static void smf_info_free(ogs_sbi_smf_info_t *smf_info)

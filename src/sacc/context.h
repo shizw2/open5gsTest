@@ -90,7 +90,7 @@ typedef struct sacc_node_s {
     char role[16];
     int heartbeatLost;
     
-    ogs_sockaddr_t *addr;    
+    //ogs_sockaddr_t *addr;    
     char *uri;
     char *heartbeat_uri;
     ogs_sbi_client_t *client;
@@ -115,8 +115,6 @@ sacc_context_t *sacc_self(void);
 
 int sacc_context_parse_config(void);
 int sacc_sbi_context_get_nf_info(
-        const char *local, const char * nf_name, const char *nrf, const char *scp, sacc_node_t *sacc_nodes);
-int sacc_sbi_context_get_nf_info2(
         OpenAPI_nf_type_e nf_type, sacc_node_t *sacc_nodes);
 int sacc_context_get_nodes_info(
         const char *local, sacc_node_t *sacc_nodes);

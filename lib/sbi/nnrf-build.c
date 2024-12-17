@@ -1677,6 +1677,11 @@ static void free_smf_info(OpenAPI_smf_info_t *SmfInfo)
 
     OpenAPI_lnode_t *node = NULL, *node2 = NULL;
 
+    OpenAPI_list_t *IPRangeList = NULL;
+    OpenAPI_supi_range_t *IPRangeItem = NULL;
+
+    OpenAPI_list_t *SupirangeList = NULL;
+
     ogs_assert(SmfInfo);
 
     sNssaiSmfInfoList = SmfInfo->s_nssai_smf_info_list;
@@ -1740,6 +1745,12 @@ static void free_smf_info(OpenAPI_smf_info_t *SmfInfo)
     }
     OpenAPI_list_free(TaiRangeList);
 
+    if (SmfInfo->supi_ranges)
+        free_supi_ranges(SmfInfo->supi_ranges);
+
+    if (SmfInfo->static_ipv4_address_ranges)
+        free_supi_ranges(SmfInfo->static_ipv4_address_ranges);
+        
     ogs_free(SmfInfo);
 }
 

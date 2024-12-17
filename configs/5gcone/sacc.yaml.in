@@ -40,6 +40,7 @@ sacc:
 nodes:
   - group: 1
     node: 1
+    priority: 1
     sbi:
       server:
         - address: 127.0.0.5
@@ -52,6 +53,7 @@ nodes:
         
   - group: 1
     node: 2
+    priority: 1
     sbi:
       server:
         - address: 127.0.0.6
@@ -62,7 +64,8 @@ nodes:
       static_ip:
         - range: 10.45.1.2-10.45.1.254        
   - group: 1
-    node: 3  
+    node: 3
+    priority: 1
     sbi:
       server:
         - address: 127.0.0.7

@@ -555,6 +555,11 @@ void shownf(char *id);
 void shownfBriefAll(void);
 void showgnfDetail(char *id);
 
+void supiRange_free(ogs_supi_range_t *supiRanges);
+void supiRange_copy(const ogs_supi_range_t *src, ogs_supi_range_t *dst);
+void ipRange_free(ogs_ip_range_t *ipRanges);
+void ipRange_copy(const ogs_ip_range_t *src, ogs_ip_range_t *dst);
+
 #define OGS_SBI_SETUP_NF_INSTANCE(__cTX, __nFInstance) \
     do { \
         ogs_assert(__nFInstance); \

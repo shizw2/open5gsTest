@@ -37,7 +37,7 @@ void sacc_scan(void) {
 
     //ogs_info("SACC scanning for nodes...");
         
-    for (n = 1; n <= sacc_self()->nodeNum && n < MAX_PEER_NUM; n++){
+    for (n = 1; n <= sacc_self()->nodeNum && n <= MAX_PEER_NUM; n++){
         // if (g_sacc_nodes[n].state == SACC_PEER_STATE_ONLINE){//激活的不再探测
         //     continue;
         // }
@@ -106,7 +106,7 @@ ogs_sbi_request_t *sacc_build_request(int msg_type,
     snprintf(msg_data.deviceId, sizeof(msg_data.deviceId), "%s", sacc_self()->deviceSeq);
     snprintf(msg_data.group, sizeof(msg_data.group), "%d", sacc_self()->group);
     snprintf(msg_data.node, sizeof(msg_data.node), "%d", sacc_self()->node);
-    OGS_ADDR(g_sacc_nodes[sacc_self()->node].addr, msg_data.serviceIp);
+    OGS_ADDR(g_sacc_nodes[sacc_self()->node].ipv4[0], msg_data.serviceIp);
 
     memset(&message, 0, sizeof(message));
     message.h.method = (char *)OGS_SBI_HTTP_METHOD_POST;
@@ -186,7 +186,7 @@ bool sacc_handle_request(int msg_type, ogs_sbi_stream_t *stream, ogs_sbi_message
     snprintf(msg_data.deviceId, sizeof(msg_data.deviceId), "%s", g_sacc_nodes[sacc_self()->node].deviceId);
     snprintf(msg_data.group, sizeof(msg_data.group), "%d", sacc_self()->group);
     snprintf(msg_data.node, sizeof(msg_data.node), "%d", sacc_self()->node);
-    OGS_ADDR(g_sacc_nodes[sacc_self()->node].addr, msg_data.serviceIp);
+    OGS_ADDR(g_sacc_nodes[sacc_self()->node].ipv4[0], msg_data.serviceIp);
     snprintf(msg_data.result, sizeof(msg_data.result), "OK");
 
     int nf_num = 0;
@@ -222,6 +222,11 @@ bool sacc_handle_response(int msg_type, ogs_sbi_message_t *recvmsg)
     int group;
 
     recv_msg_Data = recvmsg->sacc_msg_Data;
+
+    if (NULL == recv_msg_Data){
+         ogs_error("node %d receive sacc %s response, no data, res_status:%d.",sacc_self()->node, sacc_msg_ToString(msg_type),recvmsg->res_status);
+        return false;
+    }
 
     node = atoi(recv_msg_Data->node);
     group = atoi(recv_msg_Data->group);
