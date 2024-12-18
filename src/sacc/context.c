@@ -254,23 +254,70 @@ int sacc_sbi_context_get_nf_info(
                         nf_instance->nf_type);
         }
         ogs_assert(nf_info);
+        memset(&nf_info->smf.staticIPRanges, 0, sizeof(ogs_ip_range_t));
+        add_ipRange(&sacc_nodes->staticIPRanges, &nf_info->smf.staticIPRanges);
     }
     
-    switch (nf_instance->nf_type){
-        // case OpenAPI_nf_type_UDM:
-        //     supiRange_copy(&sacc_nodes->supiRanges, &nf_info->udm.supiRanges);
-        //     break;
-        // case OpenAPI_nf_type_AUSF:
-        //     supiRange_copy(&sacc_nodes->supiRanges, &nf_info->ausf.supiRanges);
-        //     break;
+    // switch (nf_instance->nf_type){
+    //     // case OpenAPI_nf_type_UDM:
+    //     //     supiRange_copy(&sacc_nodes->supiRanges, &nf_info->udm.supiRanges);
+    //     //     break;
+    //     // case OpenAPI_nf_type_AUSF:
+    //     //     supiRange_copy(&sacc_nodes->supiRanges, &nf_info->ausf.supiRanges);
+    //     //     break;
+    //     case OpenAPI_nf_type_SMF:
+    //         // supiRange_copy(&sacc_nodes->supiRanges, &nf_info->smf.supiRanges);
+    //         add_ipRange(&sacc_nodes->staticIPRanges, &nf_info->smf.staticIPRanges);
+    //         break;
+    //     default:
+    //         break;
+    // }
+
+    return OGS_OK;
+}
+
+int sacc_sbi_context_update_nf_info(
+        OpenAPI_nf_type_e nf_type, sacc_node_t *sacc_nodes)
+{
+    int rv;
+    ogs_sbi_nf_info_t *nf_info = NULL;                        
+    ogs_supi_range_t *supiRanges = NULL;
+    ogs_ip_range_t *staticIPRanges = NULL;
+    int i;
+
+    ogs_sbi_nf_instance_t *nf_instance = NULL;
+
+    switch (nf_type){
         case OpenAPI_nf_type_SMF:
-            // supiRange_copy(&sacc_nodes->supiRanges, &nf_info->smf.supiRanges);
-            ipRange_copy(&sacc_nodes->staticIPRanges, &nf_info->smf.staticIPRanges);
+            nf_instance = sacc_nodes->smf_nf_instance;
             break;
         default:
-            break;
+            ogs_error("unknown local node type:%d", nf_type);
+            return OGS_ERROR;
     }
 
+    ogs_assert(nf_instance);
+
+    if (nf_instance->nf_type == OpenAPI_nf_type_SMF){
+        nf_info = ogs_sbi_nf_info_find(
+                    &nf_instance->nf_info_list,
+                        nf_instance->nf_type);
+        
+        if (nf_info == NULL){
+            nf_info = ogs_sbi_nf_info_add(
+                    &nf_instance->nf_info_list,
+                        nf_instance->nf_type);
+        }
+        ogs_assert(nf_info);
+
+        memset(&nf_info->smf.staticIPRanges, 0, sizeof(ogs_ip_range_t));
+        add_ipRange(&g_sacc_nodes[self.node].staticIPRanges, &nf_info->smf.staticIPRanges);//加自己的ip
+        for (i = 0; i < self.temporaryServiceNum; i++){//加继承节点的ip
+            ogs_info("add node %d's staticip to node %d.",self.temporaryServices[i].node, self.node);
+            add_ipRange(&g_sacc_nodes[self.temporaryServices[i].node].staticIPRanges, &nf_info->smf.staticIPRanges);
+        }
+    }
+    
     return OGS_OK;
 }
 
@@ -636,10 +683,18 @@ int sacc_initialize_nodes(void) {
         //snprintf(uri, sizeof(uri), "http://%s:%d/acc/v1/heartbeat", ip,g_local_node_config.port);
         //g_sacc_nodes[n].heartbeat_uri = ogs_strdup(uri);
         //ogs_info("node handshake uri:%s,heartbeat uri:%s", g_sacc_nodes[n].uri,g_sacc_nodes[n].heartbeat_uri);
+
+        //TODO:模拟
+        if (self.node == 1 && g_sacc_nodes[n].node != self.node){        
+            self.temporaryServices[self.temporaryServiceNum].group =  g_sacc_nodes[n].group;
+            self.temporaryServices[self.temporaryServiceNum].node =  g_sacc_nodes[n].node;
+            self.temporaryServiceNum++;
+        }
     }
 
     self.t_hand_shake_interval = ogs_timer_add(ogs_app()->timer_mgr,sacc_timer_node_handshake_timer_expire, NULL);
 	ogs_timer_start(self.t_hand_shake_interval, ogs_time_from_sec(self.heartbeatInterval));
+
 
     return OGS_OK;
 }

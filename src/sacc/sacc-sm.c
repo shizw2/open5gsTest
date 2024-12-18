@@ -345,7 +345,7 @@ void sacc_state_operational(ogs_fsm_t *s, sacc_event_t *e)
 
         switch(e->h.timer_id) {        
         case SACC_TIMER_NODE_HANDSHAKE:
-            sacc_scan();  
+            sacc_scan();
             ogs_timer_start(sacc_self()->t_hand_shake_interval, ogs_time_from_sec(sacc_self()->heartbeatInterval));    
             break;
 

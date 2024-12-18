@@ -2144,20 +2144,22 @@ void ipRange_free(ogs_ip_range_t *ipRanges)
     ipRanges->num_of_range = 0;
 }
 
-void ipRange_copy(const ogs_ip_range_t *src, ogs_ip_range_t *dst) {
+void add_ipRange(const ogs_ip_range_t *src, ogs_ip_range_t *dst) {
     int i;
     if (!src || !dst) return;
-    
-    // 清空目标结构体
-    memset(dst, 0, sizeof(ogs_ip_range_t));
 
-    // 复制基础结构
-    dst->num_of_range = src->num_of_range;
+    // 确保目标结构体有足够的空间来存储新的IP范围
+    if (dst->num_of_range + 1 > OGS_MAX_NUM_OF_SUBNET_RANGE) {
+        ogs_error("Exceeded maximum number of IP ranges");
+        return;
+    }
 
-    // 为每个SUPI范围分配新的内存并复制内容
+    // 复制新的IP范围到目标结构体
     for (i = 0; i < src->num_of_range; i++) {
-        dst->range[i].start = ogs_strdup(src->range[i].start);
-        dst->range[i].end = ogs_strdup(src->range[i].end);
+        // 为新的IP范围分配内存并复制内容
+        dst->range[dst->num_of_range].start = ogs_strdup(src->range[i].start);
+        dst->range[dst->num_of_range].end = ogs_strdup(src->range[i].end);
+        dst->num_of_range++;
     }
 }
 
@@ -2337,6 +2339,11 @@ bool ogs_sbi_check_smf_info_slice(
     ogs_assert(s_nssai);
     ogs_assert(dnn);
 
+    if (smf_info->num_of_slice == 0){//新增了IPRange后,num_of_slice可能为0
+        ogs_info("num_of_slice is 0,return true");
+        return true;
+    }
+
     for (i = 0; i < smf_info->num_of_slice; i++) {
         if (s_nssai->sst == smf_info->slice[i].s_nssai.sst &&
             s_nssai->sd.v == smf_info->slice[i].s_nssai.sd.v) {
@@ -2347,7 +2354,7 @@ bool ogs_sbi_check_smf_info_slice(
             }
         }
     }
-
+    ogs_info("ogs_sbi_check_smf_info_slice return false");
     return false;
 }
 bool ogs_sbi_check_smf_info_tai(

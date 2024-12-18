@@ -93,6 +93,8 @@ void sacc_scan(void) {
             sacc_send_request(SACC_MSG_TYPE_HANDSHAKE, &g_sacc_nodes[n]);
         }
     }
+
+    updateInheriteInfo();
 }
 
 ogs_sbi_request_t *sacc_build_request(int msg_type,
@@ -490,4 +492,10 @@ end:
         OpenAPI_list_free(PatchItemList);
 
     return request;
+}
+
+void updateInheriteInfo(void){
+    ogs_info("updateInheriteInfo");
+    sacc_sbi_context_update_nf_info(OpenAPI_nf_type_SMF, &g_sacc_nodes[sacc_self()->node]);
+    sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[sacc_self()->node].smf_nf_instance);
 }
