@@ -89,6 +89,7 @@ typedef struct sacc_node_s {
     int group;
     int node;
     int priority; //优先级，越小越优先
+    int inheriteEnable;     //能否有继承功能开关
     int state;//是否激活
     char deviceId[64];
     char role[16];
@@ -109,6 +110,9 @@ typedef struct sacc_node_s {
 
     ogs_supi_range_t supiRanges;
     ogs_ip_range_t staticIPRanges;
+
+    int temporaryServiceNum;       // 临时服务数量
+    sacc_temporary_service_t temporaryServices[MAX_PEER_NUM]; // 临时服务设备信息数组
 
     ogs_sbi_nf_instance_t *amf_nf_instance;
     ogs_sbi_nf_instance_t *smf_nf_instance;

@@ -53,6 +53,7 @@ void show_nodes(void) {
 
 void show_node_details(int node_id) {
     char buf[OGS_ADDRSTRLEN];
+    int i;
 
     if (node_id > MAX_PEER_NUM){
         printf("node_id is not exist.\n");
@@ -91,7 +92,10 @@ void show_node_details(int node_id) {
     print_supiRanges(&node->supiRanges);
     printf("  |--staticIPRanges     : \r\n");
     print_ipRanges(&node->staticIPRanges);
-
+    printf("  |--temporaryServiceNum: %d \r\n", node->temporaryServiceNum);
+    for (i = 0; i <node->temporaryServiceNum; i++){
+        printf("    |--temporaryService : %d group:%d,node:%d\r\n",i, node->temporaryServices[i].group,node->temporaryServices[i].node);
+    }
     // Print NF instances details if they exist
     if (node->amf_nf_instance) {
         printf("  |--AMF NF Instance   : \r\n");

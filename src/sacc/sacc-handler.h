@@ -42,7 +42,7 @@ ogs_sbi_request_t *sacc_nnrf_nfm_build_update(ogs_sbi_nf_instance_t *nf_instance
 bool sacc_nnrf_nfm_send_nf_de_register(ogs_sbi_nf_instance_t *nf_instance);
 ogs_sbi_request_t *sacc_nnrf_nfm_build_de_register(ogs_sbi_nf_instance_t *nf_instance);
 void updateInheriteInfo(void);
-
+sacc_node_t* elect_inheritor(void);
 
 #ifdef __cplusplus
 }

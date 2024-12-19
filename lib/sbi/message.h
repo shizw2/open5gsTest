@@ -540,7 +540,7 @@ typedef struct ogs_sbi_discovery_option_s {
 #define RESULT_LEN 16
 #define NFTYPE_LEN 16
 #define NF_INSTANCE_ID_LEN 100
-#define MAX_TEMPORARY_SERVICES 4
+#define MAX_TEMPORARY_SERVICES 100
 #define MAX_NF_INSTANCES 4
 
 typedef struct sacc_nf_instance_id_s {
@@ -549,21 +549,20 @@ typedef struct sacc_nf_instance_id_s {
 } sacc_nf_instance_id_t;
 
 typedef struct sacc_temporary_service_s {
-    char group[GROUP_LEN];   // 临时服务设备的组号
-    char node[NODE_LEN];     // 临时服务设备的节点号
+    int group;    // 临时服务设备的组号
+    int node;     // 临时服务设备的节点号
 } sacc_temporary_service_t;
 
 typedef struct sacc_msg_data_s {
-    char deviceId[DEVICE_ID_LEN];  // 本端设备序列号
-    char group[GROUP_LEN];         // 本端设备组号
-    char node[NODE_LEN];           // 本端设备节点号
+    char deviceId[DEVICE_ID_LEN];   // 本端设备序列号
+    int  group;                     // 本端设备组号
+    int  node;                      // 本端设备节点号
     char serviceIp[SERVICE_IP_LEN]; // 本端业务地址
-    char inheriteEnable[GROUP_LEN]; // 打开继承功能
-    int nfNum;
+    int  inheriteEnable;            // 打开继承功能
+    int  nfNum;
     sacc_nf_instance_id_t nfInstanceIds[MAX_NF_INSTANCES]; // 指向NF实例ID的指针
-    int temporaryServiceNum;       // 临时服务数量
+    int  temporaryServiceNum;       // 临时服务数量
     sacc_temporary_service_t temporaryServices[MAX_TEMPORARY_SERVICES]; // 临时服务设备信息数组
-                       // NF实例数量
     char result[16];
 } sacc_msg_data_t;
 

@@ -3712,6 +3712,7 @@ cJSON *OpenAPI_sacc_msg_data_convertToJSON(sacc_msg_data_t *handshake)
     cJSON *item = NULL;
     OpenAPI_lnode_t *node = NULL;
     cJSON *nfInstanceIds_array = NULL;
+    cJSON *temporaryServices_array = NULL;
     int i;
 
     if (handshake == NULL) {
@@ -3727,18 +3728,32 @@ cJSON *OpenAPI_sacc_msg_data_convertToJSON(sacc_msg_data_t *handshake)
         goto end;
     }
 
-    if (cJSON_AddStringToObject(item, "group", handshake->group) == NULL) {
-        ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [status]");
+    // 将整数group转换为字符串并添加到JSON对象中
+    char group_str[12] = {0};
+    snprintf(group_str, sizeof(group_str), "%d", handshake->group);
+    if (cJSON_AddStringToObject(item, "group", group_str) == NULL) {
+        ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [group]");
         goto end;
     }
 
-    if (cJSON_AddStringToObject(item, "node", handshake->node) == NULL) {
-        ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [status]");
+    // 将整数node转换为字符串并添加到JSON对象中
+    char node_str[12] = {0};
+    snprintf(node_str, sizeof(node_str), "%d", handshake->node);
+    if (cJSON_AddStringToObject(item, "node", node_str) == NULL) {
+        ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [node]");
         goto end;
     }
 
     if (cJSON_AddStringToObject(item, "serviceIp", handshake->serviceIp) == NULL) {
         ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [status]");
+        goto end;
+    }
+
+    // 将整数inheriteEnable转换为字符串并添加到JSON对象中
+    char inheriteEnable_str[10] = {0};
+    snprintf(inheriteEnable_str, sizeof(inheriteEnable_str), "%d", handshake->inheriteEnable);
+    if (cJSON_AddStringToObject(item, "inheriteEnable", inheriteEnable_str) == NULL) {
+        ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [inheriteEnable]");
         goto end;
     }
 
@@ -3773,6 +3788,45 @@ cJSON *OpenAPI_sacc_msg_data_convertToJSON(sacc_msg_data_t *handshake)
         goto end;
     }
 
+    // 添加temporaryServices的编码
+    temporaryServices_array = cJSON_CreateArray();
+    if (temporaryServices_array == NULL) {
+        ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [temporaryServices_array]");
+        goto end;
+    }
+
+    for (i = 0; i < handshake->temporaryServiceNum; ++i) {
+        cJSON *temporaryService_item = cJSON_CreateObject();
+        if (temporaryService_item == NULL) {
+            ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [temporaryService_item]");
+            goto end;
+        }
+
+        // 将整数group和node转换为字符串并添加到JSON对象中
+        char group_str[12];
+        snprintf(group_str, sizeof(group_str), "%d", handshake->temporaryServices[i].group);
+        if (cJSON_AddStringToObject(temporaryService_item, "group", group_str) == NULL) {
+            ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [group]");
+            cJSON_Delete(temporaryService_item);
+            goto end;
+        }
+
+        char node_str[12];
+        snprintf(node_str, sizeof(node_str), "%d", handshake->temporaryServices[i].node);
+        if (cJSON_AddStringToObject(temporaryService_item, "node", node_str) == NULL) {
+            ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [node]");
+            cJSON_Delete(temporaryService_item);
+            goto end;
+        }
+
+        cJSON_AddItemToArray(temporaryServices_array, temporaryService_item);
+    }
+
+    if (cJSON_AddItemToObject(item, "temporaryServices", temporaryServices_array) == NULL) {
+        ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [temporaryServices]");
+        goto end;
+    }
+
     if (handshake->result != NULL){//可选
         if (cJSON_AddStringToObject(item, "result", handshake->result) == NULL) {
             ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [result]");
@@ -3799,8 +3853,14 @@ sacc_msg_data_t *OpenAPI_sacc_msg_data_parseFromJSON(cJSON *msg_dataJSON)
     cJSON *nfInstanceIdItem = NULL;
     cJSON *nfTypeItem = NULL;
     cJSON *nfIdItem = NULL;
+    cJSON *inheriteEnable = NULL; 
+    cJSON *temporaryServices = NULL; 
+    cJSON *temporaryServiceItem = NULL;
 
     int index;
+
+    sacc_msg_data_local_var = ogs_malloc(sizeof(sacc_msg_data_t));
+    ogs_assert(sacc_msg_data_local_var);
 
     deviceId = cJSON_GetObjectItemCaseSensitive(msg_dataJSON, "deviceId");
     if (!deviceId) {
@@ -3852,16 +3912,9 @@ sacc_msg_data_t *OpenAPI_sacc_msg_data_parseFromJSON(cJSON *msg_dataJSON)
         result_value = result->valuestring;
     }
 
-    // sacc_msg_data_local_var = OpenAPI_sacc_msg_data_create (
-    //     deviceId->valuestring,group->valuestring,node->valuestring,serviceIp->valuestring,result_value
-    // );
-
-    sacc_msg_data_local_var = ogs_malloc(sizeof(sacc_msg_data_t));
-    ogs_assert(sacc_msg_data_local_var);
-
     strncpy(sacc_msg_data_local_var->deviceId, deviceId->valuestring, sizeof(sacc_msg_data_local_var->deviceId));
-    strncpy(sacc_msg_data_local_var->group, group->valuestring, sizeof(sacc_msg_data_local_var->group));
-    strncpy(sacc_msg_data_local_var->node, node->valuestring, sizeof(sacc_msg_data_local_var->node));
+    sacc_msg_data_local_var->group = atoi(group->valuestring);
+    sacc_msg_data_local_var->node = atoi(node->valuestring);
     strncpy(sacc_msg_data_local_var->serviceIp, serviceIp->valuestring, sizeof(sacc_msg_data_local_var->serviceIp));
     if (result != NULL){
         strncpy(sacc_msg_data_local_var->result, result->valuestring, sizeof(sacc_msg_data_local_var->result));
@@ -3891,7 +3944,49 @@ sacc_msg_data_t *OpenAPI_sacc_msg_data_parseFromJSON(cJSON *msg_dataJSON)
             }
         }
     }
+
+    // 解析继承功能开关
+    inheriteEnable = cJSON_GetObjectItemCaseSensitive(msg_dataJSON, "inheriteEnable");
+    if (inheriteEnable) {
+        if (!cJSON_IsString(inheriteEnable)) {
+            ogs_error("OpenAPI_sacc_msg_data_parseFromJSON() failed [inheriteEnable]");
+            goto end;
+        }
+        // 将字符串转换为整数
+        sacc_msg_data_local_var->inheriteEnable = atoi(inheriteEnable->valuestring);
+    } else {
+        sacc_msg_data_local_var->inheriteEnable = 1; // 没带默认就是1
+    }
+
+    // 解析临时服务数组
+    temporaryServices = cJSON_GetObjectItemCaseSensitive(msg_dataJSON, "temporaryServices");
+    if (temporaryServices && cJSON_IsArray(temporaryServices)) {
+        int tempServiceNum = cJSON_GetArraySize(temporaryServices);
+        if (tempServiceNum > MAX_TEMPORARY_SERVICES) {
+            ogs_error("OpenAPI_sacc_msg_data_parseFromJSON() failed [temporaryServices]: too many temporary services");
+            goto end;
+        }
+        sacc_msg_data_local_var->temporaryServiceNum = tempServiceNum;
+        for (index = 0; index < tempServiceNum; index++) {
+            temporaryServiceItem = cJSON_GetArrayItem(temporaryServices, index);
+            if (cJSON_IsObject(temporaryServiceItem)) {
+                cJSON *groupItem = cJSON_GetObjectItemCaseSensitive(temporaryServiceItem, "group");
+                cJSON *nodeItem = cJSON_GetObjectItemCaseSensitive(temporaryServiceItem, "node");
+                if (groupItem && cJSON_IsString(groupItem) && nodeItem && cJSON_IsString(nodeItem)) {
+                    sacc_msg_data_local_var->temporaryServices[index].group = atoi(groupItem->valuestring);
+                    sacc_msg_data_local_var->temporaryServices[index].node = atoi(nodeItem->valuestring);
+                } else {
+                    ogs_error("OpenAPI_sacc_msg_data_parseFromJSON() failed [temporaryServices]: invalid format");
+                    goto end;
+                }
+            }
+        }
+    }
+
     return sacc_msg_data_local_var;
 end:
+    if (sacc_msg_data_local_var) {
+        ogs_free(sacc_msg_data_local_var);
+    }
     return NULL;
 }

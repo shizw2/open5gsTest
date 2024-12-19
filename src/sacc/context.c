@@ -655,8 +655,11 @@ int sacc_initialize_nodes(void) {
 
         // g_sacc_nodes[n].group = self.group;
         // g_sacc_nodes[n].node = n;
+        g_sacc_nodes[n].priority = 1;//默认为1
+        g_sacc_nodes[n].inheriteEnable = 1;//默认支持继承
         if (n == self.node){//本节点上电,默认为online
             g_sacc_nodes[n].state = SACC_PEER_STATE_ONLINE;
+            g_sacc_nodes[n].inheriteEnable = self.inheriteEnable;
         }else{
             g_sacc_nodes[n].state = SACC_PEER_STATE_OFFLINE;
         }
@@ -683,13 +686,6 @@ int sacc_initialize_nodes(void) {
         //snprintf(uri, sizeof(uri), "http://%s:%d/acc/v1/heartbeat", ip,g_local_node_config.port);
         //g_sacc_nodes[n].heartbeat_uri = ogs_strdup(uri);
         //ogs_info("node handshake uri:%s,heartbeat uri:%s", g_sacc_nodes[n].uri,g_sacc_nodes[n].heartbeat_uri);
-
-        //TODO:模拟
-        if (self.node == 1 && g_sacc_nodes[n].node != self.node){        
-            self.temporaryServices[self.temporaryServiceNum].group =  g_sacc_nodes[n].group;
-            self.temporaryServices[self.temporaryServiceNum].node =  g_sacc_nodes[n].node;
-            self.temporaryServiceNum++;
-        }
     }
 
     self.t_hand_shake_interval = ogs_timer_add(ogs_app()->timer_mgr,sacc_timer_node_handshake_timer_expire, NULL);

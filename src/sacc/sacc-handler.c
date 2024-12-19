@@ -94,7 +94,8 @@ void sacc_scan(void) {
         }
     }
 
-    updateInheriteInfo();
+    //updateInheriteInfo();
+    elect_inheritor();
 }
 
 ogs_sbi_request_t *sacc_build_request(int msg_type,
@@ -111,8 +112,8 @@ ogs_sbi_request_t *sacc_build_request(int msg_type,
     memset(&msg_data, 0, sizeof(sacc_msg_data_t));
 
     snprintf(msg_data.deviceId, sizeof(msg_data.deviceId), "%s", sacc_self()->deviceSeq);
-    snprintf(msg_data.group, sizeof(msg_data.group), "%d", sacc_self()->group);
-    snprintf(msg_data.node, sizeof(msg_data.node), "%d", sacc_self()->node);
+    msg_data.group = sacc_self()->group;
+    msg_data.node  = sacc_self()->node;
     OGS_ADDR(g_sacc_nodes[sacc_self()->node].ipv4[0], msg_data.serviceIp);
 
     memset(&message, 0, sizeof(message));
@@ -160,6 +161,7 @@ bool sacc_handle_request(int msg_type, ogs_sbi_stream_t *stream, ogs_sbi_message
     sacc_msg_data_t *recv_msg_Data;
     int node;
     int group;
+    int i;
 
     ogs_assert(stream);
 
@@ -167,10 +169,10 @@ bool sacc_handle_request(int msg_type, ogs_sbi_stream_t *stream, ogs_sbi_message
     memset(&msg_data, 0, sizeof(msg_data));
 
     recv_msg_Data = recvmsg->sacc_msg_Data;
-    node = atoi(recv_msg_Data->node);
-    group = atoi(recv_msg_Data->group);
+    node = recv_msg_Data->node;
+    group = recv_msg_Data->group;
 
-    ogs_info("node %d receive sacc %s request from node:%s deviceId:%s group:%s serviceIp:%s",sacc_self()->node, sacc_msg_ToString(msg_type), recv_msg_Data->node, recv_msg_Data->deviceId, recv_msg_Data->group, recv_msg_Data->serviceIp);
+    ogs_info("node %d receive sacc %s request from node:%d deviceId:%s group:%d serviceIp:%s",sacc_self()->node, sacc_msg_ToString(msg_type), recv_msg_Data->node, recv_msg_Data->deviceId, recv_msg_Data->group, recv_msg_Data->serviceIp);
 
     if (node > sacc_self()->nodeNum || node < 1){
         ogs_info("incomming node %d is out of range %d, ignore it.",node, sacc_self()->nodeNum);
@@ -191,8 +193,8 @@ bool sacc_handle_request(int msg_type, ogs_sbi_stream_t *stream, ogs_sbi_message
     //g_sacc_nodes[node].heartbeatLost = 0;//重置心跳丢失计数
 
     snprintf(msg_data.deviceId, sizeof(msg_data.deviceId), "%s", g_sacc_nodes[sacc_self()->node].deviceId);
-    snprintf(msg_data.group, sizeof(msg_data.group), "%d", sacc_self()->group);
-    snprintf(msg_data.node, sizeof(msg_data.node), "%d", sacc_self()->node);
+    msg_data.group = sacc_self()->group;
+    msg_data.node = sacc_self()->node;
     OGS_ADDR(g_sacc_nodes[sacc_self()->node].ipv4[0], msg_data.serviceIp);
     snprintf(msg_data.result, sizeof(msg_data.result), "OK");
 
@@ -210,10 +212,17 @@ bool sacc_handle_request(int msg_type, ogs_sbi_stream_t *stream, ogs_sbi_message
     // snprintf(msg_data.nfInstanceIds[nf_num++].id, sizeof(msg_data.nfInstanceIds[0]), "%s", g_sacc_nodes[sacc_self()->node].ausf_nf_instance->id);
 
     msg_data.nfNum = nf_num;
+
+    msg_data.inheriteEnable = g_sacc_nodes[sacc_self()->node].inheriteEnable;
+    msg_data.temporaryServiceNum = g_sacc_nodes[sacc_self()->node].temporaryServiceNum;
+    for (i = 0; i < msg_data.temporaryServiceNum; i++){
+        msg_data.temporaryServices[i] = g_sacc_nodes[sacc_self()->node].temporaryServices[i];
+    }
+
     sendmsg.sacc_msg_Data = &msg_data;
     sendmsg.http.location = recvmsg->h.uri;
 
-    ogs_info("node %d send sacc %s response to node:%s.",sacc_self()->node, sacc_msg_ToString(msg_type), recvmsg->sacc_msg_Data->node);
+    ogs_info("node %d send sacc %s response to node:%d.",sacc_self()->node, sacc_msg_ToString(msg_type), recvmsg->sacc_msg_Data->node);
 
     response = ogs_sbi_build_response(&sendmsg, OGS_SBI_HTTP_STATUS_OK);
     ogs_assert(response);
@@ -235,10 +244,10 @@ bool sacc_handle_response(int msg_type, ogs_sbi_message_t *recvmsg)
         return false;
     }
 
-    node = atoi(recv_msg_Data->node);
-    group = atoi(recv_msg_Data->group);
+    node = recv_msg_Data->node;
+    group = recv_msg_Data->group;
 
-    ogs_info("node %d receive sacc %s response, peer node info: deviceId:%s group:%s node:%s serviceIp:%s result:%s",sacc_self()->node, sacc_msg_ToString(msg_type),recv_msg_Data->deviceId,recv_msg_Data->group,recv_msg_Data->node,recv_msg_Data->serviceIp, recv_msg_Data->result);
+    ogs_info("node %d receive sacc %s response, peer node info: deviceId:%s group:%d node:%d serviceIp:%s result:%s",sacc_self()->node, sacc_msg_ToString(msg_type),recv_msg_Data->deviceId,recv_msg_Data->group,recv_msg_Data->node,recv_msg_Data->serviceIp, recv_msg_Data->result);
 
     if (node > sacc_self()->nodeNum || node < 1){
         ogs_info("incomming node %d is out of range, ignore it.",node);
@@ -498,4 +507,50 @@ void updateInheriteInfo(void){
     ogs_info("updateInheriteInfo");
     sacc_sbi_context_update_nf_info(OpenAPI_nf_type_SMF, &g_sacc_nodes[sacc_self()->node]);
     sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[sacc_self()->node].smf_nf_instance);
+}
+
+// 选举继承者的函数
+sacc_node_t* elect_inheritor(void) {
+    int n;
+
+    sacc_node_t *inheritor = NULL;
+    int lowest_priority = INT_MAX;
+    unsigned int lowest_ip_addr = UINT_MAX; // 用于存储最低IP地址的变量
+
+    for (n = 1; n <= sacc_self()->nodeNum && n <= MAX_PEER_NUM; n++) {
+        sacc_node_t *current_node = &g_sacc_nodes[n];
+
+        if (current_node->inheriteEnable && current_node->state == SACC_PEER_STATE_ONLINE) { // 检查继承开关和状态
+            // 如果找到优先级更低的节点，或者优先级相同但IP地址更小的节点，则更新继承者
+            if (current_node->priority < lowest_priority ||
+                (current_node->priority == lowest_priority &&
+                 (current_node->ipv4[0]->sin.sin_addr.s_addr < lowest_ip_addr))) {
+                inheritor = current_node;
+                lowest_priority = current_node->priority;
+                lowest_ip_addr = current_node->ipv4[0]->sin.sin_addr.s_addr;
+            }else{
+                current_node->temporaryServiceNum = 0;
+            }
+        }
+    }
+
+    if (inheritor) {
+        //继承者需要继承故障节点的静态IP信息
+        inheritor->temporaryServiceNum = 0; // 重置继承者的服务数量
+        for (n = 1; n <= sacc_self()->nodeNum && n <= MAX_PEER_NUM; n++) {
+            sacc_node_t *current_node = &g_sacc_nodes[n];
+            if (current_node->state == SACC_PEER_STATE_OFFLINE && current_node->node != inheritor->node){
+                inheritor->temporaryServices[inheritor->temporaryServiceNum].group =  current_node->group;
+                inheritor->temporaryServices[inheritor->temporaryServiceNum].node =  current_node->node;
+                inheritor->temporaryServiceNum++;
+            }
+        }
+        ogs_info("Elected Inheritor: Node %d, Group %d, Priority %d, IP %s,temporaryServiceNum:%d.\n", 
+            inheritor->node, inheritor->group, inheritor->priority,
+            inet_ntoa(inheritor->ipv4[0]->sin.sin_addr),inheritor->temporaryServiceNum);
+            
+    } else {
+        ogs_info("No eligible inheritor found.\n");
+    }
+    return inheritor;
 }
