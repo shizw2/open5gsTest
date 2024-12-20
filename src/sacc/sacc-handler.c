@@ -268,15 +268,23 @@ bool sacc_handle_response(int msg_type, ogs_sbi_message_t *recvmsg)
     // 遍历nfInstanceIds数组，将ID赋值给对应的NF实例
     for (int i = 0; i < recv_msg_Data->nfNum; ++i) {
         if (strcmp(recv_msg_Data->nfInstanceIds[i].nf_type, "AMF") == 0) {
-            ogs_sbi_nf_instance_set_id(g_sacc_nodes[node].amf_nf_instance, recv_msg_Data->nfInstanceIds[i].id);
+            if (strcmp(g_sacc_nodes[node].amf_nf_instance->id, recv_msg_Data->nfInstanceIds[i].id) != 0) {
+                ogs_sbi_nf_instance_set_id(g_sacc_nodes[node].amf_nf_instance, recv_msg_Data->nfInstanceIds[i].id);
+            }
         } else if (strcmp(recv_msg_Data->nfInstanceIds[i].nf_type, "SMF") == 0) {
-            ogs_sbi_nf_instance_set_id(g_sacc_nodes[node].smf_nf_instance, recv_msg_Data->nfInstanceIds[i].id);
-        }// } else if (strcmp(recv_msg_Data->nfInstanceIds[i].nf_type, "UDM") == 0) {
-        //     ogs_sbi_nf_instance_set_id(g_sacc_nodes[node].udm_nf_instance, recv_msg_Data->nfInstanceIds[i].id);
-        // } else if (strcmp(recv_msg_Data->nfInstanceIds[i].nf_type, "AUSF") == 0) {
-        //     ogs_sbi_nf_instance_set_id(g_sacc_nodes[node].ausf_nf_instance, recv_msg_Data->nfInstanceIds[i].id);
-        // }
-    }   
+            if (strcmp(g_sacc_nodes[node].smf_nf_instance->id, recv_msg_Data->nfInstanceIds[i].id) != 0) {
+                ogs_sbi_nf_instance_set_id(g_sacc_nodes[node].smf_nf_instance, recv_msg_Data->nfInstanceIds[i].id);
+            }
+        } /*else if (strcmp(recv_msg_Data->nfInstanceIds[i].nf_type, "UDM") == 0) {
+            if (strcmp(g_sacc_nodes[node].udm_nf_instance->id, recv_msg_Data->nfInstanceIds[i].id) != 0) {
+                ogs_sbi_nf_instance_set_id(g_sacc_nodes[node].udm_nf_instance, recv_msg_Data->nfInstanceIds[i].id);
+            }
+        } else if (strcmp(recv_msg_Data->nfInstanceIds[i].nf_type, "AUSF") == 0) {
+            if (strcmp(g_sacc_nodes[node].ausf_nf_instance->id, recv_msg_Data->nfInstanceIds[i].id) != 0) {
+                ogs_sbi_nf_instance_set_id(g_sacc_nodes[node].ausf_nf_instance, recv_msg_Data->nfInstanceIds[i].id);
+            }
+        }*/
+    }
 
     if (g_sacc_nodes[node].state == SACC_PEER_STATE_OFFLINE){
         g_sacc_nodes[node].state = SACC_PEER_STATE_ONLINE;

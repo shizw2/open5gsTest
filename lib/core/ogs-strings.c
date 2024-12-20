@@ -183,6 +183,7 @@ void *ogs_talloc_memdup(const void *t, const void *p, size_t size)
 
     ptr = talloc_memdup(t, p, size);
     ogs_expect(ptr);
+    ogs_info("ptr:%p",ptr);
 
     ogs_thread_mutex_unlock(ogs_mem_get_mutex());
 

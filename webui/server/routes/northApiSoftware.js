@@ -188,7 +188,8 @@ router.get('/device', (req, res) => {
 //4.04
 router.get('/networkStatus', async (req, res) => {
   try {
-    const dataString = await fetchDataFromTelnet(2300, '127.0.0.18', '5gc', 'getnetworkStatus()');
+    const config = await loadConfig();
+    const dataString = await fetchDataFromTelnet(config.cliInfo.sacc.port, config.cliInfo.sacc.ip, '5gc', 'getnetworkStatus()');
     // 解析 JSON 字符串为对象
     const data = JSON.parse(dataString);
     const result = Object.keys(data).length === 0 ? "FAIL" : "OK";
@@ -212,7 +213,8 @@ router.get('/ranNode', async (req, res) => {
     const command = `getRanNode(${pageSize},${pageNum})`;
 
     // 调用异步函数获取数据
-    const dataString = await fetchDataFromTelnet(2300, '127.0.0.5', '5gc', command);
+    const config = await loadConfig();
+    const dataString = await fetchDataFromTelnet(config.cliInfo.amf.port, config.cliInfo.amf.ip, '5gc', command);
     const data = JSON.parse(dataString);
 
     // 检查数据是否为空
@@ -239,7 +241,8 @@ router.get('/ueStatus', async (req, res) => {
       const command = `getUeInfo(${pageSize},${pageNum})`;
 
       // 调用异步函数获取数据
-      const dataString = await fetchDataFromTelnet(2301, '127.0.0.5', '5gc', command);
+      const config = await loadConfig();
+      const dataString = await fetchDataFromTelnet(config.cliInfo.amf_sps.port, config.cliInfo.amf_sps.ip, '5gc', command);
       const data = JSON.parse(dataString);
 
       // 检查数据是否为空
@@ -255,7 +258,7 @@ router.get('/ueStatus', async (req, res) => {
                   const command2 = `getUeInfo(${imsi})`; 
 
                   // 调用异步函数获取额外的数据
-                  const extraDataString = await fetchDataFromTelnet(2300, '127.0.0.4', '5gc', command2);
+                  const extraDataString = await fetchDataFromTelnet(config.cliInfo.smf.port, config.cliInfo.smf.ip, '5gc', command2);
                   console.log("extraDataString:",extraDataString)
                   const extraData = JSON.parse(extraDataString);
                   console.log("extraData:",extraData)
