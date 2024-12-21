@@ -169,11 +169,14 @@ function fetchConfigInfo(req, res) {
           let singleueAddrPool = {
             "ipStart": "",
             "netMask": "",
-            "numberOfAddresses": "",
+            "numberOfAddresses": null,
           };
 
           [singleueAddrPool.ipStart, singleueAddrPool.netMask] = session.subnet.split('/');
-          singleueAddrPool.numberOfAddresses = session.num;
+          if (session.range && session.range[0]) {
+            const [start, end] = session.range[0].split('-');
+            singleueAddrPool.numberOfAddresses = ipV4ToNumber(end) - ipV4ToNumber(start) + 1;
+          }
 
           configinfo.ueAddrPoolList.push(singleueAddrPool);
         });
@@ -192,6 +195,11 @@ function fetchConfigInfo(req, res) {
       res.send(error);
     });
   });
+}
+
+function ipV4ToNumber(ipAddress) {
+  const parts = ipAddress.split('.');
+  return (parts[0] << 24) + (parts[1] << 16) + (parts[2] << 8) + parseInt(parts[3]);
 }
 
 module.exports = fetchConfigInfo;

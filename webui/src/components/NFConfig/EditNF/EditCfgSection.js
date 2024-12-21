@@ -2862,9 +2862,13 @@ export const sessionSchema = {
         type: "string",
         title: "DNN",
       },
-      num: {
-        type: "number",
-        title: "Num",
+      range: {
+        type: "array",
+        title: "Range",
+        minItems: 1,
+        items: {
+          type: "string",
+        }
       },
     }
   }
@@ -2876,17 +2880,23 @@ export const sessionUiSchema = {
   "ui:description": <Customhelp14 title={promptRestart} />,
   items: {
     subnet: {
-      classNames: "col-xs-4",
+      classNames: "col-xs-5",
       "ui:placeholder": "ipv4/v6 subnet address",
     },
     gateway: {
-      classNames: "col-xs-3",
+      classNames: "col-xs-4",
     },
     dnn: {
       classNames: "col-xs-3",
     },
-    num: {
-      classNames: "col-xs-2",
+    range: {
+      classNames: "col-xs-12",
+      "ui:title": <CustomTitle14 title="Range" />,
+      //"ui:title": <CustomTitle18Margin45 title="TAC" />,
+      items:{
+        //classNames: "col-xs-12",
+        "ui:placeholder": "Format like 10.0.0.1-10.0.1.100",
+      }
     }
   }
 };

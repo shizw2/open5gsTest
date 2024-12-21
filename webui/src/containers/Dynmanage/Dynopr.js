@@ -162,8 +162,8 @@ const handleQueryue = async () => {
     });
     
     // 假设成功返回数据的格式
-    if (response.data.success) {
-      setUserData(response.data.data); // 根据实际返回数据设置
+    if (response.data.result_set) {
+      setUserData(response.data.result_set); // 根据实际返回数据设置
       setErrorMessage(null);
     } else {
       setErrorMessage('查询失败，状态码:' + response.status);
@@ -185,8 +185,8 @@ const handleQuerybs = async () => {
     });
     
     // 假设成功返回数据的格式
-    if (response.data.success) {
-      setBaseStationData(response.data.data); // 根据实际返回数据设置
+    if (response.data.result_set) {
+      setBaseStationData(response.data.result_set); // 根据实际返回数据设置
       setErrorMessage(null);
     } else {
       setErrorMessage('查询失败，状态码:' + response.status);
@@ -201,7 +201,8 @@ const handleQuerybs = async () => {
 const [systemAction, setSystemAction] = useState('start'); // 默认选中值
 
 const handleSystemChange = (e) => {
-  setSystemAction(e.target.value); // 更新选中的工作模式
+  setSystemAction(e.target.value); 
+  setErrorMessage('');
 };
 
 const handleSubmitSystem = async () => {
@@ -211,7 +212,7 @@ const handleSubmitSystem = async () => {
     });
     
     // 处理成功响应
-    if (response.data.success) {
+    if (response.data.result==="OK") {
       setErrorMessage('操作成功');
       //console.log('提交成功:', response.data.message);
     } else {
@@ -317,7 +318,7 @@ return (
           </button>
           {userData && (
             <div>
-              <h3>用户信息：</h3>
+              <h4>用户信息：</h4>
               <pre>{JSON.stringify(userData, null, 2)}</pre>
             </div>
           )}
@@ -353,7 +354,7 @@ return (
           </button>
           {baseStationData && (
             <div>
-              <h3>基站状态信息：</h3>
+              <h4>基站状态信息：</h4>
               <pre>{JSON.stringify(baseStationData, null, 2)}</pre>
             </div>
           )}

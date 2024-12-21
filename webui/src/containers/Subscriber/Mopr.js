@@ -264,10 +264,11 @@ const MoprButtons = () => {
     })
     .then(response => {
       if (!response.ok) {
+        setErrorMessage('网络响应错误，状态码:'+response.status); 
         response.text().then(body => {         
-          const jsonResponse = JSON.parse(body); 
-          const reason = jsonResponse.error.detail.invalidParam.reason; 
-          setErrorMessage('网络响应错误，状态码:'+response.status+',原因:'+reason);
+          //const jsonResponse = JSON.parse(body); 
+          //const reason = jsonResponse.error.detail.invalidParam.reason; 
+          //setErrorMessage('网络响应错误，状态码:'+response.status+',原因:'+reason);
         }); 
         throw new Error('网络响应不是 ok');
       }
@@ -296,10 +297,12 @@ const MoprButtons = () => {
     })
     .then(response => {
       if (!response.ok) {
-        response.text().then(body => {         
-          const jsonResponse = JSON.parse(body); 
-          const reason = jsonResponse.error.detail.invalidParam.reason; 
-          setErrorMessage('网络响应错误，状态码:'+response.status+',原因:'+reason);
+        setErrorMessage('网络响应错误，状态码:'+response.status); 
+        response.text().then(body => { 
+                  
+          //const jsonResponse = JSON.parse(body); 
+          //const reason = jsonResponse.error.detail.invalidParam.reason; 
+          //setErrorMessage('网络响应错误，状态码:'+response.status+',原因:'+reason);
         });
         throw new Error('网络响应不是 ok');
       }

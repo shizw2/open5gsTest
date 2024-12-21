@@ -1,3 +1,20 @@
+exports.port = {
+    "N2": 38412,
+    "N3": 2152,
+    "Namf": 8100,
+    "Nsmf": 8200,
+    "Nausf": 8400,
+    "Nudm": 8401,
+    "N3": 2152,
+    "N4u": 8805,
+    "Npcf": 8701,
+    "Nnrf": 8600,
+    "Sacc": 2333,
+    "Mk": 8060,
+    "SMPP": 12221,
+    "Dss": 2444,
+};
+
 exports.configinfo ={
     "role": "T2",
     "group": "G1",
