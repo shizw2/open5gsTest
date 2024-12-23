@@ -1437,6 +1437,10 @@ int gmm_handle_ul_nas_transport(ran_ue_t *ran_ue, amf_ue_t *amf_ue,
                 ogs_sbi_discovery_option_set_tai(
                         discovery_option, &amf_ue->nr_tai);
 
+                if (amf_ue->ue_ip.addr != 0){
+                    ogs_sbi_discovery_option_set_static_ip(discovery_option, amf_ue->ue_ip.addr);
+                }
+
                 char *supi_id = NULL;
                 if (amf_ue->supi != NULL){
                     supi_id = ogs_id_get_value(amf_ue->supi);

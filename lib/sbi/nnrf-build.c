@@ -138,7 +138,7 @@ OpenAPI_nf_profile_t *ogs_nnrf_nfm_build_nf_profile(
         NFProfile->heart_beat_timer = nf_instance->time.heartbeat_interval;
     }
 
-    ogs_info("test:NFProfile->is_heart_beat_timer:%d NFProfile->heart_beat_timer:%d",NFProfile->is_heart_beat_timer,NFProfile->heart_beat_timer);
+    //ogs_info("test:NFProfile->is_heart_beat_timer:%d NFProfile->heart_beat_timer:%d",NFProfile->is_heart_beat_timer,NFProfile->heart_beat_timer);
 
     if (nf_instance->num_of_plmn_id) {
         OpenAPI_list_t *PlmnIdList = NULL;

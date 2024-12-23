@@ -8,22 +8,22 @@ global:
     ue: 1024  # The number of UE can be increased depending on memory size.
 #    peer: 64
   parameter:
-      capacity: 100
-      group: 1
-      node: 1
+    capacity: 100
+    group: 1
+    node: 1
   cli:
     server:
-      - address: 127.0.0.5
-        port: 2300
+      - address: 127.0.0.1
+        port: 7100
 
 amf:
   sbi:
     server:
       - address: 127.0.0.5
-        port: 7777
+        port: 8100
     client:
       nrf:
-        - uri: http://127.0.0.10:7777
+        - uri: http://127.0.0.5:8600
 #      scp:
 #        - uri: http://127.0.0.200:7777
   ngap:
@@ -36,7 +36,7 @@ amf:
   metrics:
     server:
       - address: 127.0.0.5
-        port: 9090
+        port: 9110
   guami:
     - plmn_id:
         mcc: 460

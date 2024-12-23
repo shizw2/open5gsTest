@@ -178,7 +178,8 @@ void udm_state_operational(ogs_fsm_t *s, udm_event_t *e)
                         message.h.resource.component[0]);
                 if (!udm_ue) {
                     if (!strcmp(message.h.method,
-                                OGS_SBI_HTTP_METHOD_POST)) {
+                                OGS_SBI_HTTP_METHOD_POST) ||
+                        !strcmp(message.h.method,OGS_SBI_HTTP_METHOD_GET)) {//TODO:新增:归属地SMF向UDM直接请求数据时是GET，并且之前没有POST
                         udm_ue = udm_ue_add(message.h.resource.component[0]);
                         if (!udm_ue) {
                             ogs_error("Invalid Request [%s]",

@@ -16,6 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 open5gs_sysconfdir = join_paths(sysconfdir, project_name)
+open5gs_sysconf_default_dir = join_paths(sysconfdir, '5gc_default')
 meson.add_install_script(python3_exe, '-c',
         mkdir_p.format(open5gs_sysconfdir))
 
@@ -39,6 +40,20 @@ open5gs_conf = '''
     bsf.yaml
     eir.yaml
     sacc.yaml
+    
+    smf2.yaml
+    amf2.yaml
+    upf2.yaml
+    nrf2.yaml
+    scp2.yaml
+    ausf2.yaml
+    udm2.yaml
+    udr2.yaml
+    pcf2.yaml
+    nssf2.yaml
+    bsf2.yaml
+    eir2.yaml
+    sacc2.yaml
 '''.split()
 
 foreach file : open5gs_conf
@@ -48,6 +63,8 @@ foreach file : open5gs_conf
             configuration : conf_data)
     meson.add_install_script(python3_exe, '-c',
             install_conf.format(gen, open5gs_sysconfdir))
+    meson.add_install_script(python3_exe, '-c',
+            install_conf.format(gen, open5gs_sysconf_default_dir))            
 endforeach
 
 subdir('tls')

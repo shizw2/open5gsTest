@@ -1738,7 +1738,7 @@ bson_t *test_db_new_simple(test_ue_t *test_ue)
                     "}",
 #if 1 /* For static-IP test */
                     //"ue", "{", "ipv4", "1.1.1.1", "ipv6", "::1", "}",
-                    "ue", "{", "ipv4", "1.1.1.1", "}",
+                    "ue", "{", "ipv4", "10.45.1.3", "}",
                     //"ue", "{", "ipv6", "::1", "}",
 #endif
                     "qos", "{",

@@ -13,8 +13,8 @@ global:
       node: 1
   cli:
     server:
-      - address: 127.0.0.10
-        port: 2300
+      - address: 127.0.0.1
+        port: 7600
 
 nrf:
   serving:  # 5G roaming requires PLMN in NRF
@@ -23,12 +23,12 @@ nrf:
         mnc: 07
   sbi:
     server:
-      - address: 127.0.0.10
-        port: 7777
+      - address: 127.0.0.5
+        port: 8600
   metrics:
     server:
-      - address: 127.0.0.10
-        port: 9083
+      - address: 127.0.0.5
+        port: 9600
 _nf: nrf
 ################################################################################
 # SBI Server

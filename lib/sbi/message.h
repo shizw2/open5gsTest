@@ -530,18 +530,17 @@ typedef struct ogs_sbi_discovery_option_s {
     uint64_t requester_features;
     
     char *supi_id;//add for scp 
-    char *routingIndicator;//add for scp 
+    char *routingIndicator;//add for scp
+    int static_ip;
 } ogs_sbi_discovery_option_t;
 
 #define DEVICE_ID_LEN 64
-#define GROUP_LEN 16
-#define NODE_LEN 16
 #define SERVICE_IP_LEN 16
 #define RESULT_LEN 16
 #define NFTYPE_LEN 16
 #define NF_INSTANCE_ID_LEN 100
 #define MAX_TEMPORARY_SERVICES 100
-#define MAX_NF_INSTANCES 4
+#define MAX_NF_INSTANCES 100
 
 typedef struct sacc_nf_instance_id_s {
     char nf_type[NFTYPE_LEN];
@@ -765,7 +764,8 @@ void ogs_sbi_discovery_option_set_supi_id(
         ogs_sbi_discovery_option_t *discovery_option, char *supi_id);
 void ogs_sbi_discovery_option_set_routingIndicator(
         ogs_sbi_discovery_option_t *discovery_option, char *routingIndicator);
-
+void ogs_sbi_discovery_option_set_static_ip(
+        ogs_sbi_discovery_option_t *discovery_option, uint32_t static_ip);
 void ogs_sbi_discovery_option_add_service_names(
         ogs_sbi_discovery_option_t *discovery_option,
         char *service_name);

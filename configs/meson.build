@@ -49,7 +49,6 @@ foreach file : example_conf
             configuration : conf_data)
 endforeach
 
-subdir('5gcone')
 subdir(project_name)
 subdir('freeDiameter')
 subdir('systemd')

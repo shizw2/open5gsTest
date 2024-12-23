@@ -541,7 +541,10 @@ void ogs_sbi_nf_instances_find_by_supi(ogs_sbi_nf_instance_t *matched_nf_instanc
         OpenAPI_nf_type_e requester_nf_type,
         char *supi_id);
 void ogs_sbi_nf_instances_find_by_routing_indicator(ogs_sbi_nf_instance_t *matched_nf_instances[], int *matched_nf_count, char * desired_routing_indicator);
-
+void ogs_sbi_nf_instances_find_by_ip(ogs_sbi_nf_instance_t *matched_nf_instances[], int *matched_nf_count,
+        OpenAPI_nf_type_e target_nf_type,
+        OpenAPI_nf_type_e requester_nf_type,
+        uint32_t ip);
 void ogs_sbi_client_associate(ogs_sbi_nf_instance_t *nf_instance);
 
 int ogs_sbi_default_client_port(OpenAPI_uri_scheme_e scheme);

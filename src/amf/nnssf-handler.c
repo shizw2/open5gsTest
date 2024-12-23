@@ -104,6 +104,10 @@ int amf_nnssf_nsselection_handle_get(
     ogs_sbi_discovery_option_set_dnn(discovery_option, sess->dnn);
     ogs_sbi_discovery_option_set_tai(discovery_option, &amf_ue->nr_tai);
 
+    if (amf_ue->ue_ip.addr != 0){
+        ogs_sbi_discovery_option_set_static_ip(discovery_option, amf_ue->ue_ip.addr);
+    }
+
     if (sess->nssf.nrf.id)
         ogs_free(sess->nssf.nrf.id);
     sess->nssf.nrf.id = ogs_strdup(NsiInformation->nrf_id);

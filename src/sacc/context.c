@@ -125,9 +125,6 @@ int sacc_context_parse_config(void)
                     self.enable = ogs_yaml_iter_bool(&sacc_iter);
                 } else if (!strcmp(sacc_key, "inherite_enable")) {
                     self.inheriteEnable = ogs_yaml_iter_bool(&sacc_iter);
-                } else if (!strcmp(sacc_key, "node_num")) {
-                    const char *v = ogs_yaml_iter_value(&sacc_iter);
-                    if (v) self.nodeNum = atoi(v);
                 } else if (!strcmp(sacc_key, "scan_interval")) {
                     const char *v = ogs_yaml_iter_value(&sacc_iter);
                     if (v) self.scanInterval = atoi(v);
@@ -236,9 +233,9 @@ int sacc_sbi_context_get_nf_info(
     for (i = 0; i < sacc_nodes->num_of_ipv4; i++){
         ogs_copyaddrinfo(&nf_instance->ipv4[i], sacc_nodes->ipv4[i]);
         if (nf_instance->nf_type == OpenAPI_nf_type_SMF){
-            nf_instance->ipv4[i]->ogs_sin_port = sacc_nodes->smf_sbi_port;
+            nf_instance->ipv4[i]->ogs_sin_port = htons(sacc_nodes->smf_sbi_port);
         }else if (nf_instance->nf_type == OpenAPI_nf_type_AMF){
-            nf_instance->ipv4[i]->ogs_sin_port = sacc_nodes->amf_sbi_port;  
+            nf_instance->ipv4[i]->ogs_sin_port = htons(sacc_nodes->amf_sbi_port);
         }
     }
     nf_instance->num_of_ipv4 = sacc_nodes->num_of_ipv4;
@@ -277,7 +274,7 @@ int sacc_sbi_context_get_nf_info(
 }
 
 int sacc_sbi_context_update_nf_info(
-        OpenAPI_nf_type_e nf_type, sacc_node_t *sacc_nodes)
+        OpenAPI_nf_type_e nf_type, sacc_node_t *sacc_node)
 {
     int rv;
     ogs_sbi_nf_info_t *nf_info = NULL;                        
@@ -289,7 +286,7 @@ int sacc_sbi_context_update_nf_info(
 
     switch (nf_type){
         case OpenAPI_nf_type_SMF:
-            nf_instance = sacc_nodes->smf_nf_instance;
+            nf_instance = sacc_node->smf_nf_instance;
             break;
         default:
             ogs_error("unknown local node type:%d", nf_type);
@@ -311,10 +308,10 @@ int sacc_sbi_context_update_nf_info(
         ogs_assert(nf_info);
 
         memset(&nf_info->smf.staticIPRanges, 0, sizeof(ogs_ip_range_t));
-        add_ipRange(&g_sacc_nodes[self.node].staticIPRanges, &nf_info->smf.staticIPRanges);//加自己的ip
-        for (i = 0; i < self.temporaryServiceNum; i++){//加继承节点的ip
-            ogs_info("add node %d's staticip to node %d.",self.temporaryServices[i].node, self.node);
-            add_ipRange(&g_sacc_nodes[self.temporaryServices[i].node].staticIPRanges, &nf_info->smf.staticIPRanges);
+        add_ipRange(&g_sacc_nodes[sacc_node->node].staticIPRanges, &nf_info->smf.staticIPRanges);//加自己的ip
+        for (i = 0; i < sacc_node->temporaryServiceNum; i++){//加继承节点的ip
+            ogs_info("add node %d's staticip to node %d.",sacc_node->temporaryServices[i].node, sacc_node->node);
+            add_ipRange(&g_sacc_nodes[sacc_node->temporaryServices[i].node].staticIPRanges, &nf_info->smf.staticIPRanges);
         }
     }
     
@@ -377,8 +374,7 @@ int sacc_context_get_nodes_info(
                         const char *v = ogs_yaml_iter_value(&node_iter);                        
                         if (v) cur_node = atoi(v);
                         if (cur_node > self.nodeNum){
-                            ogs_error("node is too big, cur_node %d, self.nodeNum %d.",cur_node , self.nodeNum);
-                            break;
+                            self.nodeNum = cur_node;
                         }
                         sacc_nodes[cur_node].node = cur_node;
                         sacc_nodes[cur_node].group = self.group;
@@ -388,7 +384,7 @@ int sacc_context_get_nodes_info(
                     } else if (!strcmp(node_key, "amf_sbi_port")) {
                         const char *v = ogs_yaml_iter_value(&node_iter);                        
                         if (v) sacc_nodes[cur_node].amf_sbi_port = atoi(v);                      
-                    } else if (!strcmp(node_key, "smb_sbi_port")) {
+                    } else if (!strcmp(node_key, "smf_sbi_port")) {
                         const char *v = ogs_yaml_iter_value(&node_iter);                        
                         if (v) sacc_nodes[cur_node].smf_sbi_port = atoi(v);                      
                     } else if (!strcmp(node_key, "sbi")) {
@@ -690,7 +686,6 @@ int sacc_initialize_nodes(void) {
 
     self.t_hand_shake_interval = ogs_timer_add(ogs_app()->timer_mgr,sacc_timer_node_handshake_timer_expire, NULL);
 	ogs_timer_start(self.t_hand_shake_interval, ogs_time_from_sec(self.heartbeatInterval));
-
 
     return OGS_OK;
 }

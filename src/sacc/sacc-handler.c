@@ -93,8 +93,7 @@ void sacc_scan(void) {
             sacc_send_request(SACC_MSG_TYPE_HANDSHAKE, &g_sacc_nodes[n]);
         }
     }
-
-    //updateInheriteInfo();
+    
     elect_inheritor();
 }
 
@@ -512,18 +511,21 @@ end:
 }
 
 void updateInheriteInfo(void){
-    ogs_info("updateInheriteInfo");
-    sacc_sbi_context_update_nf_info(OpenAPI_nf_type_SMF, &g_sacc_nodes[sacc_self()->node]);
-    sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[sacc_self()->node].smf_nf_instance);
+    if (g_sacc_nodes[sacc_self()->node].temporaryServiceNum > 0) {   
+        ogs_info("update smf Inherite Info,temporaryServiceNum:%d.",g_sacc_nodes[sacc_self()->node].temporaryServiceNum);        
+        sacc_sbi_context_update_nf_info(OpenAPI_nf_type_SMF, &g_sacc_nodes[sacc_self()->node]);
+        sacc_nnrf_nfm_send_nf_register(g_sacc_nodes[sacc_self()->node].smf_nf_instance);
+    }
 }
 
-// 选举继承者的函数
+sacc_node_t last_inheritor;
+// 选举继承者
 sacc_node_t* elect_inheritor(void) {
     int n;
 
     sacc_node_t *inheritor = NULL;
     int lowest_priority = INT_MAX;
-    unsigned int lowest_ip_addr = UINT_MAX; // 用于存储最低IP地址的变量
+    unsigned int lowest_ip_addr = UINT_MAX; 
 
     for (n = 1; n <= sacc_self()->nodeNum && n <= MAX_PEER_NUM; n++) {
         sacc_node_t *current_node = &g_sacc_nodes[n];
@@ -542,9 +544,9 @@ sacc_node_t* elect_inheritor(void) {
         }
     }
 
-    if (inheritor) {
-        //继承者需要继承故障节点的静态IP信息
+    if (inheritor) {        
         inheritor->temporaryServiceNum = 0; // 重置继承者的服务数量
+
         for (n = 1; n <= sacc_self()->nodeNum && n <= MAX_PEER_NUM; n++) {
             sacc_node_t *current_node = &g_sacc_nodes[n];
             if (current_node->state == SACC_PEER_STATE_OFFLINE && current_node->node != inheritor->node){
@@ -556,7 +558,30 @@ sacc_node_t* elect_inheritor(void) {
         ogs_info("Elected Inheritor: Node %d, Group %d, Priority %d, IP %s,temporaryServiceNum:%d.\n", 
             inheritor->node, inheritor->group, inheritor->priority,
             inet_ntoa(inheritor->ipv4[0]->sin.sin_addr),inheritor->temporaryServiceNum);
+
+        if (inheritor->temporaryServiceNum > 0) {   
+            //比较last_inheritor和inheritor的temporaryServices不一样，才更新
+            bool services_changed = false;
             
+            if (last_inheritor.temporaryServiceNum != inheritor->temporaryServiceNum) {
+                services_changed = true;
+            } else {
+                for (n = 0; n < inheritor->temporaryServiceNum; n++) {
+                    if (last_inheritor.temporaryServices[n].group != inheritor->temporaryServices[n].group ||
+                        last_inheritor.temporaryServices[n].node != inheritor->temporaryServices[n].node) {
+                        services_changed = true;
+                        break;
+                    }
+                }
+            }
+            if (services_changed) {
+                ogs_info("update smf Inherite static ip,temporaryServiceNum:%d.",inheritor->temporaryServiceNum);        
+                sacc_sbi_context_update_nf_info(OpenAPI_nf_type_SMF, inheritor);
+                sacc_nnrf_nfm_send_nf_register(inheritor->smf_nf_instance);
+            }
+        }
+
+        last_inheritor = *inheritor;         
     } else {
         ogs_info("No eligible inheritor found.\n");
     }

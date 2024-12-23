@@ -3178,6 +3178,15 @@ void ogs_sbi_discovery_option_set_supi_id(
     discovery_option->routingIndicator = ogs_strdup(routingIndicator);
     ogs_assert(discovery_option->routingIndicator);
 }
+
+void ogs_sbi_discovery_option_set_static_ip(
+        ogs_sbi_discovery_option_t *discovery_option, uint32_t static_ip)
+{
+    ogs_assert(discovery_option);
+    ogs_info("ogs_sbi_discovery_option_set_static_ip:%s",ogs_ipv4_to_str(static_ip));
+    discovery_option->static_ip = static_ip;
+}
+
 void ogs_sbi_discovery_option_add_service_names(
         ogs_sbi_discovery_option_t *discovery_option,
         char *service_name)
@@ -3750,7 +3759,7 @@ cJSON *OpenAPI_sacc_msg_data_convertToJSON(sacc_msg_data_t *handshake)
     }
 
     // 将整数inheriteEnable转换为字符串并添加到JSON对象中
-    char inheriteEnable_str[10] = {0};
+    char inheriteEnable_str[12] = {0};
     snprintf(inheriteEnable_str, sizeof(inheriteEnable_str), "%d", handshake->inheriteEnable);
     if (cJSON_AddStringToObject(item, "inheriteEnable", inheriteEnable_str) == NULL) {
         ogs_error("OpenAPI_sacc_msg_data_convertToJSON() failed [inheriteEnable]");

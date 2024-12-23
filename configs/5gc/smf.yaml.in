@@ -13,35 +13,37 @@ global:
       node: 1
   cli:
     server:
-      - address: 127.0.0.4
-        port: 2300
+      - address: 127.0.0.1
+        port: 7200
 
 smf:
   sbi:
     server:
-      - address: 127.0.0.4
-        port: 7777
+      - address: 127.0.0.5
+        port: 8200
     client:
       nrf:
-        - uri: http://127.0.0.10:7777
+        - uri: http://127.0.0.5:8600
 #      scp:
 #        - uri: http://127.0.0.200:7777
   pfcp:
     server:
-      - address: 127.0.0.4
+      - address: 127.0.0.5
+        port: 8806
     client:
       upf:
-        - address: 127.0.0.7
+        - address: 127.0.0.5
+          port: 8805
   gtpc:
     server:
-      - address: 127.0.0.4
+      - address: 127.0.0.5
   gtpu:
     server:
       - address: 127.0.0.4
   metrics:
     server:
-      - address: 127.0.0.4
-        port: 9090
+      - address: 127.0.0.5
+        port: 9200
   session:
     - subnet: 10.45.0.0/16
       gateway: 10.45.0.1

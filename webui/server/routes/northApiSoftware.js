@@ -242,7 +242,7 @@ router.get('/ueStatus', async (req, res) => {
 
       // 调用异步函数获取数据
       const config = await loadConfig();
-      const dataString = await fetchDataFromTelnet(config.cliInfo.amf_sps.port, config.cliInfo.amf_sps.ip, '5gc', command);
+      const dataString = await fetchDataFromTelnet(config.cliInfo.amf.port+1, config.cliInfo.amf.ip, '5gc', command);
       const data = JSON.parse(dataString);
 
       // 检查数据是否为空

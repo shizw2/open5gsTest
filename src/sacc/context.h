@@ -50,18 +50,6 @@ extern int __sacc_log_domain;
 #define SACC_NODE_ROLE_T1 "T1"
 #define SACC_NODE_ROLE_T2 "T2"
 
-typedef struct sacc_config_s {
-    int enable;             //可开启和关闭随遇接入功能
-    int port;               //随遇接入端口
-    int scanInterval;       //5秒扫描一次
-    int heartbeatInterval;  //每5秒发一次心跳
-    int heartbeatLost;      //丢失5次心跳，认为断线
-    char role[16];          //当前设备身份标识
-    int group;              //当前设备组号，身份为T0时T1时，组号为零
-    int node;               //当前设备节点号，身份为T0时T1时，节点号为零
-    int nodeNum;
-} sacc_config_t;
-
 typedef struct sacc_context_s {
     const char *deviceType; //产品型号
     const char *deviceName; //设备名称
@@ -75,15 +63,23 @@ typedef struct sacc_context_s {
     const char *role;          //当前设备身份标识
     int group;              //当前设备组号，身份为T0时T1时，组号为零
     int node;               //当前设备节点号，身份为T0时T1时，节点号为零
-    int nodeNum;
+    int nodeNum;            //不需要配置,取nodes中最大节点号
     int inheriteEnable;     //能否有继承功能开关
-    int temporaryServiceNum;       // 临时服务数量
-    sacc_config_t temporaryServices[MAX_PEER_NUM]; // 临时服务设备信息数组
     ogs_timer_t     *t_hand_shake_interval;   /* timer to send hand shake to peer node */
 } sacc_context_t;
 
 
-
+typedef struct sacc_config_s {
+    int enable;             //可开启和关闭随遇接入功能
+    int port;               //随遇接入端口
+    int scanInterval;       //5秒扫描一次
+    int heartbeatInterval;  //每5秒发一次心跳
+    int heartbeatLost;      //丢失5次心跳，认为断线
+    char role[16];          //当前设备身份标识
+    int group;              //当前设备组号，身份为T0时T1时，组号为零
+    int node;               //当前设备节点号，身份为T0时T1时，节点号为零
+    int nodeNum;
+} sacc_config_t;
 
 typedef struct sacc_node_s {
     int group;

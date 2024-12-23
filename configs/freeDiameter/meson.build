@@ -23,6 +23,7 @@ freediameter_conf = '''
     mme.conf
     hss.conf
     smf.conf
+    smf2.conf
     pcrf.conf
     pcf.conf
 '''.split()

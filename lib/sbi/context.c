@@ -1634,6 +1634,41 @@ static int check_supi_ranges(
     return bestMatchLength;
 }
 
+static int check_ip_ranges(
+        ogs_ip_range_t *ip_ranges, uint32_t ip)
+{      
+    ogs_assert(ip_ranges);
+    int bestMatchLength = 0;    
+    int i;
+    
+    if (ip_ranges->num_of_range == 0){
+        ogs_info("no ip range, check ok, ip:%s", ogs_ipv4_to_str(ip));
+        return 1;
+    }
+
+    ip = ntohl(ip);
+
+    for (i = 0; i < ip_ranges->num_of_range; i++) {
+        int startLength = strlen(ip_ranges->range[i].start);
+
+        uint32_t startAddr = 0;
+        uint32_t endAddr = 0;
+        ogs_ipv4_from_string(&startAddr,ip_ranges->range[i].start);
+        ogs_ipv4_from_string(&endAddr,ip_ranges->range[i].end);
+
+        startAddr = ntohl(startAddr);
+        endAddr = ntohl(endAddr);
+         
+        if (ip >= startAddr && ip <= endAddr) {
+            ogs_info("ip is in range, check ok, ip:%s[%d], start:%s[%d], end:%s[%d]", ogs_ipv4_to_str(htonl(ip)),ip, ip_ranges->range[i].start, startAddr,ip_ranges->range[i].end,endAddr);
+            return 1;
+        }else{
+            ogs_info("ip is not in range, ip:%s[%d], start:%s[%d], end:%s[%d]", ogs_ipv4_to_str(htonl(ip)),ip, ip_ranges->range[i].start, startAddr,ip_ranges->range[i].end,endAddr);
+        }
+    }
+    return 0;
+}
+
 //找到满足条件的NF集合
 void ogs_sbi_nf_instances_find_by_discovery_param(ogs_sbi_nf_instance_t *matched_nf_instances[], int *matched_nf_count,
         OpenAPI_nf_type_e target_nf_type,
@@ -1661,6 +1696,11 @@ void ogs_sbi_nf_instances_find_by_discovery_param(ogs_sbi_nf_instance_t *matched
     if (discovery_option && discovery_option->supi_id != NULL){
         ogs_sbi_nf_instances_find_by_supi(matched_nf_instances,matched_nf_count,target_nf_type, requester_nf_type, discovery_option->supi_id);
         ogs_info("after ogs_sbi_nf_instances_find_by_supi, supi:%s, requester_nf_type:%s,target_nf_type:%s, matched_nf_count:%d.",discovery_option->supi_id, OpenAPI_nf_type_ToString(requester_nf_type), OpenAPI_nf_type_ToString(target_nf_type),*matched_nf_count);
+    }
+
+    if (discovery_option && discovery_option->static_ip != 0 && target_nf_type == OpenAPI_nf_type_SMF){
+        ogs_sbi_nf_instances_find_by_ip(matched_nf_instances,matched_nf_count,target_nf_type, requester_nf_type, discovery_option->static_ip);
+        ogs_info("after ogs_sbi_nf_instances_find_by_ip, ip:%s, requester_nf_type:%s,target_nf_type:%s, matched_nf_count:%d.",ogs_ipv4_to_str(discovery_option->static_ip), OpenAPI_nf_type_ToString(requester_nf_type), OpenAPI_nf_type_ToString(target_nf_type),*matched_nf_count);
     }
     
     if (discovery_option && discovery_option->routingIndicator != NULL && (target_nf_type == OpenAPI_nf_type_AUSF || target_nf_type == OpenAPI_nf_type_UDM)){
@@ -1826,6 +1866,68 @@ void ogs_sbi_nf_instances_find_by_routing_indicator(ogs_sbi_nf_instance_t *match
     } else {
         ogs_warn("matched_nf_instance, no valid instance.");
     }
+}
+
+void ogs_sbi_nf_instances_find_by_ip(ogs_sbi_nf_instance_t *matched_nf_instances[], int *matched_nf_count,
+        OpenAPI_nf_type_e target_nf_type,
+        OpenAPI_nf_type_e requester_nf_type,
+        uint32_t ip)
+{
+    ogs_sbi_nf_instance_t *nf_instance = NULL;
+    ogs_sbi_nf_instance_t *tmp_matched_nf_instances[16];
+    int tmp_matched_nf_count = 0;
+    int max_prefix_length = 0;
+    int i;
+        
+    for (i = 0; i < *matched_nf_count; i++) {
+        nf_instance = matched_nf_instances[i];
+
+        ogs_debug("ogs_sbi_nf_instances_find_by_ip, nf_instance->nf_type:%s, ip:%s.", OpenAPI_nf_type_ToString(nf_instance->nf_type), ogs_ipv4_to_str(ip));
+
+        switch (nf_instance->nf_type) {
+            case OpenAPI_nf_type_SMF:
+                if (ogs_list_count(&nf_instance->nf_info_list) > 0) {
+                    ogs_sbi_nf_info_t *nf_info = NULL;
+                    int prefix_length = 0;
+
+                    ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
+                        if (nf_info->nf_type != nf_instance->nf_type) {
+                            continue;
+                        }
+
+                        ogs_ip_range_t ip_ranges;
+
+                        switch (nf_instance->nf_type) {
+                            case OpenAPI_nf_type_SMF:
+                                ip_ranges = nf_info->smf.staticIPRanges;
+                                break;
+                            default:
+                                break;
+                        }
+
+                        if (ip_ranges.num_of_range > 0){
+                            if (check_ip_ranges(&ip_ranges, ip)) {
+                                tmp_matched_nf_instances[tmp_matched_nf_count++] = nf_instance;
+                            }
+                        } else {
+                            tmp_matched_nf_instances[tmp_matched_nf_count++] = nf_instance;//兼容当前，如果没配置info,则也匹配成功
+                        }
+                    }
+                } else{                   
+                    tmp_matched_nf_instances[tmp_matched_nf_count++] = nf_instance;//兼容当前，如果没配置info,则也匹配成功
+                }
+                break;
+
+            default:                
+                tmp_matched_nf_instances[tmp_matched_nf_count++] = nf_instance;//兼容当前，不需要匹配info,则也匹配成功
+                break;
+        }
+    }
+
+    for (i = 0; i < tmp_matched_nf_count; i++) {
+        matched_nf_instances[i] = tmp_matched_nf_instances[i];
+    }
+    *matched_nf_count = tmp_matched_nf_count;
 }
 
 ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_find_by_capacity(ogs_sbi_nf_instance_t *matched_nf_instances[], int matched_nf_count)

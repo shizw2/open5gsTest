@@ -14,22 +14,22 @@ global:
       node: 1
   cli:
     server:
-      - address: 127.0.0.22
-        port: 2300
+      - address: 127.0.0.1
+        port: 7901
 
 eir:
   sbi:
     server:
-      - address: 127.0.0.22
-        port: 7777
+      - address: 127.0.0.5
+        port: 8901
     client:
       nrf:
-        - uri: http://127.0.0.10:7777
+        - uri: http://127.0.0.5:8600
 #      scp:
 #        - uri: http://127.0.0.200:7777
   metrics:
     server:
-      - address: 127.0.0.22
-        port: 9086
+      - address: 127.0.0.5
+        port: 9901
 
 _nf: eir

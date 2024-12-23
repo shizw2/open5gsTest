@@ -18,31 +18,31 @@ sepp:
         cacert: @sysconfdir@/5gc/tls/ca.crt
   sbi:
     server:
-      - address: 127.0.1.250
-        port: 7777
+      - address: 127.0.0.5
+        port: 8905
     client:
       nrf:
-        - uri: http://127.0.0.10:7777
+        - uri: http://127.0.0.5:8600
 #      scp:
 #        - uri: http://127.0.0.200:7777
   n32:
     server:
       - sender: sepp1.localdomain
         scheme: https
-        address: 127.0.1.251
-        port: 7777
+        address: 127.0.0.5
+        port: 8906
         n32f:
           scheme: https
-          address: 127.0.1.252
-          port: 7777
+          address: 127.0.0.5
+          port: 8907
     client:
       sepp:
         - receiver: sepp2.localdomain
-          uri: https://sepp2.localdomain:7777
-          resolve: 127.0.2.251
+          uri: https://sepp2.localdomain:8906
+          resolve: 127.0.0.6
           n32f:
-            uri: https://sepp2.localdomain:7777
-            resolve: 127.0.2.252
+            uri: https://sepp2.localdomain:8907
+            resolve: 127.0.0.6
 
 ################################################################################
 # SEPP Info

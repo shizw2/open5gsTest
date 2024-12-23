@@ -612,6 +612,17 @@ char *ogs_ipv4_to_string(uint32_t addr)
     return (char*)OGS_INET_NTOP(&addr, buf);
 }
 
+//返回的地址不需要free,适用于打印
+char *ogs_ipv4_to_str(uint32_t addr)
+{
+    uint8_t *p = (uint8_t *)&addr;
+    static char buf[4][16];
+    static int count = 0;
+    count = (count + 1) % 4; // 切换到下一个缓冲区
+    sprintf(buf[count], "%u.%u.%u.%u%c", p[0], p[1], p[2], p[3], '\0');
+    return buf[count];
+}
+
 char *ogs_ipv6addr_to_string(const uint8_t *addr6)
 {
     char *buf = NULL;
