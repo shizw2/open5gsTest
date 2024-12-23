@@ -16,8 +16,11 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 open5gs_sysconfdir = join_paths(sysconfdir, project_name)
+open5gs_backupdir = join_paths(sysconfdir, '5gc_backup')
 meson.add_install_script(python3_exe, '-c',
         mkdir_p.format(open5gs_sysconfdir))
+meson.add_install_script(python3_exe, '-c',
+        mkdir_p.format(open5gs_backupdir))        
 
 open5gs_conf = '''
     mme.yaml
@@ -48,6 +51,8 @@ foreach file : open5gs_conf
             configuration : conf_data)
     meson.add_install_script(python3_exe, '-c',
             install_conf.format(gen, open5gs_sysconfdir))
+    meson.add_install_script(python3_exe, '-c',
+            install_conf.format(gen, open5gs_backupdir))
 endforeach
 
 subdir('tls')

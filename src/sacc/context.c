@@ -67,6 +67,10 @@ void sacc_context_final(void)
         // node->supiRanges.num_of_supi_range = 0;
         supiRange_free(&node->supiRanges);
         ipRange_free(&node->staticIPRanges);
+
+        if (node->client)
+            ogs_sbi_client_remove(node->client);
+
         ogs_free(node->uri);
     }
 }
