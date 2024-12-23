@@ -17,8 +17,11 @@
 
 open5gs_sysconfdir = join_paths(sysconfdir, project_name)
 open5gs_sysconf_default_dir = join_paths(sysconfdir, '5gc_default')
+
 meson.add_install_script(python3_exe, '-c',
         mkdir_p.format(open5gs_sysconfdir))
+meson.add_install_script(python3_exe, '-c',
+        mkdir_p.format(open5gs_sysconf_default_dir))        
 
 open5gs_conf = '''
     mme.yaml
@@ -64,7 +67,7 @@ foreach file : open5gs_conf
     meson.add_install_script(python3_exe, '-c',
             install_conf.format(gen, open5gs_sysconfdir))
     meson.add_install_script(python3_exe, '-c',
-            install_conf.format(gen, open5gs_sysconf_default_dir))            
+            install_conf.format(gen, open5gs_sysconf_default_dir))
 endforeach
 
 subdir('tls')

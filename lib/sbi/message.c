@@ -2640,21 +2640,11 @@ static int parse_json(ogs_sbi_message_t *message,
             CASE(OGS_SBI_RESOURCE_NAME_HEARTBEAT)
                 SWITCH(message->h.method)
                 CASE(OGS_SBI_HTTP_METHOD_POST)
-                    if (message->res_status == 0) {
-                        message->sacc_msg_Data =
-                            OpenAPI_sacc_msg_data_parseFromJSON(item);
-                        if (!message->sacc_msg_Data) {
-                            rv = OGS_ERROR;
-                            ogs_error("JSON parse error");
-                        }
-                        //ogs_info("sbi receive sacc handshake request, %s %s %s %s",message->sacc_msg_Data->deviceId,message->sacc_msg_Data->group,message->sacc_msg_Data->node,message->sacc_msg_Data->serviceIp);
-                    } else if (message->res_status == OGS_SBI_HTTP_STATUS_OK) {
-                        message->sacc_msg_Data =
-                            OpenAPI_sacc_msg_data_parseFromJSON(item);
-                        if (!message->sacc_msg_Data) {
-                            rv = OGS_ERROR;
-                            ogs_error("JSON parse error");
-                        }
+                    message->sacc_msg_Data =
+                        OpenAPI_sacc_msg_data_parseFromJSON(item);
+                    if (!message->sacc_msg_Data) {
+                        rv = OGS_ERROR;
+                        ogs_error("JSON parse error");
                     }
                     break;
                 DEFAULT
